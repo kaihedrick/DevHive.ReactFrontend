@@ -1,0 +1,22 @@
+.footer {
+    background-color: #212529; /* Dark background */
+    color: #fff; /* White text */
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    position: fixed; /* Sticks the footer to the bottom */
+    bottom: 0;
+    width: 100%;
+  }
+  
+  .footer-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .footer p {
+    margin: 0;
+    font-size: 1rem;
+  }
+  
