@@ -1,5 +1,3 @@
-// File: src/hooks/useLoginRegister.js
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login, register, validateEmail } from "../services/authService";

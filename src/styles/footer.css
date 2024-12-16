@@ -1,26 +1,25 @@
-<<<<<<< HEAD
 body {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Fills viewport height */
-  margin: 0; /* Removes default margin */
+  min-height: 100vh; 
+  margin: 0; 
 }
 
 .container {
-  flex: 1; /* Pushes footer to the bottom */
-  padding-bottom: 60px; /* Prevents overlap with footer */
-  min-height: calc(100vh - 60px); /* Accounts for footer height */
+  flex: 1; 
+  padding-bottom: 60px; 
+  min-height: calc(100vh - 60px); 
   box-sizing: border-box;
-  transition: all 0.3s ease-in-out; /* Smooth transition between states */
+  transition: all 0.3s ease-in-out; 
 }
 
 .footer {
-  background-color: #212529; /* Dark background */
-  color: #fff; /* White text */
+  background-color: #212529; 
+  color: #fff; 
   padding: 10px 20px;
   text-align: center;
   font-size: 0.9rem;
-  position: fixed; /* Sticks the footer to the bottom */
+  position: fixed; 
   bottom: 0;
   width: 100%;
 }
@@ -35,27 +34,3 @@ body {
   margin: 0;
   font-size: 1rem;
 }
-=======
-.footer {
-    background-color: #212529; /* Dark background */
-    color: #fff; /* White text */
-    padding: 10px 20px;
-    text-align: center;
-    font-size: 0.9rem;
-    position: fixed; /* Sticks the footer to the bottom */
-    bottom: 0;
-    width: 100%;
-  }
-  
-  .footer-content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .footer p {
-    margin: 0;
-    font-size: 1rem;
-  }
-  
->>>>>>> 90dd45ff33993cb9ae61c9d37a9887add43e2f11

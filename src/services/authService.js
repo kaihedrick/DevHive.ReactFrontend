@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import axios from "axios";
 
 const API_URL = "https://localhost:7170/api/User";
@@ -27,20 +26,10 @@ export const login = async (credentials) => {
 
     throw error; //throw error
   }
-=======
-import axios from 'axios';
-
-const API_URL = 'http://localhost:7170/api/User';
-
-export const login = async (credentials) => {
-  const response = await axios.post(`${API_URL}/ProcessLogin/`, credentials);
-  return response.data; // This contains the token
->>>>>>> 90dd45ff33993cb9ae61c9d37a9887add43e2f11
 };
 
 export const register = async (userData) => {
   const response = await axios.post(`${API_URL}`, userData);
-<<<<<<< HEAD
   return response.data; // return response
 };
 
@@ -62,7 +51,4 @@ export const validateEmail = async (email) => {
     console.error("Error checking email duplicate:", error);
     throw error;
   }
-=======
-  return response.data;
->>>>>>> 90dd45ff33993cb9ae61c9d37a9887add43e2f11
 };
