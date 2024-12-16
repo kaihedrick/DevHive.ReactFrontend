@@ -1,0 +1,36 @@
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Fills viewport height */
+  margin: 0; /* Removes default margin */
+}
+
+.container {
+  flex: 1; /* Pushes footer to the bottom */
+  padding-bottom: 60px; /* Prevents overlap with footer */
+  min-height: calc(100vh - 60px); /* Accounts for footer height */
+  box-sizing: border-box;
+  transition: all 0.3s ease-in-out; /* Smooth transition between states */
+}
+
+.footer {
+  background-color: #212529; /* Dark background */
+  color: #fff; /* White text */
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 0.9rem;
+  position: fixed; /* Sticks the footer to the bottom */
+  bottom: 0;
+  width: 100%;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer p {
+  margin: 0;
+  font-size: 1rem;
+}
