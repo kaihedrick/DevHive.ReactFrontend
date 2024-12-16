@@ -1,7 +1,10 @@
 import React from 'react';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 
+<<<<<<< HEAD
 //will be used in the future
+=======
+>>>>>>> 90dd45ff33993cb9ae61c9d37a9887add43e2f11
 const MyNavbar = () => {
   return (
     <Navbar bg="dark" variant="dark" expand="lg">
