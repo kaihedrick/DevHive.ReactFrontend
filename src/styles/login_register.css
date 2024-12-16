@@ -1,44 +1,43 @@
-<<<<<<< HEAD
 .background {
   display: flex;
-  flex-direction: column; /* Stack the logo and form vertically */
+  flex-direction: column; 
   justify-content: center;
   align-items: center;
-  min-height: 100vh; /* Full viewport height */
-  background: linear-gradient(to bottom right, #f5c542, #ff9f1c); /* Honeycomb gradient */
-  padding: 20px; /* Padding for responsiveness */
+  min-height: 100vh; 
+  background: linear-gradient(to bottom right, #f5c542, #ff9f1c); 
+  padding: 20px; 
 }
 
-/* Logo Section */
+
 .logo-container {
-  display: flex; /* Use flexbox to align logo and text beside each other */
-  align-items: center; /* Vertically center align items */
-  justify-content: center; /* Center the logo-text block horizontally */
-  margin-bottom: 30px; /* Space between logo and form */
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  margin-bottom: 30px; 
 }
 
 .devhive-logo {
-  width: 70px; /* Adjust width of the logo */
-  height: 70px; /* Adjust height to match text size */
-  margin-right: 10px; /* Space between logo and text */
+  width: 70px; 
+  height: 70px; 
+  margin-right: 10px; 
 }
 
 .logo-text {
-  color: #3c3c3c; /* Darker gray text for contrast */
-  font-size: 36px; /* Match the size of the text */
-  font-weight: 700; /* Bold font weight */
+  color: #3c3c3c; 
+  font-size: 36px; 
+  font-weight: 700; 
   font-family: 'Poppins', sans-serif;
 }
 
 .container {
   display: flex;
   flex-direction: column;
-  width: 100%; /* Make it responsive */
-  max-width: 400px; /* Restrict maximum width for better proportions */
+  width: 100%; 
+  max-width: 400px; 
   background: #fff;
   border-radius: 10px;
-  padding: 30px; /* Reduced padding */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for modern look */
+  padding: 30px; 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
 }
 
 .header {
@@ -47,53 +46,53 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  margin-bottom: 20px; /* Reduced margin */
+  margin-bottom: 20px; 
 }
 
 .text {
-  color: #f5c542; /* Honeycomb gold */
-  font-size: 36px; /* Reduced font size */
+  color: #f5c542; 
+  font-size: 36px; 
   font-weight: 700;
 }
 
 .underline {
   width: 50px;
   height: 4px;
-  background: #f5c542; /* Honeycomb gold */
+  background: #f5c542; 
   border-radius: 9px;
 }
 
 .inputs {
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Ensure space between input fields */
+  gap: 20px;
 }
 
 .input-container {
   display: flex;
-  flex-direction: column; /* Align error messages above inputs */
-  margin-bottom: 15px; /* Spacing between each field */
+  flex-direction: column; 
+  margin-bottom: 15px; 
 }
 
 .error-message {
   color: red;
-  font-size: 12px; /* Adjusted font size for error message */
-  margin-bottom: 5px; /* Space between error message and input */
+  font-size: 12px; 
+  margin-bottom: 5px; 
 }
 
 .input {
   display: flex;
   align-items: center;
   width: 100%;
-  height: 50px; /* Reduced height for fields */
-  background-color: #fff3cd; /* Honeycomb light */
+  height: 50px; 
+  background-color: #fff3cd; 
   border-radius: 6px;
-  padding: 0 15px; /* Reduced padding inside fields */
+  padding: 0 15px; 
 }
 
 .input img {
-  height: 20px; /* Adjust icon size */
-  margin-right: 10px; /* Reduced space between icon and input */
+  height: 20px; 
+  margin-right: 10px; 
 }
 
 .input input {
@@ -101,38 +100,38 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #6c757d; /* Neutral gray */
-  font-size: 14px; /* Reduced font size */
+  color: #6c757d; 
+  font-size: 14px; 
 }
 
 .forgot-password {
   text-align: left;
   margin-top: 10px;
-  font-size: 14px; /* Reduced font size */
-  color: #6c757d; /* Neutral gray */
+  font-size: 14px; 
+  color: #6c757d; 
 }
 
 .forgot-password span {
-  color: #ff9f1c; /* Honeycomb orange */
+  color: #ff9f1c; 
   cursor: pointer;
 }
 
 .submit-container {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px; /* Reduced margin */
+  margin-top: 20px; 
 }
 
 .submit {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 48%; /* Keep buttons side by side */
-  height: 45px; /* Reduced height */
+  width: 48%; 
+  height: 45px; 
   color: #fff;
-  background: #ff9f1c; /* Honeycomb orange */
+  background: #ff9f1c; 
   border-radius: 50px;
-  font-size: 14px; /* Reduced font size */
+  font-size: 14px; 
   font-weight: 700;
   cursor: pointer;
 }
@@ -144,91 +143,11 @@
 
 .validation-warning {
   color: red;
-  font-size: 12px; /* Reduced font size for warning */
+  font-size: 12px; 
   text-align: center;
   margin-top: 10px;
 }
 
 .input-error {
-  border: 1px solid red; /* Add a red border to the input field for errors */
+  border: 1px solid red; 
 }
-=======
-.auth-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: #fff3cd;
-    border-radius: 15px;
-    padding: 20px;
-    width: 400px;
-    margin: 50px auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  h1 {
-    font-size: 1.8rem;
-    margin-bottom: 20px;
-  }
-  
-  .auth-form {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .auth-form input {
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 1rem;
-  }
-  
-  .button-group {
-    display: flex;
-    justify-content: center; /* Center the buttons horizontally */
-    gap: 10px; /* Add spacing between buttons */
-    margin-top: 15px; /* Add space between buttons and the inputs */
-  }
-  
-  button {
-    background-color: #ffc107;
-    color: #000;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 1rem;
-  }
-  
-  button:hover {
-    background-color: #e0a800;
-  }
-  
-  
-  .forgot-password {
-    margin-top: 15px;
-    text-align: center;
-    font-size: 0.9rem;
-    color: #007bff;
-    text-decoration: none;
-  }
-  
-  .forgot-password:hover {
-    text-decoration: underline;
-  }
-  
-  .error {
-    color: red;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-  }
-  
-  .success {
-    color: green;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-  }
-  
->>>>>>> 90dd45ff33993cb9ae61c9d37a9887add43e2f11
