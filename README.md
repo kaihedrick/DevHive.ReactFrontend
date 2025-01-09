@@ -1,6 +1,8 @@
 # DevHive: React Frontend
 
 The **React Frontend** for DevHive is a web-based user interface designed to empower agile teams through efficient communication and collaboration. This frontend is built to integrate seamlessly with the DevHive backend and provides tools for managing projects, tasks, and team interactions.
+![LoginRegistration](https://github.com/user-attachments/assets/7985909c-980b-43f3-8f63-ece0e19c0596)
+
 
 ---
 
