@@ -1,70 +1,69 @@
-# Getting Started with Create React App
+# DevHive: React Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+The **React Frontend** for DevHive is a web-based user interface designed to empower agile teams through efficient communication and collaboration. This frontend is built to integrate seamlessly with the DevHive backend and provides tools for managing projects, tasks, and team interactions.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 Features
 
-### `npm start`
+### User Authentication
+- Register, log in, and manage user accounts.
+- Secure authentication integrated with RESTful APIs.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Project Management
+- Create, edit, and view projects.
+- Manage project details, including descriptions, team members, and tasks.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Kanban Board Integration
+- Interactive drag-and-drop Kanban board for task visualization and sprint planning.
+- Real-time updates for collaborative task management.
 
-### `npm test`
+### Task Management
+- CRUD operations for tasks with assignment and progress tracking.
+- Live updates using WebSockets or Firebase.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Communication
+- Direct messaging between users via Firebase's real-time database.
+- Group chat integration within project workflows.
 
-### `npm run build`
+### Sprint Tracking
+- Timeline and progress tracking for agile sprints.
+- View sprint details and completion statuses.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Responsive Design
+- Optimized for desktop and tablet devices.
+- Styled with modern CSS frameworks like Material-UI or Tailwind CSS.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🛠️ Tech Stack
 
-### `npm run eject`
+- **React**: Version 18.x with functional components and React Hooks.
+- **State Management**: Redux or Context API for global state handling.
+- **Routing**: React Router for seamless navigation.
+- **Backend API**: RESTful API communication with the ASP.NET backend.
+- **Database**: Firebase for real-time messaging.
+- **Styling**: Material-UI / Tailwind CSS for a modern, responsive design.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📈 Development Goals
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+1. Deliver a polished and scalable frontend aligned with DevHive's ecosystem.
+2. Ensure extensibility for future feature enhancements.
+3. Maintain accessibility compliance (WCAG standards).
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+## 📂 Project Structure
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```plaintext
+src/
+├── components/      # Reusable React components
+├── pages/           # Application pages (e.g., Dashboard, Login, Projects)
+├── hooks/           # Custom React hooks
+├── context/         # Global state management (Context API or Redux)
+├── services/        # API and Firebase integration
+├── utils/           # Utility functions and helpers
+├── assets/          # Static files (images, CSS, etc.)
+└── App.js           # Main application component
