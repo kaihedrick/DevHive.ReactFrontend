@@ -1,43 +1,111 @@
+/* General Layout */
 .projects-container {
-    background-color: #fff3cd;
-    border-radius: 15px;
-    padding: 30px;
-    margin: 50px auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .project-card {
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .project-pic {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #e9ecef;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    color: #666;
-  }
-  
-  .button-group .custom-button {
-    background-color: #ffc107;
-    border: none;
-    color: #212529;
-    padding: 10px 20px;
-    font-size: 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .button-group .custom-button:hover {
-    background-color: #e0a800;
-    color: #fff;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, #f5c542, #ff9f1c);
+  padding: 20px;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Header Styling */
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  color: #3c3c3c;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.header p {
+  color: #676767;
+  font-size: 18px;
+}
+
+/* Project Cards */
+.projects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.project-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.project-card h3 {
+  color: #3c3c3c;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.project-card p {
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.project-card:hover {
+  transform: scale(1.05);
+}
+
+/* Loading Indicator */
+.loading {
+  font-size: 20px;
+  color: #fff;
+}
+
+/* Actions Section */
+.actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.action-btn {
+  width: 180px;
+  height: 50px;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.create-btn {
+  background: #ff9f1c;
+  color: #fff;
+}
+
+.create-btn:hover {
+  background: #e88e10;
+}
+
+.join-btn {
+  background: #eaeaea;
+  color: #676767;
+}
+
+.join-btn:hover {
+  background: #d6d6d6;
+}
+
+.account-btn {
+  background: #3c3c3c;
+  color: #fff;
+}
+
+.account-btn:hover {
+  background: #2a2a2a;
+}
