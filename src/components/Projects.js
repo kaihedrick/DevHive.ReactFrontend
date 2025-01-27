@@ -1,32 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { fetchUserProjects } from "../services/projectService"; // Updated import
-import "../styles/projects.css"; // Ensure correct CSS path
+import useProjects from "../hooks/useProjects.js";
+import { useNavigate } from "react-router-dom";
+import "../styles/projects.css";
 
 const Projects = () => {
-  const [projects, setProjects] = useState([]); // Handle multiple projects
-  const [loading, setLoading] = useState(true);
-  const userId = localStorage.getItem("userId"); // Assuming user ID is stored in local storage
+  const [userId, setUserId] = useState(null);
+  const navigate = useNavigate();
+  console.log("Projects component is rendering...");
 
   useEffect(() => {
-    const getProjects = async () => {
-      if (!userId) {
-        console.error("User ID is missing.");
-        setLoading(false);
-        return;
-      }
+    const storedUserId = localStorage.getItem("userId");
+  
+    if (storedUserId && storedUserId !== userId) {
+      console.log("Setting user ID from localStorage:", storedUserId);
+      setUserId(storedUserId);
+    } else if (!storedUserId) {
+      console.error("User ID not found. Redirecting to login.");
+      navigate("/");
+    }
+  }, [navigate, userId]);
+  
+  
+  const { projects, loading, selectProject } = useProjects(userId);
 
-      try {
-        const data = await fetchUserProjects(userId); // Fetch user-specific projects
-        setProjects(data);
-      } catch (error) {
-        console.error("Failed to fetch projects:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleProjectSelection = (projectId) => {
+    selectProject(projectId);
+    localStorage.setItem("selectedProjectId", projectId);
+    navigate(`/board`);
+  };
+  
 
-    getProjects();
-  }, [userId]);
+  if (loading) return <p className="loading">Loading projects...</p>;
 
   return (
     <div className="projects-container">
@@ -35,30 +39,43 @@ const Projects = () => {
         <p>Your Projects:</p>
       </div>
 
-      {loading ? (
-        <p className="loading">Loading projects...</p>
-      ) : (
-        <div className="projects-list">
-          {projects && projects.length > 0 ? (
-            projects.map((project) => (
-              <div key={project.id} className="project-card">
-                <h3>{project.name}</h3>
-                <p>{project.description}</p>
-              </div>
-            ))
-          ) : (
-            <p>No projects available.</p>
-          )}
-        </div>
-      )}
+      <div className="projects-list">
+        {projects.length > 0 ? (
+          projects.map((project) => (
+            <ProjectCard key={project.id} project={project} onSelect={handleProjectSelection} />
+          ))
+        ) : (
+          <p>No projects available.</p>
+        )}
+      </div>
 
       <div className="actions">
-        <button className="action-btn create-btn">Create a Project</button>
-        <button className="action-btn join-btn">Join a Group</button>
-        <button className="action-btn account-btn">Account Details</button>
+        <button className="action-btn create-btn" onClick={() => navigate("/create-project")}>
+          Create a Project
+        </button>
+        <button className="action-btn join-btn" onClick={() => navigate("/join-group")}>
+          Join a Group
+        </button>
+        <button className="action-btn account-btn" onClick={() => navigate("/account-details")}>
+          Account Details
+        </button>
       </div>
     </div>
   );
 };
+
+const ProjectCard = ({ project, onSelect }) => (
+  <div 
+    className="project-card" 
+    onClick={() => onSelect(project.id)} 
+    tabIndex="0"
+    role="button"
+    aria-label={`View project ${project.name}`}
+    onKeyPress={(e) => e.key === 'Enter' && onSelect(project.id)}
+  >
+    <h3>{project.name}</h3>
+    <p>{project.description}</p>
+  </div>
+);
 
 export default Projects;

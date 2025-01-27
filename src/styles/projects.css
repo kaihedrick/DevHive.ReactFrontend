@@ -1,4 +1,4 @@
-/* General Layout */
+/* Projects Page Container */
 .projects-container {
   display: flex;
   flex-direction: column;
@@ -10,7 +10,7 @@
   font-family: 'Poppins', sans-serif;
 }
 
-/* Header Styling */
+/* Header Section */
 .header {
   text-align: center;
   margin-bottom: 30px;
@@ -27,21 +27,24 @@
   font-size: 18px;
 }
 
-/* Project Cards */
+/* Project List using CSS Grid for Responsiveness */
 .projects-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
   width: 100%;
-  max-width: 600px;
+  max-width: 1000px;
+  animation: fadeIn 0.6s ease-in-out;
 }
 
+/* Individual Project Card */
 .project-card {
   background: #fff;
+  border: 2px solid #ff9f1c;
   border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease-in-out;
+  padding: 25px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
 }
 
 .project-card h3 {
@@ -56,7 +59,8 @@
 }
 
 .project-card:hover {
-  transform: scale(1.05);
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* Loading Indicator */
@@ -65,7 +69,7 @@
   color: #fff;
 }
 
-/* Actions Section */
+/* Action Buttons */
 .actions {
   display: flex;
   gap: 15px;
@@ -90,6 +94,7 @@
 
 .create-btn:hover {
   background: #e88e10;
+  transform: scale(1.05);
 }
 
 .join-btn {
@@ -99,6 +104,7 @@
 
 .join-btn:hover {
   background: #d6d6d6;
+  transform: scale(1.05);
 }
 
 .account-btn {
@@ -108,4 +114,37 @@
 
 .account-btn:hover {
   background: #2a2a2a;
+  transform: scale(1.05);
+}
+
+/* Responsive Design for Projects Section */
+@media (max-width: 600px) {
+  .projects-container {
+    padding: 15px;
+  }
+
+  .header h1 {
+    font-size: 28px;
+  }
+
+  .projects-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Accessibility Improvements */
+.project-card:focus {
+  outline: 2px solid #ff9f1c;
 }

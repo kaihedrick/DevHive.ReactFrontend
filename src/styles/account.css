@@ -1,0 +1,60 @@
+.account-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(to bottom right, #f5c542, #ff9f1c);
+    padding: 20px;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .header h1 {
+    color: #3c3c3c;
+    font-size: 36px;
+    font-weight: 700;
+  }
+  
+  .profile-image-placeholder {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: #eaeaea;
+    margin-bottom: 20px;
+  }
+  
+  .account-form input {
+    display: block;
+    width: 300px;
+    height: 40px;
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  button {
+    width: 320px;
+    height: 45px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .change-password-btn {
+    background: #ff9f1c;
+    color: #fff;
+  }
+  
+  .leave-group-btn {
+    background: #ff4d4d;
+    color: #fff;
+  }
+  
+  .logout-btn {
+    background: #3c3c3c;
+    color: #fff;
+  }
+  
