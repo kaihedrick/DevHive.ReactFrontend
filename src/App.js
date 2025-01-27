@@ -13,13 +13,15 @@ import Board from './components/Board';
 import Contacts from './components/Contacts';
 import Message from './components/Message';
 import { getSelectedProject } from './services/projectService';
+import ProjectDetails from './components/ProjectDetails';
+import CreateProject from './components/CreateProject';
 
 function App() {
   const location = useLocation();
   const selectedProject = getSelectedProject();
 
   // Define pages where the navbar should NOT be displayed
-  const hideNavbarRoutes = ['/', '/forgot-password', '/create-project'];
+  const hideNavbarRoutes = ['/', '/forgot-password', '/create-project', '/projects'];
 
   return (
     <div>
@@ -30,15 +32,14 @@ function App() {
         {/** Public Routes */}
         <Route path="/" element={<LoginRegister />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/create-project" element={<div>Create Project Page</div>} />
-
+        <Route path="/create-project" element={<CreateProject/>} />
+        <Route path="/projects" element={<Projects/>} />   
   {/** Allow access to projects without protection */}
-  <Route path="/projects" element={<Projects />} />
-        <Route 
-          path="/account-details" 
+                <Route 
+          path="/project-details" 
           element={
             <ProtectedRoute>
-              <AccountDetails />
+              <ProjectDetails />
             </ProtectedRoute>
           } 
         />

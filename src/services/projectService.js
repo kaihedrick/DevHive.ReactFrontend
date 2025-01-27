@@ -37,6 +37,19 @@ export const fetchProjectById = async (projectId) => {
   }
 };
 
+export const fetchProjectMembers = async (projectId) => {
+  try {
+    const token = getAuthToken();
+    const response = await axios.get(`${API_BASE_URL}/Scrum/Project/Members/${projectId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching project members:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
 // Function to store selected project ID in localStorage
 export const setSelectedProject = (projectId) => {
   localStorage.setItem("selectedProjectId", projectId);
@@ -64,4 +77,34 @@ export const getUserId = () => {
     console.warn("Warning: User ID not found in localStorage.");
   }
   return userId;
+};
+// Function to create a new project
+export const createProject = async (projectName, projectDescription) => {
+  try {
+    const token = getAuthToken();
+    const projectOwnerId = getUserId();  // Ensure the project owner ID is used
+
+    if (!projectOwnerId) {
+      console.error("Error: Project Owner ID is missing. Please log in again.");
+      throw new Error("Project Owner ID is missing. Please log in again.");
+    }
+
+    const projectData = {
+      name: projectName,
+      description: projectDescription,
+      projectOwnerID: projectOwnerId,
+    };
+
+    const response = await axios.post(`${API_BASE_URL}/Scrum/Project/`, projectData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error creating project:", error.response?.data || error.message);
+    throw error;
+  }
 };

@@ -26,7 +26,7 @@ const Projects = () => {
   const handleProjectSelection = (projectId) => {
     selectProject(projectId);
     localStorage.setItem("selectedProjectId", projectId);
-    navigate(`/board`);
+    navigate(`/project-details`);
   };
   
 
