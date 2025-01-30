@@ -1,79 +1,82 @@
 .project-details {
-    max-width: 500px;
-    margin: 20px auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    border-radius: 8px;
-  }
-  
-  .project-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    text-align: center;
-  }
-  
-  .project-description {
-    font-size: 16px;
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    text-align: center;
-  }
-  
-  .invite-btn {
-    display: block;
-    width: 100%;
-    background-color: #f0ad4e;
-    color: #fff;
-    border: none;
-    padding: 10px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 4px;
-    margin-bottom: 20px;
-  }
-  
-  .invite-btn:hover {
-    background-color: #ec971f;
-  }
-  
-  .members-section {
-    text-align: left;
-  }
-  
-  .members-section h3 {
-    font-size: 20px;
-    margin-bottom: 10px;
-  }
-  
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  .member-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    background-color: #f9f9f9;
-  }
-  
-  .member-item.owner {
-    background-color: #fffbea;
-    font-weight: bold;
-  }
-  
-  .owner-tag {
-    font-size: 14px;
-    font-style: italic;
-    color: #ffa500;
-  }
-  
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.project-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.project-description {
+  font-size: 16px;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.invite-btn {
+  display: block;
+  width: 100%;
+  background-color: #f0ad4e;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.invite-btn:hover {
+  background-color: #ec971f;
+}
+
+.members-section {
+  text-align: left;
+}
+
+.members-section h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.member-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+}
+
+.member-item.owner {
+  background-color: #fffbea;
+  font-weight: bold;
+}
+
+/* Crown Icon Styling */
+.crown {
+  font-size: 14px;
+
+  color: black;
+  padding: 2px 6px;
+  border-radius: 50%;
+  margin-left: 10px;
+}

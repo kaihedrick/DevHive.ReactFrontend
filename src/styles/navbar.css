@@ -1,130 +1,135 @@
-/* Navbar Container */
+/* ==========================
+   Navbar Base Styles
+========================== */
 .navbar {
-    width: 100%;
-    height: 80px;
-    background: linear-gradient(to right, #ffca28, #ff9800);
+    position: fixed;
+    background-color: var(--black);
+    color: var(--white);
+    transition: width 0.6s ease, height 0.6s ease;
+    overflow: hidden;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 80px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    box-sizing: border-box;
+    z-index: 1000;
 }
 
-/* Logo and Brand Styling */
+/* ==========================
+   Sidebar Mode (Large Screens)
+========================== */
+@media (min-width: 601px) {
+    .navbar {
+        width: 5rem;
+        height: 100vh;
+        left: 0;
+        position:fixed;
+        top: 0;
+    }
+
+    /* Expand on Hover */
+    .navbar:hover {
+        width: 16rem;
+    }
+
+    .navbar:hover .link-text {
+        display: inline;
+    }
+
+    /* Adjust Content Padding */
+    body.has-sidebar main {
+        margin-left: 5rem;
+    }
+
+    body.has-sidebar .navbar:hover ~ main {
+        margin-left: 16rem;
+    }
+}
+
+/* ==========================
+   Topbar Mode (Small Screens)
+========================== */
+@media (max-width: 600px) {
+    .navbar {
+        width: 100%;
+        height: 5rem;
+        top: 0;
+        left: 0;
+        position: fixed;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0;
+        z-index: 1000; /* Keep it above content */
+    }
+
+    /* Hide brand name */
+    .brand-name {
+        display: none !important;
+    }
+
+    /* Horizontal Navigation */
+    .navbar-nav {
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-around;
+    }
+
+    body.has-topbar main {
+        padding-left: 0 !important; /* Remove sidebar space */
+        margin-left: 0 !important;
+    }
+}
+
+/* ==========================
+   Logo Styling
+========================== */
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-left: 20px;
+    justify-content: center;
+    width: 100%;
+    padding: 1rem;
+    cursor: pointer;
 }
 
 .logo {
-    width: 50px;
+    width: 3rem;
     height: auto;
+    transition: transform 0.6s ease;
 }
 
-/* Brand name alignment */
-.brand-name {
-    color: black;
-    font-size: 32px;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
+.navbar:hover .logo {
+    transform: rotate(-180deg);
 }
 
-/* Navigation Items */
-.nav-items-wrapper {
+/* ==========================
+   Navigation Items
+========================== */
+.navbar-nav {
+    list-style: none;
     display: flex;
-    justify-content: center;
-    flex-grow: 1;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    width: 100%;
 }
 
-.nav-items {
+.nav-link {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 50px;
+    width: 100%;
+    height: 5rem;
+    text-decoration: none;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.nav-link:hover {
+    background: var(--dark-gray);
+    color: var(--white);
 }
 
 .nav-icon {
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-    transition: transform 0.2s ease-in-out, opacity 0.2s;
-}
-
-.nav-icon:hover {
-    transform: scale(1.15);
-    opacity: 1;
-    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.2));
-}
-
-/* Logout Button */
-.logout-container {
-    display: flex;
-    justify-content: flex-end;
-    margin-right: 40px;
-}
-
-.logout-btn {
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    cursor: pointer;
-    border-radius: 5px;
-    font-weight: bold;
-    font-size: 14px;
-    transition: all 0.3s ease-in-out;
-}
-
-.logout-btn:hover {
-    background-color: #ff1a1a;
-    transform: scale(1.05);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .navbar {
-        flex-direction: column;
-        align-items: center;
-        padding: 15px 20px;
-    }
-
-    .nav-items {
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .nav-items.active {
-        display: flex;
-    }
-
-    .burger-menu {
-        display: block;
-    }
-
-    .nav-icon {
-        width: 40px;
-        height: 40px;
-    }
-
-    .brand-name {
-        font-size: 24px;
-    }
-}
-
-@media (max-width: 480px) {
-    .logo {
-        width: 40px;
-        height: 40px;
-    }
-
-    .brand-name {
-        font-size: 20px;
-    }
-
-    .nav-items {
-        gap: 10px;
-    }
+    font-size: 1.5rem;
+    min-width: 2rem;
+    transition: color 0.3s ease;
 }

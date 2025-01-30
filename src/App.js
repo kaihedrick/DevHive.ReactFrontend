@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import AccountDetails from './components/AccountDetails';
 import Projects from './components/Projects';
 import Footer from './components/Footer';
 import LoginRegister from './components/LoginRegister';
@@ -15,79 +14,68 @@ import Message from './components/Message';
 import { getSelectedProject } from './services/projectService';
 import ProjectDetails from './components/ProjectDetails';
 import CreateProject from './components/CreateProject';
+import InviteMembers from './components/InviteMembers';
+import AccountDetails from './components/AccountDetails';
 
 function App() {
   const location = useLocation();
   const selectedProject = getSelectedProject();
+  const [isTopbar, setIsTopbar] = useState(window.innerWidth <= 600);
 
-  // Define pages where the navbar should NOT be displayed
+  // Routes where Navbar should NOT appear
   const hideNavbarRoutes = ['/', '/forgot-password', '/create-project', '/projects'];
+  const showNavbar = selectedProject && !hideNavbarRoutes.includes(location.pathname);
 
+  useEffect(() => {
+    const handleResize = () => {
+      const topbar = window.innerWidth <= 600;
+      setIsTopbar(topbar);
+
+      document.body.classList.toggle("has-topbar", topbar);
+      document.body.classList.toggle("has-sidebar", !topbar);
+    };
+
+    handleResize(); // Run on mount
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Apply different background styles based on whether navbar is shown
+  const getBackgroundStyle = () => ({
+    background: showNavbar ? "#ffffff" : "linear-gradient(to bottom right, #f5c542, #ff9f1c)",
+  });
   return (
-    <div>
-      {/** Conditionally render navbar if a project is selected and not in restricted routes */}
-      {selectedProject && !hideNavbarRoutes.includes(location.pathname) && <Navbar />}
+    <div
+      className={`app-container ${showNavbar ? (isTopbar ? "has-topbar" : "has-sidebar") : ""}`}
+      style={getBackgroundStyle()}
+    >
+      {showNavbar && <Navbar />}
+      <div className="content">
+      <main>
+        <Routes>
+          {/** Public Routes */}
+          <Route path="/" element={<LoginRegister />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/create-project" element={<CreateProject />} />
+          <Route path="/projects" element={<Projects />} />
 
-      <Routes>
-        {/** Public Routes */}
-        <Route path="/" element={<LoginRegister />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/create-project" element={<CreateProject/>} />
-        <Route path="/projects" element={<Projects/>} />   
-  {/** Allow access to projects without protection */}
-                <Route 
-          path="/project-details" 
-          element={
-            <ProtectedRoute>
-              <ProjectDetails />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/sprint" 
-          element={
-            <ProtectedRoute>
-              <Sprint />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/backlog" 
-          element={
-            <ProtectedRoute>
-              <Backlog />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/board" 
-          element={
-            <ProtectedRoute>
-              <Board />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/contacts" 
-          element={
-            <ProtectedRoute>
-              <Contacts />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/messages" 
-          element={
-            <ProtectedRoute>
-              <Message />
-            </ProtectedRoute>
-          } 
-        />
-      </Routes>
+          {/** Protected Routes */}
+          <Route path="/project-details" element={<ProtectedRoute><ProjectDetails /></ProtectedRoute>} />
+          <Route path="/invite" element={<ProtectedRoute><InviteMembers /></ProtectedRoute>} />
+          <Route path="/account-details" element={<ProtectedRoute><AccountDetails /></ProtectedRoute>} />
+          <Route path="/sprint" element={<ProtectedRoute><Sprint /></ProtectedRoute>} />
+          <Route path="/backlog" element={<ProtectedRoute><Backlog /></ProtectedRoute>} />
+          <Route path="/board" element={<ProtectedRoute><Board /></ProtectedRoute>} />
+          <Route path="/contacts" element={<ProtectedRoute><Contacts /></ProtectedRoute>} />
+          <Route path="/messages" element={<ProtectedRoute><Message /></ProtectedRoute>} />
+        </Routes>
+      </main>
 
       {/** Footer always visible */}
       <Footer />
     </div>
+      </div>
   );
 }
 

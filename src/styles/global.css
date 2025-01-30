@@ -1,0 +1,193 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Judson:wght@400;700&display=swap');
+
+
+.app-container {
+    display: flex;
+    width: 100vw;  /* Full viewport width */
+    height: 100vh; /* Full viewport height */
+    overflow: hidden;
+}
+
+
+.app-container .content {
+    flex: 1;
+    transition: padding 0.3s ease;
+}
+
+/* ==========================
+   Global Variables
+========================== */
+:root {
+    /* Color Scheme */
+    --gold: #ffca28;
+    --dark-gold: #ff9800;
+    --black: #222222;
+    --dark-gray: #444444;
+    --gray: #888888;
+    --light-gray: #eeeeee;
+    --white: #ffffff;
+    
+    /* Typography */
+    --primary-font: 'Montserrat', sans-serif;
+    --secondary-font: 'Judson', serif;
+
+    /* Sizes */
+    --border-radius: 10px;
+    --button-padding: 12px 24px;
+
+    /* Transition Speed */
+    --transition-speed: 600ms;
+}
+
+/* ==========================
+   Global Reset
+========================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ==========================
+   Body Styling
+========================== */
+html, body {
+    margin: 0;
+    padding: 0;
+    background-size: cover;
+    min-height: 100vh;
+    width: 100%;
+    background: var(--gold);
+    color: var(--black);
+    font-family: var(--primary-font);
+    font-size: 16px;
+}
+.content {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+main {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Instead of center */
+    padding: 2rem;
+    transition: padding 0.3s ease; /* Smooth transition */
+}
+
+
+/* ==========================
+   Dynamic Layout Adjustments
+========================== */
+body.has-sidebar main {
+    padding-left: 5rem; /* Ensure space for sidebar */
+}
+
+/* Adjust when Sidebar Expands */
+body.has-sidebar .navbar:hover ~ main {
+    padding-left: 16rem; /* Adjust padding when expanded */
+}
+
+/* When Navbar is at the Top */
+body.has-topbar main {
+    padding-top: 5rem; /* Ensure space for top navbar */
+}
+
+/* ==========================
+   Scrollbar Styling
+========================== */
+body::-webkit-scrollbar {
+    width: 0.25rem;
+}
+body::-webkit-scrollbar-track {
+    background: #2222;
+}
+body::-webkit-scrollbar-thumb {
+    background-color: #888888;
+}
+
+/* ==========================
+   Typography
+========================== */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--primary-font);
+    font-weight: 700;
+    color: var(--black);
+}
+
+p {
+    font-family: var(--secondary-font);
+    color: var(--dark-gray);
+}
+
+/* ==========================
+   Buttons
+========================== */
+.button {
+    display: inline-block;
+    padding: var(--button-padding);
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+    text-decoration: none;
+}
+
+.button-primary {
+    background: var(--dark-gold);
+    color: var(--white);
+}
+
+.button-primary:hover {
+    background: var(--gold);
+}
+
+.button-secondary {
+    background: var(--light-gray);
+    color: var(--black);
+}
+
+.button-secondary:hover {
+    background: var(--gray);
+}
+
+/* ==========================
+   Forms
+========================== */
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--light-gray);
+    border-radius: var(--border-radius);
+    font-family: var(--primary-font);
+    color: var(--black);
+}
+
+input:focus, textarea:focus {
+    border-color: var(--dark-gold);
+    outline: none;
+}
+
+/* ==========================
+   Cards
+========================== */
+.card {
+    background: var(--white);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.footer {
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background: var(--black);
+    color: var(--white);
+    text-align: center;
+    padding: 1rem;
+}

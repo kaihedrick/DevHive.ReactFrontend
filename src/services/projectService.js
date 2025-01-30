@@ -27,22 +27,30 @@ export const fetchUserProjects = async () => {
 export const fetchProjectById = async (projectId) => {
   try {
     const token = getAuthToken();
+    console.log("Fetching project with ID:", projectId);
+    
     const response = await axios.get(`${API_BASE_URL}/Scrum/Project/${projectId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+
+    console.log("Project Data:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching project by ID:", error.response?.data || error.message);
     throw error;
   }
 };
-
+// Get all project members by project id
 export const fetchProjectMembers = async (projectId) => {
   try {
     const token = getAuthToken();
+    console.log("Fetching members for project:", projectId);
+    
     const response = await axios.get(`${API_BASE_URL}/Scrum/Project/Members/${projectId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+
+    console.log("Project Members:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching project members:", error.response?.data || error.message);
