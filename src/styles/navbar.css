@@ -5,7 +5,7 @@
     position: fixed;
     background-color: var(--black);
     color: var(--white);
-    transition: width 0.6s ease, height 0.6s ease;
+    transition: width var(--transition-speed) ease, height var(--transition-speed) ease;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -21,7 +21,6 @@
         width: 5rem;
         height: 100vh;
         left: 0;
-        position:fixed;
         top: 0;
     }
 
@@ -58,12 +57,12 @@
         justify-content: space-around;
         align-items: center;
         padding: 0;
-        z-index: 1000; /* Keep it above content */
+        z-index: 1000;
     }
 
-    /* Hide brand name */
-    .brand-name {
-        display: none !important;
+    /* Hide logo text */
+    .logo-text {
+        display: none;
     }
 
     /* Horizontal Navigation */
@@ -74,7 +73,7 @@
     }
 
     body.has-topbar main {
-        padding-left: 0 !important; /* Remove sidebar space */
+        padding-left: 0 !important;
         margin-left: 0 !important;
     }
 }
@@ -89,17 +88,50 @@
     width: 100%;
     padding: 1rem;
     cursor: pointer;
+    font-family: var(--primary-font);
+    transition: color var(--transition-speed) ease;
 }
 
+/* Logo Image */
 .logo {
     width: 3rem;
     height: auto;
-    transition: transform 0.6s ease;
+    transition: transform var(--transition-speed) ease, 
+                filter .3s ease; /* Smooth color transition over 3 seconds */
 }
 
+/* Rotate logo on navbar hover */
 .navbar:hover .logo {
     transform: rotate(-180deg);
 }
+
+/* Logo Text (DevHive) */
+.logo-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--white);
+    text-transform: uppercase;
+    margin-left: 1rem;
+    letter-spacing: 0.1rem;
+    display: none;
+    transition: color .3s ease; /* Smooth text color transition */
+}
+
+.navbar:hover .logo-text {
+    display: inline;
+}
+
+/* Change logo and text color on hover with a smooth transition */
+.logo-container:hover .logo {
+    filter: brightness(0) saturate(100%) 
+            invert(64%) sepia(72%) saturate(532%) 
+            hue-rotate(1deg) brightness(101%) contrast(103%);
+}
+
+.logo-container:hover .logo-text {
+    color: var(--gold);
+}
+
 
 /* ==========================
    Navigation Items
@@ -113,23 +145,52 @@
     width: 100%;
 }
 
+.nav-item {
+    width: 100%;
+}
+
+/* Push last item (Account) to the bottom */
+.nav-item:last-child {
+    margin-top: auto;
+}
+
 .nav-link {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 5rem;
+    font-family: var(--secondary-font);
     text-decoration: none;
+    color: var(--white);
     transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* Gold hover effect */
 .nav-link:hover {
     background: var(--dark-gray);
-    color: var(--white);
+    color: var(--gold);
 }
 
 .nav-icon {
     font-size: 1.5rem;
     min-width: 2rem;
     transition: color 0.3s ease;
+}
+
+.nav-link:hover .nav-icon {
+    color: var(--gold);
+}
+
+/* Hide Text When Collapsed */
+.link-text {
+    display: none;
+    margin-left: 1rem;
+    font-size: 1rem;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.navbar:hover .link-text {
+    display: inline;
+    opacity: 1;
 }

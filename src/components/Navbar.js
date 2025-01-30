@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"; 
 import { useNavigation } from "../hooks/useNavigation";
 import "../styles/navbar.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -13,7 +13,7 @@ const Navbar = () => {
     { path: "/backlog", icon: faListCheck, label: "Backlog" },
     { path: "/contacts", icon: faAddressBook, label: "Contacts" },
     { path: "/sprint", icon: faRocket, label: "Sprint" },
-    { path: "/account-details", icon: faUser, label: "Account" },
+    { path: "/account-details", icon: faUser, label: "Account" }, // Last item
   ];
 
   return (
@@ -22,6 +22,7 @@ const Navbar = () => {
         {/* Logo Section */}
         <div className="logo-container" onClick={() => navigateTo("/projects")}>
           <img src={HiveIcon} alt="DevHive Logo" className="logo" />
+          <span className="logo-text">DevHive</span>
         </div>
 
         {/* Navigation Items */}
