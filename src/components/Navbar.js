@@ -7,23 +7,32 @@ import HiveIcon from "./assets/hive-icon.svg";
 
 const Navbar = () => {
   const navigateTo = useNavigation();
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 600);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 600);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const navItems = [
     { path: "/board", icon: faTableColumns, label: "Board" },
     { path: "/backlog", icon: faListCheck, label: "Backlog" },
     { path: "/contacts", icon: faAddressBook, label: "Contacts" },
     { path: "/sprint", icon: faRocket, label: "Sprint" },
-    { path: "/account-details", icon: faUser, label: "Account" }, // Last item
+    { path: "/account-details", icon: faUser, label: "Account" },
   ];
 
   return (
     <nav className="navbar">
       <div className="navbar-content">
-        {/* Logo Section */}
-        <div className="logo-container" onClick={() => navigateTo("/projects")}>
-          <img src={HiveIcon} alt="DevHive Logo" className="logo" />
-          <span className="logo-text">DevHive</span>
-        </div>
+        {/* ✅ Only render logo in desktop mode */}
+        {!isMobile && (
+          <div className="logo-container" onClick={() => navigateTo("/projects")}>
+            <img src={HiveIcon} alt="DevHive Logo" className="logo" />
+            <span className="logo-text">DevHive</span>
+          </div>
+        )}
 
         {/* Navigation Items */}
         <ul className="navbar-nav">

@@ -3,8 +3,8 @@
 ========================== */
 .navbar {
     position: fixed;
-    background-color: var(--black);
-    color: var(--white);
+    background-color: var(--black) !important;
+    color: var(--white) !important;
     transition: width var(--transition-speed) ease, height var(--transition-speed) ease;
     overflow: hidden;
     display: flex;
@@ -49,32 +49,85 @@
 @media (max-width: 600px) {
     .navbar {
         width: 100%;
-        height: 5rem;
+        height: 80px;
         top: 0;
         left: 0;
         position: fixed;
-        flex-direction: row;
-        justify-content: space-around;
+        display: flex;
         align-items: center;
+        justify-content: center;
         padding: 0;
         z-index: 1000;
+        background-color: var(--black) !important;
     }
 
-    /* Hide logo text */
-    .logo-text {
+    /* ✅ Ensure navbar-content stretches to fill the navbar */
+    .navbar-content {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-evenly;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Hide logo in topbar mode */
+    .logo-container {
         display: none;
     }
 
-    /* Horizontal Navigation */
+    /* ✅ Ensure navbar-nav fills available space */
     .navbar-nav {
-        flex-direction: row;
+        display: flex;
+        flex-direction: row !important;
+        align-items: center;
+        justify-content: space-evenly;
         width: 100%;
-        justify-content: space-around;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        list-style: none;
     }
 
-    body.has-topbar main {
-        padding-left: 0 !important;
-        margin-left: 0 !important;
+    /* ✅ Make sure each nav item takes full height */
+    .nav-item {
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    /* ✅ Ensure links stretch to fill their container */
+    .nav-link {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: var(--white) !important; /* ✅ White by default */
+        transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Remove text next to icons */
+    .link-text {
+        display: none !important;
+    }
+
+    /* ✅ FontAwesome Icons - Ensure Centered */
+    .nav-icon {
+        font-size: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Remove hover effects in mobile */
+    .navbar:hover {
+        width: 100%;
     }
 }
 
@@ -92,46 +145,48 @@
     transition: color var(--transition-speed) ease;
 }
 
-/* Logo Image */
+/* ✅ Make the SVG logo white by default */
 .logo {
     width: 3rem;
     height: auto;
+    filter: brightness(0) saturate(100%) invert(100%) !important; /* White */
     transition: transform var(--transition-speed) ease, 
-                filter .3s ease; /* Smooth color transition over 3 seconds */
+                filter 0.3s ease !important; /* ✅ Smooth transition */
 }
-
-/* Rotate logo on navbar hover */
+/* ✅ Rotate logo on navbar hover */
 .navbar:hover .logo {
     transform: rotate(-180deg);
 }
 
-/* Logo Text (DevHive) */
+/* ✅ Ensure Logo turns Gold on Hover */
+.logo-container:hover .logo {
+    filter: brightness(0) saturate(100%) invert(64%) sepia(72%) 
+            saturate(532%) hue-rotate(1deg) brightness(101%) contrast(103%) !important;
+}
+/* ✅ On Hover, Turn Gold */
+.logo-container:hover .logo-text {
+    color: var(--gold) !important; /* ✅ Temporarily Gold */
+}
+/* ✅ Ensure logo returns to white after hover */
+.navbar:not(:hover) .logo-text {
+    color: var(--white) !important; /* ✅ Returns to White */
+}
+/* ✅ Default White DevHive Text */
 .logo-text {
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--white);
+    color: var(--white); /* ✅ White by default */
     text-transform: uppercase;
     margin-left: 1rem;
     letter-spacing: 0.1rem;
     display: none;
-    transition: color .3s ease; /* Smooth text color transition */
+    transition: color 0.3s ease !important; /* ✅ Smooth transition */
 }
 
 .navbar:hover .logo-text {
     display: inline;
+    color: var(--gold) !important; /* ✅ Ensure it turns gold */
 }
-
-/* Change logo and text color on hover with a smooth transition */
-.logo-container:hover .logo {
-    filter: brightness(0) saturate(100%) 
-            invert(64%) sepia(72%) saturate(532%) 
-            hue-rotate(1deg) brightness(101%) contrast(103%);
-}
-
-.logo-container:hover .logo-text {
-    color: var(--gold);
-}
-
 
 /* ==========================
    Navigation Items
@@ -154,6 +209,7 @@
     margin-top: auto;
 }
 
+/* ✅ Default White Color */
 .nav-link {
     display: flex;
     align-items: center;
@@ -162,16 +218,17 @@
     height: 5rem;
     font-family: var(--secondary-font);
     text-decoration: none;
-    color: var(--white);
+    color: var(--white) !important; /* ✅ White text */
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* Gold hover effect */
+/* ✅ Gold Hover Effect */
 .nav-link:hover {
-    background: var(--dark-gray);
-    color: var(--gold);
+    background: var(--dark-gray) !important;
+    color: var(--gold) !important;
 }
 
+/* ✅ Ensure Icons Turn Gold on Hover */
 .nav-icon {
     font-size: 1.5rem;
     min-width: 2rem;
@@ -179,7 +236,7 @@
 }
 
 .nav-link:hover .nav-icon {
-    color: var(--gold);
+    color: var(--gold) !important;
 }
 
 /* Hide Text When Collapsed */

@@ -95,6 +95,20 @@ body.has-sidebar .navbar:hover ~ main {
 body.has-topbar main {
     padding-top: 5rem; /* Ensure space for top navbar */
 }
+/* When Navbar is at the Top */
+/* Ensure .content takes full width */
+.app-container .content {
+    flex-grow: 1;
+    width: 100%; /* Ensure it expands */
+    min-height: calc(100vh - 5rem); /* Adjust for top navbar */
+    overflow-y: auto; /* Allow scrolling */
+}
+
+/* When Navbar is at the Top */
+body.has-topbar .content {
+    margin-top: 5rem; /* Push content down */
+}
+
 
 /* ==========================
    Scrollbar Styling
