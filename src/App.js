@@ -16,6 +16,7 @@ import ProjectDetails from './components/ProjectDetails';
 import CreateProject from './components/CreateProject';
 import InviteMembers from './components/InviteMembers';
 import AccountDetails from './components/AccountDetails';
+import JoinProject from './components/JoinProject';
 
 function App() {
   const location = useLocation();
@@ -23,33 +24,41 @@ function App() {
   const [isTopbar, setIsTopbar] = useState(window.innerWidth <= 600);
 
   // Routes where Navbar should NOT appear
-  const hideNavbarRoutes = ['/', '/forgot-password', '/create-project', '/projects'];
+  const hideNavbarRoutes = ['/', '/forgot-password', '/create-project', '/projects', '/join-group'];
   const showNavbar = selectedProject && !hideNavbarRoutes.includes(location.pathname);
 
   useEffect(() => {
     const handleResize = () => {
       const topbar = window.innerWidth <= 600;
       setIsTopbar(topbar);
-
-      document.body.classList.toggle("has-topbar", topbar);
-      document.body.classList.toggle("has-sidebar", !topbar);
+  
+      const hideNavbarRoutes = ['/', '/forgot-password', '/create-project', '/projects'];
+      const shouldHideNavbar = hideNavbarRoutes.includes(location.pathname);
+  
+      // Remove both classes first to avoid conflicts
+      document.body.classList.remove("has-topbar", "has-sidebar");
+  
+      // Only apply if the navbar should be visible
+      if (!shouldHideNavbar) {
+        document.body.classList.add(topbar ? "has-topbar" : "has-sidebar");
+      }
     };
-
+  
     handleResize(); // Run on mount
     window.addEventListener("resize", handleResize);
-
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [location.pathname]); // Add dependency to re-run on route change
+  
 
   // Apply different background styles based on whether navbar is shown
   const getBackgroundStyle = () => ({
     background: showNavbar ? "#ffffff" : "linear-gradient(to bottom right, #f5c542, #ff9f1c)",
   });
   return (
-    <div
-      className={`app-container ${showNavbar ? (isTopbar ? "has-topbar" : "has-sidebar") : ""}`}
-      style={getBackgroundStyle()}
-    >
+      <div
+        className={`app-container ${showNavbar ? (isTopbar ? "has-topbar" : "has-sidebar") : "full-screen"}`}
+        style={getBackgroundStyle()}
+      >
       {showNavbar && <Navbar />}
       <div className="content">
       <main>
@@ -59,6 +68,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/create-project" element={<CreateProject />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/join-group" element={<JoinProject />} />
 
           {/** Protected Routes */}
           <Route path="/project-details" element={<ProtectedRoute><ProjectDetails /></ProtectedRoute>} />

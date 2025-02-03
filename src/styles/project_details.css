@@ -1,46 +1,56 @@
 .project-details {
-  max-width: 500px;
-  margin: 20px auto;
+  width: 100%;               /* Fill the available width */
+  max-width: 800px;          /* Limit width on large screens */
+  margin: 20px auto;         /* Center horizontally */
   padding: 20px;
   border: 1px solid #ccc;
   background-color: #fff;
   border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Subtle shadow for depth */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;                 /* Space between sections */
+  transition: all 0.3s ease; /* Smooth resizing */
+  min-height: calc(100vh - 100px); /* Dynamic height considering header/footer */
 }
 
+/* Project Title */
 .project-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   text-align: center;
 }
 
+/* Project Description */
 .project-description {
   font-size: 16px;
-  margin-bottom: 20px;
-  padding: 10px;
+  padding: 12px;
   background-color: #f9f9f9;
   border: 1px solid #ddd;
   border-radius: 4px;
   text-align: center;
 }
 
+/* Invite Button */
 .invite-btn {
   display: block;
   width: 100%;
   background-color: #f0ad4e;
   color: #fff;
   border: none;
-  padding: 10px;
+  padding: 12px;
   font-size: 16px;
   cursor: pointer;
   border-radius: 4px;
-  margin-bottom: 20px;
+  transition: background-color 0.3s ease;
 }
 
 .invite-btn:hover {
   background-color: #ec971f;
 }
 
+/* Members Section */
 .members-section {
   text-align: left;
 }
@@ -50,9 +60,11 @@
   margin-bottom: 10px;
 }
 
+/* Member List */
 ul {
   list-style-type: none;
   padding: 0;
+  margin: 0;
 }
 
 .member-item {
@@ -66,15 +78,15 @@ ul {
   background-color: #f9f9f9;
 }
 
+/* Owner Highlight */
 .member-item.owner {
   background-color: #fffbea;
   font-weight: bold;
 }
 
-/* Crown Icon Styling */
+/* Crown Icon */
 .crown {
   font-size: 14px;
-
   color: black;
   padding: 2px 6px;
   border-radius: 50%;

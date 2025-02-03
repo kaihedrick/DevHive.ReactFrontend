@@ -15,7 +15,7 @@ body {
 
 .footer {
   background-color: #212529; 
-  color: #fff; 
+  color: #fff !important; 
   padding: 10px 20px;
   text-align: center;
   font-size: 0.9rem;

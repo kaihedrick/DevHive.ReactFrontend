@@ -116,3 +116,31 @@ export const createProject = async (projectName, projectDescription) => {
     throw error;
   }
 };
+// Function to join a project using projectId and userId
+
+export const joinProject = async (projectId, userId) => {
+  try {
+    const token = getAuthToken(); // Retrieve JWT token for authorization
+
+    if (!projectId || !userId) {
+      throw new Error("Project ID or User ID is missing.");
+    }
+
+    const response = await axios.post(
+      `${API_BASE_URL}/Project/${projectId}/${userId}`, // URL structure matches the backend
+      {}, // No request body needed
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Successfully joined project:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error joining project:", error.response?.data || error.message);
+    throw error;
+  }
+};

@@ -1,0 +1,52 @@
+.join-project-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f9f9f9;
+  }
+  
+  .back-arrow {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  .project-code-input {
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 250px;
+    font-size: 16px;
+    text-align: center;
+  }
+  
+  .join-btn {
+    background-color: #ffcc80;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease;
+  }
+  
+  .join-btn:hover {
+    background-color: #ffb74d;
+  }
+  
+  .status {
+    color: green;
+    margin-top: 10px;
+  }
+  
+  .error {
+    color: red;
+    margin-top: 10px;
+  }
+  
