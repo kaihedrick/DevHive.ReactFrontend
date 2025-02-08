@@ -1,94 +1,269 @@
+/* ======================= */
+/* Project Details Styling */
+/* ======================= */
+
 .project-details {
-  width: 100%;               /* Fill the available width */
-  max-width: 800px;          /* Limit width on large screens */
-  margin: 20px auto;         /* Center horizontally */
-  padding: 20px;
-  border: 1px solid #ccc;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Subtle shadow for depth */
-  display: flex;
-  flex-direction: column;
-  gap: 15px;                 /* Space between sections */
-  transition: all 0.3s ease; /* Smooth resizing */
-  min-height: calc(100vh - 100px); /* Dynamic height considering header/footer */
+  position: relative !important;
+  width: 100% !important;
+  max-width: 800px !important;
+  margin: 20px auto !important;
+  padding: 20px !important;
+  border: 1px solid #ccc !important;
+  background-color: #fff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 15px !important;
+  transition: all 0.3s ease !important;
+  min-height: calc(100vh - 100px) !important;
 }
 
-/* Project Title */
-.project-title {
-  font-size: 28px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  text-align: center;
+/* ======================== */
+/* Edit, Save & Cancel Buttons */
+/* ======================== */
+.edit-buttons {
+  position: absolute !important;
+  top: 20px !important;
+  right: 20px !important;
+  display: flex !important;
+  gap: 10px !important;
 }
 
-/* Project Description */
-.project-description {
-  font-size: 16px;
-  padding: 12px;
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  text-align: center;
+/* Ensure all buttons have no background */
+.edit-project-btn, .save-btn, .cancel-btn {
+  width: 50px !important;
+  height: 50px !important;
+  background: none !important; /* ✅ Remove background */
+  border: none !important;
+  box-shadow: none !important; /* ✅ Ensure no box-shadow */
+  outline: none !important; /* ✅ Remove outline */
+  font-size: 24px !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease, color 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
+/* ✅ Ensure the X (cancel) button is always red */
+.cancel-btn {
+  color: red !important;
+}
+
+/* ✅ Ensure the X button expands slightly on hover */
+.cancel-btn:hover {
+  transform: scale(1.2) !important;
+  color: darkred !important;
+}
+
+/* ✅ Ensure the ✔ (save) button is always green */
+.save-btn {
+  color: green !important;
+}
+
+/* ✅ Ensure the checkmark expands slightly on hover */
+.save-btn:hover {
+  transform: scale(1.2) !important;
+  color: darkgreen !important;
+}
+
+
+/* ======================= */
 /* Invite Button */
+/* ======================= */
 .invite-btn {
-  display: block;
-  width: 100%;
-  background-color: #f0ad4e;
-  color: #fff;
-  border: none;
-  padding: 12px;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
+  width: 200px !important;
+  background-color: #f0ad4e !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px !important;
+  font-size: 16px !important;
+  cursor: pointer !important;
+  text-align: center !important;
+  border-radius: 5px !important;
 }
 
 .invite-btn:hover {
-  background-color: #ec971f;
+  background-color: #ec971f !important;
 }
 
+/* ======================= */
 /* Members Section */
+/* ======================= */
 .members-section {
-  text-align: left;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
 }
 
-.members-section h3 {
-  font-size: 20px;
-  margin-bottom: 10px;
+.members-section ul {
+  width: 80% !important;
+  max-width: 600px !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
 }
 
-/* Member List */
-ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
+/* ======================= */
+/* Member List Item */
+/* ======================= */
 .member-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  background-color: #f9f9f9;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 10px 15px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 8px !important;
+  margin-bottom: 10px !important;
+  background-color: #f9f9f9 !important;
+  transition: background 0.3s ease !important;
 }
 
-/* Owner Highlight */
 .member-item.owner {
-  background-color: #fffbea;
-  font-weight: bold;
+  background-color: #fffbea !important;
+  font-weight: bold !important;
+}
+
+/* ======================= */
+/* Member Info & Actions */
+/* ======================= */
+.member-info {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-grow: 1 !important;
+}
+
+.member-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
 }
 
 /* Crown Icon */
 .crown {
-  font-size: 14px;
-  color: black;
-  padding: 2px 6px;
-  border-radius: 50%;
-  margin-left: 10px;
+  font-size: 18px !important;
+  color: gold !important;
+}
+
+/* Kick Button */
+.kick-member {
+  font-size: 20px !important;
+  color: red !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease, color 0.3s ease !important;
+}
+
+.kick-member:hover {
+  transform: scale(1.2) !important;
+  color: darkred !important;
+}
+
+/* ======================= */
+/* Modal Overlay & Popup */
+/* ======================= */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  display: none !important;
+  justify-content: center !important;
+  align-items: center !important;
+  backdrop-filter: blur(8px) !important;
+  z-index: 10000 !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important; /* Prevent blocking clicks */
+}
+
+/* ✅ Only show overlay when modal is open */
+.modal-overlay.active {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Modal Box */
+.modal {
+  position: relative !important;
+  background: white !important;
+  padding: 20px !important;
+  width: 400px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10001 !important;
+  border: 2px solid black !important;
+}
+
+/* Modal Title */
+.modal h3 {
+  margin-bottom: 15px !important;
+  font-size: 22px !important;
+  color: black !important;
+}
+
+/* Modal Text */
+.modal p {
+  font-size: 18px !important;
+  color: black !important;
+  margin-bottom: 20px !important;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  padding-top: 10px !important;
+}
+
+/* ✅ Buttons with Icons */
+.confirm-btn, .cancel-btn {
+  width: 50px !important;
+  height: 50px !important;
+  background: none !important;
+  border: none !important;
+  font-size: 24px !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease, color 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* ✅ Checkmark (Confirm) is Green */
+.confirm-btn {
+  color: green !important;
+}
+
+/* ✅ Expand on hover */
+.confirm-btn:hover {
+  transform: scale(1.2) !important;
+  color: darkgreen !important;
+}
+
+/* ✅ X (Cancel) is Red */
+.cancel-btn {
+  color: red !important;
+}
+
+/* ✅ Expand on hover */
+.cancel-btn:hover {
+  transform: scale(1.2) !important;
+  color: darkred !important;
 }

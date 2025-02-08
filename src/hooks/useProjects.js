@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { fetchUserProjects, getSelectedProject, setSelectedProject, getUserId } from "../services/projectService";
+import {
+  fetchUserProjects,
+  getSelectedProject,
+  setSelectedProject,
+  getUserId,
+  deleteProject as deleteProjectAPI, // ✅ Import deleteProject API function
+} from "../services/projectService";
 
 // Custom hook for managing project state
 const useProjects = (providedUserId) => {
@@ -37,11 +43,27 @@ const useProjects = (providedUserId) => {
     setSelectedProjectState(projectId);
   };
 
+  // ✅ Function to delete a project
+  const deleteProject = async (projectId) => {
+    if (!projectId) return;
+
+    try {
+      console.log(`🗑️ Deleting project with ID: ${projectId}`);
+      await deleteProjectAPI(projectId); // Call the API function
+      setProjects((prev) => prev.filter((project) => project.id !== projectId)); // Remove project from state
+      console.log(`✅ Successfully deleted project: ${projectId}`);
+    } catch (error) {
+      console.error("❌ Failed to delete project:", error.message);
+      throw error;
+    }
+  };
+
   return {
     projects,
     loading,
     selectedProject,
     selectProject,
+    deleteProject, // ✅ Return deleteProject function
   };
 };
 

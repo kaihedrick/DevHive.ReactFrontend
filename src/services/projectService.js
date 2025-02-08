@@ -144,3 +144,99 @@ export const joinProject = async (projectId, userId) => {
     throw error;
   }
 };
+
+export const editProject = async (project) => {
+  try {
+    const token = getAuthToken();
+
+    if (!project || !project.id) {
+      throw new Error("Project data is invalid or missing.");
+    }
+
+    // ✅ Corrected API URL (No {id} in URL, as ID is in request body)
+    const apiUrl = `${API_BASE_URL}/Scrum/Project`;
+
+    console.log("🔄 Sending update request to:", apiUrl);
+    console.log("📤 Payload:", project);
+
+    const response = await axios.put(apiUrl, project, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("📩 Server Response:", response.data);
+
+    if (response.status !== 200) {
+      throw new Error(`Unexpected response status: ${response.status}`);
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error updating project:", {
+      message: error.message,
+      responseData: error.response?.data,
+      status: error.response?.status,
+      headers: error.response?.headers,
+    });
+
+    throw error;
+  }
+};
+
+export const removeMemberFromProject = async (projectId, userId) => {
+  try {
+    const token = getAuthToken();
+
+    if (!projectId || !userId) {
+      throw new Error("❌ Project ID or User ID is missing.");
+    }
+
+    const apiUrl = `${API_BASE_URL}/Scrum/Project/${projectId}/Members/${userId}`;
+
+    console.log("🔍 API URL Check:", apiUrl);
+    console.log("📌 projectId:", projectId);
+    console.log("📌 userId:", userId);
+
+    const response = await axios.delete(apiUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    console.log(`✅ Successfully removed user ${userId} from project ${projectId}`);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error removing member:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const deleteProject = async (projectId) => {
+  try {
+    const token = getAuthToken();
+
+    if (!projectId) {
+      throw new Error("❌ Project ID is missing.");
+    }
+
+    const apiUrl = `${API_BASE_URL}/Scrum/Project/${projectId}`;
+    console.log("🚀 Sending DELETE request to:", apiUrl);
+
+    const response = await axios.delete(apiUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    console.log(`✅ Successfully deleted project ${projectId}`);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error deleting project:", {
+      message: error.message,
+      responseData: error.response?.data,
+      status: error.response?.status,
+      headers: error.response?.headers,
+    });
+
+    throw error;
+  }
+};
+

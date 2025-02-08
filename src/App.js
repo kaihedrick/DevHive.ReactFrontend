@@ -24,7 +24,7 @@ function App() {
   const [isTopbar, setIsTopbar] = useState(window.innerWidth <= 600);
 
   // Routes where Navbar should NOT appear
-  const hideNavbarRoutes = ['/', '/forgot-password', '/create-project', '/projects', '/join-group'];
+  const hideNavbarRoutes = ['/', '/forgot-password', '/create-project', '/projects', '/join-group', '/account-details'];
   const showNavbar = selectedProject && !hideNavbarRoutes.includes(location.pathname);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ function App() {
       const topbar = window.innerWidth <= 600;
       setIsTopbar(topbar);
   
-      const hideNavbarRoutes = ['/', '/forgot-password', '/create-project', '/projects'];
+      const hideNavbarRoutes = ['/', '/forgot-password', '/create-project', '/projects', '/join-group', '/account-details'];
       const shouldHideNavbar = hideNavbarRoutes.includes(location.pathname);
   
       // Remove both classes first to avoid conflicts
