@@ -1,0 +1,243 @@
+/* ==========================
+   Backlog Page Sizing
+========================== */
+
+.backlog-page {
+    width: 80%;
+    height: 80vh; /* 80% of the viewport height */
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Center it within .content */
+}
+
+/* ==========================
+   Backlog Container
+========================== */
+
+.backlog-container {
+    width: 100%;
+    max-width: 900px; /* Restrict max width */
+    padding: 25px;
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+}
+
+/* ==========================
+   Back Arrow (Outside Container)
+========================== */
+
+.back-arrow {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--dark-gray);
+    transition: transform var(--transition-speed), color var(--transition-speed);
+}
+
+.back-arrow:hover {
+    color: var(--black);
+    transform: scale(1.2);
+}
+
+/* ==========================
+   Sprint Overview Layout
+========================== */
+
+.sprint-overview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.sprint-card {
+    width: 220px;
+    padding: 18px;
+    background: var(--light-gray);
+    border-radius: var(--border-radius);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    border: 1px solid var(--gray);
+}
+
+.sprint-card:hover {
+    background: var(--white);
+    transform: scale(1.05);
+}
+
+/* Sprint Details */
+.sprint-card h3 {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.sprint-card p {
+    font-size: 14px;
+    color: var(--dark-gray);
+    margin: 5px 0;
+}
+
+/* FontAwesome Icons for Started & Completed */
+.sprint-status-icon {
+    font-size: 16px;
+    color: var(--dark-gray);
+    margin-left: 5px;
+}
+
+.sprint-status-icon.completed {
+    color: #2ecc71; /* Green */
+}
+
+.sprint-status-icon.not-started {
+    color: #e74c3c; /* Red */
+}
+
+/* ==========================
+   Sprint Task View
+========================== */
+
+.sprint-details-container {
+    background: var(--white);
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.task-card {
+    background: var(--light-gray);
+    padding: 12px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--gray);
+    transition: 0.3s ease-in-out;
+}
+
+.task-card:hover {
+    transform: scale(1.03);
+}
+
+.task-title {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+/* ==========================
+   Backlog Actions & Buttons
+========================== */
+
+.backlog-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.backlog-actions button {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    transition: 0.3s;
+    border: none;
+}
+
+.button-primary {
+    background: var(--gold);
+    color: var(--white);
+}
+
+.button-primary:hover {
+    background: var(--dark-gold);
+}
+
+.button-secondary {
+    background: var(--light-gray);
+    color: var(--black);
+}
+
+.button-secondary:hover {
+    background: var(--gray);
+}
+
+/* ==========================
+   Success Pop-up
+========================== */
+
+.success-popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #28a745;
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--border-radius);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    animation: fadeOut 3s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* ============================= */
+/* 🔙 Back Arrow (Outside Backlog Container) */
+/* ============================= */
+.back-arrow {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--dark-gray);
+    transition: transform var(--transition-speed), color var(--transition-speed);
+  }
+  
+  .back-arrow:hover {
+    color: var(--black);
+    transform: scale(1.2);
+  }
+  
+  /* ============================= */
+  /* 🔙 Back Arrow Inside Sprint View */
+  /* ============================= */
+  .sprint-details-container .back-arrow.sprint-view {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--dark-gray);
+    transition: transform var(--transition-speed), color var(--transition-speed);
+  }
+  
+  .sprint-details-container .back-arrow.sprint-view:hover {
+    color: var(--black);
+    transform: scale(1.2);
+  }
+  

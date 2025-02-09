@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { fetchProjectById, fetchProjectMembers, removeMemberFromProject } from "../services/projectService"; // ✅ Import removeMemberFromProject
+import { useState, useEffect, useCallback } from "react";
+import { fetchProjectById, fetchProjectMembers, removeMemberFromProject } from "../services/projectService";
 import { fetchUserById } from "../services/userService";
 
 const useProjectDetails = (projectId) => {
@@ -11,17 +11,8 @@ const useProjectDetails = (projectId) => {
     membersError: null,
   });
 
-  useEffect(() => {
-    if (!projectId) {
-      setErrors({ projectError: "No project selected.", membersError: null });
-      setLoading(false);
-      return;
-    }
-
-    fetchDetails();
-  }, [projectId]);
-
-  const fetchDetails = async () => {
+  // ✅ Wrap fetchDetails in useCallback to avoid unnecessary re-renders
+  const fetchDetails = useCallback(async () => {
     setLoading(true);
     setErrors({ projectError: null, membersError: null });
 
@@ -56,27 +47,32 @@ const useProjectDetails = (projectId) => {
     }
 
     setLoading(false);
-  };
+  }, [projectId]); // ✅ `useCallback` prevents unnecessary recreation of fetchDetails
+
+  // ✅ Now useEffect correctly uses fetchDetails
+  useEffect(() => {
+    if (!projectId) {
+      setErrors({ projectError: "No project selected.", membersError: null });
+      setLoading(false);
+      return;
+    }
+
+    fetchDetails();
+  }, [projectId, fetchDetails]); // ✅ Now fetchDetails is correctly placed
 
   // ✅ Function to remove a member and refresh the list
-// ✅ Function to remove a member and refresh the list
-const kickMember = async (userId) => {
-  if (!projectId || !userId) return;
+  const kickMember = async (userId) => {
+    if (!projectId || !userId) return;
 
-  try {
-    console.log(`🔥 Removing user ${userId} from project ${projectId}`);
-
-    await removeMemberFromProject(projectId, userId); // ✅ Correct API function
-
-    console.log(`✅ Successfully removed user ${userId}`);
-
-    await fetchDetails(); // ✅ Call fetchDetails instead of refreshProjectDetails
-  } catch (error) {
-    console.error(`❌ Failed to remove user ${userId}:`, error.message);
-  }
-};
-
-  
+    try {
+      console.log(`🔥 Removing user ${userId} from project ${projectId}`);
+      await removeMemberFromProject(projectId, userId);
+      console.log(`✅ Successfully removed user ${userId}`);
+      await fetchDetails();
+    } catch (error) {
+      console.error(`❌ Failed to remove user ${userId}:`, error.message);
+    }
+  };
 
   return { project, members, loading, errors, refreshProjectDetails: fetchDetails, kickMember };
 };

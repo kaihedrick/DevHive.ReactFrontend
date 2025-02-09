@@ -1,0 +1,127 @@
+/* ============================= */
+/* 🌟 Create Sprint Page Layout */
+/* ============================= */
+.create-sprint-page {
+    width: 80%;
+    height: 80vh;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+  
+/* ============================= */
+/* 🔙 Back Arrow (Like Account & Backlog Pages) */
+/* ============================= */
+.back-arrow {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--dark-gray);
+    transition: transform var(--transition-speed), color var(--transition-speed);
+}
+  
+.back-arrow:hover {
+    color: var(--black);
+    transform: scale(1.2);
+}
+  
+/* ============================= */
+/* 🌟 Create Sprint Container */
+/* ============================= */
+.create-sprint-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+  
+/* ============================= */
+/* 🌟 Card Styling */
+/* ============================= */
+.card {
+    background: var(--white);
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 350px;
+}
+  
+.card h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+  
+/* ============================= */
+/* 🌟 Input Fields */
+/* ============================= */
+.input-group {
+    text-align: left;
+    margin-bottom: 15px;
+}
+  
+.input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+  
+input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--light-gray);
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    background: var(--white);
+    color: var(--black);
+    outline: none;
+    transition: border-color var(--transition-speed);
+}
+  
+input:focus {
+    border-color: var(--dark-gold);
+}
+  
+/* ============================= */
+/* 🌟 Buttons */
+/* ============================= */
+.button-primary {
+    background: var(--dark-gold);
+    color: var(--white);
+    padding: var(--button-padding);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+    margin-top: 10px;
+    transition: var(--transition-speed);
+}
+  
+.button-primary:hover {
+    background: var(--gold);
+}
+  
+/* ============================= */
+/* ❌ Error Popup */
+/* ============================= */
+.error-popup {
+    background: #e74c3c;
+    color: var(--white);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+    text-align: center;
+    animation: fadeOut 2s ease-in-out forwards;
+}
+  
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}

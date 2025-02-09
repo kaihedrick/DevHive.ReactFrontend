@@ -41,10 +41,10 @@ const Projects = () => {
 
   const confirmDeleteProject = async () => {
     if (!deleteProjectId) return;
-  
+
     try {
       console.log(`🗑️ Confirming deletion of project: ${deleteProjectId}`);
-      await deleteProject(deleteProjectId); // ✅ Calls deleteProject from useProjects
+      await deleteProject(deleteProjectId);
       setShowDeleteModal(false);
       setDeleteProjectId(null);
     } catch (error) {
@@ -80,6 +80,7 @@ const Projects = () => {
               onSelect={handleProjectSelection}
               onEdit={toggleEditMode}
               onDelete={handleDeleteProject}
+              loggedInUserId={userId} // ✅ Pass user ID to ProjectCard
             />
           ))
         ) : (
@@ -87,7 +88,7 @@ const Projects = () => {
         )}
       </div>
 
-      {/* ✅ Action Buttons Restored */}
+      {/* ✅ Action Buttons */}
       <div className="actions">
         <button className="action-btn create-btn" onClick={() => navigate("/create-project")}>
           Create a Project
@@ -101,25 +102,28 @@ const Projects = () => {
       </div>
 
       {/* ✅ Delete Confirmation Modal */}
-      <div className={`modal-overlay ${showDeleteModal ? "active" : ""}`}>
-        <div className="modal">
-          <h3>Confirm Deletion</h3>
-          <p>Are you sure you want to remove this project?</p>
-          <div className="modal-actions">
-            <button className="confirm-btn" onClick={confirmDeleteProject}>
-              <FontAwesomeIcon icon={faTrash} />
-            </button>
-            <button className="cancel-btn" onClick={cancelDeleteProject}>
-              <FontAwesomeIcon icon={faXmark} />
-            </button>
+      {showDeleteModal && (
+        <div className="modal-overlay active">
+          <div className="modal">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to remove this project?</p>
+            <div className="modal-actions">
+              <button className="confirm-btn" onClick={confirmDeleteProject}>
+                <FontAwesomeIcon icon={faTrash} />
+              </button>
+              <button className="cancel-btn" onClick={cancelDeleteProject}>
+                <FontAwesomeIcon icon={faXmark} />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
-const ProjectCard = ({ project, isEditing, onSelect, onEdit, onDelete }) => (
+// ✅ Ensure edit button is only visible to the project owner
+const ProjectCard = ({ project, isEditing, onSelect, onEdit, onDelete, loggedInUserId }) => (
   <div
     className={`project-card ${isEditing ? "editing" : ""}`}
     tabIndex="0"
@@ -131,19 +135,34 @@ const ProjectCard = ({ project, isEditing, onSelect, onEdit, onDelete }) => (
     <h3>{project.name}</h3>
     <p>{project.description}</p>
 
-    {/* ✅ Delete (🗑️) on Left, Edit (✏️) on Right */}
+    {/* ✅ Delete button is only visible to project owners */}
     <div className="project-actions">
-      {isEditing && (
-        <button className="delete-btn" onClick={(e) => { e.stopPropagation(); onDelete(project.id); }}>
+      {project.projectOwnerID === loggedInUserId && isEditing && (
+        <button
+          className="delete-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(project.id);
+          }}
+        >
           <FontAwesomeIcon icon={faTrash} />
         </button>
       )}
-      <button className="edit-btn" onClick={(e) => { e.stopPropagation(); onEdit(project.id); }}>
-        <FontAwesomeIcon icon={isEditing ? faXmark : faPenToSquare} />
-      </button>
+
+      {/* ✅ Edit button is only visible to project owners */}
+      {project.projectOwnerID === loggedInUserId && (
+        <button
+          className="edit-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(project.id);
+          }}
+        >
+          <FontAwesomeIcon icon={isEditing ? faXmark : faPenToSquare} />
+        </button>
+      )}
     </div>
   </div>
 );
-
 
 export default Projects;

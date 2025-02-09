@@ -37,7 +37,7 @@ const useProjects = (providedUserId) => {
     getProjects();
   }, [userId]);
 
-  // Function to select a project
+  // ✅ Function to select a project
   const selectProject = (projectId) => {
     setSelectedProject(projectId);
     setSelectedProjectState(projectId);
@@ -58,6 +58,7 @@ const useProjects = (providedUserId) => {
     }
   };
 
+  // ✅ Return values from hook
   return {
     projects,
     loading,
@@ -67,4 +68,5 @@ const useProjects = (providedUserId) => {
   };
 };
 
+// ✅ Ensure this is at the top level (not inside any function)
 export default useProjects;

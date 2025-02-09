@@ -17,6 +17,8 @@ import CreateProject from './components/CreateProject';
 import InviteMembers from './components/InviteMembers';
 import AccountDetails from './components/AccountDetails';
 import JoinProject from './components/JoinProject';
+import CreateSprint from './components/CreateSprint';
+import CreateTask from './components/CreateTask';
 
 function App() {
   const location = useLocation();
@@ -79,6 +81,9 @@ function App() {
           <Route path="/board" element={<ProtectedRoute><Board /></ProtectedRoute>} />
           <Route path="/contacts" element={<ProtectedRoute><Contacts /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Message /></ProtectedRoute>} />
+          <Route path="/create-sprint" element={<ProtectedRoute><CreateSprint /></ProtectedRoute>} />
+          <Route path="/create-task" element={<ProtectedRoute><CreateTask /></ProtectedRoute>} />
+
         </Routes>
       </main>
 
