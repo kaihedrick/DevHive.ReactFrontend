@@ -32,7 +32,7 @@ const CreateSprint = () => {
 
       await createSprint(sprintData);
       
-      // ✅ Redirect to Backlog with Sprint Name in URL
+      // Redirect to Backlog and send sprint name in URL
       navigate(`/backlog?success=${encodeURIComponent(sprintName)}`);
     } catch (err) {
       setError(err.message || "Failed to create sprint.");
@@ -42,13 +42,14 @@ const CreateSprint = () => {
 
   return (
     <div className="create-sprint-page">
-      {/* 🔙 Back Arrow (Outside the Card, Top-Left of Page) */}
-      <div className="back-arrow" onClick={() => navigate("/backlog")}>
-        <FontAwesomeIcon icon={faArrowRotateLeft} />
-      </div>
+
 
       <div className="create-sprint-container">
         <div className="card">
+      {/*  Back Arrow (Matches Account Page & Backlog Sprint View) */}
+      <div className="back-arrow" onClick={() => navigate("/backlog")}>
+        <FontAwesomeIcon icon={faArrowRotateLeft} />
+      </div>
           <h2>Create Sprint</h2>
 
           <input

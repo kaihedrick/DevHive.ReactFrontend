@@ -14,7 +14,7 @@ const AccountDetails = () => {
 
   return (
     <div className="account-container">
-      {/* ✅ Back Arrow (Styled like in Create Project) */}
+      {/* Back Arrow (Styled like in Create Project) */}
       <div className="back-arrow" onClick={handleGoBack}>
         <FontAwesomeIcon icon={faArrowRotateLeft} />
       </div>

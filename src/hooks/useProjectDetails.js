@@ -11,7 +11,7 @@ const useProjectDetails = (projectId) => {
     membersError: null,
   });
 
-  // ✅ Wrap fetchDetails in useCallback to avoid unnecessary re-renders
+  // Wrap fetchDetails in useCallback to avoid unnecessary re-renders
   const fetchDetails = useCallback(async () => {
     setLoading(true);
     setErrors({ projectError: null, membersError: null });
@@ -47,9 +47,9 @@ const useProjectDetails = (projectId) => {
     }
 
     setLoading(false);
-  }, [projectId]); // ✅ `useCallback` prevents unnecessary recreation of fetchDetails
+  }, [projectId]); // `useCallback` prevents unnecessary recreation of fetchDetails
 
-  // ✅ Now useEffect correctly uses fetchDetails
+
   useEffect(() => {
     if (!projectId) {
       setErrors({ projectError: "No project selected.", membersError: null });
@@ -58,9 +58,9 @@ const useProjectDetails = (projectId) => {
     }
 
     fetchDetails();
-  }, [projectId, fetchDetails]); // ✅ Now fetchDetails is correctly placed
+  }, [projectId, fetchDetails]); 
 
-  // ✅ Function to remove a member and refresh the list
+  // Function to remove a member and refresh the list
   const kickMember = async (userId) => {
     if (!projectId || !userId) return;
 

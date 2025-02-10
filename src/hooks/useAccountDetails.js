@@ -34,10 +34,10 @@ const useAccountDetails = () => {
     fetchUserData();
   }, [navigate]);
 
-  // ✅ Back Navigation Function
+  // Back Navigation Function
   const handleGoBack = () => {
     console.log("🔙 Returning to the previous page...");
-    navigate(-1); // ✅ Go back to the previous page
+    navigate(-1); // Go back to the previous page
   };
 
   // Logout function

@@ -18,7 +18,7 @@ const useLoginRegister = () => {
 
   const navigate = useNavigate();
 
-  // ✅ Handle input changes and check email duplicates
+  // Handle input changes and check email duplicates
   const handleChange = async (e) => {
     const { name, value } = e.target;
     setCredentials((prev) => ({ ...prev, [name]: value }));
@@ -39,7 +39,7 @@ const useLoginRegister = () => {
     }
   };
 
-  // ✅ Validate form fields
+  // Validate form fields
   const validateFields = () => {
     const errors = {};
     const specialCharacterRegex = /[!@#$%^&*(),.?":{}|<>]/;
@@ -74,7 +74,7 @@ const useLoginRegister = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // ✅ Handle login or registration
+  // Handle login or registration
   const handleAction = async () => {
     if (!validateFields()) return;
 
@@ -84,15 +84,15 @@ const useLoginRegister = () => {
           username: credentials.username,
           password: credentials.password,
         });
-        localStorage.setItem("authToken", response.token); // ✅ Store token
+        localStorage.setItem("authToken", response.token); // Store token
         setSuccess(true);
         setError("");
-        navigate("/projects"); // ✅ Redirect to projects
+        navigate("/projects"); // Redirect to projects
       } else {
         await register(credentials);
         setSuccess(true);
         setError("");
-        setAction("Login"); // ✅ Switch to login after registration
+        setAction("Login"); // Switch to login after registration
         setCredentials({
           email: "",
           username: "",
@@ -108,7 +108,7 @@ const useLoginRegister = () => {
     }
   };
 
-  // ✅ Handle switching between Login and Sign Up
+  // Handle switching between Login and Sign Up
   const handleButtonClick = (buttonAction) => {
     if (action !== buttonAction) {
       setAction(buttonAction);

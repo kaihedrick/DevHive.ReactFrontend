@@ -19,7 +19,8 @@ import AccountDetails from './components/AccountDetails';
 import JoinProject from './components/JoinProject';
 import CreateSprint from './components/CreateSprint';
 import CreateTask from './components/CreateTask';
-
+import EditSprint from './components/EditSprint';
+import EditTask from './components/EditTask';
 function App() {
   const location = useLocation();
   const selectedProject = getSelectedProject();
@@ -83,7 +84,8 @@ function App() {
           <Route path="/messages" element={<ProtectedRoute><Message /></ProtectedRoute>} />
           <Route path="/create-sprint" element={<ProtectedRoute><CreateSprint /></ProtectedRoute>} />
           <Route path="/create-task" element={<ProtectedRoute><CreateTask /></ProtectedRoute>} />
-
+          <Route path="/edit-sprint/:sprintId" element={<EditSprint />} />
+          <Route path="/edit-task/:taskId" element={<EditTask />} />
         </Routes>
       </main>
 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createTask, fetchProjectMembers, fetchProjectSprints, getSelectedProject } from "../services/projectService";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_task.css";
 
 const CreateTask = ({ projectId }) => {
@@ -75,6 +77,10 @@ const CreateTask = ({ projectId }) => {
       {errorMessage && <div className="error-popup">{errorMessage}</div>}
 
       <div className="create-task-card">
+                 {/*  Back Arrow (Same as Create Sprint Page) */}
+                 <div className="back-arrow" onClick={() => navigate("/backlog")}>
+                  <FontAwesomeIcon icon={faArrowRotateLeft} />
+                </div>
         <h2>Create Task</h2>
 
         <input

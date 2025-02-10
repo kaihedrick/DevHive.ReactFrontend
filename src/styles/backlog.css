@@ -114,6 +114,76 @@
     text-align: center;
     margin-bottom: 20px;
 }
+/* 🎨 Create Sprint Button */
+.create-sprint-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.create-sprint-button {
+    background-color: var(--gold);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 12px 20px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.create-sprint-button:hover {
+    background-color: #e6b024; /* Slightly darker gold */
+    transform: scale(1.05);
+}
+.create-task-button {
+    background-color: var(--gold);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 12px 20px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+  }
+  
+  .create-task-button:hover {
+    background-color: #e6b024; /* Slightly darker gold */
+    transform: scale(1.05);
+  }
+  
+/* 🖊 Edit Sprint Icon */
+.edit-sprint-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 18px;
+    color: var(--dark-gray);
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+.edit-sprint-button:hover {
+    color: var(--black);
+    transform: scale(1.2);
+}
+
+/* 🏗 Ensure Sprint Cards Have Relative Position */
+.sprint-card {
+    position: relative; /* Needed for positioning the edit button */
+    width: 220px;
+    padding: 18px;
+    background: var(--light-gray);
+    border-radius: var(--border-radius);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    border: 1px solid var(--gray);
+}
+
 
 .task-list {
     display: flex;
@@ -122,7 +192,11 @@
     margin-top: 15px;
 }
 
+/* ✅ Task Card Styling */
 .task-card {
+    display: flex;
+    flex-direction: column;
+    position: relative;
     background: var(--light-gray);
     padding: 12px;
     border-radius: var(--border-radius);
@@ -134,11 +208,56 @@
     transform: scale(1.03);
 }
 
-.task-title {
-    font-weight: 600;
-    font-size: 16px;
-    margin-bottom: 5px;
+/* 🖊️ Edit Task Icon */
+.edit-task-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    color: var(--dark-gray);
+    transition: 0.3s;
 }
+
+.edit-task-icon:hover {
+    color: var(--black);
+    transform: scale(1.2);
+}
+
+/* ✅ Task Content */
+.task-content {
+    padding: 10px;
+    border-bottom: 1px solid var(--gray);
+    text-align: center;
+    font-weight: bold;
+}
+
+/* ✅ Task Details */
+.task-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+/* ✅ Assignee Dropdown */
+.task-assignee-dropdown {
+    padding: 5px;
+    font-weight: bold;
+    border-radius: var(--border-radius);
+}
+
+/* ✅ Status Dropdown */
+.task-status {
+    padding: 5px;
+    font-weight: bold;
+    border-radius: var(--border-radius);
+}
+
+/* 🎨 Status Colors */
+.task-status.todo { background-color: gray; color: white !important; }
+.task-status.in-progress { background-color: blue; color: white !important; }
+.task-status.completed { background-color: green; color: white !important; }
+
 
 /* ==========================
    Backlog Actions & Buttons

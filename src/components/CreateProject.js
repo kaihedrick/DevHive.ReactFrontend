@@ -25,7 +25,7 @@ const CreateProject = () => {
 
   return (
     <div className="create-project-container">
-      {/* ✅ Back arrow moved inside the card, in the top-right */}
+      {/*  Back arrow moved inside the card, in the top-right */}
       <div className="back-arrow" onClick={() => navigate("/projects")}>
         <FontAwesomeIcon icon={faArrowRotateLeft} />
       </div>

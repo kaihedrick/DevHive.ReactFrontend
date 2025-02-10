@@ -26,7 +26,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-content">
-        {/* ✅ Only render logo in desktop mode */}
+        {/* Only render logo in desktop mode */}
         {!isMobile && (
           <div className="logo-container" onClick={() => navigateTo("/projects")}>
             <img src={HiveIcon} alt="DevHive Logo" className="logo" />

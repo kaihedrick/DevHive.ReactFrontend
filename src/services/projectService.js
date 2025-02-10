@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import { fetchUserById } from "./userService"; 
 const API_BASE_URL = "https://localhost:7170/api";
 
 // Function to fetch projects by user ID
@@ -47,7 +47,7 @@ export const isProjectOwner = async (projectId) => {
     const project = await fetchProjectById(projectId);
     const currentUserId = getUserId();
 
-    return project.projectOwnerID === currentUserId; // ✅ Returns true if user is the owner
+    return project.projectOwnerID === currentUserId; // Returns true if user is the owner
   } catch (error) {
     console.error("❌ Error checking project ownership:", error);
     return false; // Default to false on error
@@ -140,7 +140,7 @@ export const joinProject = async (projectId, userId) => {
       throw new Error("Project ID or User ID is missing.");
     }
 
-    const apiUrl = `${API_BASE_URL}/Scrum/Project/${projectId}/${userId}`; // ✅ Correct URL structure
+    const apiUrl = `${API_BASE_URL}/Scrum/Project/${projectId}/${userId}`; 
 
     console.log(`🚀 Sending POST request to: ${apiUrl}`);
 
@@ -327,16 +327,29 @@ export const editSprint = async (sprintData) => {
   try {
     const token = getAuthToken();
 
-    if (!sprintData || !sprintData.id) {
-      throw new Error("❌ Sprint data is missing or Sprint ID is not provided.");
+    // Validate sprint data
+    if (!sprintData || !sprintData.id || !sprintData.projectID) {
+      throw new Error("❌ Sprint data is missing or Sprint ID/Project ID is not provided.");
     }
+
+    // Ensure dates are in ISO format
+    const formattedSprintData = {
+      id: sprintData.id,
+      name: sprintData.name,
+      startDate: new Date(sprintData.startDate).toISOString(), // Ensure correct date format
+      endDate: new Date(sprintData.endDate).toISOString(),
+      isCompleted: sprintData.isCompleted ?? false,
+      isStarted: sprintData.isStarted ?? false,
+      projectID: sprintData.projectID,
+    };
 
     const apiUrl = `${API_BASE_URL}/Scrum/Sprint/`; 
 
     console.log("🚀 Sending PUT request to update sprint:", apiUrl);
-    console.log("📤 Sprint Payload:", sprintData);
+    console.log("📤 Sprint Payload:", formattedSprintData);
 
-    const response = await axios.put(apiUrl, sprintData, {
+    // Send the request with the correct payload
+    const response = await axios.put(apiUrl, formattedSprintData, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -350,6 +363,7 @@ export const editSprint = async (sprintData) => {
     throw error;
   }
 };
+
 // Function to edit/update an existing task
 export const editTask = async (taskData) => {
   try {
@@ -388,7 +402,7 @@ export const fetchSprintTasks = async (sprintId) => {
       throw new Error("❌ Sprint ID is required.");
     }
 
-    const apiUrl = `${API_BASE_URL}/Scrum/Sprint/Tasks/${sprintId}`; // ✅ Correct API endpoint
+    const apiUrl = `${API_BASE_URL}/Scrum/Sprint/Tasks/${sprintId}`; 
 
     console.log("🚀 Fetching tasks for sprint:", sprintId);
 
@@ -414,7 +428,7 @@ export const fetchProjectTasks = async (projectId) => {
       throw new Error("❌ Project ID is required.");
     }
 
-    const apiUrl = `${API_BASE_URL}/Scrum/Project/Tasks/${projectId}`; // ✅ Correct API endpoint
+    const apiUrl = `${API_BASE_URL}/Scrum/Project/Tasks/${projectId}`; 
 
     console.log("🚀 Fetching tasks for project:", projectId);
 
@@ -431,6 +445,82 @@ export const fetchProjectTasks = async (projectId) => {
     throw error;
   }
 };
+
+export const fetchProjectTasksWithAssignees = async (projectId) => {
+  try {
+    const tasks = await fetchProjectTasks(projectId);
+    
+    // Fetch each user's initials from `fetchUserById`
+    const tasksWithAssignees = await Promise.all(tasks.map(async (task) => {
+      if (!task.assigneeID) {
+        return { ...task, assigneeInitials: "Unassigned" };
+      }
+
+      try {
+        const user = await fetchUserById(task.assigneeID);
+        const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
+        return { ...task, assigneeInitials: initials };
+      } catch (error) {
+        console.error(`Error fetching user for task ${task.id}:`, error);
+        return { ...task, assigneeInitials: "??" }; // Default initials in case of error
+      }
+    }));
+
+    return tasksWithAssignees;
+  } catch (error) {
+    console.error("❌ Error fetching tasks with assignees:", error);
+    throw error;
+  }
+};
+
+// Function to update task status
+export const updateTaskStatus = async (taskId, newStatus) => {
+  try {
+    const token = getAuthToken();
+
+    if (!taskId) throw new Error("❌ Task ID is required.");
+    if (![0, 1, 3].includes(newStatus)) throw new Error("❌ Invalid task status.");
+
+    const apiUrl = `${API_BASE_URL}/Scrum/Task/${taskId}/Status`;
+
+    console.log(`🚀 Updating task ${taskId} status to ${newStatus}`);
+
+    const response = await axios.put(apiUrl, { status: newStatus }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    console.log("✅ Task status updated successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error updating task status:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Function to update task assignee
+export const updateTaskAssignee = async (taskId, newAssigneeId) => {
+  try {
+    const token = getAuthToken();
+
+    if (!taskId) throw new Error("❌ Task ID is required.");
+    if (!newAssigneeId) throw new Error("❌ Assignee ID is required.");
+
+    const apiUrl = `${API_BASE_URL}/Scrum/Task/${taskId}/Assignee`;
+
+    console.log(`🚀 Updating task ${taskId} assignee to user ${newAssigneeId}`);
+
+    const response = await axios.put(apiUrl, { assigneeID: newAssigneeId }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    console.log("✅ Task assignee updated successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error updating task assignee:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
 // Function to fetch all sprints for a given project
 export const fetchProjectSprints = async (projectId) => {
   try {
@@ -440,7 +530,7 @@ export const fetchProjectSprints = async (projectId) => {
       throw new Error("❌ Project ID is required.");
     }
 
-    const apiUrl = `${API_BASE_URL}/Scrum/Project/Sprints/${projectId}`; // ✅ Correct API endpoint
+    const apiUrl = `${API_BASE_URL}/Scrum/Project/Sprints/${projectId}`; 
 
     console.log("🚀 Fetching sprints for project:", projectId);
 
@@ -466,7 +556,7 @@ export const fetchSprintById = async (sprintId) => {
       throw new Error("❌ Sprint ID is required.");
     }
 
-    const apiUrl = `${API_BASE_URL}/Scrum/Sprint/${sprintId}`; // ✅ Correct API endpoint
+    const apiUrl = `${API_BASE_URL}/Scrum/Sprint/${sprintId}`; 
 
     console.log("🚀 Fetching sprint details for:", sprintId);
 
@@ -492,7 +582,7 @@ export const fetchTaskById = async (taskId) => {
       throw new Error("❌ Task ID is required.");
     }
 
-    const apiUrl = `${API_BASE_URL}/Scrum/Task/${taskId}`; // ✅ Correct API endpoint
+    const apiUrl = `${API_BASE_URL}/Scrum/Task/${taskId}`; 
 
     console.log("🚀 Fetching task details for:", taskId);
 
@@ -518,7 +608,7 @@ export const deleteTask = async (taskId) => {
       throw new Error("❌ Task ID is required.");
     }
 
-    const apiUrl = `${API_BASE_URL}/Scrum/Task/${taskId}`; // ✅ Correct API endpoint
+    const apiUrl = `${API_BASE_URL}/Scrum/Task/${taskId}`; 
 
     console.log("🚀 Sending DELETE request for task:", taskId);
 
@@ -544,7 +634,7 @@ export const deleteSprint = async (sprintId) => {
       throw new Error("❌ Sprint ID is required.");
     }
 
-    const apiUrl = `${API_BASE_URL}/Scrum/Sprint/${sprintId}`; // ✅ Correct API endpoint
+    const apiUrl = `${API_BASE_URL}/Scrum/Sprint/${sprintId}`; 
 
     console.log("🚀 Sending DELETE request for sprint:", sprintId);
 

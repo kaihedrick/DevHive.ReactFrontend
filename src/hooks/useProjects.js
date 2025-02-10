@@ -4,7 +4,7 @@ import {
   getSelectedProject,
   setSelectedProject,
   getUserId,
-  deleteProject as deleteProjectAPI, // ✅ Import deleteProject API function
+  deleteProject as deleteProjectAPI, // Import deleteProject API function
 } from "../services/projectService";
 
 // Custom hook for managing project state
@@ -37,13 +37,13 @@ const useProjects = (providedUserId) => {
     getProjects();
   }, [userId]);
 
-  // ✅ Function to select a project
+  // Function to select a project
   const selectProject = (projectId) => {
     setSelectedProject(projectId);
     setSelectedProjectState(projectId);
   };
 
-  // ✅ Function to delete a project
+  // Function to delete a project
   const deleteProject = async (projectId) => {
     if (!projectId) return;
 
@@ -58,15 +58,15 @@ const useProjects = (providedUserId) => {
     }
   };
 
-  // ✅ Return values from hook
+  // Return values from hook
   return {
     projects,
     loading,
     selectedProject,
     selectProject,
-    deleteProject, // ✅ Return deleteProject function
+    deleteProject, // Return deleteProject function
   };
 };
 
-// ✅ Ensure this is at the top level (not inside any function)
+// Ensure this is at the top level (not inside any function)
 export default useProjects;

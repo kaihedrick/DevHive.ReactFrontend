@@ -80,7 +80,7 @@ const Projects = () => {
               onSelect={handleProjectSelection}
               onEdit={toggleEditMode}
               onDelete={handleDeleteProject}
-              loggedInUserId={userId} // ✅ Pass user ID to ProjectCard
+              loggedInUserId={userId} // Pass user ID to ProjectCard
             />
           ))
         ) : (
@@ -88,7 +88,7 @@ const Projects = () => {
         )}
       </div>
 
-      {/* ✅ Action Buttons */}
+      {/* Action Buttons */}
       <div className="actions">
         <button className="action-btn create-btn" onClick={() => navigate("/create-project")}>
           Create a Project
@@ -101,7 +101,7 @@ const Projects = () => {
         </button>
       </div>
 
-      {/* ✅ Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="modal-overlay active">
           <div className="modal">
@@ -122,7 +122,7 @@ const Projects = () => {
   );
 };
 
-// ✅ Ensure edit button is only visible to the project owner
+// Ensure edit button is only visible to the project owner
 const ProjectCard = ({ project, isEditing, onSelect, onEdit, onDelete, loggedInUserId }) => (
   <div
     className={`project-card ${isEditing ? "editing" : ""}`}
@@ -135,7 +135,7 @@ const ProjectCard = ({ project, isEditing, onSelect, onEdit, onDelete, loggedInU
     <h3>{project.name}</h3>
     <p>{project.description}</p>
 
-    {/* ✅ Delete button is only visible to project owners */}
+    {/* Delete button is only visible to project owners */}
     <div className="project-actions">
       {project.projectOwnerID === loggedInUserId && isEditing && (
         <button
@@ -149,7 +149,7 @@ const ProjectCard = ({ project, isEditing, onSelect, onEdit, onDelete, loggedInU
         </button>
       )}
 
-      {/* ✅ Edit button is only visible to project owners */}
+      {/* Edit button is only visible to project owners */}
       {project.projectOwnerID === loggedInUserId && (
         <button
           className="edit-btn"

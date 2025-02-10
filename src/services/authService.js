@@ -3,27 +3,27 @@ import { API_BASE_URL } from "../config";
 
 const API_URL = `${API_BASE_URL}/User`;
 
-// ✅ Get authentication token from localStorage
+// Get authentication token from localStorage
 export const getAuthToken = () => localStorage.getItem("token");
 
-// ✅ Get user ID from localStorage
+// Get user ID from localStorage
 export const getUserId = () => {
   return localStorage.getItem("userId");
 };
 
-// ✅ Store token & user ID in localStorage
+// Store token & user ID in localStorage
 export const storeAuthData = (token, userId) => {
   localStorage.setItem("token", token);
   localStorage.setItem("userId", userId);
 };
 
-// ✅ Clear authentication data
+// Clear authentication data
 export const clearAuthData = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("userId");
 };
 
-// ✅ Validate email (check if it's already in use)
+// Validate email (check if it's already in use)
 export const validateEmail = async (email) => {
   try {
     const response = await axios.post(`${API_URL}/ValidateEmail`, { email });
@@ -34,7 +34,7 @@ export const validateEmail = async (email) => {
   }
 };
 
-// ✅ Login function
+// Login function
 export const login = async (credentials) => {
   try {
     const response = await axios.post(`${API_URL}/ProcessLogin/`, credentials);
@@ -54,7 +54,7 @@ export const login = async (credentials) => {
   }
 };
 
-// ✅ Register function
+// Register function
 export const register = async (userData) => {
   try {
     const response = await axios.post(`${API_URL}/`, userData);
