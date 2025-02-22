@@ -21,6 +21,7 @@ import CreateSprint from './components/CreateSprint';
 import CreateTask from './components/CreateTask';
 import EditSprint from './components/EditSprint';
 import EditTask from './components/EditTask';
+
 function App() {
   const location = useLocation();
   const selectedProject = getSelectedProject();
@@ -86,6 +87,7 @@ function App() {
           <Route path="/create-task" element={<ProtectedRoute><CreateTask /></ProtectedRoute>} />
           <Route path="/edit-sprint/:sprintId" element={<EditSprint />} />
           <Route path="/edit-task/:taskId" element={<EditTask />} />
+          <Route path="/messages/:userId/:projectId" element={<Message />} /> {/*For sending specific messages to a user of a project*/}
         </Routes>
       </main>
 
