@@ -114,7 +114,7 @@
     text-align: center;
     margin-bottom: 20px;
 }
-/* 🎨 Create Sprint Button */
+/* Create Sprint Button */
 .create-sprint-button-container {
     display: flex;
     justify-content: center;
@@ -154,7 +154,7 @@
     transform: scale(1.05);
   }
   
-/* 🖊 Edit Sprint Icon */
+/* Edit Sprint Icon */
 .edit-sprint-button {
     position: absolute;
     top: 10px;
@@ -170,7 +170,7 @@
     transform: scale(1.2);
 }
 
-/* 🏗 Ensure Sprint Cards Have Relative Position */
+/* Ensure Sprint Cards Have Relative Position */
 .sprint-card {
     position: relative; /* Needed for positioning the edit button */
     width: 220px;
@@ -192,7 +192,7 @@
     margin-top: 15px;
 }
 
-/* ✅ Task Card Styling */
+/* Task Card Styling */
 .task-card {
     display: flex;
     flex-direction: column;
@@ -208,7 +208,7 @@
     transform: scale(1.03);
 }
 
-/* 🖊️ Edit Task Icon */
+/* Edit Task Icon */
 .edit-task-icon {
     position: absolute;
     top: 10px;
@@ -223,7 +223,7 @@
     transform: scale(1.2);
 }
 
-/* ✅ Task Content */
+/* Task Content */
 .task-content {
     padding: 10px;
     border-bottom: 1px solid var(--gray);
@@ -231,7 +231,7 @@
     font-weight: bold;
 }
 
-/* ✅ Task Details */
+/* Task Details */
 .task-details {
     display: flex;
     justify-content: space-between;
@@ -239,21 +239,21 @@
     padding: 10px;
 }
 
-/* ✅ Assignee Dropdown */
+/*  Assignee Dropdown */
 .task-assignee-dropdown {
     padding: 5px;
     font-weight: bold;
     border-radius: var(--border-radius);
 }
 
-/* ✅ Status Dropdown */
+/* Status Dropdown */
 .task-status {
     padding: 5px;
     font-weight: bold;
     border-radius: var(--border-radius);
 }
 
-/* 🎨 Status Colors */
+/* Status Colors */
 .task-status.todo { background-color: gray; color: white !important; }
 .task-status.in-progress { background-color: blue; color: white !important; }
 .task-status.completed { background-color: green; color: white !important; }
@@ -325,7 +325,7 @@
 }
 
 /* ============================= */
-/* 🔙 Back Arrow (Outside Backlog Container) */
+/*  Back Arrow (Outside Backlog Container) */
 /* ============================= */
 .back-arrow {
     position: absolute;
@@ -343,7 +343,7 @@
   }
   
   /* ============================= */
-  /* 🔙 Back Arrow Inside Sprint View */
+  /*  Back Arrow Inside Sprint View */
   /* ============================= */
   .sprint-details-container .back-arrow.sprint-view {
     position: absolute;

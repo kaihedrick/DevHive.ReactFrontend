@@ -3,17 +3,16 @@ import axios from "axios";
 const API_BASE_URL = "https://localhost:7170/api/Message"; 
 let socket = null;
 // Function to send a new message
-// Function to send messages
 export const sendMessage = async (message) => {
     try {
         const token = getAuthToken();
 
-        // ✅ Fix: Ensure all required fields are present & correctly named
+
         const payload = {
-            Message: message.message,  // ✅ Ensure correct casing
+            Message: message.message,  
             FromUserID: message.fromUserID,
             ToUserID: message.toUserID,
-            ProjectID: message.projectID, // ✅ Match backend model
+            ProjectID: message.projectID, 
         };
 
         console.log("📤 Sending message:", payload);
@@ -25,7 +24,7 @@ export const sendMessage = async (message) => {
             },
         });
 
-        console.log("✅ Message sent successfully:", response.data);
+        console.log(" Message sent successfully:", response.data);
         return response.data;
     } catch (error) {
         console.error("❌ Error sending message:", error.response?.data || error.message);
@@ -51,7 +50,7 @@ export const fetchMessages = async (fromUserID, toUserID, projectID) => {
 
       console.log("✅ Retrieved messages:", response.data);
 
-      // ✅ Convert Firestore timestamps to JavaScript Date objects
+      // Convert Firestore timestamps to JavaScript Date objects
       return response.data.map(msg => ({
         ...msg,
         DateSent: msg.DateSent && msg.DateSent.seconds ? 
@@ -73,7 +72,7 @@ export const fetchMessages = async (fromUserID, toUserID, projectID) => {
   
 
 // Function to subscribe to real-time messages via WebSocket
-// Function to establish WebSocket connection
+// establish WebSocket connection
 export const subscribeToMessageStream = (userId, projectID, onMessageReceived) => {
     if (!userId || !projectID) {
       console.error("❌ Missing userId or projectID for WebSocket.");

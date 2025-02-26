@@ -1,5 +1,5 @@
 /* ============================= */
-/* 🌟 Account Page Layout */
+/*  Account Page Layout */
 /* ============================= */
 .account-container {
   display: flex;
@@ -13,7 +13,7 @@
 }
 
 /* ============================= */
-/* 🌟 Account Card (Matches Global .card) */
+/*  Account Card (Matches Global .card) */
 /* ============================= */
 .account-card {
   background: var(--white);
@@ -27,7 +27,7 @@
 }
 
 /* ============================= */
-/* 🔙 Back Arrow (Same Style as Create Project) */
+/*  Back Arrow (Same Style as Create Project) */
 /* ============================= */
 .back-arrow {
   position: absolute;
@@ -45,7 +45,7 @@
 }
 
 /* ============================= */
-/* 🌟 Profile Placeholder */
+/* Profile Placeholder */
 /* ============================= */
 .profile-placeholder {
   width: 100px;
@@ -63,7 +63,7 @@
 }
 
 /* ============================= */
-/* 🌟 Input Fields (Now Using Secondary Font) */
+/*  Input Fields (Now Using Secondary Font) */
 /* ============================= */
 .account-card input {
   width: 100%;
@@ -77,7 +77,7 @@
   color: var(--black);
   outline: none;
   transition: border-color var(--transition-speed);
-  font-family: var(--secondary-font); /* ✅ Now using Judson */
+  font-family: var(--secondary-font); 
 }
 
 .account-card input:read-only {
@@ -86,7 +86,7 @@
 }
 
 /* ============================= */
-/* 🌟 Buttons (Using Global Button Styles) */
+/* Buttons (Using Global Button Styles) */
 /* ============================= */
 .account-card button {
   width: 100%;
@@ -100,7 +100,7 @@
   margin-top: 10px;
 }
 
-/* ✅ Change Password Button */
+/* Change Password Button */
 .change-password-btn {
   background: var(--dark-gold);
   color: var(--white);
@@ -111,7 +111,7 @@
   transform: scale(1.05);
 }
 
-/* ✅ Leave Group Button */
+/* Leave Group Button */
 .leave-group-btn {
   background: var(--black);
   color: var(--white);
@@ -122,7 +122,7 @@
   transform: scale(1.05);
 }
 
-/* ✅ Logout Button */
+/* Logout Button */
 .logout-btn {
   background: var(--dark-gray);
   color: var(--white);
@@ -134,7 +134,7 @@
 }
 
 /* ============================= */
-/* 🌟 Responsive Design */
+/*  Responsive Design */
 /* ============================= */
 @media (max-width: 600px) {
   .account-card {

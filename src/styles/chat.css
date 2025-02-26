@@ -5,15 +5,15 @@
     width: 50%;
     max-width: 600px;
     margin: 30px auto;
-    background: var(--white);  /* ✅ Uses global white */
-    border-radius: var(--border-radius); /* ✅ Uses global border radius */
+    background: var(--white);  /* Uses global white */
+    border-radius: var(--border-radius); /* Uses global border radius */
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    font-family: var(--primary-font); /* ✅ Ensures global font consistency */
+    font-family: var(--primary-font); /* Ensures global font consistency */
 }
 
 /* Chat header */
 .chat-header {
-    background: var(--dark-gold); /* ✅ Uses global gold */
+    background: var(--dark-gold); /* Uses global gold */
     color: var(--white);
     text-align: center;
     padding: 10px;
@@ -27,29 +27,29 @@
     flex-direction: column;
     gap: 10px;
     padding: 15px;
-    height: 60vh;  /* ✅ Limits height to 60% of the viewport */
+    height: 60vh;  /* Limits height to 60% of the viewport */
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--gray) transparent;
 }
 
-/* ✅ Align messages in professional chat format */
+/* Align messages in professional chat format */
 .message-wrapper {
     display: flex;
     width: 100%;
 }
 
-/* ✅ Receiver messages (Left-aligned) */
+/* Receiver messages (Left-aligned) */
 .received-wrapper {
     justify-content: flex-start;
 }
 
-/* ✅ Sender messages (Right-aligned) */
+/* Sender messages (Right-aligned) */
 .sent-wrapper {
     justify-content: flex-end;
 }
 
-/* ✅ Message box styling */
+/* Message box styling */
 .message {
     max-width: 75%;
     padding: 12px;
@@ -57,21 +57,21 @@
     word-wrap: break-word;
     font-size: 14px;
     position: relative;
-    font-family: var(--secondary-font); /* ✅ Uses secondary font */
+    font-family: var(--secondary-font); /* Uses secondary font */
 }
 
-/* ✅ Receiver message styling */
+/* Receiver message styling */
 .received {
-    background-color: var(--light-gray); /* ✅ Uses global light gray */
+    background-color: var(--light-gray); /* Uses global light gray */
     color: var(--black);
     border-radius: 12px 12px 12px 0;
     border: 1px solid var(--gray);
     padding: 10px;
 }
 
-/* ✅ Sender message styling */
+/* Sender message styling */
 .sent {
-    background-color: var(--dark-gold); /* ✅ Uses global dark gold */
+    background-color: var(--dark-gold); /* Uses global dark gold */
     color: var(--white);
     border-radius: 12px 12px 0 12px;
     border: 1px solid var(--gold);
@@ -111,7 +111,7 @@
 }
 
 .message-input input:focus {
-    border-color: var(--dark-gold); /* ✅ Uses global dark gold */
+    border-color: var(--dark-gold); /* Uses global dark gold */
 }
 
 .message-input button {
