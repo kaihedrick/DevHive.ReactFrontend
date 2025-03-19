@@ -16,17 +16,12 @@ const useLoginRegister = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(true);
   const [emailValidationStatus, setEmailValidationStatus] = useState(null); // null, "success", "error"
+  const [validatingEmail, setValidatingEmail] = useState(false); // Track email validation state
   
   const debounceTimeout = useRef(null); // Debounce timeout reference
 
   const navigate = useNavigate();
-
-  // Cleanup effect
-  useEffect(() => {
-    return () => setMounted(false);
-  }, []);
 
   // Memoized validation function
   const validateFields = useCallback(() => {
@@ -64,31 +59,41 @@ const useLoginRegister = () => {
 
   // Memoized email validation
   const validateEmailField = useCallback(async (email) => {
-    if (!email) {
-      setEmailValidationStatus(null); // Reset status
-      return;
+    if (!email || validatingEmail) {
+      return; // Prevent validation if email is empty or already validating
     }
-  
+
+    const isValidEmailFormat = email.includes("@");
+    console.log("isValidEmailFormat:", isValidEmailFormat);
+
     try {
+      setValidatingEmail(true); // Set validating state to true
       const result = await validateEmail(email);
-  
-      if (mounted) {
-        if (result.isAvailable) {
-          setEmailValidationStatus("success");
-          setValidationErrors(prev => ({ ...prev, email: "" }));
-        } else {
-          setEmailValidationStatus("error");
-          setValidationErrors(prev => ({ ...prev, email: result.message }));
-        }
+      console.log("validateEmail result:", result);
+
+      if (result === false && isValidEmailFormat) {
+        setEmailValidationStatus((prevState) => { // Use callback function
+          console.log("Setting emailValidationStatus to success");
+          return "success";
+        });
+        setValidationErrors(prev => ({ ...prev, email: "" }));
+        console.log("emailValidationStatus set to success");
+      } else {
+        setEmailValidationStatus((prevState) => { // Use callback function
+          console.log("Setting emailValidationStatus to error");
+          return "error";
+        });
+        setValidationErrors(prev => ({ ...prev, email: "Email is already in use." }));
+        console.log("emailValidationStatus set to error");
       }
     } catch (err) {
-      if (mounted) {
-        console.error("❌ Error validating email:", err);
-        setError("Error validating email. Please try again.");
-        setEmailValidationStatus("error");
-      }
+      console.error("❌ Error validating email:", err);
+      setError("Error validating email. Please try again.");
+      setEmailValidationStatus("error");
+    } finally {
+      setValidatingEmail(false); // Set validating state to false
     }
-  }, [mounted, validateEmail]);
+  }, [validateEmail, validatingEmail]);
   
 
   // Memoized input change handler with debounce
@@ -96,10 +101,9 @@ const useLoginRegister = () => {
     const { name, value } = e.target;
     setCredentials(prev => ({ ...prev, [name]: value }));
     setValidationErrors(prev => ({ ...prev, [name]: "" }));
-    setEmailValidationStatus(null); // Reset status on input change
 
     if (name === "email" && action === "Sign Up" && value) {
-      clearTimeout(debounceTimeout.current);
+      clearTimeout(debounceTimeout.current); // Clear previous timeout
       debounceTimeout.current = setTimeout(() => {
         validateEmailField(value);
       }, 600); // 600ms delay
@@ -121,15 +125,12 @@ const useLoginRegister = () => {
           username: credentials.username,
           password: credentials.password,
         });
-        if (mounted) {
           localStorage.setItem("authToken", response.token);
           setSuccess(true);
           setError("");
           navigate("/projects");
-        }
       } else {
         await register(credentials);
-        if (mounted) {
           setSuccess(true);
           setError("");
           setAction("Login");
@@ -141,19 +142,14 @@ const useLoginRegister = () => {
             firstName: "",
             lastName: "",
           });
-        }
       }
     } catch (err) {
-      if (mounted) {
         setError(err.response?.data || "❌ An error occurred. Please try again.");
         setSuccess(false);
-      }
     } finally {
-      if (mounted) {
         setLoading(false);
-      }
     }
-  }, [action, credentials, validateFields, navigate, mounted]);
+  }, [action, credentials, validateFields, navigate]);
 
   // Memoized button click handler
   const handleButtonClick = useCallback((buttonAction) => {

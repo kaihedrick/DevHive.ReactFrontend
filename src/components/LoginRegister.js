@@ -1,5 +1,5 @@
-import React from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import React, { useMemo } from 'react';
+import { useNavigate } from "react-router-dom";
 import "../styles/login_register.css";
 import DevHiveLogo from "./assets/DevHiveLogo.png"; // Import your logo
 import email_icon from "./assets/email.png";
@@ -24,7 +24,9 @@ const LoginRegister = () => {
     emailValidationStatus, // Get the new state variable
   } = useLoginRegister();
 
-  console.log("emailValidationStatus:", emailValidationStatus);
+  const memoizedEmailValidationStatus = useMemo(() => emailValidationStatus, [emailValidationStatus]);
+
+  console.log("memoizedEmailValidationStatus:", memoizedEmailValidationStatus);
 
   return (
     <div className="background">
@@ -70,7 +72,7 @@ const LoginRegister = () => {
                 value={credentials.email}
                 onChange={handleChange}
                 error={validationErrors.email}
-                emailValidationStatus={"error"} // Hardcoded value
+                emailValidationStatus={memoizedEmailValidationStatus} // Pass the memoized value
               />
             </>
           )}

@@ -19,39 +19,24 @@ export const clearAuth = () => {
 // API Calls
 export const validateEmail = async (email) => {
   try {
-    const response = await api.post(
-      `${ENDPOINTS.USER}/ValidateEmail`,
-      JSON.stringify(email),
-      {
-        headers: { 'Content-Type': 'application/json' },
+    const response = await api.post(ENDPOINTS.VALIDATE_EMAIL,  JSON.stringify(email), {
+      headers: {
+        'Content-Type': 'application/json'
       }
-    );
+    });
 
-    // If the response is 200, it means the email is available
-    return {
-      isAvailable: true,
-      message: response.data, // "Email is available."
-    };
+    if (response.status === 200) {
+      return false; // Email is available
+    } else {
+      return true; // Email is already in use
+    }
   } catch (error) {
-    // If the response is 409, it means the email is already in use
-    if (error.response?.status === 409) {
-      return {
-        isAvailable: false,
-        message: error.response.data, // "Email is already in use."
-      };
+    if (error.response && error.response.status === 409) {
+      return true; // Email is already in use
+    } else {
+      console.error("❌ Error validating email:", error);
+      throw error;
     }
-    // If the response is 400, it means the email is invalid
-    if (error.response?.status === 400) {
-      return {
-        isAvailable: false,
-        message: error.response.data, // "Email is required."
-      };
-    }
-    // For any other error, return a generic error message
-    return {
-      isAvailable: false,
-      message: "An error occurred while validating the email.",
-    };
   }
 };
 
@@ -66,7 +51,7 @@ export const login = async (credentials) => {
     }
     return response.data;
   } catch (error) {
-    return handleApiError(error, 'logging in');
+    throw handleApiError(error, 'logging in'); // Throw the error
   }
 };
 
@@ -75,6 +60,6 @@ export const register = async (userData) => {
     const response = await api.post(ENDPOINTS.USER, userData);
     return response.data;
   } catch (error) {
-    return handleApiError(error, 'registering user');
+    throw handleApiError(error, 'registering user'); // Throw the error
   }
 };
