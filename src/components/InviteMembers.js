@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getSelectedProject } from "../services/storageService";
+import { getSelectedProject } from '../services/storageService';
 import "../styles/invite_members.css";
 import DevHiveLogo from './assets/DevHiveLogo.png';
 

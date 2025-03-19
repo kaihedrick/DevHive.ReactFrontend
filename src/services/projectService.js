@@ -1,6 +1,8 @@
 import axios from "axios";
 import { fetchUserById } from "./userService"; 
-const API_BASE_URL = "https://localhost:7170/api";
+import { api, handleApiError, createAuthenticatedRequest } from '../utils/apiClient';
+import { ENDPOINTS, API_BASE_URL } from '../config';
+import { StorageKeys } from '../config';
 
 // Function to fetch projects by user ID
 export const fetchUserProjects = async () => {
@@ -26,17 +28,10 @@ export const fetchUserProjects = async () => {
 // Function to fetch a specific project by ID
 export const fetchProjectById = async (projectId) => {
   try {
-    const token = getAuthToken();
-    console.log("Fetching project with ID:", projectId);
-    
-    const response = await axios.get(`${API_BASE_URL}/Scrum/Project/${projectId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    console.log("Project Data:", response.data);
+    const response = await api.get(`${ENDPOINTS.PROJECT}/${projectId}`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching project by ID:", error.response?.data || error.message);
+    console.error('❌ Error fetching project:', error);
     throw error;
   }
 };
@@ -57,78 +52,64 @@ export const isProjectOwner = async (projectId) => {
 // Get all project members by project id
 export const fetchProjectMembers = async (projectId) => {
   try {
-    const token = getAuthToken();
-    if (!projectId) throw new Error("❌ Project ID is required.");
-
-    const apiUrl = `${API_BASE_URL}/Scrum/Project/Members/${projectId}`;
-    console.log("🔄 Fetching project members from:", apiUrl);
-
-    const response = await axios.get(apiUrl, { headers: { Authorization: `Bearer ${token}` } });
-
-    console.log("✅ Members Data:", response.data);
+    const response = await api.get(`${ENDPOINTS.PROJECT}/Members/${projectId}`);
     return response.data;
   } catch (error) {
-    console.error("❌ Error fetching project members:", error.response?.data || error.message);
+    console.error('❌ Error fetching project members:', error);
     throw error;
   }
 };
 
 // Function to store selected project ID in localStorage
 export const setSelectedProject = (projectId) => {
-  localStorage.setItem("selectedProjectId", projectId);
+  localStorage.setItem(StorageKeys.SELECTED_PROJECT, projectId);
+};
+
+export const selectProject = async (projectId) => {
+  try {
+    setSelectedProject(projectId);
+    return true;
+  } catch (error) {
+    console.error("❌ Error selecting project:", error);
+    return false;
+  }
 };
 
 // Function to get selected project ID from localStorage
 export const getSelectedProject = () => {
-  return localStorage.getItem("selectedProjectId");
+  try {
+    return localStorage.getItem(StorageKeys.SELECTED_PROJECT);
+  } catch (error) {
+    console.error('Error getting selected project:', error);
+    return null;
+  }
 };
 
 // Function to remove the selected project ID from localStorage
 export const clearSelectedProject = () => {
-  localStorage.removeItem("selectedProjectId");
+  localStorage.removeItem(StorageKeys.SELECTED_PROJECT);
 };
 
 // Function to get JWT token from localStorage
 export const getAuthToken = () => {
-  return localStorage.getItem("token");
+  return localStorage.getItem(StorageKeys.AUTH_TOKEN);
 };
 
 // Function to get stored user ID safely
 export const getUserId = () => {
-  const userId = localStorage.getItem("userId");
+  const userId = localStorage.getItem(StorageKeys.USER_ID);
   if (!userId) {
     console.warn("Warning: User ID not found in localStorage.");
   }
   return userId;
 };
 // Function to create a new project
-export const createProject = async (projectName, projectDescription) => {
+export const createProject = async (projectData) => {
   try {
-    const token = getAuthToken();
-    const projectOwnerId = getUserId();  // Ensure the project owner ID is used
-
-    if (!projectOwnerId) {
-      console.error("Error: Project Owner ID is missing. Please log in again.");
-      throw new Error("Project Owner ID is missing. Please log in again.");
-    }
-
-    const projectData = {
-      name: projectName,
-      description: projectDescription,
-      projectOwnerID: projectOwnerId,
-    };
-
-    const response = await axios.post(`${API_BASE_URL}/Scrum/Project/`, projectData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
+    const response = await api.post(ENDPOINTS.PROJECT, projectData);
     return response.data;
   } catch (error) {
-    console.error("Error creating project:", error.response?.data || error.message);
-    throw error;
+    return handleApiError(error, 'creating project');
   }
 };
 // Function to join a project using projectId and userId
@@ -202,33 +183,15 @@ export const editProject = async (project) => {
 };
 
 // Function to remove a member from a project (Only for project owner)
-export const removeMemberFromProject = async (projectId, userId) => {
+export const removeMemberFromProject = async (projectId, memberId) => {
   try {
-    const token = getAuthToken();
-
-    if (!projectId || !userId) {
-      throw new Error("❌ Project ID or User ID is missing.");
-    }
-
-    const isOwner = await isProjectOwner(projectId);
-    if (!isOwner) {
-      throw new Error("❌ You are not the project owner. You cannot remove members.");
-    }
-
-    const apiUrl = `${API_BASE_URL}/Scrum/Project/${projectId}/Members/${userId}`;
-
-    console.log("🔍 API URL Check:", apiUrl);
-    console.log("📌 projectId:", projectId);
-    console.log("📌 userId:", userId);
-
-    const response = await axios.delete(apiUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    console.log(`✅ Successfully removed user ${userId} from project ${projectId}`);
+    const response = await axios.delete(
+      `${ENDPOINTS.MEMBER}/${projectId}/${memberId}`,
+      createAuthenticatedRequest()
+    );
     return response.data;
   } catch (error) {
-    console.error("❌ Error removing member:", error.response?.data || error.message);
+    console.error('❌ Error removing member:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -236,29 +199,9 @@ export const removeMemberFromProject = async (projectId, userId) => {
 // Function to delete a project (Only for project owner)
 export const deleteProject = async (projectId) => {
   try {
-    const token = getAuthToken();
-
-    if (!projectId) {
-      throw new Error("❌ Project ID is missing.");
-    }
-
-    const isOwner = await isProjectOwner(projectId);
-    if (!isOwner) {
-      throw new Error("❌ You are not the project owner. Deletion is not allowed.");
-    }
-
-    const apiUrl = `${API_BASE_URL}/Scrum/Project/${projectId}`;
-    console.log("🚀 Sending DELETE request to:", apiUrl);
-
-    const response = await axios.delete(apiUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    console.log(`✅ Successfully deleted project ${projectId}`);
-    return response.data;
+    await api.delete(`${ENDPOINTS.PROJECT}/${projectId}`);
   } catch (error) {
-    console.error("❌ Error deleting project:", error);
-    throw error;
+    return handleApiError(error, 'deleting project');
   }
 };
 //======================================End of Project Service===========================================//

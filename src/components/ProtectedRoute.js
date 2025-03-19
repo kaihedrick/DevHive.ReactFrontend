@@ -1,27 +1,33 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { getSelectedProject } from '../services/projectService';
 
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('authToken') !== null;
-  const selectedProject = getSelectedProject();
   const location = useLocation();
+  
+  // Memoize these values to prevent unnecessary recalculations
+  const authData = useMemo(() => ({
+    isAuthenticated: localStorage.getItem('authToken') !== null,
+    selectedProject: getSelectedProject()
+  }), []);
 
-  console.log("ProtectedRoute check - isAuthenticated:", isAuthenticated);
-  console.log("ProtectedRoute check - selectedProject:", selectedProject);
+  const { isAuthenticated, selectedProject } = authData;
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log("ProtectedRoute check - isAuthenticated:", isAuthenticated);
+    console.log("ProtectedRoute check - selectedProject:", selectedProject);
+  }
 
   if (!isAuthenticated) {
-    console.warn("User not authenticated. Redirecting to login...");
     return <Navigate to="/login" replace />;
   }
 
   // Allow access to the projects page even if no project is selected
   if (!selectedProject && location.pathname !== "/projects") {
-    console.warn("No project selected. Redirecting to projects.");
     return <Navigate to="/projects" replace />;
   }
 
   return children;
 };
 
-export default ProtectedRoute;
+export default React.memo(ProtectedRoute);

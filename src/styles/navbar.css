@@ -18,7 +18,7 @@
 ========================== */
 @media (min-width: 601px) {
     .navbar {
-        width: 5rem;
+        width: var(--navbar-width-collapsed);
         height: 100vh;
         left: 0;
         top: 0;
@@ -26,20 +26,23 @@
 
     /* Expand on Hover */
     .navbar:hover {
-        width: 16rem;
+        width: var(--navbar-width-expanded);
+        background-color: var(--navbar-hover);
     }
 
     .navbar:hover .link-text {
         display: inline;
+        opacity: 1;
     }
 
     /* Adjust Content Padding */
     body.has-sidebar main {
-        margin-left: 5rem;
+        margin-left: var(--navbar-width-collapsed);
+        transition: margin-left var(--transition-speed) ease;
     }
 
     body.has-sidebar .navbar:hover ~ main {
-        margin-left: 16rem;
+        margin-left: var(--navbar-width-expanded);
     }
 }
 
@@ -49,7 +52,7 @@
 @media (max-width: 600px) {
     .navbar {
         width: 100%;
-        height: 80px;
+        height: var(--navbar-height-mobile);
         top: 0;
         left: 0;
         position: fixed;
@@ -58,7 +61,8 @@
         justify-content: center;
         padding: 0;
         z-index: 1000;
-        background-color: var(--black) !important;
+        background-color: var(--navbar-bg);
+        flex-direction: row;
     }
 
     /* ✅ Ensure navbar-content stretches to fill the navbar */
@@ -106,7 +110,7 @@
         align-items: center;
         justify-content: center;
         text-decoration: none;
-        color: var(--white) !important; /* ✅ White by default */
+        color: var(--navbar-text); /* ✅ White by default */
         transition: background 0.3s ease, color 0.3s ease;
     }
 
@@ -117,7 +121,7 @@
 
     /* ✅ FontAwesome Icons - Ensure Centered */
     .nav-icon {
-        font-size: 2rem;
+        font-size: 1.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -134,6 +138,7 @@
 /* ==========================
    Logo Styling
 ========================== */
+/* Logo Container */
 .logo-container {
     display: flex;
     align-items: center;
@@ -143,49 +148,88 @@
     cursor: pointer;
     font-family: var(--primary-font);
     transition: color var(--transition-speed) ease;
+    min-width: fit-content; /* Add this to ensure container fits content */
+    transition: background-color var(--transition-speed) ease;
 }
 
-/* ✅ Make the SVG logo white by default */
+/* Update Logo Container styles */
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 1rem;
+    cursor: pointer;
+    font-family: var(--primary-font);
+    min-width: fit-content;
+    transition: background-color var(--transition-speed) ease;
+}
+
+.logo-container:hover {
+    background-color: var(--navbar-hover);
+}
+
+/* Logo Image */
 .logo {
     width: 3rem;
     height: auto;
     filter: brightness(0) saturate(100%) invert(100%) !important; /* White */
     transition: transform var(--transition-speed) ease, 
-                filter 0.3s ease !important; /* ✅ Smooth transition */
-}
-/* ✅ Rotate logo on navbar hover */
-.navbar:hover .logo {
-    transform: rotate(-180deg);
+                filter 0.3s ease !important;
 }
 
-/* ✅ Ensure Logo turns Gold on Hover */
-.logo-container:hover .logo {
-    filter: brightness(0) saturate(100%) invert(64%) sepia(72%) 
-            saturate(532%) hue-rotate(1deg) brightness(101%) contrast(103%) !important;
-}
-/* ✅ On Hover, Turn Gold */
-.logo-container:hover .logo-text {
-    color: var(--gold) !important; /* ✅ Temporarily Gold */
-}
-/* ✅ Ensure logo returns to white after hover */
-.navbar:not(:hover) .logo-text {
-    color: var(--white) !important; /* ✅ Returns to White */
-}
-/* ✅ Default White DevHive Text */
+/* Logo Text */
 .logo-text {
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--white); /* ✅ White by default */
+    color: var(--white);
     text-transform: uppercase;
     margin-left: 1rem;
     letter-spacing: 0.1rem;
     display: none;
-    transition: color 0.3s ease !important; /* ✅ Smooth transition */
+    white-space: nowrap;
+    overflow: visible;
+    transition: color var(--transition-speed) ease;
+}
+
+/* Show text on hover */
+.navbar:hover .logo-text {
+    display: inline;
+    opacity: 1; /* Add this to ensure full visibility */
+    color: var(--gold) !important;
+    width: auto; /* Add this to ensure text has space to render */
+}
+
+/* Update navbar hover state */
+.navbar:hover {
+    width: var(--navbar-width-expanded);
+    background-color: var(--navbar-hover);
 }
 
 .navbar:hover .logo-text {
     display: inline;
-    color: var(--gold) !important; /* ✅ Ensure it turns gold */
+    opacity: 1;
+    color: var(--gold) !important;
+}
+
+/* Rotate logo on hover */
+.navbar:hover .logo {
+    transform: rotate(-180deg);
+}
+
+/* Logo hover states */
+.logo-container:hover .logo {
+    filter: brightness(0) saturate(100%) invert(64%) sepia(72%) 
+            saturate(532%) hue-rotate(1deg) brightness(101%) contrast(103%) !important;
+}
+
+.logo-container:hover .logo-text {
+    color: var(--navbar-accent);
+}
+
+/* Ensure logo returns to white after hover */
+.navbar:not(:hover) .logo-text {
+    color: var(--navbar-text);
 }
 
 /* ==========================
@@ -218,14 +262,14 @@
     height: 5rem;
     font-family: var(--secondary-font);
     text-decoration: none;
-    color: var(--white) !important; /* ✅ White text */
+    color: var(--navbar-text); /* ✅ White text */
     transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ✅ Gold Hover Effect */
 .nav-link:hover {
-    background: var(--dark-gray) !important;
-    color: var(--gold) !important;
+    background: var(--navbar-hover);
+    color: var(--navbar-accent);
 }
 
 /* ✅ Ensure Icons Turn Gold on Hover */
@@ -236,7 +280,7 @@
 }
 
 .nav-link:hover .nav-icon {
-    color: var(--gold) !important;
+    color: var(--navbar-accent);
 }
 
 /* Hide Text When Collapsed */

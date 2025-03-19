@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faXmark, faTrash } from "@fortawesome/free-solid-svg-icons";
-import useProjects from "../hooks/useProjects.js";
+import { useProjects } from "../hooks/useProjects";
+import { setSelectedProject } from "../services/storageService";
 import "../styles/projects.css";
 
 const Projects = () => {
@@ -23,14 +24,13 @@ const Projects = () => {
     }
   }, [navigate, userId]);
 
-  const { projects, loading, selectProject, deleteProject } = useProjects(userId);
+  const { projects, loading, deleteProject } = useProjects(userId);
 
   const handleProjectSelection = (e, projectId) => {
     if (editingProjectId) return;
     if (e.target.closest(".project-actions")) return;
 
-    selectProject(projectId);
-    localStorage.setItem("selectedProjectId", projectId);
+    setSelectedProject(projectId);
     navigate(`/project-details`);
   };
 

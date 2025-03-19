@@ -1,23 +1,35 @@
+import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 
-//this file will be used primarily in the LoginRegister component as a reusable form input field 
-// that accepts props to dynamically render input elements with specific attributes
-const InputField = ({ icon, type, name, placeholder, value, onChange, error }) => (
+const InputField = ({ icon, type, name, placeholder, value, onChange, error, emailValidationStatus }) => {
+  return (
     <div className="input-container">
-
-      {error && <p className="error-message">{error}</p>}
-  
       <div className="input">
-        <img src={icon} alt={`${name} Icon`} />
+        <img src={icon} alt="icon" />
         <input
           type={type}
           name={name}
-          placeholder={placeholder} 
-          value={value} 
-          onChange={onChange} 
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
         />
+        {name === "email" && emailValidationStatus === "success" && (
+          <FontAwesomeIcon
+            icon={faCheckCircle}
+            className="success-icon"
+          />
+        )}
+        {name === "email" && emailValidationStatus === "error" && (
+          <FontAwesomeIcon
+            icon={faTimesCircle}
+            className="error-icon"
+          />
+        )}
       </div>
+      {error && <div className="error-message">{error}</div>}
     </div>
   );
-  
-  export default InputField;
-  
+};
+
+export default InputField;

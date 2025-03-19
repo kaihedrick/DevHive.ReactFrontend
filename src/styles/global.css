@@ -1,33 +1,24 @@
 /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Judson:wght@400;700&display=swap');
 
-
-.app-container {
-    display: flex;
-    width: 100vw;  /* Full viewport width */
-    height: 100vh; /* Full viewport height */
-    overflow: hidden;
-}
-
-
-.app-container .content {
-    flex: 1;
-    transition: padding 0.3s ease;
-}
-
-/* ==========================
-   Global Variables
-========================== */
 :root {
-    /* Color Scheme */
+    /* Primary Color Variants */
     --gold: #ffca28;
-    --dark-gold: #ff9800;
+    --dark-gold: #ffb300;
+    --light-gold: #ffe082;
+
+    /* Complementary Colors */
+    --complementary-blue: #2979ff;
+    --dark-blue: #1565c0;
+    --light-blue: #82b1ff;
+
+    /* Neutral Colors */
     --black: #222222;
     --dark-gray: #444444;
     --gray: #888888;
     --light-gray: #eeeeee;
     --white: #ffffff;
-    
+
     /* Typography */
     --primary-font: 'Montserrat', sans-serif;
     --secondary-font: 'Judson', serif;
@@ -38,93 +29,89 @@
 
     /* Transition Speed */
     --transition-speed: 600ms;
+      /* Existing colors... */
+  --navbar-bg: var(--black);
+  --navbar-hover: var(--dark-gray);
+  --navbar-text: var(--white);
+  --navbar-accent: var(--gold);
+  --navbar-height-mobile: 80px;
+  --navbar-width-collapsed: 5rem;      /* Keep at 5rem as before */
+  --navbar-width-expanded: 16rem;
 }
 
-/* ==========================
-   Global Reset
-========================== */
+/* Global Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* ==========================
-   Body Styling
-========================== */
+/* Body Styling */
 html, body {
-    margin: 0;
-    padding: 0;
-    background-size: cover;
-    min-height: 100vh;
-    width: 100%;
-    background: var(--gold);
+    background: var(--light-gray);
     color: var(--black);
     font-family: var(--primary-font);
     font-size: 16px;
-}
-.content {
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    margin: 0;
-}
-main {
     min-height: 100vh;
+    width: 100%;
+}
+
+.app-container {
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start; /* Instead of center */
-    transition: padding 0.3s ease; /* Smooth transition */
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
 }
 
-
-/* ==========================
-   Dynamic Layout Adjustments
-========================== */
-body.has-sidebar main {
-    padding-left: 5rem; /* Ensure space for sidebar */
-}
-
-/* Adjust when Sidebar Expands */
-body.has-sidebar .navbar:hover ~ main {
-    padding-left: 16rem; /* Adjust padding when expanded */
-}
-
-/* When Navbar is at the Top */
-body.has-topbar main {
-    padding-top: 5rem; /* Ensure space for top navbar */
-}
-/* When Navbar is at the Top */
-/* Ensure .content takes full width */
 .app-container .content {
     flex-grow: 1;
-    width: 100%; /* Ensure it expands */
-    min-height: calc(100vh - 5rem); /* Adjust for top navbar */
-    overflow-y: auto; /* Allow scrolling */
+    width: 100%;
+    min-height: 100%;
+    overflow-y: auto;
+    transition: padding var(--transition-speed) ease; /* Match navbar transition speed */
 }
 
-/* When Navbar is at the Top */
+main {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 100vh;
+    transition: padding var(--transition-speed) ease, 
+                margin var(--transition-speed) ease; /* Add margin transition */
+}
+
+/* Dynamic Layout Adjustments */
+body.has-sidebar main {
+    padding-left: var(--navbar-width-collapsed);
+    transition: padding-left var(--transition-speed) ease;
+}
+
+body.has-sidebar .navbar:hover ~ main {
+    padding-left: var(--navbar-width-expanded);
+}
+
+body.has-topbar main {
+    padding-top: 5rem;
+}
+
 body.has-topbar .content {
-    margin-top: 5rem; /* Push content down */
+    margin-top: 5rem;
 }
 
-
-/* ==========================
-   Scrollbar Styling
-========================== */
+/* Scrollbar Styling */
 body::-webkit-scrollbar {
     width: 0.25rem;
 }
+
 body::-webkit-scrollbar-track {
-    background: #2222;
-}
-body::-webkit-scrollbar-thumb {
-    background-color: #888888;
+    background: var(--light-gray);
 }
 
-/* ==========================
-   Typography
-========================== */
+body::-webkit-scrollbar-thumb {
+    background-color: var(--gray);
+}
+
+/* Typography */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--primary-font);
     font-weight: 700;
@@ -136,9 +123,7 @@ p {
     color: var(--dark-gray);
 }
 
-/* ==========================
-   Buttons
-========================== */
+/* Buttons */
 .button {
     display: inline-block;
     padding: var(--button-padding);
@@ -146,54 +131,123 @@ p {
     font-weight: 600;
     text-align: center;
     cursor: pointer;
-    transition: 0.3s;
+    transition: background-color 0.3s ease, transform 0.2s ease;
     text-decoration: none;
 }
 
 .button-primary {
-    background: var(--dark-gold);
-    color: var(--white);
+    background: var(--gold);
+    color: var(--black);
+    border: 1px solid var(--dark-gold);
 }
 
 .button-primary:hover {
-    background: var(--gold);
+    background: var(--dark-gold);
+    border-color: var (--gold);
 }
 
 .button-secondary {
-    background: var(--light-gray);
-    color: var(--black);
+    background: var(--complementary-blue);
+    color: var(--white);
+    border: 1px solid var(--dark-blue);
 }
 
 .button-secondary:hover {
-    background: var(--gray);
+    background: var(--dark-blue);
+    border-color: var(--complementary-blue);
 }
 
-/* ==========================
-   Forms
-========================== */
-input, textarea {
+/* Forms */
+input, textarea, select {
     width: 100%;
     padding: 12px;
+    margin-bottom: 15px;
     border: 2px solid var(--light-gray);
     border-radius: var(--border-radius);
     font-family: var(--primary-font);
     color: var(--black);
+    background: var(--white);
+    transition: border-color var(--transition-speed), background-color var(--transition-speed);
 }
 
-input:focus, textarea:focus {
+input:focus, textarea:focus, select:focus {
     border-color: var(--dark-gold);
     outline: none;
 }
 
-/* ==========================
-   Cards
-========================== */
+input::placeholder, textarea::placeholder {
+    color: var(--gray);
+}
+
+.form-container {
+    background: var(--white);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--black);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--black);
+    margin-bottom: 5px;
+    display: block;
+}
+
+.form-button {
+    width: 100%;
+    padding: var(--button-padding);
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.form-button-primary {
+    background: var(--gold);
+    color: var(--black);
+    border: 1px solid var(--dark-gold);
+}
+
+.form-button-primary:hover {
+    background: var(--dark-gold);
+}
+
+.form-button-secondary {
+    background: var(--light-gray);
+    color: var(--black);
+    border: 1px solid var(--gray);
+}
+
+.form-button-secondary:hover {
+    background: var(--gray);
+    color: var(--white);
+}
+
+/* Cards */
 .card {
     background: var(--white);
     padding: 20px;
     border-radius: var(--border-radius);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* Footer */
 .footer {
     width: 100%;
     position: fixed;

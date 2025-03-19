@@ -18,9 +18,13 @@ const LoginRegister = () => {
     validationErrors,
     error,
     success,
+    loading,
     handleChange,
     handleButtonClick,
+    emailValidationStatus, // Get the new state variable
   } = useLoginRegister();
+
+  console.log("emailValidationStatus:", emailValidationStatus);
 
   return (
     <div className="background">
@@ -36,7 +40,7 @@ const LoginRegister = () => {
           <div className="text">{action === "Login" ? "Welcome Back" : "Sign Up"}</div>
           <div className="underline"></div>
         </div>
-        {/*here are all the form inputs that will be used for registration & login*/}
+        {/* Input Fields */}
         <div className="inputs">
           {action === "Sign Up" && (
             <>
@@ -66,6 +70,7 @@ const LoginRegister = () => {
                 value={credentials.email}
                 onChange={handleChange}
                 error={validationErrors.email}
+                emailValidationStatus={"error"} // Hardcoded value
               />
             </>
           )}
@@ -114,13 +119,16 @@ const LoginRegister = () => {
             label="Sign Up"
             isActive={action === "Sign Up"}
             onClick={() => handleButtonClick("Sign Up")}
+            disabled={loading}
           />
           <SubmitButton
             label="Login"
             isActive={action === "Login"}
             onClick={() => handleButtonClick("Login")}
+            disabled={loading}
           />
         </div>
+        {loading && <div className="loading-spinner">Loading...</div>}
       </div>
     </div>
   );

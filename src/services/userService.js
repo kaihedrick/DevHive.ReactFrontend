@@ -1,6 +1,19 @@
 import axios from "axios";
 import { API_BASE_URL } from "../config";
 import { getAuthToken, storeAuthData } from "../services/authService";
+import { ENDPOINTS } from '../config';
+
+export const api = axios.create({
+  baseURL: API_BASE_URL
+});
+
+api.interceptors.request.use(config => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const API_URL = `${API_BASE_URL}/User`;
 
@@ -41,17 +54,10 @@ export const validateEmail = async (email) => {
 
 export const fetchUserById = async (userId) => {
   try {
-    const token = getAuthToken();
-    console.log("Fetching user details for ID:", userId);
-
-    const response = await axios.get(`${API_URL}/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    console.log("User Data:", response.data);
+    const response = await api.get(`${ENDPOINTS.USER}/${userId}`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching user by ID:", error.response?.data || error.message);
+    console.error('❌ Error fetching user:', error);
     throw error;
   }
 };

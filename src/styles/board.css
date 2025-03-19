@@ -1,0 +1,37 @@
+/* src/styles/components/board.css */
+.board-container {
+  background: var(--neutral-200);
+  padding: 20px;
+  border-radius: var(--border-radius);
+}
+
+.board-column {
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: var(--box-shadow);
+}
+
+.board-column-header {
+  background: var(--comp-blue);
+  color: var(--neutral-100);
+  padding: 10px;
+  border-radius: var(--border-radius);
+  margin-bottom: 15px;
+}
+
+.task-card {
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  margin-bottom: 10px;
+  box-shadow: var(--box-shadow);
+  transition: transform 0.2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}

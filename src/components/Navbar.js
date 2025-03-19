@@ -1,12 +1,12 @@
 import React from "react"; 
-import { useNavigation } from "../hooks/useNavigation";
+import { useNavigate } from 'react-router-dom';
 import "../styles/navbar.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTableColumns, faListCheck, faAddressBook, faRocket, faUser } from "@fortawesome/free-solid-svg-icons";
 import HiveIcon from "./assets/hive-icon.svg";
 
 const Navbar = () => {
-  const navigateTo = useNavigation();
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 600);
 
   React.useEffect(() => {
@@ -28,7 +28,7 @@ const Navbar = () => {
       <div className="navbar-content">
         {/* Only render logo in desktop mode */}
         {!isMobile && (
-          <div className="logo-container" onClick={() => navigateTo("/projects")}>
+          <div className="logo-container" onClick={() => navigate("/projects")}>
             <img src={HiveIcon} alt="DevHive Logo" className="logo" />
             <span className="logo-text">DevHive</span>
           </div>

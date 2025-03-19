@@ -19,8 +19,8 @@
 .backlog-container {
     width: 100%;
     max-width: 900px; /* Restrict max width */
-    padding: 25px;
-    background: var(--white);
+    padding: 20px;
+    background: var(--neutral-200);
     border-radius: var(--border-radius);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
     text-align: center;
@@ -359,4 +359,28 @@
     color: var(--black);
     transform: scale(1.2);
   }
-  
+
+/* src/styles/components/backlog.css */
+.backlog-item {
+  background: var(--neutral-100);
+  border-left: 4px solid var(--primary-gold);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: var(--box-shadow);
+}
+
+.backlog-header {
+  background: var(--comp-blue);
+  color: var(--neutral-100);
+  padding: 15px;
+  border-radius: var(--border-radius);
+  margin-bottom: 20px;
+}
+
+.backlog-filters {
+  background: var(--neutral-300);
+  padding: 10px;
+  border-radius: var(--border-radius);
+  margin-bottom: 20px;
+}

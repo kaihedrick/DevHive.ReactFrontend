@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faCrown, faRightFromBracket, faXmark, faCheck } from "@fortawesome/free-solid-svg-icons";
-import useProjectDetails from "../hooks/useProjectDetails";
-import { getSelectedProject } from "../services/projectService";
-import { editProject } from "../services/projectService"; 
+import { useProject } from "../hooks/useProject";
+import { useProjectMembers } from "../hooks/useProjectMembers"; // Change to named import
+import { getSelectedProject, setSelectedProject } from '../services/storageService';
+import { editProject } from "../services/projectService";
 import "../styles/project_details.css";
 
 const ProjectDetails = () => {
@@ -13,9 +14,20 @@ const ProjectDetails = () => {
   const storedProjectId = getSelectedProject();
   const finalProjectId = projectId || storedProjectId;
 
-  console.log("Final Project ID:", finalProjectId);
+  // Add cleanup on unmount
+  useEffect(() => {
+    if (finalProjectId) {
+      setSelectedProject(finalProjectId);
+    }
+    return () => {
+      // Optional: Clear selected project on unmount
+      // setSelectedProject(null);
+    };
+  }, [finalProjectId]);
 
-  const { project, members, loading, errors, refreshProjectDetails, kickMember } = useProjectDetails(finalProjectId);
+  // Replace useProjectDetails with individual hooks
+  const { project, loading: projectLoading, error: projectError, refreshProject } = useProject(finalProjectId);
+  const { members, loading: membersLoading, error: membersError, kickMember } = useProjectMembers(finalProjectId);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState("");
@@ -23,66 +35,46 @@ const ProjectDetails = () => {
   const [kickMemberId, setKickMemberId] = useState(null);
   const [showKickModal, setShowKickModal] = useState(false);
 
-  // Get the actual logged-in user ID from localStorage
-  const loggedInUserId = localStorage.getItem("userId"); 
+  const loggedInUserId = localStorage.getItem("userId");
 
-  // Enter edit mode (only for the project owner)
   const handleEditProject = () => {
     setIsEditing(true);
     setEditedName(project.name);
     setEditedDescription(project.description);
   };
 
-  // Cancel edit mode
   const handleCancelEdit = () => {
     setIsEditing(false);
   };
 
-  // Save edited project (only for the project owner)
   const handleSaveEdit = async () => {
     if (!project) return;
 
     try {
-      console.log("🛠️ Attempting to update project:", {
+      await editProject({
         id: project.id,
         name: editedName,
         description: editedDescription,
         projectOwnerID: project.projectOwnerID,
       });
 
-      const updatedProject = await editProject({
-        id: project.id,
-        name: editedName,
-        description: editedDescription,
-        projectOwnerID: project.projectOwnerID,
-      });
-
-      console.log("✅ Project updated successfully. API response:", updatedProject);
-
-      await refreshProjectDetails(); // Refresh project details after edit
+      await refreshProject(); // Use the new refreshProject function
       setIsEditing(false);
     } catch (error) {
       console.error("❌ Failed to update project:", error.message);
     }
   };
 
-  // Show confirmation popup before kicking a member
   const handleKickMember = (memberId) => {
     setKickMemberId(memberId);
     setShowKickModal(true);
   };
 
-  // Confirm kick (only project owner can remove members)
   const confirmKickMember = async () => {
     if (!kickMemberId || !finalProjectId) return;
 
     try {
-      console.log(`🔥 Removing user ${kickMemberId} from project ${finalProjectId}`);
-
-      await kickMember(kickMemberId); // Calls API and refreshes members list
-
-      console.log(`✅ Successfully removed user ${kickMemberId}`);
-
+      await kickMember(kickMemberId);
       setKickMemberId(null);
       setShowKickModal(false);
     } catch (error) {
@@ -90,17 +82,16 @@ const ProjectDetails = () => {
     }
   };
 
-  // Cancel kick confirmation
   const cancelKickMember = () => {
     setShowKickModal(false);
     setKickMemberId(null);
   };
 
-  if (loading) return <p>Loading project details...</p>;
+  if (projectLoading || membersLoading) return <p>Loading project details...</p>;
 
   return (
     <div className="project-details">
-      {/* Edit & Cancel Buttons (ONLY for project owner) */}
+      {/* Rest of the JSX remains the same, but update error handling */}
       <div className="edit-buttons">
         {project?.projectOwnerID === loggedInUserId && isEditing ? (
           <>
@@ -121,8 +112,9 @@ const ProjectDetails = () => {
       </div>
 
       {/* Project Details */}
-      {!errors.projectError && project && (
+      {!projectError && project && (
         <>
+          {/* Project editing UI remains the same */}
           {isEditing ? (
             <input
               className="edit-title"
@@ -153,13 +145,13 @@ const ProjectDetails = () => {
       {/* Members Section */}
       <div className="members-section">
         <h3>Members</h3>
-        {errors.membersError ? (
-          <p className="error">{errors.membersError}</p>
+        {membersError ? (
+          <p className="error">{membersError}</p>
         ) : (
           <ul>
-            {/* Member List */}
             {members.map((member) => (
               <li key={member.id} className={`member-item ${member.isOwner ? "owner" : ""}`}>
+                {/* Member list UI remains the same */}
                 <div className="member-info">
                   <span className="member-name">{member.name}</span>
                 </div>
@@ -167,7 +159,6 @@ const ProjectDetails = () => {
                   {member.isOwner ? (
                     <FontAwesomeIcon icon={faCrown} className="crown" />
                   ) : (
-                    // Show "Kick" button only if logged-in user is the project owner
                     project?.projectOwnerID === loggedInUserId && (
                       <FontAwesomeIcon
                         icon={faRightFromBracket}
@@ -183,7 +174,7 @@ const ProjectDetails = () => {
         )}
       </div>
 
-      {/* Kick Member Confirmation Modal */}
+      {/* Kick Member Modal remains the same */}
       {showKickModal && (
         <div className="modal-overlay active">
           <div className="modal">

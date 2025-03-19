@@ -1,0 +1,215 @@
+.backlog-container {
+    padding: 2rem;
+    background: var(--neutral-200);
+    min-height: calc(100vh - 160px); /* Account for navbar and footer */
+}
+
+.backlog-header {
+    background: var(--comp-blue);
+    color: var(--neutral-100);
+    padding: 1.5rem 2rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.backlog-filters {
+    background: var(--neutral-100);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    color: var(--neutral-700);
+    font-weight: 600;
+}
+
+.filter-select {
+    padding: 0.5rem;
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--border-radius);
+    background: var(--neutral-100);
+    color: var(--neutral-800);
+}
+
+.backlog-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.backlog-item {
+    background: var(--neutral-100);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.5rem;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.backlog-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.backlog-item.priority-high {
+    border-left-color: var(--error);
+}
+
+.backlog-item.priority-medium {
+    border-left-color: var(--warning);
+}
+
+.backlog-item.priority-low {
+    border-left-color: var(--info);
+}
+
+.item-status {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 100px;
+}
+
+.status-todo {
+    background: var(--neutral-200);
+    color: var(--neutral-700);
+}
+
+.status-in-progress {
+    background: var(--blue-light);
+    color: var(--neutral-100);
+}
+
+.status-review {
+    background: var(--analog-orange);
+    color: var(--neutral-100);
+}
+
+.status-done {
+    background: var(--success);
+    color: var(--neutral-100);
+}
+
+.item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.item-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--neutral-900);
+}
+
+.item-description {
+    color: var(--neutral-600);
+    font-size: 0.875rem;
+}
+
+.item-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--neutral-500);
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-button {
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    border: none;
+    background: transparent;
+    color: var(--neutral-600);
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.action-button:hover {
+    background: var(--neutral-200);
+    color: var(--comp-blue);
+}
+
+.action-button.edit:hover {
+    color: var(--comp-blue);
+}
+
+.action-button.delete:hover {
+    color: var(--error);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .backlog-container {
+        padding: 1rem;
+    }
+
+    .backlog-item {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .backlog-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* Empty State */
+.backlog-empty {
+    text-align: center;
+    padding: 3rem;
+    background: var(--neutral-100);
+    border-radius: var(--border-radius);
+    color: var(--neutral-600);
+}
+
+.backlog-empty-icon {
+    font-size: 3rem;
+    color: var(--neutral-400);
+    margin-bottom: 1rem;
+}
+
+/* Loading State */
+.backlog-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.loading-spinner {
+    color: var(--primary-gold);
+    font-size: 2rem;
+}
