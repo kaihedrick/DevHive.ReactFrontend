@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchProjectMembers } from "../services/projectService";
 import { fetchUserById } from "../services/userService";
-import { getSelectedProject } from "../services/projectService";
+import { getSelectedProject } from "../services/storageService";
+
 import "../styles/contacts.css";
 
 const Contacts = () => {
@@ -60,28 +61,53 @@ const Contacts = () => {
   };
 
   return (
-    <div className="container mt-4">
-      <h2 className="text-center">📇 Project Contacts</h2>
+    <>
+      {/* This style tag will override the main content background */}
+      <style>
+        {`
+          .content, main, body {
+            background-color: var(--bg-secondary) !important;
+          }
+        `}
+      </style>
+      
+      <div className="contacts-page">
+        <div className="contact-container">
+          <div className="contact-header">
+            <h1>📇 Project Contacts</h1>
+            <p>Manage your project contacts here</p>
+          </div>
 
-      {loading && <p className="text-muted text-center">Loading contacts...</p>}
-      {error && <p className="text-danger text-center">{error}</p>}
+          {loading && <p className="text-muted text-center">Loading contacts...</p>}
+          {error && <p className="text-danger text-center">{error}</p>}
 
-      <ul className="list-group mt-3">
-        {contacts.length > 0 ? (
-          contacts.map((contact) => (
-            <li 
-              key={contact.id} 
-              className="list-group-item d-flex align-items-center contact-item"
-              onClick={() => handleContactClick(contact.id)}
-            >
-              <strong>{contact.firstName} {contact.lastName}</strong>
-            </li>
-          ))
-        ) : (
-          !loading && <p className="text-center text-muted">No contacts found.</p>
-        )}
-      </ul>
-    </div>
+          <div className="contact-list">
+            {contacts.length > 0 ? (
+              contacts.map((contact) => (
+                <div 
+                  key={contact.id} 
+                  className="contact-list-item"
+                  onClick={() => handleContactClick(contact.id)}
+                >
+                  <div className="contact-info">
+                    <div className="contact-avatar">
+                      {contact.firstName.charAt(0)}{contact.lastName.charAt(0)}
+                    </div>
+                    <div className="contact-details">
+                      <span className="contact-name">{contact.firstName} {contact.lastName}</span>
+                      <span className="contact-email">{contact.email}</span>
+                      <span className="contact-role">{contact.role}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              !loading && <p className="no-contacts-text">No contacts found.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 

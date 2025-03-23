@@ -4,24 +4,27 @@ import { api, handleApiError, createAuthenticatedRequest } from '../utils/apiCli
 import { ENDPOINTS, API_BASE_URL } from '../config';
 import { StorageKeys } from '../config';
 
-// Function to fetch projects by user ID
+/**
+ * Fetch projects for the logged-in user
+ */
 export const fetchUserProjects = async () => {
   try {
-    const token = getAuthToken();  // Get JWT token from helper function
-    const userId = getUserId(); // Get user ID from localStorage
+    const userId = getUserId();
 
     if (!userId) {
-      console.error("Error: User ID is missing. Please log in again.");
+      console.error("❌ No user ID found. Please log in again.");
       throw new Error("User ID is missing. Please log in again.");
     }
 
-    const response = await axios.get(`${API_BASE_URL}/Scrum/Projects/User/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    console.log(`📡 Fetching projects for user: ${userId}`);
+
+    const response = await api.get(`/Scrum/Projects/User/${userId}`);
+
+    console.log("✅ Projects fetched:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error fetching user projects:", error.response?.data || error.message);
-    throw error;
+    console.error("❌ Error fetching user projects:", error.response?.data || error.message);
+    throw handleApiError(error, 'fetching user projects');
   }
 };
 

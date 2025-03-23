@@ -1,0 +1,295 @@
+/* Chat container */
+.chat-container {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 80% !important;
+    max-width: 800px !important; /* Increased from 600px for better readability */
+    margin: var(--space-6) auto !important; /* Centered with more spacing */
+    background: var(--bg-primary) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-lg) !important; /* Enhanced shadow for prominence */
+    font-family: var(--primary-font) !important;
+    border: 1px solid var(--border-color) !important;
+    overflow: hidden !important; /* Prevents content from breaking the container */
+}
+
+/* Chat header */
+.chat-header {
+    background: var(--accent-primary) !important; /* Using gold from global colors */
+    color: var(--black) !important; /* Better contrast on gold background */
+    text-align: center !important;
+    padding: var(--space-4) !important;
+    border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+    font-weight: var(--font-weight-bold) !important;
+    font-size: var(--font-size-xl) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    position: relative !important;
+    z-index: 2 !important; /* Ensures header is above messages */
+}
+
+/* Chat header icon */
+.chat-header i {
+    margin-right: var(--space-2) !important;
+    color: var(--black) !important; /* Ensure icon is clearly visible */
+}
+
+/* Messages container */
+.messages-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--space-3) !important;
+    padding: var(--space-4) !important;
+    height: 60vh !important;
+    overflow-y: auto !important;
+    background-color: var(--bg-primary) !important;
+    position: relative !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--accent-primary) var(--bg-secondary) !important;
+}
+
+/* Align messages in professional chat format */
+.message-wrapper {
+    display: flex !important;
+    width: 100% !important;
+    margin-bottom: var(--space-3) !important;
+}
+
+/* Receiver messages (Left-aligned) */
+.received-wrapper {
+    justify-content: flex-start !important;
+}
+
+/* Sender messages (Right-aligned) */
+.sent-wrapper {
+    justify-content: flex-end !important;
+}
+
+/* Message box styling */
+.message {
+    max-width: 75% !important;
+    padding: var(--space-3) !important;
+    border-radius: var(--border-radius) !important;
+    word-wrap: break-word !important;
+    font-size: var(--font-size-base) !important;
+    position: relative !important;
+    box-shadow: var(--shadow-sm) !important;
+    animation: fadeIn 0.3s ease-out !important;
+}
+
+/* Receiver message styling */
+.received {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-radius: var(--border-radius) var(--border-radius) var(--border-radius) 0 !important;
+    border: 1px solid var(--border-color) !important;
+    align-self: flex-start !important;
+}
+
+/* Sender message styling - IMPROVED CONTRAST */
+.sent {
+    background-color: var(--dark-gold) !important; /* Darker gold for better contrast */
+    color: var(--white) !important; /* White text on dark gold for highest contrast */
+    border-radius: var(--border-radius) var(--border-radius) 0 var(--border-radius) !important;
+    border: 1px solid var(--accent-primary) !important;
+    align-self: flex-end !important;
+    font-weight: var(--font-weight-medium) !important; /* Slightly bolder for better readability */
+}
+
+/* Message text */
+.message-text {
+    margin: 0 0 var(--space-2) 0 !important;
+    line-height: var(--line-height-normal) !important;
+    font-family: var(--primary-font) !important;
+}
+
+/* Timestamp - IMPROVED CONTRAST */
+.message-time {
+    font-size: var(--font-size-xs) !important;
+    color: var(--white) !important; /* White for sent messages */
+    display: block !important;
+    margin-top: var(--space-1) !important;
+    text-align: right !important;
+    font-weight: var(--font-weight-medium) !important; /* Medium weight for better visibility */
+}
+
+/* Adjust timestamp color for received messages */
+.received .message-time {
+    color: var (--text-secondary) !important; /* Darker for received messages */
+}
+
+/* Input field */
+.message-input {
+    display: flex !important;
+    padding: var(--space-3) !important;
+    background: var(--bg-secondary) !important;
+    border-radius: 0 0 var(--border-radius) var(--border-radius) !important;
+    border-top: 1px solid var(--border-color) !important;
+    gap: var(--space-3) !important;
+}
+
+.message-input input {
+    flex: 1 !important;
+    padding: var(--space-3) var(--space-4) !important;
+    background: var(--bg-primary) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: var(--border-radius) !important;
+    font-family: var(--primary-font) !important;
+    font-size: var(--font-size-base) !important;
+    color: var(--text-primary) !important;
+    transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+}
+
+.message-input input:focus {
+    border-color: var(--accent-primary) !important;
+    box-shadow: var(--shadow-focus) !important;
+    outline: none !important;
+}
+
+.message-input input::placeholder {
+    color: var(--text-tertiary) !important;
+}
+
+.message-input button {
+    background: var(--accent-primary) !important;
+    color: var(--black) !important; /* Better readability on gold */
+    border: none !important;
+    border-radius: var(--border-radius) !important;
+    font-weight: var(--font-weight-bold) !important;
+    cursor: pointer !important;
+    transition: all var(--transition-fast) ease !important;
+    padding: var(--space-3) var(--space-5) !important;
+    min-width: 100px !important; /* Fixed width for better visibility */
+    white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Updated send button with FontAwesome icon */
+.message-input button i {
+    margin-left: var(--space-2) !important;
+    font-size: var(--font-size-base) !important;
+}
+
+.message-input button:hover {
+    background: var(--dark-gold) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: var(--shadow-md) !important;
+    color: var(--white) !important; /* White text on hover for contrast */
+}
+
+/* Removed arrow content, will use FontAwesome in the JSX instead */
+/* .message-input button::after {
+    content: "↗" !important;
+    margin-left: var(--space-2) !important;
+    font-size: var(--font-size-lg) !important;
+} */
+
+/* Chat Page Container */
+.message-page {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: calc(100vh - 100px) !important; /* Adjust for navbar */
+    padding: var(--space-5) !important;
+    background-color: var(--bg-secondary) !important;
+}
+
+/* Customize scrollbar for Webkit browsers */
+.messages-container::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+.messages-container::-webkit-scrollbar-track {
+    background: var(--bg-secondary) !important;
+    border-radius: 10px !important;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+    background-color: var(--accent-primary) !important;
+    border-radius: 10px !important;
+}
+
+/* Empty state for no messages */
+.no-messages {
+    text-align: center !important;
+    color: var(--text-secondary) !important;
+    font-style: italic !important;
+    padding: var(--space-6) !important;
+    margin: auto !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .chat-container {
+        width: 95% !important;
+        margin: var(--space-3) auto !important;
+    }
+    
+    .message {
+        max-width: 85% !important;
+    }
+    
+    .message-input button {
+        min-width: 80px !important;
+        padding: var(--space-3) !important;
+    }
+    
+    .messages-container {
+        height: 50vh !important;
+    }
+}
+
+/* For very small screens */
+@media (max-width: 480px) {
+    .chat-header {
+        font-size: var(--font-size-lg) !important;
+        padding: var(--space-3) !important;
+    }
+    
+    .message-input {
+        flex-direction: column !important;
+        gap: var(--space-2) !important;
+    }
+    
+    .message-input button {
+        width: 100% !important;
+    }
+}
+
+/* Animation Effects */
+/* Subtle fade-in for new messages */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Typing indicator animation */
+.typing-indicator {
+    display: flex !important;
+    align-items: center !important;
+    margin: var(--space-2) 0 !important;
+}
+
+.typing-indicator span {
+    height: 8px !important;
+    width: 8px !important;
+    border-radius: 50% !important;
+    background-color: var(--accent-primary) !important;
+    margin: 0 2px !important;
+    display: inline-block !important;
+    animation: bounce 1.3s linear infinite !important;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s !important;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s !important;
+}
+
+@keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+}

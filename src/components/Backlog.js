@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { fetchProjectTasksWithAssignees, fetchProjectSprints, fetchProjectMembers, fetchTaskById, getSelectedProject } from "../services/projectService";
+import { fetchProjectMembers } from "../services/projectService";
+import { fetchProjectSprints } from "../services/sprintService";
+import { fetchProjectTasksWithAssignees, fetchTaskById } from "../services/taskService";
+import { getSelectedProject } from "../services/storageService";
 import useBacklogActions from "../hooks/useBacklogActions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRotateLeft, faCheck, faXmark, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRotateLeft, faCheck, faXmark, faPenToSquare, faPlus } from "@fortawesome/free-solid-svg-icons";
 import "../styles/backlog.css";
 
 const Backlog = ({ projectId }) => {
@@ -96,6 +99,16 @@ const Backlog = ({ projectId }) => {
     }
   };
 
+  // Sort sprints by start date (earliest first)
+  const sortedSprints = [...sprints].sort((a, b) => 
+    new Date(a.startDate) - new Date(b.startDate)
+  );
+
+  // Find next sprint to start (not started and earliest date)
+  const nextSprintToStart = sortedSprints.find(sprint => 
+    !sprint.isStarted && new Date(sprint.startDate) >= new Date()
+  );
+
   return (
     <div className="backlog-page">
       <div className="backlog-container">
@@ -160,46 +173,54 @@ const Backlog = ({ projectId }) => {
                 <p className="no-tasks-message">No tasks in this sprint.</p>
               )}
             </div>
+            
+            {/* Action button container - INSIDE container */}
+            <div className="action-button-container">
+              <button 
+                className="create-task-button" 
+                onClick={() => navigate(`/create-task?sprintId=${selectedSprint.id}`)}
+              >
+                <FontAwesomeIcon icon={faPlus} className="button-icon" /> Create Task
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="sprint-overview-container">
-            {sprints.length > 0 ? (
-              sprints.map((sprint) => (
-                <div key={sprint.id} className="sprint-card" onClick={() => handleSprintClick(sprint)}>
-                  <div className="edit-sprint-button" onClick={(e) => { e.stopPropagation(); navigate(`/edit-sprint/${sprint.id}`); }}>
-                    <FontAwesomeIcon icon={faPenToSquare} />
+          <>
+            <div className="sprint-overview-container">
+              {sortedSprints.length > 0 ? (
+                sortedSprints.map((sprint) => (
+                  <div key={sprint.id} className="sprint-card" onClick={() => handleSprintClick(sprint)}>
+                    <div className="edit-sprint-button" onClick={(e) => { e.stopPropagation(); navigate(`/edit-sprint/${sprint.id}`); }}>
+                      <FontAwesomeIcon icon={faPenToSquare} />
+                    </div>
+                    <h3>{sprint.name}</h3>
+                    <p>Duration: {new Date(sprint.startDate).toLocaleDateString()} - {new Date(sprint.endDate).toLocaleDateString()}</p>
+                    <div className="sprint-status">
+                      {sprint.isStarted ? (
+                        <span className="status-started">Started</span>
+                      ) : (
+                        <span className="status-not-started">Not Started</span>
+                      )}
+                    </div>
                   </div>
-                  <h3>{sprint.name}</h3>
-                  <p>Duration: {new Date(sprint.startDate).toLocaleDateString()} - {new Date(sprint.endDate).toLocaleDateString()}</p>
-                </div>
-              ))
-            ) : (
-              <p className="no-sprints-message">No sprints available.</p>
-            )}
-          </div>
+                ))
+              ) : (
+                <p className="no-sprints-message">No sprints available.</p>
+              )}
+            </div>
+            
+            {/* Action button container - INSIDE container */}
+            <div className="action-button-container">
+              <button 
+                className="create-sprint-button" 
+                onClick={() => navigate("/create-sprint")}
+              >
+                <FontAwesomeIcon icon={faPlus} className="button-icon" /> Create Sprint
+              </button>
+            </div>
+          </>
         )}
       </div>
-      
-      {/*  Create Sprint / Task Button */}
-      <div className="create-sprint-button-container">
-        {selectedSprint ? (
-          <button 
-            className="create-task-button" 
-            onClick={() => navigate(`/create-task?sprintId=${selectedSprint.id}`)}
-          >
-            Create Task
-          </button>
-        ) : (
-          <button 
-            className="create-sprint-button" 
-            onClick={() => navigate("/create-sprint")}
-          >
-            Create Sprint
-          </button>
-        )}
-      </div>
-
-
     </div>
   );
 };

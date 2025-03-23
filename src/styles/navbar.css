@@ -3,9 +3,9 @@
 ========================== */
 .navbar {
     position: fixed;
-    background-color: var(--black) !important;
-    color: var(--white) !important;
-    transition: width var(--transition-speed) ease, height var(--transition-speed) ease;
+    background-color: var(--navbar-bg);
+    color: var(--navbar-text);
+    transition: width var(--transition-normal) ease, height var(--transition-normal) ease;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -38,7 +38,7 @@
     /* Adjust Content Padding */
     body.has-sidebar main {
         margin-left: var(--navbar-width-collapsed);
-        transition: margin-left var(--transition-speed) ease;
+        transition: margin-left var(--transition-normal) ease;
     }
 
     body.has-sidebar .navbar:hover ~ main {
@@ -147,57 +147,39 @@
     padding: 1rem;
     cursor: pointer;
     font-family: var(--primary-font);
-    transition: color var(--transition-speed) ease;
-    min-width: fit-content; /* Add this to ensure container fits content */
-    transition: background-color var(--transition-speed) ease;
-}
-
-/* Update Logo Container styles */
-.logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 1rem;
-    cursor: pointer;
-    font-family: var(--primary-font);
-    min-width: fit-content;
-    transition: background-color var(--transition-speed) ease;
-}
-
-.logo-container:hover {
-    background-color: var(--navbar-hover);
+    transition: color var(--transition-normal) ease;
 }
 
 /* Logo Image */
 .logo {
     width: 3rem;
     height: auto;
-    filter: brightness(0) saturate(100%) invert(100%) !important; /* White */
-    transition: transform var(--transition-speed) ease, 
-                filter 0.3s ease !important;
+    filter: brightness(0) saturate(100%) invert(100%); /* White */
+    transition: transform var(--transition-normal) ease, 
+                filter var(--transition-normal) ease;
+}
+
+/* Rotate logo on hover */
+.navbar:hover .logo {
+    transform: rotate(-180deg);
 }
 
 /* Logo Text */
 .logo-text {
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--white);
+    color: var(--navbar-text);
     text-transform: uppercase;
     margin-left: 1rem;
     letter-spacing: 0.1rem;
     display: none;
-    white-space: nowrap;
-    overflow: visible;
-    transition: color var(--transition-speed) ease;
+    transition: color var(--transition-normal) ease;
 }
 
 /* Show text on hover */
 .navbar:hover .logo-text {
     display: inline;
-    opacity: 1; /* Add this to ensure full visibility */
-    color: var(--gold) !important;
-    width: auto; /* Add this to ensure text has space to render */
+    color: var(--navbar-accent);
 }
 
 /* Update navbar hover state */
@@ -210,11 +192,6 @@
     display: inline;
     opacity: 1;
     color: var(--gold) !important;
-}
-
-/* Rotate logo on hover */
-.navbar:hover .logo {
-    transform: rotate(-180deg);
 }
 
 /* Logo hover states */
@@ -242,6 +219,8 @@
     align-items: center;
     height: 100%;
     width: 100%;
+    padding: 0;
+    margin: 0;
 }
 
 .nav-item {
@@ -263,7 +242,7 @@
     font-family: var(--secondary-font);
     text-decoration: none;
     color: var(--navbar-text); /* ✅ White text */
-    transition: background 0.3s ease, color 0.3s ease;
+    transition: background var(--transition-normal) ease, color var(--transition-normal) ease;
 }
 
 /* ✅ Gold Hover Effect */
@@ -276,7 +255,7 @@
 .nav-icon {
     font-size: 1.5rem;
     min-width: 2rem;
-    transition: color 0.3s ease;
+    transition: color var(--transition-normal) ease;
 }
 
 .nav-link:hover .nav-icon {
@@ -288,7 +267,7 @@
     display: none;
     margin-left: 1rem;
     font-size: 1rem;
-    transition: opacity 0.3s ease-in-out;
+    transition: opacity var(--transition-normal) ease-in-out;
 }
 
 .navbar:hover .link-text {

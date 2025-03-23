@@ -1,67 +1,206 @@
+/* ==========================
+   Create Task Page Container
+========================== */
 .create-task-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background: var(--light-gray);
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: calc(100vh - 100px) !important; /* Adjust for navbar */
+  padding: var(--space-5) !important;
+  background-color: var(--bg-secondary) !important;
+}
+
+/* ==========================
+   Create Task Card
+========================== */
+.create-task-card {
+  width: 100% !important;
+  max-width: 500px !important;
+  background: var(--bg-primary) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-lg) !important;
+  font-family: var(--primary-font) !important;
+  border: 1px solid var(--border-color) !important;
+  overflow: hidden !important;
+  padding: var(--space-5) !important;
+  position: relative !important;
+  text-align: center !important;
+}
+
+/* ==========================
+   Create Task Header
+========================== */
+.create-task-card h2 {
+  color: var(--text-primary) !important;
+  font-size: var(--font-size-xl) !important;
+  font-weight: var(--font-weight-bold) !important;
+  margin-bottom: var(--space-4) !important;
+  margin-top: var(--space-3) !important;
+}
+
+/* ==========================
+   Input Fields
+========================== */
+.create-task-card label {
+  display: block !important;
+  font-weight: var(--font-weight-medium) !important;
+  margin-bottom: var(--space-2) !important;
+  margin-top: var(--space-3) !important;
+  color: var(--text-primary) !important;
+  font-size: var(--font-size-base) !important;
+  text-align: left !important;
+}
+
+.create-task-card input,
+.create-task-card select {
+  width: 100% !important;
+  padding: var(--space-3) var(--space-4) !important;
+  margin-bottom: var(--space-2) !important;
+  border: 2px solid var(--border-color) !important;
+  border-radius: var(--border-radius) !important;
+  font-size: var(--font-size-base) !important;
+  color: var(--text-primary) !important;
+  background: var(--bg-primary) !important;
+  font-family: var(--primary-font) !important;
+  transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+  outline: none !important;
+}
+
+.create-task-card input:focus,
+.create-task-card select:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: var(--shadow-focus) !important;
+}
+
+/* ==========================
+   Create Task Button
+========================== */
+.create-task-btn {
+  background: var(--accent-primary) !important;
+  color: var(--black) !important;
+  padding: var(--space-3) var(--space-4) !important;
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  cursor: pointer !important;
+  width: 100% !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-bold) !important;
+  margin-top: var(--space-4) !important;
+  transition: all var(--transition-fast) ease !important;
+}
+
+.create-task-btn:hover {
+  background: var(--dark-gold) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+  color: var(--white) !important;
+}
+
+/* ==========================
+   Back Arrow
+========================== */
+.back-arrow {
+  position: absolute !important;
+  top: var(--space-3) !important;
+  left: var(--space-3) !important;
+  font-size: var(--font-size-lg) !important;
+  cursor: pointer !important;
+  color: var(--text-secondary) !important;
+  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+  z-index: 10 !important;
+}
+
+.back-arrow:hover {
+  color: var(--text-primary) !important;
+  transform: scale(1.2) !important;
+}
+
+/* ==========================
+   Error Popup
+========================== */
+.error-popup {
+  position: fixed !important;
+  top: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  border: 1px solid #f5c6cb !important;
+  border-radius: 4px !important;
+  padding: 12px 20px !important;
+  z-index: 1000 !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  display: flex !important;
+  align-items: center !important;
+  max-width: 80% !important;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1 !important; }
+  100% { opacity: 0 !important; }
+}
+
+.error-icon {
+  margin-right: 10px;
+  color: #dc3545;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.input-error {
+  border: 1px solid #dc3545 !important;
+  background-color: #fff8f8;
+}
+
+.helper-text {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 4px;
+}
+
+.select-loading {
+  padding: 8px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: #6c757d;
+}
+
+button:disabled {
+  background-color: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* ==========================
+   Responsive Design
+========================== */
+@media (max-width: 768px) {
+  .create-task-container {
+    padding: var(--space-3) !important;
   }
   
   .create-task-card {
-    background: var(--white);
-    padding: 20px;
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    width: 350px;
-    position: relative;
+    width: 95% !important;
   }
-  
+}
+
+@media (max-width: 480px) {
   .create-task-card h2 {
-    margin-bottom: 15px;
+    font-size: var(--font-size-lg) !important;
   }
   
   .create-task-card input,
   .create-task-card select {
-    width: 100%;
-    padding: 10px;
-    margin: 8px 0;
-    border: 1px solid var(--gray);
-    border-radius: var(--border-radius);
+    font-size: var(--font-size-sm) !important;
   }
-  
-  .create-task-btn {
-    background: var(--gold);
-    color: var(--white);
-    padding: 12px;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    margin-top: 10px;
-    width: 100%;
-    font-weight: bold;
-  }
-  
-  .create-task-btn:hover {
-    background: var(--dark-gold);
-  }
-  
-  /* ✅ Error Popup */
-  .error-popup {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: red;
-    color: white;
-    padding: 12px 20px;
-    border-radius: var(--border-radius);
-    font-weight: bold;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    animation: fadeOut 2s ease-in-out forwards;
-  }
-  
-  @keyframes fadeOut {
-    0% { opacity: 1; }
-    100% { opacity: 0; }
-  }
-  
+}

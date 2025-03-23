@@ -2,147 +2,274 @@
 /*  Account Page Layout */
 /* ============================= */
 .account-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: var(--gold);
-  padding: 20px;
-  font-family: var(--primary-font);
-  position: relative;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: calc(100vh - 100px) !important; /* Adjust for navbar, like in create_task.css */
+  padding: var(--space-5) !important;
+  background-color: var(--accent-primary) !important; /* Keep the gold background */
+  font-family: var(--primary-font) !important;
+  position: relative !important;
 }
 
 /* ============================= */
-/*  Account Card (Matches Global .card) */
+/*  Account Card (Match create_task.css card style) */
 /* ============================= */
 .account-card {
-  background: var(--white);
-  border-radius: var(--border-radius);
-  padding: 30px;
-  width: 100%;
-  max-width: 420px;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  position: relative;
+  width: 100% !important;
+  max-width: 500px !important; /* Match create_task.css max-width */
+  background: var(--bg-primary) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-lg) !important;
+  font-family: var(--primary-font) !important;
+  border: 1px solid var(--border-color) !important;
+  overflow: hidden !important;
+  padding: var(--space-5) !important;
+  position: relative !important;
+  text-align: center !important;
+}
+
+.account-card h1 {
+  color: var(--text-primary) !important;
+  font-size: var(--font-size-xl) !important;
+  font-weight: var(--font-weight-bold) !important;
+  margin-bottom: var(--space-4) !important;
+  margin-top: var(--space-3) !important;
 }
 
 /* ============================= */
-/*  Back Arrow (Same Style as Create Project) */
+/*  Back Arrow (Match create_task.css back arrow) */
 /* ============================= */
 .back-arrow {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  font-size: 20px;
-  cursor: pointer;
-  color: var(--dark-gray);
-  transition: transform var(--transition-speed), color var(--transition-speed);
+  position: absolute !important;
+  top: var(--space-3) !important;
+  left: var(--space-3) !important;
+  font-size: var(--font-size-lg) !important;
+  cursor: pointer !important;
+  color: var(--text-secondary) !important;
+  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+  z-index: 10 !important;
 }
 
 .back-arrow:hover {
-  color: var(--black);
-  transform: scale(1.2);
+  color: var(--text-primary) !important;
+  transform: scale(1.2) !important;
 }
 
 /* ============================= */
 /* Profile Placeholder */
 /* ============================= */
 .profile-placeholder {
-  width: 100px;
-  height: 100px;
-  background: var(--light-gray);
-  border-radius: 50%;
-  margin: 0 auto 20px auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--dark-gray);
-  border: 3px solid var(--dark-gold);
+  width: 100px !important;
+  height: 100px !important;
+  background: var(--bg-secondary) !important;
+  border-radius: 50% !important;
+  margin: 0 auto var(--space-4) auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: var(--font-size-xl) !important;
+  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-secondary) !important;
+  border: 3px solid var(--accent-primary) !important;
 }
 
 /* ============================= */
-/*  Input Fields (Now Using Secondary Font) */
+/*  Input Fields (Match create_task.css inputs) */
 /* ============================= */
 .account-card input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  border: 2px solid var(--light-gray);
-  border-radius: var(--border-radius);
-  font-size: 16px;
-  text-align: center;
-  background: var(--white);
-  color: var(--black);
-  outline: none;
-  transition: border-color var(--transition-speed);
-  font-family: var(--secondary-font); 
+  width: 100% !important;
+  padding: var(--space-3) var(--space-4) !important;
+  margin-bottom: var(--space-4) !important;
+  border: 2px solid var(--border-color) !important;
+  border-radius: var(--border-radius) !important;
+  font-size: var(--font-size-base) !important;
+  color: var(--text-primary) !important;
+  background: var(--bg-primary) !important;
+  font-family: var(--primary-font) !important;
+  transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+  outline: none !important;
+  text-align: center !important;
 }
 
 .account-card input:read-only {
-  background: var(--light-gray);
-  cursor: default;
+  background: var(--bg-secondary) !important;
+  cursor: default !important;
+}
+
+.account-card input:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: var(--shadow-focus) !important;
 }
 
 /* ============================= */
-/* Buttons (Using Global Button Styles) */
+/* Buttons (Match create_task.css buttons) */
 /* ============================= */
 .account-card button {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  font-weight: bold;
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: var(--transition-speed);
-  margin-top: 10px;
+  width: 100% !important;
+  padding: var(--space-3) var(--space-4) !important;
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  cursor: pointer !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-bold) !important;
+  margin-top: var(--space-3) !important;
+  transition: all var(--transition-fast) ease !important;
 }
 
 /* Change Password Button */
 .change-password-btn {
-  background: var(--dark-gold);
-  color: var(--white);
+  background: var(--accent-primary) !important;
+  color: var(--black) !important;
 }
 
 .change-password-btn:hover {
-  background: var(--gold);
-  transform: scale(1.05);
+  background: var(--dark-gold) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+  color: var(--white) !important;
 }
 
 /* Leave Group Button */
 .leave-group-btn {
-  background: var(--black);
-  color: var(--white);
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
 }
 
 .leave-group-btn:hover {
-  background: var(--dark-gray);
-  transform: scale(1.05);
+  background: var(--gray) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+  color: var(--white) !important;
 }
 
 /* Logout Button */
 .logout-btn {
-  background: var(--dark-gray);
-  color: var(--white);
+  background: var(--dark-gray) !important;
+  color: var(--white) !important;
 }
 
 .logout-btn:hover {
-  background: var(--gray);
-  transform: scale(1.05);
+  background: var(--gray) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
 /* ============================= */
 /*  Responsive Design */
 /* ============================= */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .account-container {
+    padding: var(--space-3) !important;
+  }
+  
   .account-card {
-    padding: 20px;
-    max-width: 90%;
+    width: 95% !important;
   }
+}
 
+@media (max-width: 480px) {
   .account-card h1 {
-    font-size: 22px;
+    font-size: var(--font-size-lg) !important;
   }
+  
+  .account-card input {
+    font-size: var(--font-size-sm) !important;
+  }
+  
+  .account-card button {
+    font-size: var(--font-size-sm) !important;
+  }
+}
+
+/* ============================= */
+/*  Error and Success Messages */
+/* ============================= */
+.error-message {
+  color: hsl(0, 100%, 50%) !important;
+  font-size: var(--font-size-sm) !important;
+  margin-top: var(--space-2) !important;
+  margin-bottom: var(--space-3) !important;
+  text-align: center !important;
+}
+
+.success-message {
+  color: hsl(120, 100%, 35%) !important;
+  font-size: var(--font-size-sm) !important;
+  margin-top: var(--space-2) !important;
+  margin-bottom: var(--space-3) !important;
+  text-align: center !important;
+}
+
+/* ============================= */
+/* Username editing */
+/* ============================= */
+.editable-field {
+  cursor: pointer !important;
+  border: 2px dashed var(--border-color) !important;
+}
+
+.editable-field:hover {
+  border-color: var(--accent-primary) !important;
+  background-color: var(--bg-secondary) !important;
+}
+
+.helper-text {
+  color: var(--text-secondary) !important;
+  font-size: var(--font-size-xs) !important;
+  margin-top: -15px !important;
+  margin-bottom: 10px !important;
+  display: block !important;
+}
+
+/* Input groups */
+.input-group {
+  margin-bottom: var(--space-4) !important;
+  position: relative !important;
+  width: 100% !important;
+}
+
+/* Password change section */
+.password-change-section {
+  width: 100% !important;
+  margin-bottom: var(--space-4) !important;
+}
+
+.password-actions {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: var(--space-3) !important;
+  margin-top: var(--space-3) !important;
+}
+
+.confirm-btn, .cancel-btn {
+  flex: 1 !important;
+  padding: var(--space-2) var(--space-3) !important;
+  border-radius: var(--border-radius) !important;
+  cursor: pointer !important;
+  font-weight: var(--font-weight-medium) !important;
+  transition: all var(--transition-fast) ease !important;
+}
+
+.confirm-btn {
+  background-color: var(--accent-primary) !important;
+  color: var(--black) !important;
+}
+
+.confirm-btn:hover {
+  background-color: var(--dark-gold) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+  color: var(--white) !important;
+}
+
+.cancel-btn {
+  background-color: var(--dark-gray) !important;
+  color: var(--white) !important;
+}
+
+.cancel-btn:hover {
+  background-color: var(--gray) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
 }

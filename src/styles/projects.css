@@ -1,182 +1,185 @@
 /* Projects Page Container */
 .projects-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(to bottom right, #f5c542, #ff9f1c);
-  padding: 20px;
-  font-family: 'Poppins', sans-serif;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+  background: linear-gradient(to bottom right, var(--gold), var(--dark-gold)) !important;
+  padding: var(--space-5) !important;
+  font-family: var(--primary-font) !important;
 }
 
 /* Header Section */
 .header {
-  text-align: center;
-  margin-bottom: 30px;
+  text-align: center !important;
+  margin-bottom: var(--space-6) !important;
 }
 
 .header h1 {
-  color: #3c3c3c;
-  font-size: 36px;
-  font-weight: 700;
+  color: var(--white) !important; /* Changed from var(--text-primary) for better contrast */
+  font-size: var(--font-size-3xl) !important;
+  font-weight: var(--font-weight-bold) !important;
+  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5) !important; /* Made shadow darker */
 }
 
 .header p {
-  color: #676767;
-  font-size: 18px;
+  color: var(--black) !important; /* Changed to black for better readability */
+  font-size: var(--font-size-xl) !important; /* Increased size for better legibility */
+  opacity: 0.9 !important; /* Slight opacity for visual hierarchy */
 }
 
 /* Project List using CSS Grid for Responsiveness */
 .projects-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  width: 100%;
-  max-width: 1000px;
-  animation: fadeIn 0.6s ease-in-out;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+  gap: var(--space-5) !important;
+  width: 100% !important;
+  max-width: 1000px !important;
+  animation: fadeIn 0.6s ease-in-out !important;
 }
 
 /* Individual Project Card */
 .project-card {
-  background: #fff;
-  border: 2px solid #ff9f1c;
-  border-radius: 10px;
-  padding: 25px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease-in-out;
+  background: var(--bg-primary) !important;
+  border: 2px solid var(--accent-primary) !important;
+  border-radius: var(--border-radius) !important;
+  padding: var(--space-5) !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: all var(--transition-normal) ease-in-out !important;
+  position: relative !important;
 }
 
 .project-card h3 {
-  color: #3c3c3c;
-  font-size: 24px;
-  margin-bottom: 10px;
+  color: var(--text-primary) !important;
+  font-size: var(--font-size-xl) !important;
+  margin-bottom: var(--space-3) !important;
 }
 
 .project-card p {
-  color: #6c757d;
-  font-size: 16px;
+  color: var(--text-secondary) !important;
+  font-size: var(--font-size-base) !important;
 }
 
 .project-card:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px) scale(1.02) !important;
+  box-shadow: var(--shadow-lg) !important;
 }
 
 /* Loading Indicator */
 .loading {
-  font-size: 20px;
-  color: #fff;
+  font-size: var(--font-size-lg) !important;
+  color: var(--white) !important;
 }
-
 
 /* Action Buttons */
 .actions {
-  display: flex;
-  gap: 15px;
-  margin-top: 30px;
+  display: flex !important;
+  gap: var(--space-4) !important;
+  margin-top: var(--space-6) !important;
 }
 
 .action-btn {
-  width: 180px;
-  height: 50px;
-  border: none;
-  border-radius: 25px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
+  width: 180px !important;
+  height: 50px !important;
+  border: none !important;
+  border-radius: 25px !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-bold) !important;
+  cursor: pointer !important;
+  transition: all var(--transition-normal) ease-in-out !important;
+  box-shadow: var(--shadow-md) !important; /* Added shadow for depth */
 }
 
 .create-btn {
-  background: #ff9f1c;
-  color: #fff;
+  background: var(--accent-primary) !important; /* Using global gold variable */
+  color: var(--black) !important; /* Changed text color to black */
 }
 
 .create-btn:hover {
-  background: #e88e10;
-  transform: scale(1.05);
+  background: var(--dark-gold) !important; /* Using global dark gold variable */
+  transform: scale(1.05) !important;
 }
 
 .join-btn {
-  background: #eaeaea !important;
-  color: #676767 !important;
+  background: var(--dark-gray) !important; /* Slightly darker gray */
+  color: var(--white) !important; /* Changed to white for better readability */
   border-radius: 25px !important;
 }
 
 .join-btn:hover {
-  background: #d6d6d6 !important;
-  transform: scale(1.05);
-  
+  background: var(--darker-gray) !important; /* Using a darker gray variable */
+  transform: scale(1.05) !important;
 }
 
 .account-btn {
-  background: #3c3c3c;
-  color: #fff;
+  background: var(--neutral-dark) !important; /* Using a darker shade of neutral */
+  color: var(--black) !important; /* Changed text color to black */
 }
 
 .account-btn:hover {
-  background: #2a2a2a;
-  transform: scale(1.05);
+  background: var(--neutral-darker) !important; /* Using a darker neutral variable */
+  transform: scale(1.05) !important;
 }
 
 /* Responsive Design for Projects Section */
 @media (max-width: 600px) {
   .projects-container {
-    padding: 15px;
+    padding: var(--space-4) !important;
   }
 
   .header h1 {
-    font-size: 28px;
+    font-size: var(--font-size-2xl) !important;
   }
 
   .projects-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 }
 
 /* Fade-in Animation */
 @keyframes fadeIn {
   from {
-    opacity: 0;
-    transform: translateY(10px);
+    opacity: 0 !important;
+    transform: translateY(10px) !important;
   }
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 1 !important;
+    transform: translateY(0) !important;
   }
 }
 
 /* Accessibility Improvements */
 .project-card:focus {
-  outline: 2px solid #ff9f1c;
+  outline: 2px solid var(--accent-primary) !important;
 }
+
 /* ======================== */
 /* Project Card Actions (Edit & Delete Buttons) */
 /* ======================== */
 .project-actions {
   display: flex !important;
-  justify-content: space-between !important; /* ✅ Space items apart */
+  justify-content: space-between !important;
   position: absolute !important;
-  bottom: 10px !important;
-  left: 10px !important;
+  bottom: var(--space-3) !important;
+  left: var(--space-3) !important;
   width: 95% !important;
-  pointer-events: none !important; /* Prevent accidental clicks */
+  pointer-events: none !important;
 }
 
 /* Trash (🗑️) - Bottom Left (Hidden by Default) */
 .delete-btn {
   background: none !important;
   border: none !important;
-  font-size: 20px !important;
-  color: red !important;
+  font-size: var(--font-size-lg) !important;
+  color: var(--error) !important; /* Using global error color */
   cursor: pointer !important;
-  transition: transform 0.2s ease, color 0.3s ease !important;
-  display: none !important; /* ✅ Hide by default */
+  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
+  display: none !important;
   pointer-events: auto !important;
 }
 
-/* ✅ Show delete button in edit mode */
+/* Show delete button in edit mode */
 .project-card.editing .delete-btn {
   display: block !important;
 }
@@ -184,33 +187,32 @@
 /* Delete Button Hover Effect */
 .delete-btn:hover {
   transform: scale(1.2) !important;
-  color: darkred !important;
+  color: var(--dark-error) !important; /* Using global dark error color */
 }
 
 /* Edit Button (✏️) - Bottom Right */
 .edit-btn {
   background: none !important;
   border: none !important;
-  font-size: 20px !important;
-  color: #3c3c3c !important;
+  font-size: var(--font-size-lg) !important;
+  color: var(--text-primary) !important;
   cursor: pointer !important;
-  transition: transform 0.2s ease, color 0.3s ease !important;
-  margin-left: auto !important; /* ✅ Push to the right */
+  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
+  margin-left: auto !important;
   pointer-events: auto !important;
 }
 
 /* Edit Button Hover Effect */
 .edit-btn:hover {
   transform: scale(1.2) !important;
-  color: #555 !important;
+  color: var(--text-secondary) !important;
 }
-
 
 /* ======================== */
 /* Prevent Click-Through */
 /* ======================== */
 .project-actions button {
-  pointer-events: auto !important; /* ✅ Allow clicks only on buttons */
+  pointer-events: auto !important;
 }
 
 /* ======================== */
@@ -233,7 +235,7 @@
   pointer-events: none !important;
 }
 
-/* ✅ Show overlay when modal is active */
+/* Show overlay when modal is active */
 .modal-overlay.active {
   display: flex !important;
   visibility: visible !important;
@@ -243,24 +245,64 @@
 
 /* Modal Box */
 .modal {
-  background: white !important;
-  padding: 20px !important;
+  background: var(--bg-primary) !important;
+  padding: var(--space-5) !important;
   width: 400px !important;
-  border-radius: 10px !important;
+  border-radius: var(--border-radius) !important;
   text-align: center !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Modal Title */
+.modal h3 {
+  margin-bottom: var(--space-4) !important;
+  font-size: var(--font-size-xl) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Modal Text */
+.modal p {
+  font-size: var(--font-size-base) !important;
+  color: var(--text-secondary) !important;
+  margin-bottom: var(--space-5) !important;
 }
 
 /* Modal Buttons */
 .confirm-btn, .cancel-btn {
-  font-size: 24px !important;
+  font-size: var(--font-size-xl) !important;
   border: none !important;
   cursor: pointer !important;
   width: 50px !important;
   height: 50px !important;
+  background: none !important;
+  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
 }
 
-.confirm-btn { color: green !important; }
-.confirm-btn:hover { transform: scale(1.2) !important; color: darkgreen !important; }
+.confirm-btn { 
+  color: var(--success) !important; /* Using global success color */
+}
 
-.cancel-btn { color: red !important; }
-.cancel-btn:hover { transform: scale(1.2) !important; color: darkred !important; }
+.confirm-btn:hover { 
+  transform: scale(1.2) !important; 
+  color: var(--dark-success) !important; /* Using global dark success color */
+}
+
+.cancel-btn { 
+  color: var(--error) !important; /* Using global error color */
+}
+
+.cancel-btn:hover { 
+  transform: scale(1.2) !important; 
+  color: var(--dark-error) !important; /* Using global dark error color */
+}
+
+/* FontAwesome icons - Ensuring visibility */
+.project-card .fa,
+.project-card .fas,
+.project-card .far,
+.modal .fa,
+.modal .fas,
+.modal .far {
+  display: inline-block !important;
+  visibility: visible !important;
+}

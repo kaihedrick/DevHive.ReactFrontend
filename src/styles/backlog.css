@@ -3,13 +3,16 @@
 ========================== */
 
 .backlog-page {
-    width: 80%;
-    height: 80vh; /* 80% of the viewport height */
-    margin: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center; /* Center it within .content */
+  width: 80% !important;
+  min-height: 90vh !important; /* Changed to 90% of the viewport height */
+  margin: var(--space-5) auto !important; /* Add top and bottom margin */
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important; /* Changed from center to flex-start */
+  padding-top: var(--space-5) !important; /* Add some padding at the top */
+  padding-bottom: var(--space-8) !important; /* Add more padding at the bottom */
+  background-color: var(--bg-secondary) !important;
 }
 
 /* ==========================
@@ -17,14 +20,54 @@
 ========================== */
 
 .backlog-container {
-    width: 100%;
-    max-width: 900px; /* Restrict max width */
-    padding: 20px;
-    background: var(--neutral-200);
-    border-radius: var(--border-radius);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    position: relative;
+  width: 100% !important;
+  max-width: 900px !important; /* Restrict max width */
+  padding: var(--space-5) !important;
+  background: var(--bg-primary) !important; /* Changed to white background */
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-md) !important;
+  text-align: center !important;
+  position: relative !important;
+  border: 1px solid var(--border-color) !important; /* Outline the main form */
+  margin-bottom: var(--space-5) !important; /* Add margin at the bottom */
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* ==========================
+   Create Sprint / Task Button (Inside Container)
+========================== */
+
+.action-button-container {
+  margin-top: var(--space-4) !important;
+  padding-top: var(--space-4) !important;
+  border-top: 1px solid var(--border-color) !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.create-sprint-button,
+.create-task-button {
+  background-color: var(--accent-primary) !important;
+  color: var(--black) !important; /* Changed to black for better readability on gold */
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-bold) !important;
+  padding: var(--space-3) var(--space-4) !important;
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  cursor: pointer !important;
+  transition: background-color var(--transition-normal) ease, transform var(--transition-fast) ease, box-shadow var(--transition-fast) ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.create-sprint-button:hover,
+.create-task-button:hover {
+  background-color: var(--dark-gold) !important; /* Slightly darker gold */
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+  color: var(--white) !important;
 }
 
 /* ==========================
@@ -32,18 +75,19 @@
 ========================== */
 
 .back-arrow {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--dark-gray);
-    transition: transform var(--transition-speed), color var(--transition-speed);
+  position: absolute !important;
+  top: var(--space-3) !important;
+  left: var(--space-3) !important;
+  font-size: var(--font-size-lg) !important;
+  cursor: pointer !important;
+  color: var(--text-secondary) !important; /* Changed to text-secondary for better visibility */
+  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+  z-index: 10 !important; /* Ensure it appears above other elements */
 }
 
 .back-arrow:hover {
-    color: var(--black);
-    transform: scale(1.2);
+  color: var(--text-primary) !important; /* Darker on hover */
+  transform: scale(1.2) !important;
 }
 
 /* ==========================
@@ -51,55 +95,58 @@
 ========================== */
 
 .sprint-overview-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-    margin-bottom: 20px;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: var(--space-3) !important;
+  justify-content: center !important;
+  margin-bottom: var(--space-5) !important;
 }
 
 .sprint-card {
-    width: 220px;
-    padding: 18px;
-    background: var(--light-gray);
-    border-radius: var(--border-radius);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    cursor: pointer;
-    transition: 0.3s ease-in-out;
-    border: 1px solid var(--gray);
+  width: 220px !important;
+  padding: var(--space-4) !important;
+  background: var(--bg-primary) !important; /* Changed to bg-primary */
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-md) !important; /* Enhanced shadow */
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+  border: 1px solid var(--border-color) !important;
 }
 
 .sprint-card:hover {
-    background: var(--white);
-    transform: scale(1.05);
+  background: var(--bg-primary) !important;
+  transform: scale(1.05) !important;
+  box-shadow: var(--shadow-lg) !important; /* Enhanced shadow on hover */
 }
 
 /* Sprint Details */
 .sprint-card h3 {
-    font-size: 18px;
-    font-weight: bold;
+  font-size: var(--font-size-lg) !important;
+  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-primary) !important; /* Ensure h3 text is readable */
+  margin-bottom: var(--space-2) !important;
 }
 
 .sprint-card p {
-    font-size: 14px;
-    color: var(--dark-gray);
-    margin: 5px 0;
+  font-size: var(--font-size-base) !important;
+  color: var(--text-secondary) !important; /* Changed to text-secondary for better readability */
+  margin: var(--space-1) 0 !important;
 }
 
 /* FontAwesome Icons for Started & Completed */
 .sprint-status-icon {
-    font-size: 16px;
-    color: var(--dark-gray);
-    margin-left: 5px;
+  font-size: var(--font-size-base) !important;
+  color: var(--dark-gray) !important;
+  margin-left: var(--space-1) !important;
 }
 
 .sprint-status-icon.completed {
-    color: #2ecc71; /* Green */
+  color: var(--success) !important; /* Green */
 }
 
 .sprint-status-icon.not-started {
-    color: #e74c3c; /* Red */
+  color: var(--error) !important; /* Red */
 }
 
 /* ==========================
@@ -107,195 +154,294 @@
 ========================== */
 
 .sprint-details-container {
-    background: var(--white);
-    padding: 25px;
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    margin-bottom: 20px;
+  background: var(--bg-primary) !important; /* Changed to bg-primary */
+  padding: var(--space-5) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-md) !important;
+  text-align: center !important;
+  margin-bottom: var(--space-5) !important;
+  color: var(--text-primary) !important; /* Changed to text-primary for better readability */
+  border: 1px solid var(--border-color) !important; /* Outline the main form */
+  position: relative !important; /* For positioning back arrow */
 }
+
+/* Sprint Details Title */
+.sprint-details-container h2 {
+  font-size: var(--font-size-xl) !important;
+  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-primary) !important;
+  margin-bottom: var(--space-3) !important;
+}
+
+/* Sprint Details Info */
+.sprint-details-container p {
+  font-size: var(--font-size-base) !important;
+  color: var(--text-secondary) !important;
+  margin-bottom: var(--space-2) !important;
+}
+
 /* Create Sprint Button */
 .create-sprint-button-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
+  display: flex !important;
+  justify-content: center !important;
+  margin-top: var(--space-5) !important;
 }
 
-.create-sprint-button {
-    background-color: var(--gold);
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 12px 20px;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
-}
-
-.create-sprint-button:hover {
-    background-color: #e6b024; /* Slightly darker gold */
-    transform: scale(1.05);
-}
+.create-sprint-button,
 .create-task-button {
-    background-color: var(--gold);
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 12px 20px;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
-  }
-  
-  .create-task-button:hover {
-    background-color: #e6b024; /* Slightly darker gold */
-    transform: scale(1.05);
-  }
-  
+  background-color: var(--accent-primary) !important;
+  color: var(--black) !important; /* Changed to black for better readability on gold */
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-bold) !important;
+  padding: var(--space-3) var(--space-4) !important;
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  cursor: pointer !important;
+  transition: background-color var(--transition-normal) ease, transform var(--transition-fast) ease !important;
+}
+
+.create-sprint-button:hover,
+.create-task-button:hover {
+  background-color: var(--dark-gold) !important; /* Slightly darker gold */
+  transform: scale(1.05) !important;
+}
+
 /* Edit Sprint Icon */
 .edit-sprint-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 18px;
-    color: var(--dark-gray);
-    cursor: pointer;
-    transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
+  position: absolute !important;
+  top: var(--space-2) !important;
+  right: var(--space-2) !important;
+  font-size: var(--font-size-base) !important;
+  color: var(--text-secondary) !important; /* Changed for better visibility */
+  cursor: pointer !important;
+  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+  z-index: 5 !important;
 }
 
 .edit-sprint-button:hover {
-    color: var(--black);
-    transform: scale(1.2);
+  color: var(--text-primary) !important;
+  transform: scale(1.2) !important;
 }
 
 /* Ensure Sprint Cards Have Relative Position */
 .sprint-card {
-    position: relative; /* Needed for positioning the edit button */
-    width: 220px;
-    padding: 18px;
-    background: var(--light-gray);
-    border-radius: var(--border-radius);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    cursor: pointer;
-    transition: 0.3s ease-in-out;
-    border: 1px solid var(--gray);
+  position: relative !important; /* Needed for positioning the edit button */
 }
 
-
+/* Task List */
 .task-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 15px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+  margin-top: var(--space-4) !important;
 }
 
-/* Task Card Styling */
+/* Task Card Styling - UPDATED to remove hover scaling */
 .task-card {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    background: var(--light-gray);
-    padding: 12px;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--gray);
-    transition: 0.3s ease-in-out;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  background: var(--bg-primary) !important;
+  padding: var(--space-3) !important;
+  border-radius: var(--border-radius) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: box-shadow var(--transition-normal) ease !important; /* Removed transform */
+  color: var(--text-primary) !important;
+  box-shadow: var(--shadow-sm) !important;
+  margin-bottom: var(--space-2) !important; /* Add spacing between cards */
 }
 
 .task-card:hover {
-    transform: scale(1.03);
+  /* Removed transform: scale(1.03) to prevent popping out */
+  box-shadow: var(--shadow-md) !important; /* Keep subtle shadow enhancement */
 }
 
-/* Edit Task Icon */
+/* Edit Task Icon - Keep hover effect for this icon only */
 .edit-task-icon {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
-    color: var(--dark-gray);
-    transition: 0.3s;
+  position: absolute !important;
+  top: var(--space-2) !important;
+  right: var(--space-2) !important;
+  cursor: pointer !important;
+  color: var(--text-secondary) !important;
+  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+  z-index: 5 !important;
 }
 
 .edit-task-icon:hover {
-    color: var(--black);
-    transform: scale(1.2);
+  color: var(--text-primary) !important;
+  transform: scale(1.2) !important; /* Keep icon scaling */
 }
 
-/* Task Content */
-.task-content {
-    padding: 10px;
-    border-bottom: 1px solid var(--gray);
-    text-align: center;
-    font-weight: bold;
-}
-
-/* Task Details */
-.task-details {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-}
-
-/*  Assignee Dropdown */
-.task-assignee-dropdown {
-    padding: 5px;
-    font-weight: bold;
-    border-radius: var(--border-radius);
-}
-
-/* Status Dropdown */
+/* Status Dropdown - Updated to prevent unwanted hover effects */
 .task-status {
-    padding: 5px;
-    font-weight: bold;
-    border-radius: var(--border-radius);
+  padding: var(--space-2) !important;
+  font-weight: var(--font-weight-bold) !important;
+  border-radius: var(--border-radius) !important;
+  background-color: var(--bg-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 120px !important;
+  transition: border-color var(--transition-normal) ease !important; /* Changed transition to focus on border */
+}
+
+/* Update hover behavior for status dropdowns */
+.task-status:hover {
+  transform: none !important; /* Remove vertical movement */
+  box-shadow: none !important; /* Remove shadow */
+  border-color: var(--text-secondary) !important; /* Subtle border change instead */
+  cursor: pointer !important;
+}
+
+/* Task Assignee Dropdown - Update style to match */
+.task-assignee-dropdown {
+  padding: var(--space-2) !important;
+  font-weight: var(--font-weight-bold) !important;
+  border-radius: var(--border-radius) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: border-color var(--transition-normal) ease !important;
+}
+
+.task-assignee-dropdown:hover {
+  border-color: var(--text-secondary) !important;
+}
+
+/* Task Content - Add padding for better spacing */
+.task-content {
+  padding: var(--space-3) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  text-align: left !important; /* Changed to left alignment for better readability */
+  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-primary) !important;
+  word-break: break-word !important; /* Allow long text to wrap properly */
+}
+
+/* Task Details - Better space distribution */
+.task-details {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: var(--space-3) !important;
+  color: var(--text-primary) !important;
+  flex-wrap: wrap !important; /* Allow wrapping on small screens */
+  gap: var(--space-2) !important; /* Add gap between wrapped items */
+}
+
+/* Task Date - Better formatting */
+.task-date {
+  color: var(--text-tertiary) !important;
+  font-size: var(--font-size-sm) !important;
 }
 
 /* Status Colors */
-.task-status.todo { background-color: gray; color: white !important; }
-.task-status.in-progress { background-color: blue; color: white !important; }
-.task-status.completed { background-color: green; color: white !important; }
+.task-status.todo { background-color: var(--gray) !important; color: var(--white) !important; }
+.task-status.in-progress { background-color: var(--blue) !important; color: var(--white) !important; }
+.task-status.completed { background-color: var(--green) !important; color: var(--white) !important; }
 
+/* ==========================
+   Status Indicator Styling (Updated)
+========================== */
+
+/* Status Dropdown - Keep the container neutral */
+.task-status {
+  padding: var(--space-2) !important;
+  font-weight: var(--font-weight-bold) !important;
+  border-radius: var(--border-radius) !important;
+  background-color: var(--bg-primary) !important; /* White background */
+  border: 1px solid var(--border-color) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 120px !important; /* Ensure consistent width */
+}
+
+/* Status Text Colors - Using DevHive global variables */
+.task-status.todo { 
+  color: hsl(0, 100%, 50%) !important; /* Red for "To Do" tasks */
+  border-left: 3px solid hsl(0, 100%, 50%) !important; /* Red left border */
+}
+
+.task-status.in-progress { 
+  color: var(--accent-primary) !important; /* DevHive gold for "In Progress" tasks */
+  border-left: 3px solid var(--accent-primary) !important; /* Gold left border */
+}
+
+.task-status.completed { 
+  color: hsl(120, 100%, 35%) !important; /* Green for "Completed" tasks */
+  border-left: 3px solid hsl(120, 100%, 35%) !important; /* Green left border */
+}
+
+/* Status Icons - Add icons for better visual indication */
+.task-status::before {
+  font-family: "Font Awesome 5 Free" !important;
+  margin-right: var(--space-2) !important;
+  font-weight: 900 !important;
+}
+
+.task-status.todo::before { 
+  content: "\f111" !important; /* Circle icon for Todo */
+  color: hsl(0, 100%, 50%) !important;
+}
+
+.task-status.in-progress::before { 
+  content: "\f2f1" !important; /* Spinner icon for In Progress */
+  color: var(--accent-primary) !important;
+}
+
+.task-status.completed::before { 
+  content: "\f00c" !important; /* Check icon for Completed */
+  color: hsl(120, 100%, 35%) !important;
+}
+
+/* Hover effects for better interactivity */
+.task-status:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-sm) !important;
+  cursor: pointer !important;
+}
 
 /* ==========================
    Backlog Actions & Buttons
 ========================== */
 
 .backlog-actions {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
+  margin-top: var(--space-5) !important;
+  display: flex !important;
+  justify-content: center !important;
+  gap: var(--space-3) !important;
 }
 
 .backlog-actions button {
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: var(--border-radius);
-    transition: 0.3s;
-    border: none;
+  padding: var(--space-3) var(--space-4) !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-bold) !important;
+  cursor: pointer !important;
+  border-radius: var(--border-radius) !important;
+  transition: var(--transition-normal) ease !important;
+  border: none !important;
 }
 
 .button-primary {
-    background: var(--gold);
-    color: var(--white);
+  background: var(--accent-primary) !important;
+  color: var(--black) !important; /* Changed to black for better readability on gold */
 }
 
 .button-primary:hover {
-    background: var(--dark-gold);
+  background: var(--dark-gold) !important;
+  transform: translateY(-2px) !important;
 }
 
 .button-secondary {
-    background: var(--light-gray);
-    color: var(--black);
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
 }
 
 .button-secondary:hover {
-    background: var(--gray);
+  background: var(--gray) !important;
+  color: var(--white) !important;
+  transform: translateY(-2px) !important;
 }
 
 /* ==========================
@@ -303,84 +449,150 @@
 ========================== */
 
 .success-popup {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #28a745;
-    color: white;
-    padding: 12px 20px;
-    border-radius: var(--border-radius);
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    opacity: 1;
-    animation: fadeOut 3s ease-in-out forwards;
+  position: fixed !important;
+  top: var(--space-5) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: hsl(120, 100%, 35%) !important; /* Brighter green */
+  color: var(--white) !important;
+  padding: var(--space-3) var(--space-4) !important;
+  border-radius: var(--border-radius) !important;
+  font-weight: var(--font-weight-bold) !important;
+  display: flex !important;
+  align-items: center !important;
+  box-shadow: var(--shadow-md) !important;
+  opacity: 1 !important;
+  animation: fadeOut 3s ease-in-out forwards !important;
+  z-index: 1000 !important; /* Ensure it's on top */
 }
 
 @keyframes fadeOut {
-    0% { opacity: 1; }
-    100% { opacity: 0; }
+  0% { opacity: 1 !important; }
+  100% { opacity: 0 !important; }
 }
 
 /* ============================= */
-/*  Back Arrow (Outside Backlog Container) */
+/*  Back Arrow Inside Sprint View */
 /* ============================= */
-.back-arrow {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--dark-gray);
-    transition: transform var(--transition-speed), color var(--transition-speed);
-  }
-  
-  .back-arrow:hover {
-    color: var(--black);
-    transform: scale(1.2);
-  }
-  
-  /* ============================= */
-  /*  Back Arrow Inside Sprint View */
-  /* ============================= */
-  .sprint-details-container .back-arrow.sprint-view {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    font-size: 22px;
-    cursor: pointer;
-    color: var(--dark-gray);
-    transition: transform var(--transition-speed), color var(--transition-speed);
-  }
-  
-  .sprint-details-container .back-arrow.sprint-view:hover {
-    color: var(--black);
-    transform: scale(1.2);
-  }
+.sprint-details-container .back-arrow.sprint-view {
+  position: absolute !important;
+  top: var(--space-3) !important;
+  left: var(--space-3) !important;
+  font-size: var(--font-size-lg) !important;
+  cursor: pointer !important;
+  color: var(--text-secondary) !important; /* Changed for better visibility */
+  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+  z-index: 10 !important;
+}
 
-/* src/styles/components/backlog.css */
+.sprint-details-container .back-arrow.sprint-view:hover {
+  color: var(--text-primary) !important;
+  transform: scale(1.2) !important;
+}
+
+/* ============================= */
+/*  Backlog Item */
+/* ============================= */
 .backlog-item {
-  background: var(--neutral-100);
-  border-left: 4px solid var(--primary-gold);
-  border-radius: var(--border-radius);
-  padding: 15px;
-  margin-bottom: 15px;
-  box-shadow: var(--box-shadow);
+  background: var(--bg-primary) !important; /* Changed to bg-primary */
+  border-left: 4px solid var(--accent-primary) !important;
+  border-radius: var(--border-radius) !important;
+  padding: var(--space-3) !important;
+  margin-bottom: var(--space-3) !important;
+  box-shadow: var(--shadow-sm) !important;
+  color: var (--text-primary) !important; /* Changed to text-primary for better readability */
+  text-align: left !important;
 }
 
+/* ============================= */
+/*  Backlog Header */
+/* ============================= */
 .backlog-header {
-  background: var(--comp-blue);
-  color: var(--neutral-100);
-  padding: 15px;
-  border-radius: var(--border-radius);
-  margin-bottom: 20px;
+  background: var(--accent-primary) !important; /* Changed to accent-primary */
+  color: var(--black) !important; /* Changed to black for better readability on gold */
+  padding: var(--space-3) var(--space-4) !important;
+  border-radius: var(--border-radius) !important;
+  margin-bottom: var(--space-4) !important;
+  text-align: center !important;
 }
 
+.backlog-header h2 {
+  color: var(--black) !important; /* Changed to black for better readability on gold */
+  margin: 0 !important;
+  font-size: var(--font-size-xl) !important;
+}
+
+/* ============================= */
+/*  Backlog Filters */
+/* ============================= */
 .backlog-filters {
-  background: var(--neutral-300);
-  padding: 10px;
-  border-radius: var(--border-radius);
-  margin-bottom: 20px;
+  background: var(--bg-secondary) !important; /* Changed to bg-secondary */
+  padding: var(--space-3) !important;
+  border-radius: var(--border-radius) !important;
+  margin-bottom: var(--space-4) !important;
+  color: var(--text-primary) !important; /* Changed to text-primary for better readability */
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: var (--space-3) !important;
+}
+
+.backlog-filters h3 {
+  color: var(--text-primary) !important; /* Changed to text-primary for better readability */
+  margin: 0 0 var(--space-2) 0 !important;
+  font-size: var(--font-size-lg) !important;
+}
+
+/* Message for no tasks or sprints */
+.no-tasks-message,
+.no-sprints-message {
+  color: var(--text-secondary) !important;
+  font-size: var(--font-size-base) !important;
+  font-style: italic !important;
+  margin: var(--space-5) 0 !important;
+}
+
+/* ==========================
+   Global Page Background Fix
+========================== */
+.content {
+  background-color: var(--bg-secondary) !important;
+}
+
+main {
+  background-color: var(--bg-secondary) !important;
+}
+
+body {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Add these styles to your existing backlog.css */
+
+/* Sprint status indicators */
+.sprint-status {
+  margin-top: var(--space-2) !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.status-started {
+  color: var(--accent-primary) !important;
+  border: 1px solid var(--accent-primary) !important;
+  border-radius: var(--border-radius) !important;
+  padding: var (--space-1) var(--space-2) !important;
+  display: inline-block !important;
+}
+
+.status-not-started {
+  color: var (--text-tertiary) !important;
+  border: 1px solid var(--text-tertiary) !important;
+  border-radius: var(--border-radius) !important;
+  padding: var (--space-1) var(--space-2) !important;
+  display: inline-block !important;
+}
+
+/* Button icon */
+.button-icon {
+  margin-right: var(--space-2) !important;
 }

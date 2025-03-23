@@ -63,3 +63,29 @@ export const register = async (userData) => {
     throw handleApiError(error, 'registering user'); // Throw the error
   }
 };
+
+// Add to authService.js
+export const requestPasswordReset = async (email) => {
+  try {
+    // Send the email as a raw JSON string, not as an object
+    await api.post(`${ENDPOINTS.USER}/RequestPasswordReset`, JSON.stringify(email), {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('✅ Password reset email sent');
+  } catch (error) {
+    console.error("❌ Error requesting password reset:", error);
+    throw error;
+  }
+};
+
+export const resetPassword = async (resetData) => {
+  try {
+    await api.post(`${ENDPOINTS.USER}/ResetPassword`, resetData);
+    console.log('✅ Password reset successful');
+  } catch (error) {
+    console.error("❌ Error resetting password:", error);
+    throw error;
+  }
+};

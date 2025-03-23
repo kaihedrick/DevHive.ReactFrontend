@@ -14,7 +14,10 @@ const CreateProject = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createProject(projectName, projectDescription);
+      await createProject({
+        name: projectName,
+        description: projectDescription
+      });
       alert("Project created successfully!");
       navigate("/projects");
     } catch (error) {
@@ -22,6 +25,7 @@ const CreateProject = () => {
       alert("Failed to create project. Please try again.");
     }
   };
+  
 
   return (
     <div className="create-project-container">

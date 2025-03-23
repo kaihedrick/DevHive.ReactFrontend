@@ -6,18 +6,35 @@
   position: relative !important;
   width: 100% !important;
   max-width: 800px !important;
-  margin: 20px auto !important;
-  padding: 20px !important;
-  border: 1px solid #ccc !important;
-  background-color: #fff !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  margin: var(--space-5) auto !important;
+  padding: var(--space-5) !important;
+  border: 1px solid var(--light-gray) !important;
+  background-color: var(--bg-primary) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-md) !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  gap: 15px !important;
-  transition: all 0.3s ease !important;
+  gap: var(--space-4) !important;
+  transition: all var(--transition-normal) ease !important;
   min-height: calc(100vh - 100px) !important;
+}
+
+/* Enhanced project title for better hierarchy */
+.project-details h1 {
+  font-size: var(--font-size-2xl) !important;
+  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-primary) !important;
+  margin-bottom: var(--space-4) !important;
+  text-align: center !important;
+}
+
+/* Improved section titles */
+.project-details h2 {
+  font-size: var(--font-size-xl) !important;
+  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-primary) !important;
+  margin: var(--space-5) 0 var(--space-3) 0 !important;
 }
 
 /* ======================== */
@@ -25,68 +42,81 @@
 /* ======================== */
 .edit-buttons {
   position: absolute !important;
-  top: 20px !important;
-  right: 20px !important;
+  top: var(--space-5) !important;
+  right: var(--space-5) !important;
   display: flex !important;
-  gap: 10px !important;
+  gap: var(--space-3) !important;
 }
 
 /* Ensure all buttons have no background */
 .edit-project-btn, .save-btn, .cancel-btn {
   width: 50px !important;
   height: 50px !important;
-  background: none !important; /* ✅ Remove background */
+  background: none !important;
   border: none !important;
-  box-shadow: none !important; /* ✅ Ensure no box-shadow */
-  outline: none !important; /* ✅ Remove outline */
-  font-size: 24px !important;
+  box-shadow: none !important;
+  outline: none !important;
+  font-size: var(--font-size-xl) !important;
   cursor: pointer !important;
-  transition: transform 0.2s ease, color 0.3s ease !important;
+  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 }
 
-/* ✅ Ensure the X (cancel) button is always red */
-.cancel-btn {
-  color: red !important;
+/* Making FontAwesome icons white and more visible */
+.edit-project-btn .fa, .edit-project-btn .fas,
+.save-btn .fa, .save-btn .fas,
+.cancel-btn .fa, .cancel-btn .fas,
+.invite-btn .fa, .invite-btn .fas,
+.kick-member .fa, .kick-member .fas {
+  color: var(--white) !important;
+  display: inline-block !important;
+  visibility: visible !important;
 }
 
-/* ✅ Ensure the X button expands slightly on hover */
+/* Ensure the X (cancel) button is always red */
+.cancel-btn {
+  color: hsl(0, 70%, 50%) !important;
+}
+
+/* Ensure the X button expands slightly on hover */
 .cancel-btn:hover {
   transform: scale(1.2) !important;
-  color: darkred !important;
+  color: hsl(0, 70%, 40%) !important;
 }
 
-/* ✅ Ensure the ✔ (save) button is always green */
+/* Ensure the ✔ (save) button is always green */
 .save-btn {
-  color: green !important;
+  color: hsl(145, 63%, 42%) !important;
 }
 
-/* ✅ Ensure the checkmark expands slightly on hover */
+/* Ensure the checkmark expands slightly on hover */
 .save-btn:hover {
   transform: scale(1.2) !important;
-  color: darkgreen !important;
+  color: hsl(145, 63%, 32%) !important;
 }
-
 
 /* ======================= */
 /* Invite Button */
 /* ======================= */
 .invite-btn {
   width: 200px !important;
-  background-color: #f0ad4e !important;
-  color: white !important;
+  background-color: var(--accent-primary) !important; /* Using global gold variable */
+  color: var(--white) !important;
   border: none !important;
-  padding: 12px !important;
-  font-size: 16px !important;
+  padding: var(--space-3) !important;
+  font-size: var(--font-size-base) !important;
   cursor: pointer !important;
   text-align: center !important;
-  border-radius: 5px !important;
+  border-radius: var(--border-radius) !important;
+  transition: background-color var(--transition-normal) !important;
+  box-shadow: var(--shadow-sm) !important; /* Added shadow for depth */
 }
 
 .invite-btn:hover {
-  background-color: #ec971f !important;
+  background-color: var(--dark-gold) !important; /* Using global dark gold variable */
+  box-shadow: var(--shadow-md) !important;
 }
 
 /* ======================= */
@@ -99,6 +129,12 @@
   align-items: center !important;
 }
 
+.members-section h2 {
+  font-size: var(--font-size-xl) !important;
+  color: var(--text-primary) !important;
+  margin-bottom: var(--space-4) !important;
+}
+
 .members-section ul {
   width: 80% !important;
   max-width: 600px !important;
@@ -107,6 +143,7 @@
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
+  list-style-type: none !important;
 }
 
 /* ======================= */
@@ -117,17 +154,17 @@
   justify-content: space-between !important;
   align-items: center !important;
   width: 100% !important;
-  padding: 10px 15px !important;
-  border: 1px solid #ddd !important;
-  border-radius: 8px !important;
-  margin-bottom: 10px !important;
-  background-color: #f9f9f9 !important;
-  transition: background 0.3s ease !important;
+  padding: var(--space-3) var(--space-4) !important;
+  border: 1px solid var(--light-gray) !important;
+  border-radius: var(--border-radius) !important;
+  margin-bottom: var(--space-3) !important;
+  background-color: var(--bg-secondary) !important;
+  transition: background var(--transition-normal) ease !important;
 }
 
 .member-item.owner {
-  background-color: #fffbea !important;
-  font-weight: bold !important;
+  background-color: hsl(48, 100%, 95%) !important;
+  font-weight: var(--font-weight-bold) !important;
 }
 
 /* ======================= */
@@ -136,33 +173,33 @@
 .member-info {
   display: flex !important;
   align-items: center !important;
-  gap: 10px !important;
+  gap: var(--space-3) !important;
   flex-grow: 1 !important;
 }
 
 .member-actions {
   display: flex !important;
   align-items: center !important;
-  gap: 10px !important;
+  gap: var(--space-3) !important;
 }
 
 /* Crown Icon */
 .crown {
-  font-size: 18px !important;
-  color: gold !important;
+  font-size: var(--font-size-base) !important;
+  color: hsl(48, 100%, 50%) !important;
 }
 
 /* Kick Button */
 .kick-member {
-  font-size: 20px !important;
-  color: red !important;
+  font-size: var(--font-size-lg) !important;
+  color: hsl(0, 70%, 50%) !important;
   cursor: pointer !important;
-  transition: transform 0.2s ease, color 0.3s ease !important;
+  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
 }
 
 .kick-member:hover {
   transform: scale(1.2) !important;
-  color: darkred !important;
+  color: hsl(0, 70%, 40%) !important;
 }
 
 /* ======================= */
@@ -182,10 +219,10 @@
   z-index: 10000 !important;
   visibility: hidden !important;
   opacity: 0 !important;
-  pointer-events: none !important; /* Prevent blocking clicks */
+  pointer-events: none !important;
 }
 
-/* ✅ Only show overlay when modal is open */
+/* Only show overlay when modal is open */
 .modal-overlay.active {
   display: flex !important;
   visibility: visible !important;
@@ -196,32 +233,32 @@
 /* Modal Box */
 .modal {
   position: relative !important;
-  background: white !important;
-  padding: 20px !important;
+  background: var(--bg-primary) !important;
+  padding: var(--space-5) !important;
   width: 400px !important;
-  border-radius: 10px !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-lg) !important;
   text-align: center !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
   z-index: 10001 !important;
-  border: 2px solid black !important;
+  border: 2px solid var(--text-primary) !important;
 }
 
 /* Modal Title */
 .modal h3 {
-  margin-bottom: 15px !important;
-  font-size: 22px !important;
-  color: black !important;
+  margin-bottom: var(--space-4) !important;
+  font-size: var(--font-size-xl) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Modal Text */
 .modal p {
-  font-size: 18px !important;
-  color: black !important;
-  margin-bottom: 20px !important;
+  font-size: var(--font-size-base) !important;
+  color: var(--text-secondary) !important;
+  margin-bottom: var(--space-5) !important;
 }
 
 /* Modal Actions */
@@ -229,41 +266,41 @@
   display: flex !important;
   justify-content: space-between !important;
   width: 100% !important;
-  padding-top: 10px !important;
+  padding-top: var(--space-3) !important;
 }
 
-/* ✅ Buttons with Icons */
+/* Buttons with Icons */
 .confirm-btn, .cancel-btn {
   width: 50px !important;
   height: 50px !important;
   background: none !important;
   border: none !important;
-  font-size: 24px !important;
+  font-size: var(--font-size-xl) !important;
   cursor: pointer !important;
-  transition: transform 0.2s ease, color 0.3s ease !important;
+  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 }
 
-/* ✅ Checkmark (Confirm) is Green */
+/* Checkmark (Confirm) is Green */
 .confirm-btn {
-  color: green !important;
+  color: hsl(145, 63%, 42%) !important;
 }
 
-/* ✅ Expand on hover */
+/* Expand on hover */
 .confirm-btn:hover {
   transform: scale(1.2) !important;
-  color: darkgreen !important;
+  color: hsl(145, 63%, 32%) !important;
 }
 
-/* ✅ X (Cancel) is Red */
+/* X (Cancel) is Red */
 .cancel-btn {
-  color: red !important;
+  color: hsl(0, 70%, 50%) !important;
 }
 
-/* ✅ Expand on hover */
+/* Expand on hover */
 .cancel-btn:hover {
   transform: scale(1.2) !important;
-  color: darkred !important;
+  color: hsl(0, 70%, 40%) !important;
 }

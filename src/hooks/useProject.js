@@ -18,7 +18,7 @@ export const useProject = (projectId) => {
       setProject(data);
       setError(null);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to load project");
       console.error('❌ Error fetching project:', err);
     } finally {
       setLoading(false);

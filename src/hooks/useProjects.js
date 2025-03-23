@@ -14,7 +14,7 @@ const useProjects = (userId) => {
     const loadProjects = async () => {
       try {
         setLoading(true);
-        const data = await fetchUserProjects(userId);
+        const data = await fetchUserProjects();
         setProjects(data);
         setError(null);
       } catch (err) {
@@ -25,10 +25,10 @@ const useProjects = (userId) => {
       }
     };
 
-    if (userId) {
-      loadProjects();
-    }
-  }, [userId]);
+    // We only need to check if user is logged in to load projects
+    // The userId from props is no longer needed as we get it from authService
+    loadProjects();
+  }, []);
 
   const deleteProject = async (projectId) => {
     try {

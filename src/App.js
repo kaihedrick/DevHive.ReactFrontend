@@ -3,9 +3,9 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Projects from './components/Projects';
 import Footer from './components/Footer';
-import LoginRegister from './components/LoginRegister';
+import LoginRegister from './components/LoginRegister.tsx';
 import Sprint from './components/Sprint';
-import ForgotPassword from './components/ForgotPassword';
+import ForgotPassword from './components/ForgotPassword.tsx';
 import ProtectedRoute from './components/ProtectedRoute';
 import Backlog from './components/Backlog';
 import Board from './components/Board';
@@ -21,8 +21,8 @@ import CreateSprint from './components/CreateSprint';
 import CreateTask from './components/CreateTask';
 import EditSprint from './components/EditSprint';
 import EditTask from './components/EditTask';
+import ResetPassword from './components/ResetPassword.tsx';
 import './styles/global.css'; // Import global styles
-
 function App() {
   const location = useLocation();
   const selectedProject = getSelectedProject();
@@ -48,6 +48,8 @@ function App() {
             <Route path="/create-project" element={<CreateProject />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/join-group" element={<JoinProject />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password/:token" component={ResetPassword} />
 
             <Route path="/project-details" element={<ProtectedRoute><ProjectDetails /></ProtectedRoute>} />
             <Route path="/invite" element={<ProtectedRoute><InviteMembers /></ProtectedRoute>} />

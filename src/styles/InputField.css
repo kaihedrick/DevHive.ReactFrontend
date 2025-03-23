@@ -1,0 +1,68 @@
+.input-field {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin: 0 auto var(--space-3) auto !important;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid var(--light-gray) !important;
+  border-radius: var(--border-radius) !important;
+  background-color: var(--white) !important;
+  gap: var(--space-3) !important;
+  position: relative !important; /* Ensure relative positioning for absolute children */
+}
+
+.input-icon {
+  width: 1.25rem !important; /* 20px */
+  height: auto !important;
+  opacity: 0.6 !important;
+  flex-shrink: 0 !important;
+}
+
+.status-icon {
+  position: absolute !important;
+  right: 1rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  font-size: 16px !important;
+}
+
+.status-icon.success {
+  color: #27ae60 !important;
+}
+
+.status-icon.error {
+  color: #e74c3c !important;
+}
+
+.input-field input {
+  flex: 1 !important;
+  height: 100% !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 1rem !important;
+  font-family: var(--primary-font) !important;
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+  padding-right: 2rem !important; /* Add padding to make space for the status icon */
+}
+
+.input-field input::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
+.input-field input:focus {
+  border-color: var(--accent-primary) !important;
+  outline: none !important;
+  box-shadow: var(--shadow-focus) !important;
+}
+
+.error-message {
+  color: #e74c3c !important;
+  font-size: var(--font-size-xs) !important;
+  margin-top: 0.25rem !important;
+}
+
+/* Increase the bottom margin when there's an error message */
+.input-field.has-error {
+  margin-bottom: 2rem !important;
+}

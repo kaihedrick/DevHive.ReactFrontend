@@ -2,8 +2,10 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { fetchUserById } from "../services/userService";
 import { fetchMessages, sendMessage, subscribeToMessageStream } from "../services/messageService";
-import { getUserId } from "../services/authService"; // ✅ Import authService
-import "../styles/chat.css";  // ✅ Add a CSS file for styling
+import { getUserId } from "../services/authService.ts"; // ✅ Import authService
+import "../styles/message.css";  // ✅ Add a CSS file for styling
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Import FontAwesome component
+import { faComments, faPaperPlane } from '@fortawesome/free-solid-svg-icons'; // Import specific icons
 
 const Message = () => {
   const { userId, projectId } = useParams();
@@ -68,48 +70,66 @@ const Message = () => {
     } catch (error) {
         console.error("❌ Error sending message:", error);
     }
-};
-
+  };
 
   return (
-    <div className="chat-container">
-      <h2 className="chat-header">💬 Chat with {user?.firstName} {user?.lastName}</h2>
+    <>
+      {/* This style tag will override the main content background */}
+      <style>
+        {`
+          .content, main, body {
+            background-color: var(--bg-secondary) !important;
+          }
+        `}
+      </style>
+      
+      <div className="message-page">
+        <div className="chat-container">
+          <h2 className="chat-header">
+            <FontAwesomeIcon icon={faComments} /> {/* Using FontAwesomeIcon component */}
+            Chat with {user?.firstName} {user?.lastName}
+          </h2>
 
-      <div className="messages-container">
-        {messages.length > 0 ? (
-          messages.map((msg, index) => {
-            const isSender = msg.fromUserID === loggedInUserId; // ✅ Correctly check sender
-            return (
-              <div 
-                key={index} 
-                className={`message-wrapper ${isSender ? "sent-wrapper" : "received-wrapper"}`}
-              >
-                <div className={`message ${isSender ? "sent" : "received"}`}>
-                  <p className="message-text">{msg.message || msg.Message}</p>
-                  <span className="message-time">
-                    {msg.DateSent ? new Date(msg.DateSent).toLocaleTimeString() : "Invalid Date"}
-                  </span>
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <p className="no-messages">No messages yet.</p>
-        )}
-        <div ref={messagesEndRef} />  {/* ✅ Auto-scroll target */}
-      </div>
+          <div className="messages-container">
+            {messages.length > 0 ? (
+              messages.map((msg, index) => {
+                const isSender = msg.fromUserID === loggedInUserId; // ✅ Correctly check sender
+                return (
+                  <div 
+                    key={index} 
+                    className={`message-wrapper ${isSender ? "sent-wrapper" : "received-wrapper"}`}
+                  >
+                    <div className={`message ${isSender ? "sent" : "received"}`}>
+                      <p className="message-text">{msg.message || msg.Message}</p>
+                      <span className="message-time">
+                        {msg.DateSent ? new Date(msg.DateSent).toLocaleTimeString() : "Invalid Date"}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="no-messages">No messages yet.</p>
+            )}
+            <div ref={messagesEndRef} />  {/* ✅ Auto-scroll target */}
+          </div>
 
-      <div className="message-input">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Type a message..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-        />
-        <button className="btn btn-primary" onClick={handleSendMessage}>Send</button>
+          <div className="message-input">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Type a message..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()} // Add ability to send with Enter key
+            />
+            <button className="btn btn-primary" onClick={handleSendMessage}>
+              Send <FontAwesomeIcon icon={faPaperPlane} /> {/* Using FontAwesomeIcon component */}
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

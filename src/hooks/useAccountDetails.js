@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { fetchUserById } from "../services/userService";
-import { getAuthToken, getUserId, getSelectedProject } from "../services/projectService";
+import { fetchUserById, updateUserProfile } from "../services/userService.ts";
+import { getUserId, clearAuth } from "../services/authService";
+import { getSelectedProject } from "../services/storageService";
 import { useNavigate } from "react-router-dom";
 
 const useAccountDetails = () => {
@@ -34,27 +35,68 @@ const useAccountDetails = () => {
     fetchUserData();
   }, [navigate]);
 
-  // Back Navigation Function
   const handleGoBack = () => {
     console.log("🔙 Returning to the previous page...");
-    navigate(-1); // Go back to the previous page
+    navigate(-1);
   };
 
-  // Logout function
   const handleLogout = () => {
     console.log("🚪 Logging out...");
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
+    clearAuth();
     navigate("/");
   };
 
-  // Change password function (Placeholder)
-  const handleChangePassword = () => {
-    console.log("🔑 Changing password (Functionality to be implemented)");
-    alert("Password change feature coming soon!");
+  const updateUsername = async (newUsername) => {
+    const userId = user?.ID || user?.id;
+
+    if (!userId) throw new Error("User data is not available");
+
+    try {
+      console.log("🔄 Updating username to:", newUsername);
+
+      const updatedUserData = {
+        ID: userId,
+        Username: newUsername,
+        Email: user.Email,
+        FirstName: user.FirstName,
+        LastName: user.LastName,
+      };
+
+      const result = await updateUserProfile(updatedUserData);
+      setUser(result);
+      console.log("✅ Username updated successfully:", result);
+      return result;
+    } catch (err) {
+      console.error("❌ Error updating username:", err);
+      throw err;
+    }
   };
 
-  // Leave group function
+  const handleChangePassword = async (newPassword) => {
+    if (!user || !(user.ID || user.id)) {
+      throw new Error("User data is not available");
+    }
+
+    const userId = user.ID || user.id;
+
+    try {
+      console.log("🔑 Changing password...");
+
+      const passwordData = {
+        ID: userId,
+        Password: newPassword,
+      };
+
+      await updateUserProfile(passwordData);
+
+      console.log("✅ Password changed successfully");
+      return true;
+    } catch (err) {
+      console.error("❌ Error changing password:", err);
+      throw err;
+    }
+  };
+
   const handleLeaveGroup = () => {
     const selectedProjectId = getSelectedProject();
     if (!selectedProjectId) {
@@ -62,9 +104,19 @@ const useAccountDetails = () => {
       return;
     }
     console.log(`🏃 Leaving project ${selectedProjectId}...`);
+    alert("Leave project feature coming soon!");
   };
 
-  return { user, loading, error, handleGoBack, handleLogout, handleChangePassword, handleLeaveGroup };
+  return {
+    user,
+    loading,
+    error,
+    handleGoBack,
+    handleLogout,
+    handleChangePassword,
+    handleLeaveGroup,
+    updateUsername
+  };
 };
 
 export default useAccountDetails;
