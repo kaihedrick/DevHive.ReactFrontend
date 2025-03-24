@@ -1,37 +1,276 @@
 /* src/styles/components/board.css */
+/* Board Component Styling */
+.board-page {
+  display: flex !important;
+  justify-content: center !important;
+  padding: var(--space-5) !important;
+  min-height: 100vh !important;
+  background-color: var(--bg-secondary) !important;
+}
+
 .board-container {
-  background: var(--neutral-200);
-  padding: 20px;
-  border-radius: var(--border-radius);
+  width: 100% !important;
+  max-width: 1400px !important;
+  background: var(--bg-primary) !important;
+  padding: var(--space-5) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.board-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: var(--space-5) !important;
+  padding-bottom: var(--space-4) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.board-title {
+  font-size: var(--font-size-2xl) !important;
+  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-primary) !important;
+  margin: 0 !important;
+}
+
+.sprint-selector {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--space-3) !important;
+}
+
+.sprint-selector label {
+  font-size: var(--font-size-base) !important;
+  color: var(--text-secondary) !important;
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.sprint-selector select {
+  padding: var(--space-2) var(--space-3) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--border-radius) !important;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  font-size: var(--font-size-base) !important;
+  width: auto !important;
+  min-width: 200px !important;
+  cursor: pointer !important;
+}
+
+.sprint-selector select:focus {
+  border-color: var(--accent-primary) !important;
+  outline: none !important;
+}
+
+.board-columns {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: var(--space-4) !important;
+  height: calc(100vh - 200px) !important;
+  min-height: 500px !important;
+}
+
+.board-column-wrapper {
+  height: 100% !important;
 }
 
 .board-column {
-  background: var(--neutral-100);
-  border: 1px solid var(--neutral-300);
-  border-radius: var(--border-radius);
-  padding: 15px;
-  box-shadow: var(--box-shadow);
+  background: var(--bg-secondary) !important;
+  border-radius: var(--border-radius) !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
 }
 
 .board-column-header {
-  background: var(--comp-blue);
-  color: var(--neutral-100);
-  padding: 10px;
-  border-radius: var(--border-radius);
-  margin-bottom: 15px;
+  background: var(--accent-primary) !important;
+  color: var(--black) !important;
+  padding: var(--space-3) var(--space-4) !important;
+  border-top-left-radius: var(--border-radius) !important;
+  border-top-right-radius: var(--border-radius) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.board-column-header h3 {
+  font-size: var(--font-size-lg) !important;
+  font-weight: var(--font-weight-bold) !important;
+  margin: 0 !important;
+  color: var(--black) !important;
+}
+
+.task-count {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-radius: 50% !important;
+  height: 24px !important;
+  width: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-bold) !important;
+}
+
+.task-list {
+  padding: var(--space-3) !important;
+  flex-grow: 1 !important;
+  min-height: 100px !important;
+  overflow-y: auto !important;
+  background: var(--bg-secondary) !important;
+  transition: background-color 0.2s ease !important;
+}
+
+/* Highlight effect for drop targets */
+.task-list.highlight-drop-target {
+  background-color: hsla(var(--gold-hue), var(--gold-saturation), 85%, 0.3) !important;
+  border: 2px dashed var(--accent-primary) !important;
 }
 
 .task-card {
-  background: var(--neutral-100);
-  border: 1px solid var(--neutral-300);
-  border-radius: var(--border-radius);
-  padding: 15px;
-  margin-bottom: 10px;
-  box-shadow: var(--box-shadow);
-  transition: transform 0.2s ease;
+  background: var(--bg-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--border-radius) !important;
+  padding: var(--space-3) !important;
+  margin-bottom: var(--space-3) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+  cursor: grab !important;
+  user-select: none !important; /* Prevents text selection during drag */
+}
+
+.task-card:last-child {
+  margin-bottom: 0 !important;
 }
 
 .task-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.task-card.dragging {
+  opacity: 0.6 !important;
+  border: 2px solid var(--accent-primary) !important;
+  background-color: hsla(var(--gold-hue), var(--gold-saturation), 90%) !important;
+}
+
+.task-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-bottom: var(--space-2) !important;
+}
+
+.task-title {
+  font-weight: var(--font-weight-medium) !important;
+  color: var(--text-primary) !important;
+  font-size: var(--font-size-base) !important;
+  flex-grow: 1 !important;
+}
+
+.task-actions {
+  color: var(--text-tertiary) !important;
+  cursor: pointer !important;
+  font-size: var(--font-size-sm) !important;
+}
+
+.task-actions:hover {
+  color: var(--accent-primary) !important;
+}
+
+.task-content {
+  font-size: var(--font-size-sm) !important;
+  color: var(--text-secondary) !important;
+}
+
+.task-meta {
+  display: flex !important;
+  justify-content: space-between !important;
+  margin-top: var(--space-3) !important;
+  color: var(--text-tertiary) !important;
+  font-size: var(--font-size-xs) !important;
+}
+
+.task-assignee, .task-date {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--space-1) !important;
+}
+
+.empty-column-message {
+  color: var(--text-tertiary) !important;
+  text-align: center !important;
+  padding: var(--space-4) !important;
+  font-size: var(--font-size-sm) !important;
+  font-style: italic !important;
+}
+
+.loading-message,
+.error-message,
+.info-message {
+  text-align: center !important;
+  padding: var(--space-6) !important;
+  font-size: var(--font-size-lg) !important;
+}
+
+.loading-message {
+  color: var(--text-secondary) !important;
+}
+
+.error-message {
+  color: hsl(0, 100%, 50%) !important;
+}
+
+.info-message {
+  color: var(--text-secondary) !important;
+}
+
+.success-message {
+  position: fixed !important;
+  top: var(--space-5) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background-color: hsl(120, 100%, 35%) !important;
+  color: var(--white) !important;
+  padding: var(--space-3) var(--space-4) !important;
+  border-radius: var(--border-radius) !important;
+  font-weight: var(--font-weight-bold) !important;
+  box-shadow: var(--shadow-md) !important;
+  animation: fadeOut 3s ease !important;
+  z-index: 1000 !important;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1 !important; }
+  70% { opacity: 1 !important; }
+  100% { opacity: 0 !important; }
+}
+
+@media (max-width: 1024px) {
+  .board-columns {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-5) !important;
+    height: auto !important;
+  }
+  
+  .board-column {
+    height: auto !important;
+    max-height: 500px !important;
+  }
+  
+  .board-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: var(--space-3) !important;
+  }
+  
+  .sprint-selector {
+    width: 100% !important;
+  }
+  
+  .sprint-selector select {
+    width: 100% !important;
+  }
 }

@@ -1,33 +1,38 @@
-import React, { useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { getSelectedProject } from '../services/projectService';
+import useAuth from '../hooks/useAuth';
+import useRoutePermission from '../hooks/useRoutePermission';
 
+/**
+ * Protected Route component that handles authentication and route protection
+ */
 const ProtectedRoute = ({ children }) => {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
+  const { isRouteAllowed } = useRoutePermission();
   
-  // Memoize these values to prevent unnecessary recalculations
-  const authData = useMemo(() => ({
-    isAuthenticated: localStorage.getItem('authToken') !== null,
-    selectedProject: getSelectedProject()
-  }), []);
+  // Debug logging
+  useEffect(() => {
+    console.log("ProtectedRoute - Current path:", location.pathname);
+    console.log("ProtectedRoute - isAuthenticated:", isAuthenticated);
+    console.log("ProtectedRoute - isRouteAllowed:", isRouteAllowed);
+  }, [location.pathname, isAuthenticated, isRouteAllowed]);
 
-  const { isAuthenticated, selectedProject } = authData;
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log("ProtectedRoute check - isAuthenticated:", isAuthenticated);
-    console.log("ProtectedRoute check - selectedProject:", selectedProject);
-  }
-
+  // If not authenticated, redirect to login
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    console.log("🚫 Not authenticated, redirecting to login from:", location.pathname);
+    return <Navigate to="/" state={{ from: location.pathname }} replace />;
   }
 
-  // Allow access to the projects page even if no project is selected
-  if (!selectedProject && location.pathname !== "/projects") {
+  // If authenticated but route not allowed (project required), redirect to projects
+  if (!isRouteAllowed) {
+    console.log("🔒 Route not allowed, redirecting to projects from:", location.pathname);
     return <Navigate to="/projects" replace />;
   }
 
+  // If authenticated and route allowed, render children
+  console.log("✅ Access granted to:", location.pathname);
   return children;
 };
 
-export default React.memo(ProtectedRoute);
+export default ProtectedRoute;

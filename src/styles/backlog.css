@@ -596,3 +596,54 @@ body {
 .button-icon {
   margin-right: var(--space-2) !important;
 }
+
+/* Add these styles for sprint status indicators */
+.sprint-status {
+  margin-top: var(--space-2) !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.status-started {
+  color: var(--accent-primary) !important;
+  border: 1px solid var(--accent-primary) !important;
+  border-radius: var(--border-radius) !important;
+  padding: var(--space-1) var(--space-2) !important;
+  display: inline-block !important;
+}
+
+.status-not-started {
+  color: var(--text-tertiary) !important;
+  border: 1px solid var(--text-tertiary) !important;
+  border-radius: var(--border-radius) !important;
+  padding: var(--space-1) var(--space-2) !important;
+  display: inline-block !important;
+}
+
+.status-completed {
+  color: var(--success-color, #28a745) !important;
+  border: 1px solid var(--success-color, #28a745) !important;
+  border-radius: var(--border-radius) !important;
+  padding: var(--space-1) var(--space-2) !important;
+  display: inline-block !important;
+}
+
+/* Sprint details section updates */
+.sprint-details-container .status-info {
+  display: flex !important;
+  gap: var(--space-4) !important;
+  justify-content: center !important;
+  margin-bottom: var(--space-4) !important;
+}
+
+.sprint-details-container .status-info p {
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--space-2) !important;
+}
+
+/* Button icon */
+.button-icon {
+  margin-right: var(--space-2) !important;
+}

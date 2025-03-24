@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchUserById, updateUserProfile } from "../services/userService.ts";
-import { getUserId, clearAuth } from "../services/authService";
+import { getUserId, clearAuth, validateUsername } from "../services/authService.ts";
 import { getSelectedProject } from "../services/storageService";
 import { useNavigate } from "react-router-dom";
 
@@ -16,13 +16,14 @@ const useAccountDetails = () => {
 
       if (!userId) {
         console.error("No user ID found, redirecting to login...");
-        navigate("/login");
+        navigate("/");
         return;
       }
 
       try {
         console.log("🔍 Fetching account details...");
         const userData = await fetchUserById(userId);
+        console.log("User data loaded:", userData);
         setUser(userData);
       } catch (err) {
         console.error("❌ Error fetching user details:", err.message);
@@ -46,25 +47,83 @@ const useAccountDetails = () => {
     navigate("/");
   };
 
-  const updateUsername = async (newUsername) => {
-    const userId = user?.ID || user?.id;
+  // Helper to safely get user property regardless of case
+  const getUserProp = (propName) => {
+    if (!user) return null;
+    
+    // Try lowercase version first (from API)
+    const lowerProp = propName.toLowerCase();
+    if (user[lowerProp] !== undefined) return user[lowerProp];
+    
+    // Then try capitalized version
+    if (user[propName] !== undefined) return user[propName];
+    
+    // Then try uppercase first letter
+    const capitalizedProp = propName.charAt(0).toUpperCase() + propName.slice(1).toLowerCase();
+    if (user[capitalizedProp] !== undefined) return user[capitalizedProp];
+    
+    // Finally try all lowercase
+    if (user[propName.toLowerCase()] !== undefined) return user[propName.toLowerCase()];
+    
+    return null;
+  };
 
-    if (!userId) throw new Error("User data is not available");
+  // Update the updateUsername function
+  const updateUsername = async (newUsername) => {
+    // Get user ID regardless of case
+    const userId = getUserProp('id');
+    
+    if (!userId) {
+      console.error("User data is not available:", user);
+      throw new Error("User data is not available");
+    }
+
+    // Get current username regardless of case
+    const currentUsername = getUserProp('username');
+
+    // Skip update if username hasn't changed
+    if (newUsername === currentUsername) {
+      console.log("✅ Username unchanged, skipping update");
+      return user;
+    }
 
     try {
-      console.log("🔄 Updating username to:", newUsername);
-
-      const updatedUserData = {
+      console.log(`🔍 Checking if "${newUsername}" is available...`);
+      
+      // Validate the username
+      const isTaken = await validateUsername(newUsername, currentUsername);
+      
+      if (isTaken) {
+        console.log("❌ Username is already in use, cannot update");
+        throw new Error("Username is already in use");
+      }
+      
+      console.log("✅ Username is available, proceeding with update");
+      
+      // Build update data - try both camelCase and PascalCase to ensure compatibility
+      const updateData = {
+        // Include both forms of ID
+        id: userId,
         ID: userId,
+        // Include both forms of each field
+        username: newUsername,
         Username: newUsername,
-        Email: user.Email,
-        FirstName: user.FirstName,
-        LastName: user.LastName,
+        email: getUserProp('email'),
+        Email: getUserProp('email'),
+        firstName: getUserProp('firstName'),
+        FirstName: getUserProp('firstName'),
+        lastName: getUserProp('lastName'),
+        LastName: getUserProp('lastName')
       };
-
-      const result = await updateUserProfile(updatedUserData);
+      
+      console.log("📤 Sending update:", updateData);
+      
+      // Perform the update
+      const result = await updateUserProfile(updateData, user);
+      console.log("📥 Update successful:", result);
+      
+      // Update local state
       setUser(result);
-      console.log("✅ Username updated successfully:", result);
       return result;
     } catch (err) {
       console.error("❌ Error updating username:", err);
@@ -73,23 +132,35 @@ const useAccountDetails = () => {
   };
 
   const handleChangePassword = async (newPassword) => {
-    if (!user || !(user.ID || user.id)) {
+    const userId = getUserProp('id');
+    
+    if (!userId) {
+      console.error("User data is not available:", user);
       throw new Error("User data is not available");
     }
-
-    const userId = user.ID || user.id;
 
     try {
       console.log("🔑 Changing password...");
 
+      // Prepare update data maintaining the original casing from the API
       const passwordData = {
-        ID: userId,
-        Password: newPassword,
+        id: userId,
+        username: getUserProp('username'),
+        email: getUserProp('email'),
+        firstName: getUserProp('firstName'),
+        lastName: getUserProp('lastName'),
+        password: newPassword
       };
 
-      await updateUserProfile(passwordData);
-
+      // Send the update request
+      const result = await updateUserProfile(passwordData);
       console.log("✅ Password changed successfully");
+      
+      // Update local state if API returned new data
+      if (result) {
+        setUser(result);
+      }
+      
       return true;
     } catch (err) {
       console.error("❌ Error changing password:", err);
@@ -99,10 +170,12 @@ const useAccountDetails = () => {
 
   const handleLeaveGroup = () => {
     const selectedProjectId = getSelectedProject();
+  
     if (!selectedProjectId) {
-      alert("⚠️ You haven't selected a project yet.");
+      alert("⚠️ You haven't selected a project. Join or select a project first.");
       return;
     }
+  
     console.log(`🏃 Leaving project ${selectedProjectId}...`);
     alert("Leave project feature coming soon!");
   };
@@ -115,7 +188,8 @@ const useAccountDetails = () => {
     handleLogout,
     handleChangePassword,
     handleLeaveGroup,
-    updateUsername
+    updateUsername,
+    getUserProp
   };
 };
 

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getSelectedProject } from "../services/projectService";
-import { useSprintManagement } from "../hooks/useSprintManagement"; // Using named export
+import { getSelectedProject } from "../services/storageService";
+import { createSprint } from "../services/sprintService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRotateLeft, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRotateLeft, faCalendarAlt, faPlay } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_sprint.css";
 
 const CreateSprint = () => {
@@ -14,56 +14,43 @@ const CreateSprint = () => {
   const [sprintName, setSprintName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [startImmediately, setStartImmediately] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
-  // Use the sprint management hook with named import
-  const { 
-    loading, 
-    handleCreateSprint,
-    validateSprintDates, 
-    getSprintDisabledDates 
-  } = useSprintManagement(projectId);
-  
-  // Get disabled dates for the date picker
-  const disabledDates = getSprintDisabledDates();
   
   const handleCreateSprintSubmit = async () => {
     if (!sprintName || !startDate || !endDate) {
       setError("All fields are required.");
-      setTimeout(() => setError(null), 2000);
+      setTimeout(() => setError(null), 3000);
       return;
     }
     
-    // Validate sprint dates
-    const validation = validateSprintDates(startDate, endDate);
-    if (!validation.valid) {
-      setError(validation.error);
-      setTimeout(() => setError(null), 2000);
+    // Validate end date is after start date
+    if (new Date(endDate) <= new Date(startDate)) {
+      setError("End date must be after start date.");
+      setTimeout(() => setError(null), 3000);
       return;
     }
     
     try {
+      setLoading(true);
+      
       const sprintData = {
         name: sprintName,
         startDate,
         endDate,
         isCompleted: false,
-        isStarted: false,
+        isStarted: startImmediately, // Set isStarted based on checkbox
         projectID: projectId,
       };
 
-      const result = await handleCreateSprint(sprintData);
-      
-      if (result.success) {
-        // Redirect to Backlog with success indicator
-        navigate(`/backlog?success=${encodeURIComponent(sprintName)}`);
-      } else {
-        setError(result.error || "Failed to create sprint.");
-        setTimeout(() => setError(null), 2000);
-      }
+      await createSprint(sprintData);
+      navigate("/backlog");
     } catch (err) {
       setError(err.message || "Failed to create sprint.");
-      setTimeout(() => setError(null), 2000);
+      setTimeout(() => setError(null), 3000);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -110,13 +97,7 @@ const CreateSprint = () => {
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]} // Cannot select dates in the past
-              disabled={loading}
             />
-            {disabledDates.length > 0 && (
-              <div className="date-helper-text">
-                Note: Some dates are unavailable due to existing sprints
-              </div>
-            )}
           </div>
 
           <div className="input-group">
@@ -128,8 +109,19 @@ const CreateSprint = () => {
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               min={startDate || new Date().toISOString().split('T')[0]} // End date must be after start date
-              disabled={loading}
             />
+          </div>
+
+          <div className="checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={startImmediately}
+                onChange={(e) => setStartImmediately(e.target.checked)}
+              />
+              <FontAwesomeIcon icon={faPlay} className="checkbox-icon" />
+              Start sprint immediately
+            </label>
           </div>
 
           <button 

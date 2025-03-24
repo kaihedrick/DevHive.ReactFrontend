@@ -196,8 +196,10 @@ const Backlog = ({ projectId }) => {
                     <h3>{sprint.name}</h3>
                     <p>Duration: {new Date(sprint.startDate).toLocaleDateString()} - {new Date(sprint.endDate).toLocaleDateString()}</p>
                     <div className="sprint-status">
-                      {sprint.isStarted ? (
-                        <span className="status-started">Started</span>
+                      {sprint.isCompleted ? (
+                        <span className="status-completed">Completed</span>
+                      ) : sprint.isStarted ? (
+                        <span className="status-started">In Progress</span>
                       ) : (
                         <span className="status-not-started">Not Started</span>
                       )}

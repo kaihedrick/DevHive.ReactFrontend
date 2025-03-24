@@ -1,29 +1,35 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { fetchSprintById, editSprint } from "../services/projectService";
+import { fetchSprintById, editSprint } from "../services/sprintService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
-import "../styles/create_sprint.css"; // Reuse styles from create sprint
+import { faArrowRotateLeft, faCalendarAlt, faPlay, faCheck, faSave } from "@fortawesome/free-solid-svg-icons";
+import "../styles/create_sprint.css";
 
 const EditSprint = () => {
   const navigate = useNavigate();
-  const { sprintId } = useParams(); // Get sprint ID from URL params
+  const { sprintId } = useParams();
 
   const [sprintName, setSprintName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [projectID, setProjectID] = useState(""); // Store project ID
+  const [isStarted, setIsStarted] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [projectID, setProjectID] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [success, setSuccess] = useState(null);
+  const [formModified, setFormModified] = useState(false);
 
   useEffect(() => {
     const loadSprintDetails = async () => {
       try {
         const sprintData = await fetchSprintById(sprintId);
         setSprintName(sprintData.name);
-        setStartDate(sprintData.startDate.split("T")[0]); // Extract date part
+        setStartDate(sprintData.startDate.split("T")[0]);
         setEndDate(sprintData.endDate.split("T")[0]);
-        setProjectID(sprintData.projectID); // Ensure projectID is set
+        setIsStarted(sprintData.isStarted || false);
+        setIsCompleted(sprintData.isCompleted || false);
+        setProjectID(sprintData.projectID);
       } catch (err) {
         setError("Failed to load sprint details.");
       } finally {
@@ -34,37 +40,111 @@ const EditSprint = () => {
     loadSprintDetails();
   }, [sprintId]);
 
+  // Track form changes
+  const handleNameChange = (e) => {
+    setSprintName(e.target.value);
+    setFormModified(true);
+  };
+
+  const handleStartDateChange = (e) => {
+    setStartDate(e.target.value);
+    setFormModified(true);
+  };
+
+  const handleEndDateChange = (e) => {
+    setEndDate(e.target.value);
+    setFormModified(true);
+  };
+
   const handleUpdateSprint = async () => {
     if (!sprintName || !startDate || !endDate || !projectID) {
       setError("All fields are required.");
-      setTimeout(() => setError(null), 2000);
+      setTimeout(() => setError(null), 3000);
       return;
     }
 
     try {
       const updatedSprintData = {
-        id: sprintId, // Required for updating
+        id: sprintId,
         name: sprintName,
         startDate,
         endDate,
-        projectID, // Include projectID in update request
+        isStarted,
+        isCompleted,
+        projectID,
       };
 
       await editSprint(updatedSprintData);
-
-      // Redirect to Backlog
-      navigate("/backlog");
+      setSuccess("Details updated successfully!");
+      setFormModified(false);
+      setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err.message || "Failed to update sprint.");
-      setTimeout(() => setError(null), 2000);
+      setError(err.message || "Failed to update sprint details.");
+      setTimeout(() => setError(null), 3000);
     }
+  };
+
+  const handleStartSprint = async () => {
+    try {
+      const updatedSprintData = {
+        id: sprintId,
+        name: sprintName,
+        startDate,
+        endDate,
+        isStarted: true,
+        isCompleted: false,
+        projectID,
+      };
+
+      await editSprint(updatedSprintData);
+      setIsStarted(true);
+      setIsCompleted(false);
+      setFormModified(false);
+      setSuccess("Sprint started successfully!");
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(err.message || "Failed to start sprint.");
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  const handleCompleteSprint = async () => {
+    try {
+      const updatedSprintData = {
+        id: sprintId,
+        name: sprintName,
+        startDate,
+        endDate,
+        isStarted: false,
+        isCompleted: true,
+        projectID,
+      };
+
+      await editSprint(updatedSprintData);
+      setIsStarted(false);
+      setIsCompleted(true);
+      setFormModified(false);
+      setSuccess("Sprint completed successfully!");
+      setTimeout(() => {
+        navigate("/backlog");
+      }, 1500);
+    } catch (err) {
+      setError(err.message || "Failed to complete sprint.");
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  // Get the current sprint status text
+  const getStatusText = () => {
+    if (isCompleted) return "Completed";
+    if (isStarted) return "In Progress";
+    return "Not Started";
   };
 
   return (
     <div className="create-sprint-page">
       <div className="create-sprint-container">
         <div className="card">
-          {/* Back Arrow (Same as Create Sprint Page) */}
           <div className="back-arrow" onClick={() => navigate("/backlog")}>
             <FontAwesomeIcon icon={faArrowRotateLeft} />
           </div>
@@ -79,34 +159,81 @@ const EditSprint = () => {
                 type="text"
                 placeholder="Enter Sprint Name"
                 value={sprintName}
-                onChange={(e) => setSprintName(e.target.value)}
+                onChange={handleNameChange}
+                disabled={isCompleted}
               />
 
               <div className="input-group">
-                <label>Start Date</label>
+                <label>
+                  <FontAwesomeIcon icon={faCalendarAlt} className="calendar-icon" /> Start Date
+                </label>
                 <input
                   type="date"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  onChange={handleStartDateChange}
+                  disabled={isStarted || isCompleted}
                 />
               </div>
 
               <div className="input-group">
-                <label>End Date</label>
+                <label>
+                  <FontAwesomeIcon icon={faCalendarAlt} className="calendar-icon" /> End Date
+                </label>
                 <input
                   type="date"
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                  onChange={handleEndDateChange}
+                  min={startDate}
+                  disabled={isCompleted}
                 />
               </div>
 
-              <button className="button-primary" onClick={handleUpdateSprint}>
-                Update Sprint
-              </button>
+              <div className="sprint-status">
+                <div className="status-indicator">
+                  Status: {getStatusText()}
+                </div>
+              </div>
+
+              <div className="button-group">
+                {/* Only show save changes button if form was modified */}
+                {formModified && (
+                  <button
+                    className="button-primary"
+                    onClick={handleUpdateSprint}
+                    disabled={isCompleted}
+                  >
+                    <FontAwesomeIcon icon={faSave} className="button-icon" />
+                    Save Changes
+                  </button>
+                )}
+
+                {/* Status change buttons */}
+                {!isStarted && !isCompleted && (
+                  <button
+                    className="button-success"
+                    onClick={handleStartSprint}
+                  >
+                    <FontAwesomeIcon icon={faPlay} className="button-icon" />
+                    Start Sprint
+                  </button>
+                )}
+
+                {/* Show Complete button if not completed */}
+                {!isCompleted && (
+                  <button
+                    className="button-danger"
+                    onClick={handleCompleteSprint}
+                  >
+                    <FontAwesomeIcon icon={faCheck} className="button-icon" />
+                    Complete Sprint
+                  </button>
+                )}
+              </div>
             </>
           )}
 
           {error && <div className="error-popup">{error}</div>}
+          {success && <div className="success-popup">{success}</div>}
         </div>
       </div>
     </div>
