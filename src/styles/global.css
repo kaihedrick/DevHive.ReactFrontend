@@ -88,8 +88,8 @@
     --navbar-text: var(--white);
     --navbar-accent: var(--gold);
     --navbar-height-mobile: 80px !important;
-    --navbar-width-collapsed: 5rem;
-    --navbar-width-expanded: 16rem;
+    --navbar-width-collapsed: 80px !important;
+    --navbar-width-expanded: 200px !important;
     
     /* Elevation (shadows) */
     --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.05) !important;
@@ -121,6 +121,7 @@ html, body {
     width: 100vw !important;
     height: 100vh !important;
     overflow: hidden !important;
+    min-height: 100vh !important;
 }
 
 .app-container .content {
@@ -136,18 +137,31 @@ main {
     flex-direction: column !important;
     justify-content: flex-start !important;
     min-height: 100vh !important;
-    transition: padding var(--transition-slow) ease, 
-                margin var(--transition-slow) ease !important;
+    width: 100% !important; /* Ensure full width */
+    padding: 0 !important; /* Reset padding */
+    margin: 0 !important; /* Reset margin */
+    transition: margin var(--transition-normal) ease !important; /* Simplify transition */
+}
+
+/* Base container styles */
+.container, main, .content-container {
+    box-sizing: border-box !important;
+    transition: margin var(--transition-normal) ease, 
+                width var(--transition-normal) ease !important;
 }
 
 /* Dynamic Layout Adjustments */
 body.has-sidebar main {
-    padding-left: var(--navbar-width-collapsed) !important;
-    transition: padding-left var(--transition-slow) ease !important;
+    margin-left: var(--navbar-width-collapsed) !important; /* Use only margin */
+    width: calc(100% - var(--navbar-width-collapsed)) !important;
+    padding-left: 0 !important; /* Explicitly reset padding */
+    transition: margin var(--transition-normal) ease, width var(--transition-normal) ease !important;
 }
 
 body.has-sidebar .navbar:hover ~ main {
-    padding-left: var(--navbar-width-expanded) !important;
+    margin-left: var(--navbar-width-expanded) !important; /* Use only margin */
+    width: calc(100% - var(--navbar-width-expanded)) !important;
+    padding-left: 0 !important; /* Explicitly reset padding */
 }
 
 body.has-topbar main {
@@ -158,17 +172,58 @@ body.has-topbar .content {
     margin-top: 5rem !important;
 }
 
-/* Scrollbar Styling */
-body::-webkit-scrollbar {
-    width: 0.25rem !important;
+/* Responsive adjustments happen in media queries */
+@media (max-width: 600px) {
+    body.has-sidebar main {
+        margin-left: 0 !important;
+        margin-top: var(--navbar-height-mobile) !important;
+        padding-left: 0 !important; /* Explicitly reset padding */
+        padding-top: 0 !important; /* Explicitly reset padding */
+        width: 100% !important;
+    }
+    
+    body.has-sidebar .navbar:hover ~ main {
+        margin-left: 0 !important; /* Override desktop hover effect */
+        padding-left: 0 !important; /* Override desktop hover effect */
+        width: 100% !important;
+    }
 }
 
-body::-webkit-scrollbar-track {
-    background: var(--bg-secondary) !important;
+/* Updated global scrollbar styling to match project board columns */
+
+/* Webkit browsers (Chrome, Safari, newer Edge) */
+::-webkit-scrollbar {
+  width: 0.4rem !important;
+  height: 0.4rem !important; /* For horizontal scrollbars */
 }
 
-body::-webkit-scrollbar-thumb {
-    background-color: var(--text-tertiary) !important;
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary) !important;
+  border-radius: var(--border-radius) !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--gray) !important;
+  border-radius: var(--border-radius) !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--dark-gray) !important;
+}
+
+/* Firefox */
+html, body, div, main, section, aside, article {
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--gray) var(--bg-secondary) !important;
+}
+
+/* Ensure scrollable containers have proper styling */
+.app-container .content,
+main,
+.content-container,
+.scrollable-container {
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--gray) var(--bg-secondary) !important;
 }
 
 /* Typography */

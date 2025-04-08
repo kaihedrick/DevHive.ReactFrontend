@@ -1,41 +1,60 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createProject } from "../services/projectService";
+import { getUserId } from "../services/authService"; // Import getUserId to get current user ID
 import DevHiveLogo from "./assets/DevHiveLogo.png";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // ✅ FontAwesome import
-import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons"; // ✅ Specific icon import
-import "../styles/create_project.css"; // ✅ Import CSS file
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
+import "../styles/create_project.css";
 
 const CreateProject = () => {
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!projectName.trim()) {
+      setError("Project name is required");
+      return;
+    }
+    
     try {
+      const userId = getUserId(); // Get the current logged-in user ID
+      
+      if (!userId) {
+        setError("You must be logged in to create a project");
+        return;
+      }
+      
+      // Create project with all required fields
       await createProject({
         name: projectName,
-        description: projectDescription
+        description: projectDescription,
+        projectOwnerID: userId // Include the project owner ID
       });
+      
       alert("Project created successfully!");
       navigate("/projects");
     } catch (error) {
       console.error("Error creating project:", error);
-      alert("Failed to create project. Please try again.");
+      setError(error.response?.data || "Failed to create project. Please try again.");
     }
   };
-  
 
   return (
     <div className="create-project-container">
-      {/*  Back arrow moved inside the card, in the top-right */}
       <div className="back-arrow" onClick={() => navigate("/projects")}>
         <FontAwesomeIcon icon={faArrowRotateLeft} />
       </div>
 
       <img src={DevHiveLogo} alt="DevHive Logo" className="logo" />
       <h2>Create Project</h2>
+
+      {error && <div className="error-message">{error}</div>}
 
       <form onSubmit={handleSubmit}>
         <input

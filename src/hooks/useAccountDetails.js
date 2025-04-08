@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { fetchUserById, updateUserProfile } from "../services/userService.ts";
 import { getUserId, clearAuth, validateUsername } from "../services/authService.ts";
-import { getSelectedProject } from "../services/storageService";
+import { getSelectedProject, clearSelectedProject } from "../services/storageService";
+import { leaveProject, isProjectOwner } from "../services/projectService";
 import { useNavigate } from "react-router-dom";
 
 const useAccountDetails = () => {
@@ -9,6 +10,11 @@ const useAccountDetails = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [leaveProjectState, setLeaveProjectState] = useState({
+    loading: false,
+    error: null,
+    success: null
+  });
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -168,16 +174,63 @@ const useAccountDetails = () => {
     }
   };
 
-  const handleLeaveGroup = () => {
+  const handleLeaveGroup = async () => {
     const selectedProjectId = getSelectedProject();
   
     if (!selectedProjectId) {
-      alert("⚠️ You haven't selected a project. Join or select a project first.");
+      setLeaveProjectState({
+        loading: false,
+        error: "No project selected. Join or select a project first.",
+        success: null
+      });
       return;
     }
   
-    console.log(`🏃 Leaving project ${selectedProjectId}...`);
-    alert("Leave project feature coming soon!");
+    try {
+      setLeaveProjectState({
+        loading: true,
+        error: null,
+        success: null
+      });
+      
+      // Check if the user is the project owner
+      const isOwner = await isProjectOwner(selectedProjectId);
+      
+      if (isOwner) {
+        setLeaveProjectState({
+          loading: false,
+          error: "You are the project owner. Please reassign ownership to another member before leaving.",
+          success: null
+        });
+        return;
+      }
+      
+      // User is not the owner, proceed with leaving
+      console.log(`🏃 Leaving project ${selectedProjectId}...`);
+      await leaveProject(selectedProjectId);
+      
+      // Clear the selected project since we've left it
+      clearSelectedProject();
+      
+      setLeaveProjectState({
+        loading: false,
+        error: null,
+        success: "Successfully left the project."
+      });
+      
+      // Clear success message after a delay
+      setTimeout(() => {
+        setLeaveProjectState(prev => ({...prev, success: null}));
+      }, 3000);
+      
+    } catch (err) {
+      console.error("❌ Error leaving project:", err);
+      setLeaveProjectState({
+        loading: false,
+        error: err.message || "Failed to leave the project.",
+        success: null
+      });
+    }
   };
 
   return {
@@ -189,7 +242,8 @@ const useAccountDetails = () => {
     handleChangePassword,
     handleLeaveGroup,
     updateUsername,
-    getUserProp
+    getUserProp,
+    leaveProjectState
   };
 };
 

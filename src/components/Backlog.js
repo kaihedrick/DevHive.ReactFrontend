@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fetchProjectMembers } from "../services/projectService";
 import { fetchProjectSprints } from "../services/sprintService";
-import { fetchProjectTasksWithAssignees, fetchTaskById } from "../services/taskService";
+import { fetchProjectTasksWithAssignees, fetchTaskById, editTask } from "../services/taskService";
 import { getSelectedProject } from "../services/storageService";
 import useBacklogActions from "../hooks/useBacklogActions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -13,7 +13,7 @@ const Backlog = ({ projectId }) => {
   const navigate = useNavigate();
   const location = useLocation(); // Get current path
   
-  const { handleUpdateTaskStatus, handleUpdateTaskAssignee } = useBacklogActions();
+  const { handleUpdateTaskStatus } = useBacklogActions();
 
   const [sprints, setSprints] = useState([]);
   const [selectedSprint, setSelectedSprint] = useState(null);
@@ -21,6 +21,7 @@ const Backlog = ({ projectId }) => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const selectedProjectId = projectId || getSelectedProject();
 
@@ -92,10 +93,41 @@ const Backlog = ({ projectId }) => {
   /** ✅ Handle Assignee Change */
   const handleAssigneeChange = async (task, newAssigneeId) => {
     try {
-      await handleUpdateTaskAssignee(task, newAssigneeId);
-      refreshTask(task.id);
-    } catch (error) {
-      console.error("❌ Error updating assignee:", error);
+      // Important: Notice the task properties here
+      // The frontend uses lowercase (task.id) but the backend expects uppercase (ID)
+      console.log("Task being updated:", task);
+      
+      // Create a complete task object with all required fields and proper casing
+      const updatedTask = {
+        ID: task.id,              // Convert from lowercase to uppercase
+        Description: task.description,
+        AssigneeID: newAssigneeId,
+        DateCreated: task.dateCreated,
+        Status: task.status,
+        SprintID: task.sprintID
+      };
+      
+      console.log("Sending to backend:", updatedTask);
+      
+      // Update the task in the backend
+      await editTask(updatedTask);
+      
+      // Update the task in the state
+      setTasks(prevTasks => 
+        prevTasks.map(t => 
+          t.id === task.id 
+            ? { ...t, assigneeID: newAssigneeId } 
+            : t
+        )
+      );
+      
+      // Show success message
+      setSuccessMessage("Task assignee updated");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error("❌ Error updating task assignee:", err);
+      setError(`Failed to update task assignee: ${err.message}`);
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -118,6 +150,8 @@ const Backlog = ({ projectId }) => {
           <p className="loading-message">Loading backlog...</p>
         ) : error ? (
           <p className="error-message">{error}</p>
+        ) : successMessage ? (
+          <p className="success-message">{successMessage}</p>
         ) : selectedSprint ? (
           <div className="sprint-details-container">
             <div className="back-arrow sprint-view" onClick={handleGoBack}>

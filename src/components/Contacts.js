@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { fetchProjectMembers } from "../services/projectService";
 import { fetchUserById } from "../services/userService";
 import { getSelectedProject } from "../services/storageService";
-
 import "../styles/contacts.css";
 
 const Contacts = () => {

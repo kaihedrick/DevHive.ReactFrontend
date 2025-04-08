@@ -140,26 +140,25 @@ export const createTask = async (taskData) => {
 };
 
 // Function to edit/update an existing task
-export const editTask = async (taskData) => {
+export const editTask = async (task) => {
   try {
-    // Get auth token
     const token = getAuthToken();
-
-    if (!taskData || !taskData.id) {
+    
+    if (!task || !task.ID) {
       throw new Error("❌ Task data is missing or Task ID is not provided.");
     }
-
-    console.log("🚀 Updating task:", taskData.id);
-    console.log("📦 Updated task data:", taskData);
     
-    const response = await axios.put(`${API_BASE_URL}/Scrum/Task/`, taskData, {
+    console.log("🚀 Updating task:", task.ID);
+    console.log("📦 Updated task data:", task);
+    
+    const response = await axios.put(`${API_BASE_URL}/Scrum/Task/`, task, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
 
-    console.log("✅ Task updated successfully:", response.data);
+    console.log("✅ Task updated successfully");
     return response.data;
   } catch (error) {
     console.error("❌ Error updating task:", error.response?.data || error.message);

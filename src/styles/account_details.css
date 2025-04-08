@@ -273,3 +273,77 @@
   transform: translateY(-2px) !important;
   box-shadow: var(--shadow-md) !important;
 }
+
+/* Add these styles for leave project functionality */
+
+/* Leave project button styling */
+.leave-group-btn {
+  background: var(--dark-gray) !important;
+  color: var(--white) !important;
+  margin-top: var(--space-3) !important;
+}
+
+.leave-group-btn:hover {
+  background: hsl(0, 100%, 50%) !important; /* Red for warning */
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Leave project confirmation section */
+.leave-project-confirmation {
+  margin-top: var(--space-3) !important;
+  margin-bottom: var(--space-3) !important;
+  border: 2px solid hsl(0, 100%, 50%) !important; /* Red border */
+  padding: var(--space-3) !important;
+  border-radius: var(--border-radius) !important;
+  background-color: hsla(0, 100%, 95%, 0.3) !important;
+}
+
+.warning-message {
+  color: hsl(0, 100%, 50%) !important;
+  margin-bottom: var(--space-3) !important;
+  font-weight: var(--font-weight-medium) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--space-2) !important;
+  font-size: var(--font-size-sm) !important;
+}
+
+.warning-icon {
+  font-size: var(--font-size-lg) !important;
+}
+
+.confirmation-actions {
+  display: flex !important;
+  gap: var(--space-3) !important;
+}
+
+.confirm-leave-btn {
+  background: hsl(0, 100%, 50%) !important; /* Red */
+  color: var(--white) !important;
+  flex: 1 !important;
+  padding: var(--space-2) var(--space-3) !important;
+  border-radius: var(--border-radius) !important;
+  border: none !important;
+  cursor: pointer !important;
+  font-weight: var(--font-weight-medium) !important;
+  transition: all var(--transition-fast) ease !important;
+}
+
+.confirm-leave-btn:hover {
+  background: hsl(0, 100%, 40%) !important; /* Darker red */
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Disabled button styling */
+.leave-group-btn.disabled {
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+  background: var(--gray) !important;
+}
+
+.leave-group-btn.disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}

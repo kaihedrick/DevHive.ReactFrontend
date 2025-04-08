@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRotateLeft, faCheck, faTimes, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRotateLeft, faCheck, faTimes, faExclamationCircle, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import useAccountDetails from "../hooks/useAccountDetails";
 import "../styles/account_details.css";
 import { getSelectedProject } from "../services/storageService";
@@ -17,7 +17,8 @@ const AccountDetails = () => {
     handleChangePassword,
     handleLeaveGroup,
     updateUsername,
-    getUserProp  // Add this
+    getUserProp,
+    leaveProjectState,
   } = useAccountDetails();
 
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -31,6 +32,8 @@ const AccountDetails = () => {
   const [usernameError, setUsernameError] = useState("");
   const [usernameSuccess, setUsernameSuccess] = useState("");
   
+  const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
+  
   // Check for selected project
   const selectedProjectId = getSelectedProject();
   const hasSelectedProject = !!selectedProjectId;
@@ -40,11 +43,6 @@ const AccountDetails = () => {
     if (user?.Username) {
       setNewUsername(user.Username);
     }
-  }, [user]);
-
-  // Debug logging
-  useEffect(() => {
-    console.log("Current user data:", user);
   }, [user]);
 
   if (loading) return <p className="loading-spinner">Loading account details...</p>;
@@ -156,6 +154,24 @@ const AccountDetails = () => {
     setPasswordError("");
   };
 
+  const confirmLeaveProject = () => {
+    setShowLeaveConfirmation(true);
+  };
+
+  const executeLeaveProject = async () => {
+    try {
+      await handleLeaveGroup();
+      // The hook will handle clearing the selected project
+      setShowLeaveConfirmation(false);
+    } catch (err) {
+      // Error handling is in the hook
+    }
+  };
+
+  const cancelLeaveProject = () => {
+    setShowLeaveConfirmation(false);
+  };
+
   return (
     <div className="account-container">
       <div className="account-card">
@@ -255,22 +271,53 @@ const AccountDetails = () => {
           </>
         )}
 
-        {/* Conditionally display the Leave Group button based on project selection */}
-        {hasSelectedProject ? (
-          <button
-            className="leave-group-btn"
-            onClick={handleLeaveGroup}
-          >
-            Leave Group
-          </button>
+        {/* Leave Project Section */}
+        {showLeaveConfirmation ? (
+          <div className="leave-project-confirmation">
+            <div className="warning-message">
+              <FontAwesomeIcon icon={faExclamationTriangle} className="warning-icon" />
+              Are you sure you want to leave this project? Your tasks will be unassigned.
+            </div>
+            <div className="confirmation-actions">
+              <button className="confirm-leave-btn" onClick={executeLeaveProject}>
+                Yes, Leave Project
+              </button>
+              <button className="cancel-btn" onClick={cancelLeaveProject}>
+                Cancel
+              </button>
+            </div>
+          </div>
         ) : (
-          <button
-            className="leave-group-btn disabled"
-            disabled
-            title="Join or select a project first"
-          >
-            Leave Group
-          </button>
+          <>
+            {hasSelectedProject ? (
+              <>
+                <button
+                  className="leave-group-btn"
+                  onClick={confirmLeaveProject}
+                >
+                  Leave Project
+                </button>
+                {leaveProjectState.error && (
+                  <div className="error-message">
+                    <FontAwesomeIcon icon={faExclamationCircle} /> {leaveProjectState.error}
+                  </div>
+                )}
+                {leaveProjectState.success && (
+                  <div className="success-message">
+                    {leaveProjectState.success}
+                  </div>
+                )}
+              </>
+            ) : (
+              <button
+                className="leave-group-btn disabled"
+                disabled
+                title="Join or select a project first"
+              >
+                Leave Project
+              </button>
+            )}
+          </>
         )}
 
         <button className="logout-btn" onClick={handleLogout}>Logout</button>

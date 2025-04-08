@@ -18,3 +18,12 @@ export const createEmailRequest = (to: string, subject: string, body: string): E
     Body: body
   };
 };
+
+/**
+ * Helper to create an empty email request
+ */
+export const createEmptyEmailRequest = (): EmailRequest => ({
+  To: '',
+  Subject: '',
+  Body: ''
+});

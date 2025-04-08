@@ -4,8 +4,9 @@
   display: flex !important;
   justify-content: center !important;
   padding: var(--space-5) !important;
-  min-height: 100vh !important;
+  min-height: 100vh !important; /* Min-height instead of fixed height */
   background-color: var(--bg-secondary) !important;
+  overflow: auto !important; /* Allow scrolling when needed */
 }
 
 .board-container {
@@ -15,6 +16,10 @@
   padding: var(--space-5) !important;
   border-radius: var(--border-radius) !important;
   box-shadow: var(--shadow-md) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: calc(100vh - 2 * var(--space-5)) !important; /* Min-height instead of height */
+  overflow: visible !important; /* Allow content to determine height */
 }
 
 .board-header {
@@ -66,24 +71,34 @@
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
   gap: var(--space-4) !important;
-  height: calc(100vh - 200px) !important;
-  min-height: 500px !important;
+  flex: 1 !important; /* Take remaining space in container */
+  height: 100% !important;
+  max-height: calc(100vh - 200px) !important;
+  min-height: 400px !important;
+  overflow: hidden !important; /* Hide overflow */
+  min-height: 0 !important; /* Critical for flex items to respect parent boundaries */
 }
 
 .board-column-wrapper {
-  height: 100% !important;
+  min-height: 0 !important; /* Critical for grid items to respect parent boundaries */
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .board-column {
   background: var(--bg-secondary) !important;
   border-radius: var(--border-radius) !important;
-  height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow: hidden !important;
+  overflow: hidden !important; /* Hide overflow at column level */
+  flex: 1 !important; /* Take up all available space */
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important; /* Critical for flex children */
 }
 
 .board-column-header {
+  flex-shrink: 0 !important; /* Prevent header from shrinking */
   background: var(--accent-primary) !important;
   color: var(--black) !important;
   padding: var(--space-3) var(--space-4) !important;
@@ -116,11 +131,38 @@
 
 .task-list {
   padding: var(--space-3) !important;
-  flex-grow: 1 !important;
-  min-height: 100px !important;
-  overflow-y: auto !important;
+  flex: 1 !important; /* Take up all available space */
+  height: 100% !important;
+  max-height: calc(100% - 50px) !important; /* Account for header height */
+  overflow-y: auto !important; /* Ensure vertical overflow shows scrollbar */
+  overflow-x: hidden !important; /* Hide horizontal overflow */
   background: var(--bg-secondary) !important;
   transition: background-color 0.2s ease !important;
+  min-height: 0 !important; /* Critical for flex children to enable scrolling */
+}
+
+.task-list::-webkit-scrollbar {
+  width: 0.4rem !important;
+}
+
+.task-list::-webkit-scrollbar-track {
+  background: var(--bg-secondary) !important;
+  border-radius: var(--border-radius) !important;
+}
+
+.task-list::-webkit-scrollbar-thumb {
+  background-color: var(--gray) !important;
+  border-radius: var(--border-radius) !important;
+}
+
+.task-list::-webkit-scrollbar-thumb:hover {
+  background-color: var(--dark-gray) !important;
+}
+
+/* Firefox scrollbar styling */
+.task-list {
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--gray) var(--bg-secondary) !important;
 }
 
 /* Highlight effect for drop targets */
@@ -249,17 +291,40 @@
 }
 
 @media (max-width: 1024px) {
+  .board-page {
+    height: auto !important; 
+    min-height: 100vh !important;
+    overflow: auto !important;
+    padding-bottom: var(--space-6) !important;
+  }
+
+  .board-container {
+    height: auto !important;
+    min-height: auto !important; /* Let content determine height */
+    overflow: visible !important;
+    margin-bottom: var(--space-6) !important;
+  }
+
   .board-columns {
     grid-template-columns: 1fr !important;
     gap: var(--space-5) !important;
     height: auto !important;
+    max-height: none !important; /* Remove the max height limit */
+    overflow: visible !important;
   }
   
   .board-column {
     height: auto !important;
-    max-height: 500px !important;
+    overflow: hidden !important;
+    min-height: 400px !important;
+    margin-bottom: var(--space-5) !important;
   }
-  
+
+  .board-column-wrapper {
+    min-height: 400px !important; /* Ensure minimum height in mobile */
+    margin-bottom: var(--space-5) !important; /* Add space between wrappers */
+  }
+
   .board-header {
     flex-direction: column !important;
     align-items: flex-start !important;
@@ -272,5 +337,17 @@
   
   .sprint-selector select {
     width: 100% !important;
+  }
+
+  .task-list {
+    overflow-y: auto !important;
+    /* Increase the task list height in mobile view */
+    min-height: 350px !important; 
+    max-height: 450px !important;
+  }
+  
+  /* Add extra margin to the bottom of the page to prevent content from being cut off */
+  .board-columns:last-child {
+    margin-bottom: var(--space-8) !important; 
   }
 }

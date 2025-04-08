@@ -1,84 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { fetchProjectSprints } from '../services/sprintService';
-import { fetchSprintTasks, updateTaskStatus } from '../services/taskService';
+import React, { useRef } from 'react';
 import { getSelectedProject } from '../services/storageService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faCalendarAlt, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarAlt, faBars } from '@fortawesome/free-solid-svg-icons';
+import useBoardActions from '../hooks/useBoardActions';
 import '../styles/board.css';
 
 const Board = () => {
-  const [sprints, setSprints] = useState([]);
-  const [selectedSprint, setSelectedSprint] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [draggedTask, setDraggedTask] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
-  
   const projectId = getSelectedProject();
+  const {
+    sprints,
+    selectedSprint,
+    tasks,
+    members,
+    loading,
+    error,
+    successMessage,
+    draggedTask,
+    setDraggedTask,
+    setError,
+    getTasksByStatus,
+    formatDate,
+    getAssigneeName,
+    handleSprintChange,
+    handleAssigneeChange,
+    handleStatusUpdate,
+    setSuccessMessage
+  } = useBoardActions(projectId);
   
   const columnRefs = {
     todo: useRef(null),
     inProgress: useRef(null),
     completed: useRef(null)
-  };
-
-  // Fetch sprints on component mount
-  useEffect(() => {
-    if (!projectId) {
-      setError("No project selected. Please select a project first.");
-      setLoading(false);
-      return;
-    }
-
-    const loadSprints = async () => {
-      try {
-        setLoading(true);
-        const fetchedSprints = await fetchProjectSprints(projectId);
-        setSprints(fetchedSprints || []);
-        
-        // Set the first sprint as selected by default if available
-        if (fetchedSprints && fetchedSprints.length > 0) {
-          setSelectedSprint(fetchedSprints[0].id);
-          await loadTasks(fetchedSprints[0].id);
-        } else {
-          setLoading(false);
-        }
-      } catch (err) {
-        setError("Failed to load sprints: " + err.message);
-        setLoading(false);
-      }
-    };
-
-    loadSprints();
-  }, [projectId]);
-
-  // Load tasks when selected sprint changes
-  const loadTasks = async (sprintId) => {
-    if (!sprintId) return;
-    
-    try {
-      setLoading(true);
-      const fetchedTasks = await fetchSprintTasks(sprintId);
-      
-      setTasks(fetchedTasks || []);
-      setLoading(false);
-    } catch (err) {
-      setError("Failed to load tasks: " + err.message);
-      setLoading(false);
-    }
-  };
-
-  // Handle sprint selection change
-  const handleSprintChange = async (e) => {
-    const sprintId = e.target.value;
-    setSelectedSprint(sprintId);
-    await loadTasks(sprintId);
-  };
-
-  // Filter tasks by status
-  const getTasksByStatus = (status) => {
-    return tasks.filter(task => task.status === status);
   };
 
   // Drag handlers
@@ -160,42 +112,8 @@ const Board = () => {
     // If the task is already in this column, do nothing
     if (draggedTask.status === statusValue) return;
     
-    try {
-      // Update task status in the backend
-      await updateTaskStatus(draggedTask.id, statusValue);
-      
-      // Update task status in the state
-      setTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === draggedTask.id 
-            ? { ...task, status: statusValue } 
-            : task
-        )
-      );
-      
-      // Show success message
-      const statusText = statusValue === 0 ? 'To Do' : statusValue === 1 ? 'In Progress' : 'Completed';
-      setSuccessMessage(`Task moved to ${statusText}`);
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err) {
-      setError(`Failed to update task status: ${err.message}`);
-      setTimeout(() => setError(null), 3000);
-    }
-    
+    await handleStatusUpdate(draggedTask.id, statusValue);
     setDraggedTask(null);
-  };
-
-  // Format date from ISO string
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
-
-  // Get initials from user name
-  const getInitials = (firstName, lastName) => {
-    return firstName && lastName 
-      ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-      : 'NA';
   };
 
   if (!projectId) {
@@ -213,6 +131,9 @@ const Board = () => {
   return (
     <div className="board-page">
       <div className="board-container">
+        {successMessage && <div className="success-message">{successMessage}</div>}
+        {error && <div className="error-message">{error}</div>}
+        
         <div className="board-header">
           <h2 className="board-title">Project Board</h2>
           
@@ -276,9 +197,19 @@ const Board = () => {
                       </div>
                       <div className="task-content">
                         <div className="task-meta">
-                          <div className="task-assignee">
-                            <FontAwesomeIcon icon={faUser} />
-                            <span>{getInitials(task.assigneeFirstName, task.assigneeLastName)}</span>
+                          <div className="task-assignee dropdown">
+                            <select 
+                              className="task-assignee-dropdown"
+                              value={task.assigneeID || ""}
+                              onChange={(e) => handleAssigneeChange(task, e.target.value)}
+                            >
+                              <option value="">Unassigned</option>
+                              {members.map(member => (
+                                <option key={member.id} value={member.id}>
+                                  {member.firstName} {member.lastName}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                           <div className="task-date">
                             <FontAwesomeIcon icon={faCalendarAlt} />
@@ -328,9 +259,19 @@ const Board = () => {
                       </div>
                       <div className="task-content">
                         <div className="task-meta">
-                          <div className="task-assignee">
-                            <FontAwesomeIcon icon={faUser} />
-                            <span>{getInitials(task.assigneeFirstName, task.assigneeLastName)}</span>
+                          <div className="task-assignee dropdown">
+                            <select 
+                              className="task-assignee-dropdown"
+                              value={task.assigneeID || ""}
+                              onChange={(e) => handleAssigneeChange(task, e.target.value)}
+                            >
+                              <option value="">Unassigned</option>
+                              {members.map(member => (
+                                <option key={member.id} value={member.id}>
+                                  {member.firstName} {member.lastName}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                           <div className="task-date">
                             <FontAwesomeIcon icon={faCalendarAlt} />
@@ -380,9 +321,19 @@ const Board = () => {
                       </div>
                       <div className="task-content">
                         <div className="task-meta">
-                          <div className="task-assignee">
-                            <FontAwesomeIcon icon={faUser} />
-                            <span>{getInitials(task.assigneeFirstName, task.assigneeLastName)}</span>
+                          <div className="task-assignee dropdown">
+                            <select 
+                              className="task-assignee-dropdown"
+                              value={task.assigneeID || ""}
+                              onChange={(e) => handleAssigneeChange(task, e.target.value)}
+                            >
+                              <option value="">Unassigned</option>
+                              {members.map(member => (
+                                <option key={member.id} value={member.id}>
+                                  {member.firstName} {member.lastName}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                           <div className="task-date">
                             <FontAwesomeIcon icon={faCalendarAlt} />

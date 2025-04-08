@@ -2,275 +2,292 @@
    Navbar Base Styles
 ========================== */
 .navbar {
-    position: fixed;
-    background-color: var(--navbar-bg);
-    color: var(--navbar-text);
-    transition: width var(--transition-normal) ease, height var(--transition-normal) ease;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 1000;
+    position: fixed !important;
+    background-color: var(--navbar-bg) !important;
+    transition: width var(--transition-normal) ease !important;
+    z-index: 1000 !important;
+    box-shadow: var(--shadow-md) !important;
 }
 
-/* ==========================
-   Sidebar Mode (Large Screens)
-========================== */
-@media (min-width: 601px) {
-    .navbar {
-        width: var(--navbar-width-collapsed);
-        height: 100vh;
-        left: 0;
-        top: 0;
-    }
-
-    /* Expand on Hover */
-    .navbar:hover {
-        width: var(--navbar-width-expanded);
-        background-color: var(--navbar-hover);
-    }
-
-    .navbar:hover .link-text {
-        display: inline;
-        opacity: 1;
-    }
-
-    /* Adjust Content Padding */
-    body.has-sidebar main {
-        margin-left: var(--navbar-width-collapsed);
-        transition: margin-left var(--transition-normal) ease;
-    }
-
-    body.has-sidebar .navbar:hover ~ main {
-        margin-left: var(--navbar-width-expanded);
-    }
+/* Sidebar Mode (Desktop) */
+.sidebar-mode {
+    width: var(--navbar-width-collapsed) !important;
+    height: 100vh !important;
+    left: 0 !important;
+    top: 0 !important;
+    flex-direction: column !important;
 }
 
-/* ==========================
-   Topbar Mode (Small Screens)
-========================== */
+/* Sidebar hover effect - only in desktop mode */
+.sidebar-mode:hover {
+    width: var(--navbar-width-expanded) !important;
+}
+
+/* Topbar Mode (Mobile) */
+.topbar-mode {
+    width: 100% !important; /* Full width */
+    height: var(--navbar-height-mobile) !important;
+    top: 0 !important;
+    left: 0 !important;
+    flex-direction: row !important;
+}
+
+/* Content layout adjustment for sidebar */
+body .container, 
+body main, 
+body .content-container {
+    width: 100% !important;
+    transition: margin var(--transition-normal) ease !important;
+}
+
+/* When sidebar is present (desktop) */
+body.has-sidebar .container, 
+body.has-sidebar main, 
+body.has-sidebar .content-container {
+    margin-left: var(--navbar-width-collapsed) !important;
+    width: calc(100% - var(--navbar-width-collapsed)) !important;
+}
+
+/* When sidebar is hovered (desktop) */
+body.has-sidebar .sidebar-mode:hover ~ .container,
+body.has-sidebar .sidebar-mode:hover ~ main,
+body.has-sidebar .sidebar-mode:hover ~ .content-container {
+    margin-left: var(--navbar-width-expanded) !important;
+    width: calc(100% - var(--navbar-width-expanded)) !important;
+}
+
+/* When topbar is present (mobile) */
+body.has-sidebar .topbar-mode ~ .container,
+body.has-sidebar .topbar-mode ~ main,
+body.has-sidebar .topbar-mode ~ .content-container {
+    margin-left: 0 !important;
+    margin-top: var(--navbar-height-mobile) !important;
+    width: 100% !important;
+}
+
+/* Media queries for responsive layout */
 @media (max-width: 600px) {
+    /* Force content to adjust for topbar */
+    body.has-sidebar .container, 
+    body.has-sidebar main, 
+    body.has-sidebar .content-container {
+        margin-left: 0 !important;
+        margin-top: var(--navbar-height-mobile) !important;
+        width: 100% !important;
+    }
+    
+    /* Force navbar to stay as topbar */
     .navbar {
-        width: 100%;
-        height: var(--navbar-height-mobile);
-        top: 0;
-        left: 0;
-        position: fixed;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        z-index: 1000;
-        background-color: var(--navbar-bg);
-        flex-direction: row;
-    }
-
-    /* ✅ Ensure navbar-content stretches to fill the navbar */
-    .navbar-content {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-evenly;
-        width: 100%;
-        height: 100%;
-    }
-
-    /* Hide logo in topbar mode */
-    .logo-container {
-        display: none;
-    }
-
-    /* ✅ Ensure navbar-nav fills available space */
-    .navbar-nav {
-        display: flex;
+        width: 100% !important;
+        height: var(--navbar-height-mobile) !important;
         flex-direction: row !important;
-        align-items: center;
-        justify-content: space-evenly;
-        width: 100%;
-        height: 100%;
-        padding: 0;
-        margin: 0;
-        list-style: none;
+    }
+    
+    /* Disable hover effect in mobile mode */
+    .navbar:hover {
+        width: 100% !important;
     }
 
-    /* ✅ Make sure each nav item takes full height */
-    .nav-item {
-        flex-grow: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-    }
-
-    /* ✅ Ensure links stretch to fill their container */
-    .nav-link {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        color: var(--navbar-text); /* ✅ White by default */
-        transition: background 0.3s ease, color 0.3s ease;
-    }
-
-    /* Remove text next to icons */
+    /* Hide link text in mobile */
     .link-text {
         display: none !important;
     }
-
-    /* ✅ FontAwesome Icons - Ensure Centered */
-    .nav-icon {
-        font-size: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
+    
+    /* Fix navbar content layout in mobile */
+    .navbar-content {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+    
+    /* Logo container in mobile - increased spacing */
+    .logo-container {
+        width: auto !important; /* Allow proper width */
+        margin-right: var(--space-5) !important; /* More space after logo */
+        flex-shrink: 0 !important; /* Prevent logo from shrinking */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 100% !important;
+        padding: 0 !important; /* Override any padding that might be applied from other rules */
+    }
+    
+    /* Adjust navbar nav to horizontal layout */
+    .navbar-nav {
+        flex-direction: row !important;
+        flex: 1 !important; /* Take remaining space */
+        justify-content: space-around !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
-    /* Remove hover effects in mobile */
-    .navbar:hover {
-        width: 100%;
+    /* Add specific style for mobile nav items */
+    .navbar-nav .nav-item {
+        padding: 0 !important; /* Remove existing padding */
+        height: 100% !important; /* Take full height */
+    }
+    
+    .navbar-nav .nav-link {
+        height: 100% !important; /* Take full height */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* Fix any specific icon alignment issues */
+    .navbar-nav .nav-icon {
+        margin: 0 !important;
+    }
+    
+    /* Ensure the navbar has proper height */
+    .navbar, .navbar-content {
+        height: var(--navbar-height-mobile) !important;
     }
 }
 
-/* ==========================
-   Logo Styling
-========================== */
-/* Logo Container */
-.logo-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 1rem;
-    cursor: pointer;
-    font-family: var(--primary-font);
-    transition: color var(--transition-normal) ease;
+/* Ensure navbar content fills available space */
+.navbar-content {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: inherit !important; /* Inherits from parent navbar */
 }
 
-/* Logo Image */
-.logo {
-    width: 3rem;
-    height: auto;
-    filter: brightness(0) saturate(100%) invert(100%); /* White */
-    transition: transform var(--transition-normal) ease, 
-                filter var(--transition-normal) ease;
-}
-
-/* Rotate logo on hover */
-.navbar:hover .logo {
-    transform: rotate(-180deg);
-}
-
-/* Logo Text */
-.logo-text {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--navbar-text);
-    text-transform: uppercase;
-    margin-left: 1rem;
-    letter-spacing: 0.1rem;
-    display: none;
-    transition: color var(--transition-normal) ease;
-}
-
-/* Show text on hover */
-.navbar:hover .logo-text {
-    display: inline;
-    color: var(--navbar-accent);
-}
-
-/* Update navbar hover state */
-.navbar:hover {
-    width: var(--navbar-width-expanded);
-    background-color: var(--navbar-hover);
-}
-
-.navbar:hover .logo-text {
-    display: inline;
-    opacity: 1;
-    color: var(--gold) !important;
-}
-
-/* Logo hover states */
-.logo-container:hover .logo {
-    filter: brightness(0) saturate(100%) invert(64%) sepia(72%) 
-            saturate(532%) hue-rotate(1deg) brightness(101%) contrast(103%) !important;
-}
-
-.logo-container:hover .logo-text {
-    color: var(--navbar-accent);
-}
-
-/* Ensure logo returns to white after hover */
-.navbar:not(:hover) .logo-text {
-    color: var(--navbar-text);
-}
-
-/* ==========================
-   Navigation Items
-========================== */
+/* Navbar nav layout */
 .navbar-nav {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-    padding: 0;
-    margin: 0;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important; /* Default to column for sidebar */
+    align-items: center !important;
 }
 
+/* Basic nav item styling */
 .nav-item {
-    width: 100%;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
 }
 
-/* Push last item (Account) to the bottom */
-.nav-item:last-child {
-    margin-top: auto;
-}
-
-/* ✅ Default White Color */
+/* Nav link styling - ensure vertical centering */
 .nav-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 5rem;
-    font-family: var(--secondary-font);
-    text-decoration: none;
-    color: var(--navbar-text); /* ✅ White text */
-    transition: background var(--transition-normal) ease, color var(--transition-normal) ease;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: var(--space-3) !important;
+    text-decoration: none !important;
+    color: var(--navbar-text) !important;
+    width: 100% !important;
+    transition: all var(--transition-fast) ease-in-out !important;
 }
 
-/* ✅ Gold Hover Effect */
-.nav-link:hover {
-    background: var(--navbar-hover);
-    color: var(--navbar-accent);
+/* Special styles for topbar mode */
+.topbar-mode .navbar-nav {
+    height: 100% !important; /* Take full height */
+    align-items: center !important; /* Center items vertically */
 }
 
-/* ✅ Ensure Icons Turn Gold on Hover */
-.nav-icon {
-    font-size: 1.5rem;
-    min-width: 2rem;
-    transition: color var(--transition-normal) ease;
+.topbar-mode .nav-item {
+    height: 100% !important; /* Take full height */
+    display: flex !important;
+    align-items: center !important; /* Center items vertically */
+    justify-content: center !important;
 }
 
-.nav-link:hover .nav-icon {
-    color: var(--navbar-accent);
+.topbar-mode .nav-link {
+    height: 100% !important; /* Take full height */
+    display: flex !important;
+    align-items: center !important; /* Center items vertically */
+    justify-content: center !important;
+    padding: 0 var(--space-3) !important; /* Adjust horizontal padding */
 }
 
-/* Hide Text When Collapsed */
-.link-text {
-    display: none;
-    margin-left: 1rem;
-    font-size: 1rem;
-    transition: opacity var(--transition-normal) ease-in-out;
+.topbar-mode .nav-icon {
+    margin: 0 !important; /* Remove any default margins */
+    font-size: calc(var(--navbar-height-mobile) * 0.5) !important; /* 50% of navbar height */
+    height: 80% !important; /* 80% of container height */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
-.navbar:hover .link-text {
-    display: inline;
-    opacity: 1;
+/* Ensure the navbar content is also properly centered */
+.topbar-mode .navbar-content {
+    align-items: center !important; /* Center items vertically */
+    height: 100% !important;
+}
+
+/* Fix mobile logo and nav layout */
+
+/* Logo styling for both modes */
+.logo-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+}
+
+/* Desktop logo styling - only apply in sidebar mode */
+.sidebar-mode .logo-container {
+    padding: var(--space-3) !important; /* Apply padding only in sidebar mode */
+    margin-bottom: var(--space-4) !important;
+    width: 100% !important;
+}
+
+/* Mobile logo container - make it more square */
+.mobile-logo {
+    padding: 0 !important; /* Explicitly zero padding */
+    margin: 0 !important;
+    margin-left: var(--space-3) !important; /* Left spacing */
+    margin-right: var(--space-3) !important; /* Right spacing */
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important; /* Center vertically */
+    justify-content: center !important;
+    aspect-ratio: 1 !important; /* Make it square */
+    width: auto !important; /* Let height determine width */
+    box-sizing: border-box !important;
+}
+
+/* Logo sizing for both modes */
+.logo {
+    width: 40px !important;
+    height: 40px !important;
+    transition: transform var(--transition-normal) ease !important;
+}
+
+/* Topbar mode logo sizing */
+.topbar-mode .logo {
+    width: calc(var(--navbar-height-mobile) * 0.8) !important;
+    height: calc(var(--navbar-height-mobile) * 0.8) !important;
+    display: block !important;
+}
+
+/* Logo image */
+.logo {
+    width: 40px !important;
+    height: 40px !important;
+    transition: transform var(--transition-normal) ease !important;
+}
+
+/* Logo text (only visible on desktop hover) */
+.logo-text {
+    display: none !important;
+    margin-left: var(--space-3) !important;
+    font-weight: var(--font-weight-bold) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Show text on sidebar hover */
+.sidebar-mode:hover .logo-text {
+    display: inline !important;
+}
+
+/* Rotate logo on sidebar hover */
+.sidebar-mode:hover .logo {
+    transform: rotate(180deg) !important;
 }

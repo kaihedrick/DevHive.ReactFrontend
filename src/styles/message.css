@@ -85,14 +85,39 @@
     align-self: flex-start !important;
 }
 
-/* Sender message styling - IMPROVED CONTRAST */
+/* Sender message styling - FIXED TEXT COLOR */
 .sent {
-    background-color: var(--dark-gold) !important; /* Darker gold for better contrast */
-    color: var(--white) !important; /* White text on dark gold for highest contrast */
+    background-color: var(--accent-primary) !important; /* Gold background */
+    color: #000000 !important; /* Pure black for maximum contrast */
     border-radius: var(--border-radius) var(--border-radius) 0 var(--border-radius) !important;
     border: 1px solid var(--accent-primary) !important;
     align-self: flex-end !important;
-    font-weight: var(--font-weight-medium) !important; /* Slightly bolder for better readability */
+    font-weight: var(--font-weight-bold) !important; /* Bolder text */
+}
+
+/* Make message text even stronger */
+.sent .message-text {
+    color: #000000 !important; /* Ensure text is black */
+    font-weight: var(--font-weight-bold) !important; /* Bold text for better readability */
+}
+
+/* Enhance the contrast for any links in the messages */
+.sent a {
+    color: #000066 !important; /* Dark blue for links on gold background */
+    text-decoration: underline !important;
+    font-weight: var(--font-weight-bold) !important;
+}
+
+/* Fix contrast for text in message status */
+.sent .message-status {
+    color: #000000 !important; /* Pure black for status text */
+    font-weight: var(--font-weight-medium) !important;
+}
+
+/* Make sure the message time is readable */
+.sent .message-time {
+    color: #000000 !important; /* Pure black for timestamp */
+    font-weight: var(--font-weight-medium) !important;
 }
 
 /* Message text */
@@ -102,7 +127,7 @@
     font-family: var(--primary-font) !important;
 }
 
-/* Timestamp - IMPROVED CONTRAST */
+/* Timestamp - FIXED COLOR */
 .message-time {
     font-size: var(--font-size-xs) !important;
     color: var(--white) !important; /* White for sent messages */
@@ -112,9 +137,79 @@
     font-weight: var(--font-weight-medium) !important; /* Medium weight for better visibility */
 }
 
-/* Adjust timestamp color for received messages */
+/* Fix timestamp color for sent messages */
+.sent .message-time {
+    color: #000000 !important; /* Pure black for timestamp */
+    font-weight: var(--font-weight-medium) !important;
+}
+
+/* Fix timestamp color for received messages */
 .received .message-time {
-    color: var (--text-secondary) !important; /* Darker for received messages */
+    color: var(--text-secondary) !important; /* Fixed typo in the original CSS */
+}
+
+/* Message status indicators */
+.message.pending {
+    opacity: 0.7 !important;
+}
+
+.message.failed {
+    border: 1px solid var(--error-color, #dc3545) !important;
+}
+
+.message-meta {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-top: var(--space-1) !important;
+}
+
+.message-status {
+    font-size: var(--font-size-xs) !important;
+    font-style: italic !important;
+}
+
+.message-status.failed {
+    color: var(--error-color, #dc3545) !important;
+    cursor: pointer !important;
+}
+
+/* Error message */
+.error-message {
+    background-color: var(--error-bg, #f8d7da) !important;
+    color: var(--error-color, #dc3545) !important;
+    padding: var(--space-2) var(--space-3) !important;
+    margin: var(--space-2) !important;
+    border-radius: var(--border-radius) !important;
+    text-align: center !important;
+}
+
+/* Button state */
+.btn.sending {
+    opacity: 0.8 !important;
+    cursor: not-allowed !important;
+}
+
+/* Status indicators in sent messages */
+.sent .message-status {
+    color: #000000 !important; /* Pure black for status text */
+    font-weight: var(--font-weight-medium) !important;
+}
+
+/* Message meta content for sent messages */
+.sent .message-meta {
+    color: var(--black) !important; /* Ensure all meta content is black */
+}
+
+/* Fix for pending and failed status visibility on sent messages */
+.sent.pending, .sent.failed {
+    background-color: var(--accent-primary) !important; /* Keep consistent color */
+}
+
+.sent.failed .message-status.failed {
+    color: var(--black) !important; /* Make failed status visible on gold */
+    text-decoration: underline !important; /* Add underline for better visibility */
+    font-weight: var(--font-weight-bold) !important; /* Make it bolder */
 }
 
 /* Input field */

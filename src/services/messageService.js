@@ -36,35 +36,28 @@ export const sendMessage = async (message) => {
 // Function to retrieve messages between two users within a project
 export const fetchMessages = async (fromUserID, toUserID, projectID) => {
     try {
-      const token = getAuthToken();
-      if (!fromUserID || !toUserID || !projectID) {
-        throw new Error("❌ User IDs and Project ID are required.");
-      }
+        const token = getAuthToken();
+        const apiUrl = `${API_BASE_URL}/Retrieve/${encodeURIComponent(fromUserID)}/${encodeURIComponent(toUserID)}/${encodeURIComponent(projectID)}`;
+        console.log("📩 Fetching messages from API:", apiUrl);
 
-      const apiUrl = `${API_BASE_URL}/Retrieve/${encodeURIComponent(fromUserID)}/${encodeURIComponent(toUserID)}/${encodeURIComponent(projectID)}`;
-      console.log("📩 Fetching messages from API:", apiUrl);
+        const response = await axios.get(apiUrl, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const response = await axios.get(apiUrl, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+        console.log("✅ Retrieved messages:", response.data);
 
-      console.log("✅ Retrieved messages:", response.data);
-
-      // Convert Firestore timestamps to JavaScript Date objects
-      return response.data.map(msg => ({
-        ...msg,
-        DateSent: msg.DateSent && msg.DateSent.seconds ? 
-                  new Date(msg.DateSent.seconds * 1000) : new Date() // Convert Firestore timestamp
-      }));
-      
+        // Convert timestamps to JavaScript Date objects
+        return response.data.map(msg => ({
+            ...msg,
+            DateSent: msg.DateSent ? new Date(msg.DateSent) : new Date()
+        }));
     } catch (error) {
-      if (error.response?.status === 404) {
-        console.warn("⚠️ No messages found, initializing an empty chat.");
-        return [];
-      }
-
-      console.error("❌ Error retrieving messages:", error.response?.data || error.message);
-      throw error;
+        if (error.response?.status === 404) {
+            console.warn("⚠️ No messages found, initializing an empty chat.");
+            return [];
+        }
+        console.error("❌ Error retrieving messages:", error.response?.data || error.message);
+        throw error;
     }
 };
 
