@@ -3,31 +3,26 @@ name: Deploy React App to AWS
 on:
   push:
     branches:
-      - main
+      - main # or your main branch name
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      # Checkout the repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 18 # or your preferred Node.js version
 
-      # Install dependencies and build the app
       - name: Install Dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build React App
         run: npm run build
 
-      # Deploy to S3
       - name: Deploy to S3
         uses: jakejarvis/s3-sync-action@v0.5.1
         with:
@@ -39,7 +34,6 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           SOURCE_DIR: build
 
-      # Invalidate CloudFront Cache
       - name: Invalidate CloudFront Cache
         uses: chetan/invalidate-cloudfront-action@v2
         with:
