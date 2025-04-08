@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { joinProject, fetchProjectById, getUserId } from "../services/projectService";
 import "../styles/join_project.css";
 
@@ -8,7 +10,6 @@ const JoinProject = () => {
   const userId = getUserId();
 
   const [projectCode, setProjectCode] = useState("");
-  const [project, setProject] = useState(null); // ✅ Fixed syntax
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
 
@@ -27,15 +28,14 @@ const JoinProject = () => {
       setError("");
 
       const projectData = await fetchProjectById(projectCode);
-      setProject(projectData);
+      if (!projectData) throw new Error("Invalid project code.");
 
       setStatus("Joining project...");
-      await joinProject(projectCode, userId); // Uses the updated API structure
+      await joinProject(projectCode, userId);
 
       setStatus("Successfully joined the project!");
       setTimeout(() => navigate("/projects"), 1500);
     } catch (err) {
-      console.error("Error:", err);
       setError("Invalid project code or failed to join the project.");
       setStatus("");
     }
@@ -46,26 +46,39 @@ const JoinProject = () => {
   };
 
   return (
-    <div className="join-project-container">
-      <div className="back-arrow" onClick={handleBack}>←</div>
+    <div className="join-project-page">
+      <div className="join-project-container">
+        <div className="join-project-card">
+          {/* Back Arrow */}
+          <div className="back-arrow" onClick={handleBack}>
+            <FontAwesomeIcon icon={faArrowRotateLeft} />
+          </div>
 
-      <h1>Join Group</h1>
-      <p>Enter group code to join group</p>
+          {/* Title */}
+          <h1 className="join-project-title">Join Project</h1>
 
-      <input
-        type="text"
-        value={projectCode}
-        onChange={handleProjectCodeChange}
-        placeholder="Enter Project Code"
-        className="project-code-input"
-      />
+          {/* Subtitle */}
+          <p className="join-project-subtitle">Enter the project code to join</p>
 
-      <button className="join-btn" onClick={handleJoin}>
-        Join
-      </button>
+          {/* Input Field */}
+          <input
+            type="text"
+            value={projectCode}
+            onChange={handleProjectCodeChange}
+            placeholder="Enter Project Code"
+            className="project-code-input"
+          />
 
-      {status && <p className="status">{status}</p>}
-      {error && <p className="error">{error}</p>}
+          {/* Join Button */}
+          <button className="join-btn" onClick={handleJoin}>
+            Join
+          </button>
+
+          {/* Status and Error Messages */}
+          {status && <p className="status">{status}</p>}
+          {error && <p className="error">{error}</p>}
+        </div>
+      </div>
     </div>
   );
 };

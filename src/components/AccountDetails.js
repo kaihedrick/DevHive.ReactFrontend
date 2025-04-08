@@ -31,14 +31,12 @@ const AccountDetails = () => {
   const [newUsername, setNewUsername] = useState("");
   const [usernameError, setUsernameError] = useState("");
   const [usernameSuccess, setUsernameSuccess] = useState("");
-  
+
   const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
-  
-  // Check for selected project
+
   const selectedProjectId = getSelectedProject();
   const hasSelectedProject = !!selectedProjectId;
 
-  // Update the username field when user data loads
   useEffect(() => {
     if (user?.Username) {
       setNewUsername(user.Username);
@@ -173,154 +171,156 @@ const AccountDetails = () => {
   };
 
   return (
-    <div className="account-container">
-      <div className="account-card">
-        <div className="back-arrow" onClick={handleGoBack}>
-          <FontAwesomeIcon icon={faArrowRotateLeft} />
-        </div>
+    <div className="account-details-page">
+      <div className="account-container">
+        <div className="account-card">
+          <div className="back-arrow" onClick={handleGoBack}>
+            <FontAwesomeIcon icon={faArrowRotateLeft} />
+          </div>
 
-        <h1>Account Details</h1>
+          <h1>Account Details</h1>
 
-        <div className="profile-placeholder">
-          {getUserProp('firstName')?.charAt(0) || ""}
-          {getUserProp('lastName')?.charAt(0) || ""}
-        </div>
+          <div className="profile-placeholder">
+            {getUserProp("firstName")?.charAt(0) || ""}
+            {getUserProp("lastName")?.charAt(0) || ""}
+          </div>
 
-        <div className="full-name-display">
-          {getUserProp('firstName')} {getUserProp('lastName')}
-        </div>
+          <div className="full-name-display">
+            {getUserProp("firstName")} {getUserProp("lastName")}
+          </div>
 
-        {isEditingUsername ? (
-          <div className="input-group">
-            <input 
-              type="text" 
-              value={newUsername} 
-              onChange={(e) => setNewUsername(e.target.value)}
-              onKeyDown={handleUsernameKeyDown}
-              placeholder="Enter new username"
-              autoFocus
-              className={usernameError ? "input-error" : ""}
-            />
-            {usernameError && (
-              <div className="error-message">
-                <FontAwesomeIcon icon={faExclamationCircle} className="error-icon" /> {usernameError}
+          {isEditingUsername ? (
+            <div className="input-group">
+              <input 
+                type="text" 
+                value={newUsername} 
+                onChange={(e) => setNewUsername(e.target.value)}
+                onKeyDown={handleUsernameKeyDown}
+                placeholder="Enter new username"
+                autoFocus
+                className={usernameError ? "input-error" : ""}
+              />
+              {usernameError && (
+                <div className="error-message">
+                  <FontAwesomeIcon icon={faExclamationCircle} className="error-icon" /> {usernameError}
+                </div>
+              )}
+              <small className="helper-text">Press Enter to save or Escape to cancel</small>
+            </div>
+          ) : (
+            <div className="input-group">
+              <input 
+                type="text" 
+                value={getUserProp('username') || ""} 
+                onClick={handleUsernameClick}
+                readOnly
+                className="editable-field"
+                placeholder="Username"
+              />
+              {usernameSuccess && <div className="success-message">{usernameSuccess}</div>}
+            </div>
+          )}
+
+          <input 
+            type="email" 
+            value={getUserProp('email') || ""} 
+            readOnly 
+            placeholder="Email" 
+          />
+
+          {showPasswordChange ? (
+            <div className="password-change-section">
+              <input 
+                type="password" 
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New Password" 
+                className={passwordError ? "input-error" : ""}
+              />
+              <input 
+                type="password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm Password" 
+                className={passwordError && newPassword === confirmPassword ? "" : (passwordError ? "input-error" : "")}
+              />
+              
+              {passwordError && (
+                <div className="error-message">
+                  <FontAwesomeIcon icon={faExclamationCircle} className="error-icon" /> {passwordError}
+                </div>
+              )}
+              {passwordSuccess && <div className="success-message">{passwordSuccess}</div>}
+              
+              <div className="password-actions">
+                <button className="confirm-btn" onClick={submitPasswordChange}>
+                  <FontAwesomeIcon icon={faCheck} /> Confirm
+                </button>
+                <button className="cancel-btn" onClick={cancelPasswordChange}>
+                  <FontAwesomeIcon icon={faTimes} /> Cancel
+                </button>
               </div>
-            )}
-            <small className="helper-text">Press Enter to save or Escape to cancel</small>
-          </div>
-        ) : (
-          <div className="input-group">
-            <input 
-              type="text" 
-              value={getUserProp('username') || ""} 
-              onClick={handleUsernameClick}
-              readOnly
-              className="editable-field"
-              placeholder="Username"
-            />
-            {usernameSuccess && <div className="success-message">{usernameSuccess}</div>}
-          </div>
-        )}
+            </div>
+          ) : (
+            <>
+              <input type="password" value="*************" readOnly placeholder="Password" />
+              <button className="change-password-btn" onClick={handlePasswordChangeClick}>
+                Change Password
+              </button>
+            </>
+          )}
 
-        <input 
-          type="email" 
-          value={getUserProp('email') || ""} 
-          readOnly 
-          placeholder="Email" 
-        />
-
-        {showPasswordChange ? (
-          <div className="password-change-section">
-            <input 
-              type="password" 
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="New Password" 
-              className={passwordError ? "input-error" : ""}
-            />
-            <input 
-              type="password" 
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm Password" 
-              className={passwordError && newPassword === confirmPassword ? "" : (passwordError ? "input-error" : "")}
-            />
-            
-            {passwordError && (
-              <div className="error-message">
-                <FontAwesomeIcon icon={faExclamationCircle} className="error-icon" /> {passwordError}
+          {/* Leave Project Section */}
+          {showLeaveConfirmation ? (
+            <div className="leave-project-confirmation">
+              <div className="warning-message">
+                <FontAwesomeIcon icon={faExclamationTriangle} className="warning-icon" />
+                Are you sure you want to leave this project? Your tasks will be unassigned.
               </div>
-            )}
-            {passwordSuccess && <div className="success-message">{passwordSuccess}</div>}
-            
-            <div className="password-actions">
-              <button className="confirm-btn" onClick={submitPasswordChange}>
-                <FontAwesomeIcon icon={faCheck} /> Confirm
-              </button>
-              <button className="cancel-btn" onClick={cancelPasswordChange}>
-                <FontAwesomeIcon icon={faTimes} /> Cancel
-              </button>
+              <div className="confirmation-actions">
+                <button className="confirm-leave-btn" onClick={executeLeaveProject}>
+                  Yes, Leave Project
+                </button>
+                <button className="cancel-btn" onClick={cancelLeaveProject}>
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            <input type="password" value="*************" readOnly placeholder="Password" />
-            <button className="change-password-btn" onClick={handlePasswordChangeClick}>
-              Change Password
-            </button>
-          </>
-        )}
-
-        {/* Leave Project Section */}
-        {showLeaveConfirmation ? (
-          <div className="leave-project-confirmation">
-            <div className="warning-message">
-              <FontAwesomeIcon icon={faExclamationTriangle} className="warning-icon" />
-              Are you sure you want to leave this project? Your tasks will be unassigned.
-            </div>
-            <div className="confirmation-actions">
-              <button className="confirm-leave-btn" onClick={executeLeaveProject}>
-                Yes, Leave Project
-              </button>
-              <button className="cancel-btn" onClick={cancelLeaveProject}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {hasSelectedProject ? (
-              <>
+          ) : (
+            <>
+              {hasSelectedProject ? (
+                <>
+                  <button
+                    className="leave-group-btn"
+                    onClick={confirmLeaveProject}
+                  >
+                    Leave Project
+                  </button>
+                  {leaveProjectState.error && (
+                    <div className="error-message">
+                      <FontAwesomeIcon icon={faExclamationCircle} /> {leaveProjectState.error}
+                    </div>
+                  )}
+                  {leaveProjectState.success && (
+                    <div className="success-message">
+                      {leaveProjectState.success}
+                    </div>
+                  )}
+                </>
+              ) : (
                 <button
-                  className="leave-group-btn"
-                  onClick={confirmLeaveProject}
+                  className="leave-group-btn disabled"
+                  disabled
+                  title="Join or select a project first"
                 >
                   Leave Project
                 </button>
-                {leaveProjectState.error && (
-                  <div className="error-message">
-                    <FontAwesomeIcon icon={faExclamationCircle} /> {leaveProjectState.error}
-                  </div>
-                )}
-                {leaveProjectState.success && (
-                  <div className="success-message">
-                    {leaveProjectState.success}
-                  </div>
-                )}
-              </>
-            ) : (
-              <button
-                className="leave-group-btn disabled"
-                disabled
-                title="Join or select a project first"
-              >
-                Leave Project
-              </button>
-            )}
-          </>
-        )}
+              )}
+            </>
+          )}
 
-        <button className="logout-btn" onClick={handleLogout}>Logout</button>
+          <button className="logout-btn" onClick={handleLogout}>Logout</button>
+        </div>
       </div>
     </div>
   );

@@ -2,8 +2,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/forgot_password.css";
-import DevHiveLogo from "./assets/DevHiveLogo.png";
-import email_icon from "./assets/email.png";
+import { ReactComponent as DevHiveLogo } from "./assets/hive-icon.svg";
+import { faEnvelope, faLock, faUser, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { requestPasswordReset } from "../services/authService.ts"; // Remove .ts extension
 
 const ForgotPassword: React.FC = () => {
@@ -19,7 +20,7 @@ const ForgotPassword: React.FC = () => {
   };
 
   const handleGoBack = () => {
-    navigate("/");
+    navigate("/"); // Navigate back to the login page
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,7 +45,7 @@ const ForgotPassword: React.FC = () => {
     } catch (err: any) {
       console.error("❌ Error requesting password reset:", err);
       
-      // Improved error handling - FIXED to extract string messages
+      // Improved error handling
       if (err.response) {
         const status = err.response.status;
         if (status === 404) {
@@ -89,12 +90,17 @@ const ForgotPassword: React.FC = () => {
     <div className="background">
       {/* Logo Section */}
       <div className="logo-container">
-        <img src={DevHiveLogo} alt="DevHive Logo" className="devhive-logo" />
+        <DevHiveLogo className="devhive-logo" />
         <h1 className="logo-text">DevHive</h1>
       </div>
 
       {/* Form Section */}
       <div className="container">
+        {/* Back Arrow */}
+        <div className="back-arrow" onClick={handleGoBack}>
+          <FontAwesomeIcon icon={faArrowLeft} />
+        </div>
+
         <div className="header">
           <div className="text">Reset Password</div>
           <div className="underline"></div>
@@ -104,9 +110,6 @@ const ForgotPassword: React.FC = () => {
           <div className="success-message">
             <p>Password reset email sent!</p>
             <p>Please check your inbox for instructions to reset your password.</p>
-            <button className="back-button" onClick={handleGoBack}>
-              Back to Login
-            </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -115,16 +118,14 @@ const ForgotPassword: React.FC = () => {
             </p>
 
             <div className="inputs">
-              <div className="input-field">
-                <img src={email_icon} alt="" className="input-icon" />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={handleEmailChange}
-                  disabled={loading}
-                />
-              </div>
+              <FontAwesomeIcon icon={faEnvelope} className="input-icon" />
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={handleEmailChange}
+                disabled={loading}
+              />
             </div>
 
             {/* Make sure error is always a string */}
@@ -137,14 +138,6 @@ const ForgotPassword: React.FC = () => {
                 disabled={loading}
               >
                 {loading ? "Sending..." : "Send Reset Link"}
-              </button>
-              <button 
-                type="button"
-                className="back-button" 
-                onClick={handleGoBack}
-                disabled={loading}
-              >
-                Back to Login
               </button>
             </div>
           </form>

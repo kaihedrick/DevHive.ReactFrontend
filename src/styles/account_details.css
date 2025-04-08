@@ -12,6 +12,18 @@
   position: relative !important;
 }
 
+/* Page Background */
+.account-details-page .account-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: calc(100vh - 100px) !important; /* Adjust for navbar */
+    padding: var(--space-5) !important;
+    background-color: var(--accent-primary) !important; /* Gold background */
+    font-family: var(--primary-font) !important;
+    position: relative !important;
+}
+
 /* ============================= */
 /*  Account Card (Match create_task.css card style) */
 /* ============================= */
@@ -29,12 +41,36 @@
   text-align: center !important;
 }
 
+/* Card Container */
+.account-details-page .account-card {
+    width: 100% !important;
+    max-width: 500px !important; /* Match create_task.css max-width */
+    background: var(--bg-primary) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-lg) !important;
+    font-family: var(--primary-font) !important;
+    border: 1px solid var (--border-color) !important;
+    overflow: hidden !important;
+    padding: var(--space-5) !important;
+    position: relative !important;
+    text-align: center !important;
+}
+
 .account-card h1 {
   color: var(--text-primary) !important;
   font-size: var(--font-size-xl) !important;
   font-weight: var(--font-weight-bold) !important;
   margin-bottom: var(--space-4) !important;
   margin-top: var(--space-3) !important;
+}
+
+/* Title */
+.account-details-page .account-card h1 {
+    color: var(--text-primary) !important;
+    font-size: var(--font-size-xl) !important;
+    font-weight: var(--font-weight-bold) !important;
+    margin-bottom: var(--space-4) !important;
+    margin-top: var(--space-3) !important;
 }
 
 /* ============================= */
@@ -51,9 +87,26 @@
   z-index: 10 !important;
 }
 
+/* Back Arrow */
+.account-details-page .back-arrow {
+    position: absolute !important;
+    top: var(--space-3) !important;
+    left: var(--space-3) !important;
+    font-size: var(--font-size-lg) !important;
+    cursor: pointer !important;
+    color: var(--text-secondary) !important;
+    transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+    z-index: 10 !important;
+}
+
 .back-arrow:hover {
   color: var(--text-primary) !important;
   transform: scale(1.2) !important;
+}
+
+.account-details-page .back-arrow:hover {
+    color: var(--text-primary) !important;
+    transform: scale(1.2) !important;
 }
 
 /* ============================= */
@@ -74,6 +127,22 @@
   border: 3px solid var(--accent-primary) !important;
 }
 
+/* Profile Placeholder */
+.account-details-page .profile-placeholder {
+    width: 100px !important;
+    height: 100px !important;
+    background: var(--bg-secondary) !important;
+    border-radius: 50% !important;
+    margin: 0 auto var(--space-4) auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: var(--font-size-xl) !important;
+    font-weight: var(--font-weight-bold) !important;
+    color: var(--text-secondary) !important;
+    border: 3px solid var(--accent-primary) !important;
+}
+
 /* ============================= */
 /*  Input Fields (Match create_task.css inputs) */
 /* ============================= */
@@ -92,6 +161,22 @@
   text-align: center !important;
 }
 
+/* Input Fields */
+.account-details-page .account-card input {
+    width: 100% !important;
+    padding: var(--space-3) var(--space-4) !important;
+    margin-bottom: var(--space-4) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: var(--border-radius) !important;
+    font-size: var(--font-size-base) !important;
+    color: var(--text-primary) !important;
+    background: var(--bg-primary) !important;
+    font-family: var(--primary-font) !important;
+    transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+    outline: none !important;
+    text-align: center !important;
+}
+
 .account-card input:read-only {
   background: var(--bg-secondary) !important;
   cursor: default !important;
@@ -100,6 +185,11 @@
 .account-card input:focus {
   border-color: var(--accent-primary) !important;
   box-shadow: var(--shadow-focus) !important;
+}
+
+.account-details-page .account-card input:focus {
+    border-color: var(--accent-primary) !important;
+    box-shadow: var(--shadow-focus) !important;
 }
 
 /* ============================= */
@@ -117,10 +207,28 @@
   transition: all var(--transition-fast) ease !important;
 }
 
+/* Buttons */
+.account-details-page .account-card button {
+    width: 100% !important;
+    padding: var(--space-3) var(--space-4) !important;
+    border: none !important;
+    border-radius: var(--border-radius) !important;
+    cursor: pointer !important;
+    font-size: var(--font-size-base) !important;
+    font-weight: var(--font-weight-bold) !important;
+    margin-top: var(--space-3) !important;
+    transition: all var(--transition-fast) ease !important;
+}
+
 /* Change Password Button */
 .change-password-btn {
   background: var(--accent-primary) !important;
   color: var(--black) !important;
+}
+
+.account-details-page .change-password-btn {
+    background: var(--accent-primary) !important;
+    color: var(--black) !important;
 }
 
 .change-password-btn:hover {
@@ -128,6 +236,13 @@
   transform: translateY(-2px) !important;
   box-shadow: var(--shadow-md) !important;
   color: var(--white) !important;
+}
+
+.account-details-page .change-password-btn:hover {
+    background: var(--dark-gold) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: var(--shadow-md) !important;
+    color: var(--white) !important;
 }
 
 /* Leave Group Button */
@@ -168,6 +283,17 @@
   }
 }
 
+/* Responsive Design */
+@media (max-width: 768px) {
+    .account-details-page .account-container {
+        padding: var(--space-3) !important;
+    }
+
+    .account-details-page .account-card {
+        width: 95% !important;
+    }
+}
+
 @media (max-width: 480px) {
   .account-card h1 {
     font-size: var(--font-size-lg) !important;
@@ -188,7 +314,7 @@
 .error-message {
   color: hsl(0, 100%, 50%) !important;
   font-size: var(--font-size-sm) !important;
-  margin-top: var(--space-2) !important;
+  margin-top: var (--space-2) !important;
   margin-bottom: var(--space-3) !important;
   text-align: center !important;
 }

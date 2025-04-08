@@ -1,5 +1,5 @@
 /* Projects Page Container */
-.projects-container {
+.projects-page .projects-container {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -11,26 +11,26 @@
 }
 
 /* Header Section */
-.header {
+.projects-page .header {
   text-align: center !important;
   margin-bottom: var(--space-6) !important;
 }
 
-.header h1 {
+.projects-page .header h1 {
   color: var(--white) !important; /* Changed from var(--text-primary) for better contrast */
   font-size: var(--font-size-3xl) !important;
   font-weight: var(--font-weight-bold) !important;
   text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5) !important; /* Made shadow darker */
 }
 
-.header p {
+.projects-page .header p {
   color: var(--black) !important; /* Changed to black for better readability */
   font-size: var(--font-size-xl) !important; /* Increased size for better legibility */
   opacity: 0.9 !important; /* Slight opacity for visual hierarchy */
 }
 
 /* Project List using CSS Grid for Responsiveness */
-.projects-list {
+.projects-page .projects-list {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
   gap: var(--space-5) !important;
@@ -40,7 +40,7 @@
 }
 
 /* Individual Project Card */
-.project-card {
+.projects-page .project-card {
   background: var(--bg-primary) !important;
   border: 2px solid var(--accent-primary) !important;
   border-radius: var(--border-radius) !important;
@@ -50,89 +50,112 @@
   position: relative !important;
 }
 
-.project-card h3 {
+.projects-page .project-card h3 {
   color: var(--text-primary) !important;
   font-size: var(--font-size-xl) !important;
   margin-bottom: var(--space-3) !important;
 }
 
-.project-card p {
+.projects-page .project-card p {
   color: var(--text-secondary) !important;
   font-size: var(--font-size-base) !important;
 }
 
-.project-card:hover {
+.projects-page .project-card:hover {
   transform: translateY(-5px) scale(1.02) !important;
   box-shadow: var(--shadow-lg) !important;
 }
 
 /* Loading Indicator */
-.loading {
+.projects-page .loading {
   font-size: var(--font-size-lg) !important;
   color: var(--white) !important;
 }
 
 /* Action Buttons */
-.actions {
+.projects-page .actions {
   display: flex !important;
   gap: var(--space-4) !important;
   margin-top: var(--space-6) !important;
 }
 
-.action-btn {
+.projects-page .action-btn {
   width: 180px !important;
   height: 50px !important;
   border: none !important;
-  border-radius: 25px !important;
-  font-size: var(--font-size-sm) !important;
+  border-radius: var(--border-radius) !important; /* Standard rounded corners */
+  font-size: var(--font-size-base) !important;
   font-weight: var(--font-weight-bold) !important;
   cursor: pointer !important;
-  transition: all var(--transition-normal) ease-in-out !important;
-  box-shadow: var(--shadow-md) !important; /* Added shadow for depth */
+  transition: all var(--transition-fast) ease-in-out !important;
+  background: var(--bg-primary) !important; /* Solid background color */
+  color: var(--text-primary) !important; /* Text color matching the theme */
+  box-shadow: var(--shadow-md) !important; /* Subtle shadow for depth */
 }
 
+/* Hover Effect for Buttons */
+.projects-page .action-btn:hover {
+  background: var(--bg-secondary) !important; /* Slightly darker background on hover */
+  transform: translateY(-2px) !important; /* Slight elevation on hover */
+  box-shadow: var(--shadow-lg) !important; /* Larger shadow on hover */
+}
+
+/* Create Button */
 .create-btn {
-  background: var(--accent-primary) !important; /* Using global gold variable */
-  color: var(--black) !important; /* Changed text color to black */
+  background: linear-gradient(to bottom, var(--gold), var(--dark-gold)) !important; /* Gold gradient */
+  color: var(--black) !important; /* Black text for contrast */
 }
 
 .create-btn:hover {
-  background: var(--dark-gold) !important; /* Using global dark gold variable */
-  transform: scale(1.05) !important;
+  background: linear-gradient(to bottom, var(--dark-gold), var(--gold)) !important; /* Reverse gradient on hover */
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-lg) !important;
 }
 
+/* Join Button */
 .join-btn {
-  background: var(--dark-gray) !important; /* Slightly darker gray */
-  color: var(--white) !important; /* Changed to white for better readability */
-  border-radius: 25px !important;
+  background: linear-gradient(to bottom, var(--black), var(--dark-gray)) !important; /* Black gradient */
+  color: var(--white) !important; /* White text for contrast */
 }
 
 .join-btn:hover {
-  background: var(--darker-gray) !important; /* Using a darker gray variable */
-  transform: scale(1.05) !important;
+  background: linear-gradient(to bottom, var(--dark-gray), var(--gray)) !important; /* Lighter gradient on hover */
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-lg) !important;
 }
 
+/* Account Details Button */
 .account-btn {
-  background: var(--neutral-dark) !important; /* Using a darker shade of neutral */
-  color: var(--black) !important; /* Changed text color to black */
+  background: linear-gradient(to bottom, var(--gray), var(--dark-gray)) !important; /* Gray gradient */
+  color: var(--white) !important; /* White text for contrast */
 }
 
 .account-btn:hover {
-  background: var(--neutral-darker) !important; /* Using a darker neutral variable */
-  transform: scale(1.05) !important;
+  background: linear-gradient(to bottom, var(--dark-gray), var(--black)) !important; /* Darker gradient on hover */
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Responsive Design for Buttons */
+@media (max-width: 600px) {
+  .projects-page .action-btn {
+    width: 100% !important; /* Full width on smaller screens */
+    height: 45px !important;
+    font-size: var(--font-size-sm) !important;
+  }
 }
 
 /* Responsive Design for Projects Section */
 @media (max-width: 600px) {
-  .projects-container {
+  .projects-page .projects-container {
     padding: var(--space-4) !important;
   }
 
-  .header h1 {
+  .projects-page .header h1 {
     font-size: var(--font-size-2xl) !important;
   }
 
-  .projects-list {
+  .projects-page .projects-list {
     grid-template-columns: 1fr !important;
   }
 }
@@ -150,14 +173,14 @@
 }
 
 /* Accessibility Improvements */
-.project-card:focus {
+.projects-page .project-card:focus {
   outline: 2px solid var(--accent-primary) !important;
 }
 
 /* ======================== */
 /* Project Card Actions (Edit & Delete Buttons) */
 /* ======================== */
-.project-actions {
+.projects-page .project-actions {
   display: flex !important;
   justify-content: space-between !important;
   position: absolute !important;
@@ -168,7 +191,7 @@
 }
 
 /* Trash (🗑️) - Bottom Left (Hidden by Default) */
-.delete-btn {
+.projects-page .delete-btn {
   background: none !important;
   border: none !important;
   font-size: var(--font-size-lg) !important;
@@ -180,18 +203,18 @@
 }
 
 /* Show delete button in edit mode */
-.project-card.editing .delete-btn {
+.projects-page .project-card.editing .delete-btn {
   display: block !important;
 }
 
 /* Delete Button Hover Effect */
-.delete-btn:hover {
+.projects-page .delete-btn:hover {
   transform: scale(1.2) !important;
   color: var(--dark-error) !important; /* Using global dark error color */
 }
 
 /* Edit Button (✏️) - Bottom Right */
-.edit-btn {
+.projects-page .edit-btn {
   background: none !important;
   border: none !important;
   font-size: var(--font-size-lg) !important;
@@ -203,7 +226,7 @@
 }
 
 /* Edit Button Hover Effect */
-.edit-btn:hover {
+.projects-page .edit-btn:hover {
   transform: scale(1.2) !important;
   color: var(--text-secondary) !important;
 }
@@ -263,7 +286,7 @@
 /* Modal Text */
 .modal p {
   font-size: var(--font-size-base) !important;
-  color: var(--text-secondary) !important;
+  color: var (--text-secondary) !important;
   margin-bottom: var(--space-5) !important;
 }
 

@@ -1,5 +1,5 @@
 //config.js
-export const API_BASE_URL = "https://localhost:7170/api";
+export const API_BASE_URL = "http://18.119.104.29:5000/api";
 
 export const ENDPOINTS = {
   USER: `${API_BASE_URL}/User`,

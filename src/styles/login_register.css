@@ -18,9 +18,20 @@
 }
 
 .devhive-logo {
-  width: 4.375rem !important;
-  height: 4.375rem !important;
+  width: 6.25rem !important;  /* Increased from 4.375rem to 6.25rem (100px) */
+  height: 6.25rem !important; /* Increased from 4.375rem to 6.25rem (100px) */
   margin-right: var(--space-2) !important;
+  fill: var(--gold) !important;
+  stroke: var(--black) !important;
+  stroke-width: 2px !important;
+  stroke-linejoin: round !important;
+  stroke-linecap: round !important;
+  vector-effect: non-scaling-stroke !important;
+}
+
+.logo-container:hover .devhive-logo {
+  fill: var(--dark-gold) !important;
+  transition: fill var(--transition-normal) ease !important;
 }
 
 .logo-text {
@@ -72,46 +83,73 @@
   display: flex !important;
   flex-direction: column !important;
   gap: var(--space-4) !important;
-  width: 100% !important;
+  width: 90% !important; /* Added width control to inputs container */
+  margin: 0 auto !important; /* Center the inputs container */
+  align-items: stretch !important; /* Changed from center to stretch */
+}
+
+.inputs input {
+  color: var(--text-primary) !important;
+}
+
+.inputs input::placeholder {
+  color: var(--text-tertiary) !important;
 }
 
 .input-field {
   position: relative !important;
-  width: 100% !important; /* Changed from 80% to 100% */
-  margin-bottom: 15px !important;
-  display: flex !important;
-  align-items: center !important;
+  width: 100% !important;
+  height: 3.25rem !important;
+  border: 1px solid var(--text-tertiary) !important;
+  border-radius: var(--border-radius) !important;
+  margin-bottom: 20px !important;
+}
+
+.input-field input {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  padding: 0 0.8rem 0 3rem !important;
+  color: var(--text-primary) !important;
+  font-size: 16px !important;
 }
 
 .input-icon {
   position: absolute !important;
-  left: 15px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  width: 18px !important;
-  opacity: 0.6 !important;
+  left: 0.8rem !important;
+  top: 14px !important;
+  font-size: 1.375rem !important;
+  color: var(--text-tertiary) !important;
+  opacity: 0.8 !important;
+  pointer-events: none !important;
   z-index: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-.input-field input {
-  width: 100% !important; /* Changed from 80% */
-  padding: 15px 45px 15px 45px !important; /* Added right padding for status icon */
-  border: 1px solid var(--light-gray) !important;
-  border-radius: 5px !important;
-  font-size: 16px !important;
-  color: var(--black) !important;
-  background-color: white !important;
-  transition: border-color 0.3s !important;
+.input-field:focus-within {
+  border-color: var(--gold) !important;
+  box-shadow: var(--shadow-focus) !important;
 }
+
+/* Remove the duplicate .input-icon styles and use only img.input-icon */
 
 /* Add explicit styles for validation icons */
 .validation-icon {
   position: absolute !important;
-  right: 15px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  font-size: 18px !important;
+  right: 0.8rem !important; /* Match the left padding of the input icon */
+  top: 14px !important; /* Match the top positioning of the input icon */
+  font-size: 1.375rem !important; /* Match the size of the input icon */
+  color: var(--text-tertiary) !important;
+  opacity: 0.8 !important;
+  pointer-events: none !important;
   z-index: 5 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .success-icon {

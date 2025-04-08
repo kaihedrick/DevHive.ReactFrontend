@@ -1,11 +1,12 @@
 // src/components/InputField.tsx
 import React, { forwardRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import '../styles/InputField.css';
 
 interface InputFieldProps {
-  icon: string;
+  icon: IconDefinition;
   type: string;
   name: string;
   placeholder: string;
@@ -27,12 +28,11 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(({
   emailValidationStatus,
   onKeyDown
 }, ref) => {
-  // Debug
-  console.log(`Field ${name} status:`, emailValidationStatus);
-  
   return (
     <div className={`input-field ${error ? 'has-error' : ''}`}>
-      <img src={icon} alt={`${name}-icon`} className="input-icon" />
+      {/* FontAwesome icon rendered inline like in ForgotPassword */}
+      <FontAwesomeIcon icon={icon} className="input-icon" />
+      
       <input
         ref={ref}
         type={type}
@@ -44,41 +44,19 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(({
         aria-invalid={!!error}
         aria-describedby={error ? `${name}-error` : undefined}
       />
-      
-      {/* Make the status icons more prominent and force display */}
+
+      {/* Validation icons */}
       {emailValidationStatus === 'success' && (
-        <FontAwesomeIcon 
-          icon={faCheckCircle} 
-          className="validation-icon success-icon" 
-          style={{
-            position: 'absolute',
-            right: '15px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'green',
-            fontSize: '18px',
-            zIndex: 5
-          }}
-        />
+        <FontAwesomeIcon icon={faCheckCircle} className="validation-icon success-icon" />
       )}
-      
       {emailValidationStatus === 'error' && (
-        <FontAwesomeIcon 
-          icon={faTimesCircle} 
-          className="validation-icon error-icon" 
-          style={{
-            position: 'absolute',
-            right: '15px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'red',
-            fontSize: '18px',
-            zIndex: 5
-          }}
-        />
+        <FontAwesomeIcon icon={faTimesCircle} className="validation-icon error-icon" />
       )}
-      
-      {error && <p id={`${name}-error`} className="error-message">{error}</p>}
+
+      {/* Error Message */}
+      {error && (
+        <p id={`${name}-error`} className="error-message">{error}</p>
+      )}
     </div>
   );
 });
