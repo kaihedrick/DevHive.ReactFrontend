@@ -12,16 +12,28 @@
   position: relative !important;
 }
 
-/* Page Background */
+/* ============================= */
+/* 🌟 Scoped Account Details Page Styling */
+/* ============================= */
+.account-details-page {
+  min-height: calc(100vh - 60px) !important; /* Extend to the footer */
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: var(--space-5) !important;
+  background: var(--accent-primary) !important; /* Match the gold background */
+}
+
 .account-details-page .account-container {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    min-height: calc(100vh - 100px) !important; /* Adjust for navbar */
-    padding: var(--space-5) !important;
-    background-color: var(--accent-primary) !important; /* Gold background */
-    font-family: var(--primary-font) !important;
-    position: relative !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: calc(100vh - 100px) !important; /* Adjust for navbar */
+  padding: var(--space-5) !important;
+  background-color: var(--accent-primary) !important; /* Gold background */
+  font-family: var(--primary-font) !important;
+  position: relative !important;
 }
 
 /* ============================= */
@@ -43,17 +55,17 @@
 
 /* Card Container */
 .account-details-page .account-card {
-    width: 100% !important;
-    max-width: 500px !important; /* Match create_task.css max-width */
-    background: var(--bg-primary) !important;
-    border-radius: var(--border-radius) !important;
-    box-shadow: var(--shadow-lg) !important;
-    font-family: var(--primary-font) !important;
-    border: 1px solid var (--border-color) !important;
-    overflow: hidden !important;
-    padding: var(--space-5) !important;
-    position: relative !important;
-    text-align: center !important;
+  width: 100% !important;
+  max-width: 500px !important; /* Match create_task.css max-width */
+  background: var(--bg-primary) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-lg) !important;
+  font-family: var(--primary-font) !important;
+  border: 1px solid var(--border-color) !important;
+  overflow: hidden !important;
+  padding: var(--space-5) !important;
+  position: relative !important;
+  text-align: center !important;
 }
 
 .account-card h1 {
@@ -66,11 +78,11 @@
 
 /* Title */
 .account-details-page .account-card h1 {
-    color: var(--text-primary) !important;
-    font-size: var(--font-size-xl) !important;
-    font-weight: var(--font-weight-bold) !important;
-    margin-bottom: var(--space-4) !important;
-    margin-top: var(--space-3) !important;
+  color: var(--text-primary) !important;
+  font-size: var(--font-size-xl) !important;
+  font-weight: var(--font-weight-bold) !important;
+  margin-bottom: var(--space-4) !important;
+  margin-top: var(--space-3) !important;
 }
 
 /* ============================= */
@@ -89,14 +101,14 @@
 
 /* Back Arrow */
 .account-details-page .back-arrow {
-    position: absolute !important;
-    top: var(--space-3) !important;
-    left: var(--space-3) !important;
-    font-size: var(--font-size-lg) !important;
-    cursor: pointer !important;
-    color: var(--text-secondary) !important;
-    transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
-    z-index: 10 !important;
+  position: absolute !important;
+  top: var(--space-3) !important;
+  left: var(--space-3) !important;
+  font-size: var(--font-size-lg) !important;
+  cursor: pointer !important;
+  color: var(--text-secondary) !important;
+  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+  z-index: 10 !important;
 }
 
 .back-arrow:hover {
@@ -105,8 +117,8 @@
 }
 
 .account-details-page .back-arrow:hover {
-    color: var(--text-primary) !important;
-    transform: scale(1.2) !important;
+  color: var(--text-primary) !important;
+  transform: scale(1.2) !important;
 }
 
 /* ============================= */
@@ -129,18 +141,18 @@
 
 /* Profile Placeholder */
 .account-details-page .profile-placeholder {
-    width: 100px !important;
-    height: 100px !important;
-    background: var(--bg-secondary) !important;
-    border-radius: 50% !important;
-    margin: 0 auto var(--space-4) auto !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: var(--font-size-xl) !important;
-    font-weight: var(--font-weight-bold) !important;
-    color: var(--text-secondary) !important;
-    border: 3px solid var(--accent-primary) !important;
+  width: 100px !important;
+  height: 100px !important;
+  background: var(--bg-secondary) !important;
+  border-radius: 50% !important;
+  margin: 0 auto var(--space-4) auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: var(--font-size-xl) !important;
+  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-secondary) !important;
+  border: 3px solid var(--accent-primary) !important;
 }
 
 /* ============================= */
@@ -163,18 +175,18 @@
 
 /* Input Fields */
 .account-details-page .account-card input {
-    width: 100% !important;
-    padding: var(--space-3) var(--space-4) !important;
-    margin-bottom: var(--space-4) !important;
-    border: 2px solid var(--border-color) !important;
-    border-radius: var(--border-radius) !important;
-    font-size: var(--font-size-base) !important;
-    color: var(--text-primary) !important;
-    background: var(--bg-primary) !important;
-    font-family: var(--primary-font) !important;
-    transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
-    outline: none !important;
-    text-align: center !important;
+  width: 100% !important;
+  padding: var(--space-3) var(--space-4) !important;
+  margin-bottom: var(--space-4) !important;
+  border: 2px solid var(--border-color) !important;
+  border-radius: var(--border-radius) !important;
+  font-size: var(--font-size-base) !important;
+  color: var(--text-primary) !important;
+  background: var(--bg-primary) !important;
+  font-family: var(--primary-font) !important;
+  transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+  outline: none !important;
+  text-align: center !important;
 }
 
 .account-card input:read-only {
@@ -188,8 +200,22 @@
 }
 
 .account-details-page .account-card input:focus {
-    border-color: var(--accent-primary) !important;
-    box-shadow: var(--shadow-focus) !important;
+  border-color: var(--accent-primary) !important;
+  box-shadow: var(--shadow-focus) !important;
+}
+
+/* ============================= */
+/* Dropdown Fields */
+/* ============================= */
+.dropdown {
+  width: 100%;
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* ============================= */
@@ -209,15 +235,15 @@
 
 /* Buttons */
 .account-details-page .account-card button {
-    width: 100% !important;
-    padding: var(--space-3) var(--space-4) !important;
-    border: none !important;
-    border-radius: var(--border-radius) !important;
-    cursor: pointer !important;
-    font-size: var(--font-size-base) !important;
-    font-weight: var(--font-weight-bold) !important;
-    margin-top: var(--space-3) !important;
-    transition: all var(--transition-fast) ease !important;
+  width: 100% !important;
+  padding: var(--space-3) var(--space-4) !important;
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  cursor: pointer !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-bold) !important;
+  margin-top: var(--space-3) !important;
+  transition: all var(--transition-fast) ease !important;
 }
 
 /* Change Password Button */
@@ -227,8 +253,8 @@
 }
 
 .account-details-page .change-password-btn {
-    background: var(--accent-primary) !important;
-    color: var(--black) !important;
+  background: var(--accent-primary) !important;
+  color: var(--black) !important;
 }
 
 .change-password-btn:hover {
@@ -239,10 +265,10 @@
 }
 
 .account-details-page .change-password-btn:hover {
-    background: var(--dark-gold) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: var(--shadow-md) !important;
-    color: var(--white) !important;
+  background: var(--dark-gold) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+  color: var(--white) !important;
 }
 
 /* Leave Group Button */
@@ -285,13 +311,13 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .account-details-page .account-container {
-        padding: var(--space-3) !important;
-    }
+  .account-details-page .account-container {
+    padding: var(--space-3) !important;
+  }
 
-    .account-details-page .account-card {
-        width: 95% !important;
-    }
+  .account-details-page .account-card {
+    width: 95% !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -325,6 +351,62 @@
   margin-top: var(--space-2) !important;
   margin-bottom: var(--space-3) !important;
   text-align: center !important;
+}
+
+/* ============================= */
+/* 🌟 Success Popup Styling (Based on Backlog Page) */
+.account-details-page .success-popup-ac {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: fixed !important;
+  top: var(--space-5) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background-color: hsl(120, 70%, 40%) !important; /* Green background */
+  color: var(--white) !important; /* Ensure text is white for contrast */
+  padding: var(--space-3) var(--space-4) !important;
+  border-radius: var(--border-radius) !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  text-align: center !important;
+  box-shadow: var(--shadow-md) !important;
+  z-index: 1000 !important;
+  animation: fadeOut 3s ease-in-out forwards !important;
+}
+
+/* 🌟 Error Popup Styling (No Changes) */
+.account-details-page .error-popup {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: fixed !important;
+  top: var(--space-5) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background-color: hsl(0, 80%, 50%) !important; /* Red background */
+  color: var(--white) !important; /* Ensure text is white for contrast */
+  padding: var(--space-3) var(--space-4) !important;
+  border-radius: var(--border-radius) !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  text-align: center !important;
+  box-shadow: var(--shadow-md) !important;
+  z-index: 1000 !important;
+  animation: fadeOut 3s ease-in-out forwards !important;
+}
+
+/* Fade-out animation */
+@keyframes fadeOut {
+  0% {
+    opacity: 1 !important;
+  }
+  70% {
+    opacity: 1 !important;
+  }
+  100% {
+    opacity: 0 !important;
+  }
 }
 
 /* ============================= */

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { fetchUserById, updateUserProfile } from "../services/userService.ts";
 import { getUserId, clearAuth, validateUsername } from "../services/authService.ts";
 import { getSelectedProject, clearSelectedProject } from "../services/storageService";
-import { leaveProject, isProjectOwner } from "../services/projectService";
+import { leaveProject, isProjectOwner, updateProjectOwner, fetchProjectMembers } from "../services/projectService";
 import { useNavigate } from "react-router-dom";
 
 const useAccountDetails = () => {
@@ -233,6 +233,28 @@ const useAccountDetails = () => {
     }
   };
 
+  const reassignOwnershipAndLeave = async (projectId, newOwnerId) => {
+    try {
+      console.log(`🔄 Reassigning ownership of project ${projectId} to user ${newOwnerId}...`);
+      await updateProjectOwner(projectId, newOwnerId); // Reassign ownership
+      console.log("✅ Ownership reassigned successfully. Leaving project...");
+      await leaveProject(projectId); // Leave the project after reassignment
+      clearSelectedProject(); // Clear the selected project
+      setLeaveProjectState({
+        loading: false,
+        error: null,
+        success: "Successfully reassigned ownership and left the project.",
+      });
+    } catch (err) {
+      console.error("❌ Error reassigning ownership or leaving project:", err);
+      setLeaveProjectState({
+        loading: false,
+        error: err.message || "Failed to reassign ownership or leave the project.",
+        success: null,
+      });
+    }
+  };
+
   return {
     user,
     loading,
@@ -243,7 +265,8 @@ const useAccountDetails = () => {
     handleLeaveGroup,
     updateUsername,
     getUserProp,
-    leaveProjectState
+    leaveProjectState,
+    reassignOwnershipAndLeave
   };
 };
 

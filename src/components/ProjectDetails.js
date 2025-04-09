@@ -100,7 +100,7 @@ const ProjectDetails = () => {
             <button className="save-btn" onClick={handleSaveEdit}>
               <FontAwesomeIcon icon={faCheck} />
             </button>
-            <button className="project-details__cancel-btn" onClick={handleCancelEdit}>
+            <button className="cancel-btn" onClick={handleCancelEdit}>
               <FontAwesomeIcon icon={faTimes} />
             </button>
           </>

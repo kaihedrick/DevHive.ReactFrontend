@@ -86,56 +86,62 @@ const LoginRegister: React.FC = () => {
   );
 
   return (
-    <div className="background">
-      <div className="logo-container">
-        <DevHiveLogo className="devhive-logo" />
-        <h1 className="logo-text">DevHive</h1>
-      </div>
-
-      <div className="container">
-        <div className="header">
-          <div className="text">{action === "Login" ? "Welcome Back" : "Sign Up"}</div>
-          <div className="underline"></div>
+    <div className="login-register-page">
+      <div className="background">
+        <div className="logo-container">
+          <DevHiveLogo className="devhive-logo" />
+          <h1 className="logo-text">DevHive</h1>
         </div>
 
-        <div className="inputs-section">
-          {action === "Sign Up" && (
-            <>
-              {renderInput(faUser, "FirstName", "First Name", "text")}
-              {renderInput(faUser, "LastName", "Last Name", "text")}
-              {renderInput(faEnvelope, "Email", "Email", "email", true)}
-            </>
+        <div className="container">
+          <div className="header">
+            <div className="text">{action === "Login" ? "Welcome Back" : "Sign Up"}</div>
+            <div className="underline"></div>
+          </div>
+
+          <div className="inputs-section">
+            {action === "Sign Up" && (
+              <>
+                {renderInput(faUser, "FirstName", "First Name", "text")}
+                {renderInput(faUser, "LastName", "Last Name", "text")}
+                {renderInput(faEnvelope, "Email", "Email", "email", true)}
+              </>
+            )}
+            {renderInput(faUser, "Username", "Username", "text")}
+            {renderInput(faLock, "Password", "Password", "password")}
+            {action === "Sign Up" && renderInput(faLock, "ConfirmPassword", "Confirm Password", "password")}
+          </div>
+
+          {action === "Login" && (
+            <div className="forgot-password">
+              <span onClick={() => navigate("/forgot-password")}>Forgot Password?</span>
+            </div>
           )}
-          {renderInput(faUser, "Username", "Username", "text")}
-          {renderInput(faLock, "Password", "Password", "password")}
-          {action === "Sign Up" && renderInput(faLock, "ConfirmPassword", "Confirm Password", "password")}
+
+          {error && <p className="error">{error}</p>}
+          {success && (
+            <p className="success">
+              {action === "Sign Up" ? "Registration successful!" : "Login successful!"}
+            </p>
+          )}
+
+          <div className="submit-container">
+            <div
+              className={`submit ${action === "Sign Up" ? "" : "gray"}`}
+              onClick={() => handleButtonClick("Sign Up")}
+            >
+              Sign Up
+            </div>
+            <div
+              className={`submit ${action === "Login" ? "" : "gray"}`}
+              onClick={() => handleButtonClick("Login")}
+            >
+              Login
+            </div>
+          </div>
+
+          {loading && <div className="loading-spinner">Loading...</div>}
         </div>
-
-        {action === "Login" && (
-          <div className="forgot-password">
-            <span onClick={() => navigate("/forgot-password")}>Forgot Password?</span>
-          </div>
-        )}
-
-        {error && <p className="error">{error}</p>}
-        {success && <p className="success">{action} successful!</p>}
-
-        <div className="submit-container">
-          <div
-            className={`submit ${action === "Sign Up" ? "" : "gray"}`}
-            onClick={() => handleButtonClick("Sign Up")}
-          >
-            Sign Up
-          </div>
-          <div
-            className={`submit ${action === "Login" ? "" : "gray"}`}
-            onClick={() => handleButtonClick("Login")}
-          >
-            Login
-          </div>
-        </div>
-
-        {loading && <div className="loading-spinner">Loading...</div>}
       </div>
     </div>
   );

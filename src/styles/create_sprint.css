@@ -2,12 +2,13 @@
 /* 🌟 Create Sprint Page Layout */
 /* ============================= */
 .create-sprint-page {
+  min-height: calc(100vh - 60px) !important; /* Extend to the footer */
   display: flex !important;
+  flex-direction: column !important;
   justify-content: center !important;
   align-items: center !important;
-  min-height: 80vh !important;
-  background-color: var(--bg-secondary) !important;
   padding: var(--space-5) !important;
+  background: var(--accent-primary) !important; /* Match the gold background */
 }
 
 /* ============================= */

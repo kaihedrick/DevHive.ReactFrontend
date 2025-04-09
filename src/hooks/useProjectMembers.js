@@ -31,7 +31,14 @@ export const useProjectMembers = (projectId, projectOwnerID) => {
         })
       );
 
-      setMembers(formattedMembers);
+      // Sort members to ensure the owner is always at the top
+      const sortedMembers = formattedMembers.sort((a, b) => {
+        if (a.isOwner) return -1; // Owner comes first
+        if (b.isOwner) return 1;
+        return a.name.localeCompare(b.name); // Sort others alphabetically
+      });
+
+      setMembers(sortedMembers);
       setIsCurrentUserOwner(loggedInUserId === projectOwnerID); // Check if the logged-in user is the owner
       setError(null);
     } catch (err) {

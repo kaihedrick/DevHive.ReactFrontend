@@ -6,7 +6,7 @@ import { fetchProjectTasksWithAssignees, fetchTaskById, editTask } from "../serv
 import { getSelectedProject } from "../services/storageService";
 import useBacklogActions from "../hooks/useBacklogActions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRotateLeft, faCheck, faXmark, faPenToSquare, faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRotateLeft, faCheck, faXmark, faPenToSquare, faPlus, faTimes, faExclamationTriangle, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import "../styles/backlog.css";
 
 const Backlog = ({ projectId }) => {
@@ -95,39 +95,36 @@ const Backlog = ({ projectId }) => {
   /** ✅ Handle Assignee Change */
   const handleAssigneeChange = async (task, newAssigneeId) => {
     try {
-      // Important: Notice the task properties here
-      // The frontend uses lowercase (task.id) but the backend expects uppercase (ID)
-      console.log("Task being updated:", task);
-      
-      // Create a complete task object with all required fields and proper casing
+      // Convert "Unassigned" to null
+      const updatedAssigneeId = newAssigneeId === "unassigned" ? null : newAssigneeId;
+
+      // Create a complete task object with all required fields
       const updatedTask = {
-        ID: task.id,              // Convert from lowercase to uppercase
+        ID: task.id, // Ensure task ID is provided (uppercase for backend compatibility)
         Description: task.description,
-        AssigneeID: newAssigneeId,
-        DateCreated: task.dateCreated,
+        AssigneeID: updatedAssigneeId, // Set to null if unassigned
+        SprintID: task.sprintID || null,
         Status: task.status,
-        SprintID: task.sprintID
+        DateCreated: task.dateCreated,
       };
-      
-      console.log("Sending to backend:", updatedTask);
-      
+
+      console.log("Updating task with new assignee:", updatedTask);
+
       // Update the task in the backend
       await editTask(updatedTask);
-      
+
       // Update the task in the state
-      setTasks(prevTasks => 
-        prevTasks.map(t => 
-          t.id === task.id 
-            ? { ...t, assigneeID: newAssigneeId } 
-            : t
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === task.id ? { ...t, assigneeID: updatedAssigneeId } : t
         )
       );
-      
+
       // Show success message
       setSuccessMessage("Task assignee updated");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      console.error("❌ Error updating task assignee:", err);
+      console.error("Error updating task assignee:", err);
       setError(`Failed to update task assignee: ${err.message}`);
       setTimeout(() => setError(null), 3000);
     }
@@ -192,12 +189,23 @@ const Backlog = ({ projectId }) => {
         <h2 className="backlog-header">Backlog</h2>
 
         {loading ? (
-          <p className="loading-message">Loading backlog...</p>
+          <div className="alert warning">
+            <FontAwesomeIcon icon={faExclamationTriangle} className="alert-icon" />
+            Loading backlog...
+          </div>
         ) : error ? (
-          <p className="error-message">{error}</p>
+          <div className="alert error">
+            <FontAwesomeIcon icon={faExclamationCircle} className="alert-icon" />
+            {error}
+          </div>
         ) : successMessage ? (
-          <p className="success-message">{successMessage}</p>
-        ) : selectedSprint ? (
+          <div className="alert success">
+            <FontAwesomeIcon icon={faCheck} className="alert-icon" />
+            {successMessage}
+          </div>
+        ) : null}
+
+        {selectedSprint ? (
           <div className="sprint-details-container">
             <div className="back-arrow sprint-view" onClick={handleGoBack}>
               <FontAwesomeIcon icon={faArrowRotateLeft} />
@@ -225,11 +233,9 @@ const Backlog = ({ projectId }) => {
                           <span className="char-counter">{editedDescription.length} / 255</span>
                         </div>
                         <div className="task-controls edit-mode">
-                          {/* Save Button */}
                           <button className="save-btn" onClick={() => handleSaveEdit(task)}>
                             <FontAwesomeIcon icon={faCheck} />
                           </button>
-                          {/* Cancel Button */}
                           <button className="cancel-btn" onClick={handleCancelEdit}>
                             <FontAwesomeIcon icon={faTimes} />
                           </button>
@@ -264,10 +270,10 @@ const Backlog = ({ projectId }) => {
                           </select>
                           <select
                             className="task-assignee-dropdown"
-                            value={task.assigneeID || ""}
+                            value={task.assigneeID || "unassigned"}
                             onChange={(e) => handleAssigneeChange(task, e.target.value)}
                           >
-                            <option value="">Unassigned</option>
+                            <option value="unassigned">Unassigned</option>
                             {members.map((member) => (
                               <option key={member.id} value={member.id}>
                                 {member.firstName} {member.lastName}
@@ -278,12 +284,21 @@ const Backlog = ({ projectId }) => {
                             Date: {new Date(task.dateCreated).toLocaleDateString()}
                           </span>
                         </div>
+                        {/* Task Alert */}
+                        {task.alert && (
+                          <div className={`task-alert ${task.alert.type}`}>
+                            {task.alert.message}
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
                 ))
               ) : (
-                <p className="no-tasks-message">No tasks in this sprint.</p>
+                <div className="alert warning">
+                  <FontAwesomeIcon icon={faExclamationTriangle} className="alert-icon" />
+                  No tasks in this sprint.
+                </div>
               )}
             </div>
             
@@ -320,7 +335,10 @@ const Backlog = ({ projectId }) => {
                   </div>
                 ))
               ) : (
-                <p className="no-sprints-message">No sprints available.</p>
+                <div className="alert warning">
+                  <FontAwesomeIcon icon={faExclamationTriangle} className="alert-icon" />
+                  No sprints available.
+                </div>
               )}
             </div>
             

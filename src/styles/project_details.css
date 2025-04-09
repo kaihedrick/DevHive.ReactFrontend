@@ -1,5 +1,5 @@
 /* ======================= */
-/* Project Details Styling */
+/* Scoped Project Details Styling */
 /* ======================= */
 
 .project-details {
@@ -41,10 +41,7 @@
   box-sizing: border-box !important; /* Ensure padding doesn't affect the width */
 }
 
-/* ======================== */
-/* Edit, Save & Cancel Buttons */
-/* ======================== */
-
+/* Scoped Edit, Save & Cancel Buttons */
 .project-details .edit-buttons {
   position: absolute !important;
   top: var(--space-5) !important;
@@ -53,95 +50,51 @@
   gap: var(--space-3) !important;
 }
 
-/* ======================= */
-/* Edit Button Styling (faPenToSquare) */
-/* ======================= */
 .project-details .edit-project-btn {
-  color: var(--white) !important; /* Make the edit button white */
+  color: var(--white) !important;
   background: none !important;
   border: none !important;
-  font-size: 1.5rem !important; /* Ensure consistent size */
+  font-size: 1.5rem !important;
   cursor: pointer !important;
   transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
 }
 
 .project-details .edit-project-btn:hover {
   transform: scale(1.1) !important;
-  color: var(--gold) !important; /* Highlight gold on hover */
+  color: var(--gold) !important;
 }
 
-/* ======================= */
-/* Save Button (faCheck) Styling */
-/* ======================= */
 .project-details .save-btn {
   color: hsl(145, 63%, 42%) !important;
-  background: none !important; /* Remove any background */
-  border: none !important; /* Remove any border */
-  font-size: 1.5rem !important; /* Ensure consistent size */
+  background: none !important;
+  border: none !important;
+  font-size: 1.5rem !important;
   cursor: pointer !important;
   transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
-  position: absolute !important; /* Position relative to the container */
-  right: 2.5rem !important; /* Adjust padding to overlap inside the text box */
-  top: 0.25rem !important; /* Slightly overlap the top of the text box */
+  z-index: 1;
 }
 
-/* Hover effect for save button */
 .project-details .save-btn:hover {
-  transform: scale(1.2) !important; /* Scale on hover */
+  transform: scale(1.2) !important;
   color: hsl(145, 63%, 32%) !important;
 }
 
-/* ======================= */
-/* Cancel Button (faXmark) Styling */
-/* ======================= */
 .project-details .cancel-btn {
   color: hsl(0, 70%, 50%) !important;
-  background: none !important; /* Remove any background */
-  border: none !important; /* Remove any border */
-  font-size: 1.5rem !important; /* Ensure consistent size */
+  background: none !important;
+  border: none !important;
+  font-size: 1.5rem !important;
   cursor: pointer !important;
   transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
-}
-.project-details .cancel-btn:focus {
-  outline: none !important;
-  box-shadow: none !important;
 }
 
 .project-details .cancel-btn:hover {
   transform: scale(1.2) !important;
+  background: none !important;
   color: hsl(0, 70%, 40%) !important;
 }
 
-/* ======================= */
-/* Cancel Button (Scoped to Project Details) */
-/* ======================= */
-.project-details .project-details__cancel-btn {
-  color: hsl(0, 70%, 50%) !important;
-  background: none !important; /* Remove any background */
-  border: none !important; /* Remove any border */
-  font-size: 1.5rem !important; /* Ensure consistent size */
-  cursor: pointer !important;
-  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
-  position: absolute !important; /* Position relative to the container */
-  right: 0.5rem !important; /* Adjust padding to overlap inside the text box */
-  top: 0.25rem !important; /* Slightly overlap the top of the text box */
-}
-
-.project-details .project-details__cancel-btn:focus {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-/* Hover effect for cancel button */
-.project-details .project-details__cancel-btn:hover {
-  transform: scale(1.2) !important; /* Scale on hover */
-  color: hsl(0, 70%, 40%) !important;
-}
-
-/* ======================= */
-/* Invite Button */
-/* ======================= */
-
+/* Scoped Invite Button */
 .project-details .invite-btn {
   width: 200px !important;
   background-color: var(--accent-primary) !important;
@@ -161,10 +114,7 @@
   box-shadow: var(--shadow-md) !important;
 }
 
-/* ======================= */
-/* Members Section */
-/* ======================= */
-
+/* Scoped Members Section */
 .project-details .members-section {
   width: 100% !important;
   display: flex !important;
@@ -189,9 +139,7 @@
   list-style-type: none !important;
 }
 
-/* ======================= */
-/* Member List Styling */
-/* ======================= */
+/* Scoped Member List Styling */
 .project-details .member-item {
   position: relative !important;
   width: 100% !important;
@@ -214,7 +162,7 @@
 }
 
 .project-details .member-item.owner {
-  border-color: hsl(48, 100%, 50%) !important; /* Gold border for owners */
+  border-color: hsl(48, 100%, 50%) !important;
   font-weight: var(--font-weight-bold) !important;
 }
 
@@ -231,14 +179,12 @@
 
 .project-details .crown {
   font-size: 1.25rem !important;
-  color: hsl(48, 100%, 50%) !important; /* Gold color */
-  margin-right: var(--space-2) !important; /* Add spacing between crown and name */
-  vertical-align: middle !important; /* Align crown with text */
+  color: hsl(48, 100%, 50%) !important;
+  margin-right: var(--space-2) !important;
+  vertical-align: middle !important;
 }
 
-/* ======================= */
-/* Kick Member Styling */
-/* ======================= */
+/* Scoped Kick Member Styling */
 .project-details .kick-member {
   font-size: var(--font-size-lg) !important;
   color: hsl(0, 70%, 50%) !important;
@@ -321,38 +267,40 @@
 
 /* Buttons with Icons */
 .confirm-btn, .cancel-btn {
-  width: 50px !important;
-  height: 50px !important;
-  background: none !important;
-  border: none !important;
-  font-size: var(--font-size-xl) !important;
-  cursor: pointer !important;
+  width: 50px !important; /* Ensure both buttons have the same width */
+  height: 50px !important; /* Ensure both buttons have the same height */
+  background: none !important; /* No background for both */
+  border: none !important; /* No border for both */
+  font-size: var(--font-size-xl) !important; /* Same font size for icons */
+  cursor: pointer !important; /* Pointer cursor for both */
   transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  display: flex !important; /* Flexbox for centering */
+  align-items: center !important; /* Center vertically */
+  justify-content: center !important; /* Center horizontally */
+  padding: 0 !important; /* Remove any padding */
+  color: var(--text-primary) !important; /* Default color for both */
 }
 
 /* Checkmark (Confirm) is Green */
 .confirm-btn {
-  color: hsl(145, 63%, 42%) !important;
+  color: hsl(145, 63%, 42%) !important; /* Green color */
 }
 
 /* Expand on hover */
 .confirm-btn:hover {
-  transform: scale(1.2) !important;
-  color: hsl(145, 63%, 32%) !important;
+  transform: scale(1.2) !important; /* Same hover effect */
+  color: hsl(145, 63%, 32%) !important; /* Darker green on hover */
 }
 
 /* X (Cancel) is Red */
 .cancel-btn {
-  color: hsl(0, 70%, 50%) !important;
+  color: hsl(0, 70%, 50%) !important; /* Red color */
 }
 
 /* Expand on hover */
 .cancel-btn:hover {
-  transform: scale(1.2) !important;
-  color: hsl(0, 70%, 40%) !important;
+  transform: scale(1.2) !important; /* Same hover effect */
+  color: hsl(0, 70%, 40%) !important; /* Darker red on hover */
 }
 
 /* ======================= */

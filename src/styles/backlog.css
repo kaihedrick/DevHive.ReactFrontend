@@ -15,21 +15,59 @@
   background-color: var(--bg-secondary) !important;
 }
 
+/* Scoped alerts for backlog page */
+.backlog-page .alert {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: var(--space-3) var(--space-4) !important;
+  border-radius: var(--border-radius) !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  margin-bottom: var(--space-4) !important;
+  text-align: center !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Success alert */
+.backlog-page .alert.success {
+  background-color: hsl(120, 70%, 40%) !important; /* Green */
+  color: var(--white) !important;
+}
+
+/* Error alert */
+.backlog-page .alert.error {
+  background-color: hsl(0, 80%, 50%) !important; /* Red */
+  color: var(--white) !important;
+}
+
+/* Warning alert */
+.backlog-page .alert.warning {
+  background-color: hsl(45, 100%, 50%) !important; /* Yellow */
+  color: var(--black) !important;
+}
+
+/* Icon styling for alerts */
+.backlog-page .alert .alert-icon {
+  margin-right: var(--space-2) !important;
+  font-size: var(--font-size-lg) !important;
+}
+
 /* ==========================
    Backlog Container
 ========================== */
 
 .backlog-container {
   width: 100% !important;
-  max-width: 900px !important; /* Restrict max width */
-  padding: var(--space-5) !important;
-  background: var(--bg-primary) !important; /* Changed to white background */
+  max-width: 1000px !important; /* Increased max width */
+  padding: var(--space-6) !important; /* Increased padding */
+  background: var(--bg-primary) !important;
   border-radius: var(--border-radius) !important;
-  box-shadow: var(--shadow-md) !important;
+  box-shadow: var(--shadow-lg) !important; /* Enhanced shadow */
   text-align: center !important;
   position: relative !important;
-  border: 1px solid var(--border-color) !important; /* Outline the main form */
-  margin-bottom: var(--space-5) !important; /* Add margin at the bottom */
+  border: 1px solid var(--border-color) !important;
+  margin-bottom: var(--space-6) !important; /* Increased bottom margin */
   display: flex !important;
   flex-direction: column !important;
 }
@@ -152,17 +190,20 @@
 /* ==========================
    Sprint Task View
 ========================== */
-
 .sprint-details-container {
-  background: var(--bg-primary) !important; /* Changed to bg-primary */
+  background: var(--bg-primary) !important;
   padding: var(--space-5) !important;
   border-radius: var(--border-radius) !important;
   box-shadow: var(--shadow-md) !important;
   text-align: center !important;
   margin-bottom: var(--space-5) !important;
-  color: var(--text-primary) !important; /* Changed to text-primary for better readability */
-  border: 1px solid var(--border-color) !important; /* Outline the main form */
-  position: relative !important; /* For positioning back arrow */
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  position: relative !important;
+  height: 700px !important; /* Increased height to show more tasks */
+  overflow: hidden !important; /* Prevent content overflow */
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 /* Sprint Details Title */
@@ -230,27 +271,41 @@
 
 /* Task List */
 .task-list {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: var(--space-3) !important;
-  margin-top: var(--space-4) !important;
+  flex-grow: 1 !important; /* Allow the task list to grow within the container */
+  overflow-y: auto !important; /* Enable vertical scrolling for tasks */
+  padding-right: var(--space-3) !important; /* Add padding for better spacing */
+  margin-top: var(--space-3) !important;
+  scrollbar-width: thin !important; /* For Firefox */
+  scrollbar-color: var(--accent-primary) var(--bg-secondary) !important; /* Custom scrollbar colors */
 }
 
-/* Task Card */
+.task-list::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.task-list::-webkit-scrollbar-thumb {
+  background-color: var(--accent-primary) !important;
+  border-radius: var(--border-radius) !important;
+}
+
+.task-list::-webkit-scrollbar-track {
+  background-color: var(--bg-secondary) !important;
+}
+
 .task-card {
   display: flex !important;
   flex-direction: column !important;
   position: relative !important;
   background: var(--bg-primary) !important;
-  padding: var(--space-3) !important;
+  padding: var(--space-4) !important; /* Increased padding */
   border-radius: var(--border-radius) !important;
   border: 1px solid var(--border-color) !important;
   transition: box-shadow var(--transition-normal) ease !important;
   color: var(--text-primary) !important;
-  box-shadow: var(--shadow-sm) !important;
-  margin-bottom: var(--space-3) !important;
-  height: auto !important; /* Allow height to adjust dynamically */
-  min-height: 100px !important; /* Ensure a minimum height */
+  box-shadow: var(--shadow-md) !important; /* Enhanced shadow */
+  margin-bottom: var(--space-4) !important; /* Increased spacing between tasks */
+  height: auto !important;
+  min-height: 120px !important; /* Slightly larger minimum height */
 }
 
 /* Task Content (Description) */
@@ -468,9 +523,9 @@
   100% { opacity: 0 !important; }
 }
 
-/* ============================= */
-/*  Back Arrow Inside Sprint View */
-/* ============================= */
+/* =============================
+   Back Arrow Inside Sprint View
+============================= */
 .sprint-details-container .back-arrow.sprint-view {
   position: absolute !important;
   top: var(--space-3) !important;
@@ -487,9 +542,9 @@
   transform: scale(1.2) !important;
 }
 
-/* ============================= */
-/*  Backlog Item */
-/* ============================= */
+/* =============================
+   Backlog Item
+============================= */
 .backlog-item {
   background: var(--bg-primary) !important; /* Changed to bg-primary */
   border-left: 4px solid var(--accent-primary) !important;
@@ -501,9 +556,9 @@
   text-align: left !important;
 }
 
-/* ============================= */
-/*  Backlog Header */
-/* ============================= */
+/* =============================
+   Backlog Header
+============================= */
 .backlog-header {
   background: var(--accent-primary) !important; /* Changed to accent-primary */
   color: var(--black) !important; /* Changed to black for better readability on gold */
@@ -519,9 +574,9 @@
   font-size: var(--font-size-xl) !important;
 }
 
-/* ============================= */
-/*  Backlog Filters */
-/* ============================= */
+/* =============================
+   Backlog Filters
+============================= */
 .backlog-filters {
   background: var(--bg-secondary) !important; /* Changed to bg-secondary */
   padding: var(--space-3) !important;
@@ -667,29 +722,85 @@ body {
 }
 
 /* Save and Cancel Buttons */
-.save-btn,
-.cancel-btn {
-  background: none !important;
+.backlog-page .save-btn,
+.backlog-page .cancel-btn {
+  font-size: 1.5rem !important; /* Match size with edit button */
+  padding: var(--space-2) var(--space-3) !important; /* Add padding for better clickability */
+  background-color: transparent !important; /* Transparent background */
+  color: var(--text-primary) !important;
   border: none !important;
-  font-size: var(--font-size-lg) !important;
+  border-radius: var(--border-radius) !important;
   cursor: pointer !important;
   transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 50px !important; /* Ensure consistent size */
+  height: 50px !important; /* Ensure consistent size */
 }
 
-.save-btn {
+
+.backlog-page .save-btn {
   color: hsl(145, 63%, 42%) !important;
 }
 
-.save-btn:hover {
+.backlog-page .save-btn:hover {
   transform: scale(1.2) !important;
   color: hsl(145, 63%, 32%) !important;
 }
 
-.cancel-btn {
+.backlog-page .cancel-btn {
   color: hsl(0, 70%, 50%) !important;
 }
 
-.cancel-btn:hover {
+.backlog-page .cancel-btn:hover {
   transform: scale(1.2) !important;
   color: hsl(0, 70%, 40%) !important;
+}
+
+/* Edit Task Icon */
+.backlog-page .edit-task-icon {
+  font-size: 1.5rem !important; /* Increased size for better clickability */
+  cursor: pointer !important;
+  color: var(--text-secondary) !important;
+  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+}
+
+.backlog-page .edit-task-icon:hover {
+  color: var(--text-primary) !important; /* Change color on hover */
+  transform: scale(1.2) !important; /* Slightly enlarge on hover */
+}
+
+/* Save Button (Checkmark) */
+.save-btn {
+  font-size: 1.5rem !important; /* Match size with edit icon */
+  padding: var(--space-2) var(--space-3) !important; /* Add padding for better clickability */
+  background-color: var(--success) !important; /* Green background for save */
+  color: var(--white) !important;
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  cursor: pointer !important;
+  transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+}
+
+.save-btn:hover {
+  transform: scale(1.2) !important; /* Slightly enlarge on hover */
+  box-shadow: var(--shadow-md) !important; /* Add shadow on hover */
+}
+
+/* Cancel Button (X) */
+.cancel-btn {
+  font-size: 1.5rem !important; /* Match size with save button */
+  padding: var(--space-2) var(--space-3) !important; /* Add padding for better clickability */
+  background-color: var(--error) !important; /* Red background for cancel */
+  color: var(--white) !important;
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  cursor: pointer !important;
+  transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+}
+
+.cancel-btn:hover {
+  transform: scale(1.2) !important; /* Slightly enlarge on hover */
+  box-shadow: var(--shadow-md) !important; /* Add shadow on hover */
 }

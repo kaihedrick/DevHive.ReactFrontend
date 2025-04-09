@@ -1,5 +1,5 @@
 /* Login/Register page specific styling */
-.background {
+.login-register-page .background {
   display: flex !important;
   flex-direction: column !important; 
   justify-content: center !important;
@@ -196,7 +196,7 @@
   margin-top: var(--space-4) !important;
 }
 
-.submit {
+.login-register-page .submit {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
@@ -233,21 +233,26 @@
   border: 1px solid red !important;
 }
 
-.error {
+.login-register-page .error {
   color: hsl(0, 80%, 50%) !important;
   font-size: var(--font-size-sm) !important;
   margin-top: var(--space-2) !important;
   text-align: center !important;
 }
 
-.success {
-  color: hsl(120, 70%, 40%) !important;
+.login-register-page .success {
+  color: hsl(120, 70%, 40%) !important; /* Green color for success */
   font-size: var(--font-size-sm) !important;
   margin-top: var(--space-2) !important;
   text-align: center !important;
+  background: hsl(120, 70%, 90%) !important; /* Light green background */
+  border: 1px solid hsl(120, 70%, 40%) !important; /* Green border */
+  border-radius: var(--border-radius) !important;
+  padding: var(--space-2) var(--space-3) !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
-.loading-spinner {
+.login-register-page .loading-spinner {
   margin-top: var(--space-3) !important;
   text-align: center !important;
   color: var(--gold) !important;

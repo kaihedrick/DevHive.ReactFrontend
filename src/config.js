@@ -8,8 +8,10 @@ export const ENDPOINTS = {
   SPRINT: `${API_BASE_URL}/Scrum/Sprint`,
   TASK: `${API_BASE_URL}/Scrum/Task`,
   MEMBER: `${API_BASE_URL}/Scrum/Project/Members`,
-  MESSAGE: `${API_BASE_URL}/Message`
+  MESSAGE: `${API_BASE_URL}/Message`,
+  UPDATE_PROJECT_OWNER: `${API_BASE_URL}/Scrum/Project/UpdateProjectOwner` // Add this line
 };
+
 // Add StorageKeys enum
 export const StorageKeys = {
   AUTH_TOKEN: 'token',

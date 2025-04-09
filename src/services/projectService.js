@@ -177,13 +177,14 @@ export const leaveProject = async (projectId) => {
       throw new Error("❌ Project ID or User ID is missing.");
     }
 
-    const apiUrl = `${API_BASE_URL}/api/Project/Leave`;
-    
+    const apiUrl = `${API_BASE_URL}/Scrum/Project/Leave`; // Corrected URL to match the format
+
     console.log("🚀 Sending request to leave project:", projectId);
     console.log("📤 Payload:", { ProjectID: projectId, UserID: userId });
 
-    const response = await axios.post(apiUrl, 
-      { ProjectID: projectId, UserID: userId }, 
+    const response = await axios.post(
+      apiUrl,
+      { ProjectID: projectId, UserID: userId },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -193,21 +194,23 @@ export const leaveProject = async (projectId) => {
     );
 
     console.log("✅ Successfully left project:", response.data);
-    
+
     // Clear selected project since we've left it
     clearSelectedProject();
-    
+
     return response.data;
   } catch (error) {
     console.error("❌ Error leaving project:", error.response?.data || error.message);
-    
+
     // Check for specific error message from backend indicating user is project owner
-    if (error.response?.data && 
-        typeof error.response.data === 'string' && 
-        error.response.data.includes("project owner")) {
+    if (
+      error.response?.data &&
+      typeof error.response.data === "string" &&
+      error.response.data.includes("project owner")
+    ) {
       throw new Error("You are the project owner. Please reassign ownership before leaving the project.");
     }
-    
+
     throw new Error(error.response?.data || "Failed to leave the project.");
   }
 };
@@ -251,6 +254,45 @@ export const editProject = async (project) => {
   }
 };
 
+/**
+ * Update the project owner.
+ * @param {string} projectId - The ID of the project.
+ * @param {string} newOwnerId - The ID of the new project owner.
+ * @returns {Promise<string>} - Success message from the API.
+ */
+export const updateProjectOwner = async (projectId, newOwnerId) => {
+  try {
+    const token = getAuthToken();
+
+    if (!projectId || !newOwnerId) {
+      throw new Error("Project ID and new owner ID are required.");
+    }
+
+    const apiUrl = ENDPOINTS.UPDATE_PROJECT_OWNER; // Use the endpoint from config
+    console.log(`🚀 Updating project owner for project ${projectId} to user ${newOwnerId}`);
+    console.log(`📡 Full API URL: ${apiUrl}`);
+
+    const response = await axios.put(
+      apiUrl,
+      { ProjectID: projectId, NewOwnerID: newOwnerId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("✅ Project owner updated successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error updating project owner:", error.response?.data || error.message);
+    if (error.response?.status === 404) {
+      throw new Error("The endpoint was not found. Please verify the API URL.");
+    }
+    throw new Error(error.response?.data || "Failed to update project owner.");
+  }
+};
 // Function to remove a member from a project (Only for project owner)
 export const removeMemberFromProject = async (projectId, memberId) => {
   try {

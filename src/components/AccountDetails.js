@@ -5,6 +5,7 @@ import { faArrowRotateLeft, faCheck, faTimes, faExclamationCircle, faExclamation
 import useAccountDetails from "../hooks/useAccountDetails";
 import "../styles/account_details.css";
 import { getSelectedProject } from "../services/storageService";
+import { fetchProjectMembers } from "../services/projectService";
 
 const AccountDetails = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const AccountDetails = () => {
     updateUsername,
     getUserProp,
     leaveProjectState,
+    reassignOwnershipAndLeave,
   } = useAccountDetails();
 
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -33,6 +35,9 @@ const AccountDetails = () => {
   const [usernameSuccess, setUsernameSuccess] = useState("");
 
   const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
+  const [projectMembers, setProjectMembers] = useState([]);
+  const [selectedNewOwner, setSelectedNewOwner] = useState("");
+  const [reassignError, setReassignError] = useState("");
 
   const selectedProjectId = getSelectedProject();
   const hasSelectedProject = !!selectedProjectId;
@@ -43,8 +48,20 @@ const AccountDetails = () => {
     }
   }, [user]);
 
-  if (loading) return <p className="loading-spinner">Loading account details...</p>;
-  if (error) return <p className="error">{error}</p>;
+  useEffect(() => {
+    if (showLeaveConfirmation && hasSelectedProject) {
+      fetchMembersForProject(); // Use a renamed function to avoid confusion
+    }
+  }, [showLeaveConfirmation, hasSelectedProject]);
+
+  const fetchMembersForProject = async () => {
+    try {
+      const members = await fetchProjectMembers(selectedProjectId); // Use the imported function
+      setProjectMembers(members.filter((member) => member.id !== user?.id)); // Exclude the current user
+    } catch (err) {
+      console.error("❌ Error fetching project members:", err);
+    }
+  };
 
   const handlePasswordChangeClick = () => {
     setShowPasswordChange(true);
@@ -156,6 +173,21 @@ const AccountDetails = () => {
     setShowLeaveConfirmation(true);
   };
 
+  const handleReassignAndLeave = async () => {
+    if (!selectedNewOwner) {
+      setReassignError("Please select a new project owner.");
+      return;
+    }
+
+    setReassignError("");
+    try {
+      await reassignOwnershipAndLeave(selectedProjectId, selectedNewOwner);
+      setShowLeaveConfirmation(false);
+    } catch (err) {
+      setReassignError(err.message || "Failed to reassign ownership.");
+    }
+  };
+
   const executeLeaveProject = async () => {
     try {
       await handleLeaveGroup();
@@ -169,6 +201,9 @@ const AccountDetails = () => {
   const cancelLeaveProject = () => {
     setShowLeaveConfirmation(false);
   };
+
+  if (loading) return <p className="loading-spinner">Loading account details...</p>;
+  if (error) return <p className="error">{error}</p>;
 
   return (
     <div className="account-details-page">
@@ -217,7 +252,12 @@ const AccountDetails = () => {
                 className="editable-field"
                 placeholder="Username"
               />
-              {usernameSuccess && <div className="success-message">{usernameSuccess}</div>}
+              {usernameSuccess && (
+                <div className="success-popup-account">
+                  <FontAwesomeIcon icon={faCheck} className="success-icon" />
+                  {usernameSuccess}
+                </div>
+                )}
             </div>
           )}
 
@@ -271,52 +311,86 @@ const AccountDetails = () => {
           )}
 
           {/* Leave Project Section */}
-          {showLeaveConfirmation ? (
-            <div className="leave-project-confirmation">
-              <div className="warning-message">
-                <FontAwesomeIcon icon={faExclamationTriangle} className="warning-icon" />
-                Are you sure you want to leave this project? Your tasks will be unassigned.
-              </div>
-              <div className="confirmation-actions">
-                <button className="confirm-leave-btn" onClick={executeLeaveProject}>
-                  Yes, Leave Project
-                </button>
-                <button className="cancel-btn" onClick={cancelLeaveProject}>
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
+          {hasSelectedProject ? (
             <>
-              {hasSelectedProject ? (
-                <>
-                  <button
-                    className="leave-group-btn"
-                    onClick={confirmLeaveProject}
-                  >
-                    Leave Project
-                  </button>
-                  {leaveProjectState.error && (
-                    <div className="error-message">
-                      <FontAwesomeIcon icon={faExclamationCircle} /> {leaveProjectState.error}
-                    </div>
-                  )}
-                  {leaveProjectState.success && (
-                    <div className="success-message">
-                      {leaveProjectState.success}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <button
-                  className="leave-group-btn disabled"
-                  disabled
-                  title="Join or select a project first"
-                >
-                  Leave Project
-                </button>
+              <button
+                className="leave-group-btn"
+                onClick={confirmLeaveProject}
+              >
+                Leave Project
+              </button>
+              {leaveProjectState.error && (
+                <div className="error-message">
+                  <FontAwesomeIcon icon={faExclamationCircle} /> {leaveProjectState.error}
+                </div>
+              )}
+              {leaveProjectState.success && (
+                <div className="success-message">
+                  {leaveProjectState.success}
+                </div>
               )}
             </>
+          ) : (
+            <button
+              className="leave-group-btn disabled"
+              disabled
+              title="Join or select a project first"
+            >
+              Leave Project
+            </button>
+          )}
+
+          {showLeaveConfirmation && (
+            <div className="leave-project-confirmation">
+              {leaveProjectState.error === "You are the project owner. Please reassign ownership to another member before leaving." ? (
+                <>
+                  <div className="warning-message">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="warning-icon" />
+                    You are the project owner. Please reassign ownership to another member before leaving.
+                  </div>
+                  <select
+                    value={selectedNewOwner}
+                    onChange={(e) => setSelectedNewOwner(e.target.value)}
+                    className="dropdown"
+                  >
+                    <option value="">Select a new owner</option>
+                    {projectMembers.map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {member.username}
+                      </option>
+                    ))}
+                  </select>
+                  {reassignError && (
+                    <div className="error-message">
+                      <FontAwesomeIcon icon={faExclamationCircle} /> {reassignError}
+                    </div>
+                  )}
+                  <div className="confirmation-actions">
+                    <button className="confirm-leave-btn" onClick={handleReassignAndLeave}>
+                      Reassign and Leave
+                    </button>
+                    <button className="cancel-btn" onClick={cancelLeaveProject}>
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="warning-message">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="warning-icon" />
+                    Are you sure you want to leave this project? Your tasks will be unassigned.
+                  </div>
+                  <div className="confirmation-actions">
+                    <button className="confirm-leave-btn" onClick={executeLeaveProject}>
+                      Yes, Leave Project
+                    </button>
+                    <button className="cancel-btn" onClick={cancelLeaveProject}>
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           )}
 
           <button className="logout-btn" onClick={handleLogout}>Logout</button>
