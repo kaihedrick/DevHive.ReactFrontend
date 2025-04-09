@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://localhost:7170/api/Message"; 
+const API_BASE_URL = "http://18.119.104.29:5000/api"; 
 let socket = null;
 // Function to send a new message
 export const sendMessage = async (message) => {
