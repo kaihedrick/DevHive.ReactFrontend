@@ -1,77 +1,163 @@
-/* Centered Invite Container */
-.invite-container {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 20px;
-    text-align: center;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    position: relative;
+/* ======================= */
+/* Invite Members Styling */
+/* ======================= */
+
+.invite-members .invite-container {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 800px !important;
+  margin: var(--space-5) auto !important;
+  padding: var(--space-5) !important;
+  border: 1px solid var(--light-gray) !important;
+  background-color: var(--bg-primary) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-md) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: var(--space-4) !important;
+  transition: all var(--transition-normal) ease !important;
+  min-height: calc(100vh - 100px) !important;
+}
+
+.invite-members h2 {
+  font-size: var(--font-size-2xl) !important;
+  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-primary) !important;
+  margin-bottom: var(--space-4) !important;
+  text-align: center !important;
+}
+
+.invite-members p {
+  font-size: var(--font-size-base) !important;
+  color: var(--text-secondary) !important;
+  margin-bottom: var(--space-4) !important;
+  text-align: center !important;
+}
+
+.invite-members .invite-code {
+  width: 100% !important;
+  padding: var(--space-3) !important;
+  font-size: var(--font-size-base) !important;
+  text-align: center !important;
+  border: 2px solid var(--border-color) !important;
+  border-radius: var(--border-radius) !important;
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  margin-bottom: var(--space-4) !important;
+  transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+}
+
+.invite-members .invite-code:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: var(--shadow-focus) !important;
+  outline: none !important;
+}
+
+.invite-members .copy-button {
+  width: 200px !important;
+  background-color: var(--accent-primary) !important;
+  color: var(--white) !important;
+  border: none !important;
+  padding: var(--space-3) !important;
+  font-size: var(--font-size-base) !important;
+  cursor: pointer !important;
+  text-align: center !important;
+  border-radius: var(--border-radius) !important;
+  transition: background-color var(--transition-normal) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.invite-members .copy-button:hover {
+  background-color: var(--dark-gold) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.invite-members .copy-message {
+  margin-top: var(--space-3) !important;
+  font-size: var(--font-size-sm) !important;
+  color: hsl(145, 63%, 42%) !important;
+  animation: fadeOut 3s ease-in-out forwards !important;
+}
+
+/* Fade-Out Animation */
+@keyframes fadeOut {
+  0% {
+    opacity: 1 !important;
   }
-  
-  /* Logo Styling (Centered) */
-  .logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 10px;
+  70% {
+    opacity: 1 !important;
   }
-  
-  .logo img {
-    width: 50px;
+  100% {
+    opacity: 0 !important;
   }
-  
-  /* Back Button (Right-Aligned) */
-  .back-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 18px;
-    cursor: pointer;
-    color: #333;
+}
+
+.invite-members .back-button {
+  position: absolute !important;
+  top: var(--space-3) !important;
+  left: var(--space-3) !important;
+  font-size: var(--font-size-lg) !important;
+  cursor: pointer !important;
+  color: var(--text-secondary) !important;
+  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+}
+
+.invite-members .back-button:hover {
+  color: var(--text-primary) !important;
+  transform: scale(1.2) !important;
+}
+
+/* Back Arrow */
+.invite-members .back-arrow {
+  position: absolute !important;
+  top: var(--space-3) !important;
+  left: var(--space-3) !important;
+  font-size: var(--font-size-lg) !important;
+  cursor: pointer !important;
+  color: var(--text-secondary) !important;
+  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+  z-index: 10 !important;
+}
+
+.invite-members .back-arrow:hover {
+  color: var(--text-primary) !important;
+  transform: scale(1.2) !important;
+}
+
+.invite-members .logo {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-bottom: var(--space-4) !important;
+}
+
+.invite-members .logo img {
+  width: 80px !important;
+  height: auto !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .invite-members .invite-container {
+    padding: var(--space-3) !important;
   }
-  
-  /* Invite Code Input Field */
-  .invite-code {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    text-align: center;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-bottom: 15px;
-    background-color: #f9f9f9;
+
+  .invite-members .invite-code {
+    font-size: var(--font-size-sm) !important;
   }
-  
-  /* Copy Button */
-  .copy-button {
-    background-color: #f0ad4e;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 5px;
+
+  .invite-members .copy-button {
+    font-size: var(--font-size-sm) !important;
   }
-  
-  .copy-button:hover {
-    background-color: #ec971f;
+}
+
+@media (max-width: 480px) {
+  .invite-members h2 {
+    font-size: var(--font-size-lg) !important;
   }
-  
-  /* Copy Success Message */
-  .copy-message {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #28a745; /* Green Success Color */
-    animation: fadeOut 2s ease-in-out forwards;
+
+  .invite-members .invite-code {
+    font-size: var(--font-size-sm) !important;
   }
-  
-  /* Fade-Out Animation */
-  @keyframes fadeOut {
-    0% { opacity: 1; }
-    70% { opacity: 1; }
-    100% { opacity: 0; }
-  }
-  
+}
