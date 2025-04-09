@@ -419,6 +419,7 @@ export const editSprint = async (sprintData) => {
 };
 
 // Function to edit/update an existing task
+// Function to edit/update an existing task
 export const editTask = async (taskData) => {
   try {
     const token = getAuthToken();
@@ -427,12 +428,27 @@ export const editTask = async (taskData) => {
       throw new Error("❌ Task data is missing or Task ID is not provided.");
     }
 
+    // Format task data for the API - using PascalCase keys as expected by the backend
+    const formattedTaskData = {
+      ID: taskData.id,                                 // Use uppercase ID
+      Description: taskData.description,               // Use PascalCase
+      AssigneeID: taskData.assigneeID === '' ? null : taskData.assigneeID, // Convert empty string to null
+      SprintID: taskData.sprintID || null,             // Ensure SprintID is present or null
+      Status: Number(taskData.status),                 // Ensure status is a number (0, 1, or 2)
+      DateCreated: taskData.dateCreated                // Keep the original date format
+    };
+
+    // Validate status is only 0, 1, or 2
+    if (![0, 1, 2].includes(Number(formattedTaskData.Status))) {
+      throw new Error(`Invalid status value: ${formattedTaskData.Status}. Must be 0, 1, or 2.`);
+    }
+
     const apiUrl = `${API_BASE_URL}/Scrum/Task/`; 
 
     console.log("🚀 Sending PUT request to update task:", apiUrl);
-    console.log("📤 Task Payload:", taskData);
+    console.log("📤 Task Payload:", formattedTaskData);
 
-    const response = await axios.put(apiUrl, taskData, {
+    const response = await axios.put(apiUrl, formattedTaskData, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -528,18 +544,23 @@ export const fetchProjectTasksWithAssignees = async (projectId) => {
 };
 
 // Function to update task status
+// Function to update task status
 export const updateTaskStatus = async (taskId, newStatus) => {
   try {
     const token = getAuthToken();
 
     if (!taskId) throw new Error("❌ Task ID is required.");
-    if (![0, 1, 3].includes(newStatus)) throw new Error("❌ Invalid task status.");
+    
+    // Ensure status is only 0, 1, or 2 (not 3)
+    if (![0, 1, 2].includes(Number(newStatus))) {
+      throw new Error(`❌ Invalid task status: ${newStatus}. Must be 0, 1, or 2.`);
+    }
 
     const apiUrl = `${API_BASE_URL}/Scrum/Task/${taskId}/Status`;
 
     console.log(`🚀 Updating task ${taskId} status to ${newStatus}`);
 
-    const response = await axios.put(apiUrl, { status: newStatus }, {
+    const response = await axios.put(apiUrl, { status: Number(newStatus) }, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

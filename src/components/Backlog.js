@@ -85,10 +85,18 @@ const Backlog = ({ projectId }) => {
   /** ✅ Handle Status Change */
   const handleStatusChange = async (task, newStatus) => {
     try {
+      console.log(`🔄 Updating status for Task ID: ${task.id} to ${newStatus}`);
       await handleUpdateTaskStatus(task, newStatus);
       refreshTask(task.id);
+      
+      // Add success message
+      const statusText = newStatus === 0 ? 'To Do' : newStatus === 1 ? 'In Progress' : 'Completed';
+      setSuccessMessage(`Task moved to ${statusText}`);
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       console.error("❌ Error updating task status:", error);
+      setError(`Failed to update task status: ${error.message}`);
+      setTimeout(() => setError(null), 3000);
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { getSelectedProject } from '../services/storageService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt, faBars } from '@fortawesome/free-solid-svg-icons';
@@ -26,18 +26,36 @@ const Board = () => {
     handleStatusUpdate,
     setSuccessMessage
   } = useBoardActions(projectId);
-  
+
   const columnRefs = {
     todo: useRef(null),
     inProgress: useRef(null),
     completed: useRef(null)
   };
 
+  const [localSuccessMessage, setLocalSuccessMessage] = useState('');
+  const [localErrorMessage, setLocalErrorMessage] = useState('');
+
+  // Automatically clear success and error messages after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      setLocalSuccessMessage(successMessage);
+      setTimeout(() => setLocalSuccessMessage(''), 3000);
+    }
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (error) {
+      setLocalErrorMessage(error);
+      setTimeout(() => setLocalErrorMessage(''), 3000);
+    }
+  }, [error]);
+
   // Drag handlers
   const handleDragStart = (e, task) => {
     setDraggedTask(task);
     e.dataTransfer.effectAllowed = 'move';
-    
+
     // Create a ghost image of the task card
     const ghostElement = e.target.cloneNode(true);
     ghostElement.id = 'drag-ghost';
@@ -45,25 +63,25 @@ const Board = () => {
     ghostElement.style.top = '-1000px';
     ghostElement.style.opacity = '0';
     document.body.appendChild(ghostElement);
-    
+
     e.dataTransfer.setDragImage(ghostElement, 20, 20);
-    
+
     // Add a class to the dragged element
     e.target.classList.add('dragging');
-    
+
     // Required for Firefox
     e.dataTransfer.setData('text/plain', task.id);
   };
 
   const handleDragEnd = (e) => {
     e.target.classList.remove('dragging');
-    
+
     // Remove the ghost element
     const ghostElement = document.getElementById('drag-ghost');
     if (ghostElement) {
       ghostElement.remove();
     }
-    
+
     // Remove all highlighting
     Object.values(columnRefs).forEach(ref => {
       if (ref.current) {
@@ -75,13 +93,13 @@ const Board = () => {
   const handleDragOver = (e, columnName) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    
+
     // Highlight current column
     const columnRef = columnRefs[columnName];
     if (columnRef && columnRef.current) {
       columnRef.current.classList.add('highlight-drop-target');
     }
-    
+
     // Remove highlight from other columns
     Object.entries(columnRefs).forEach(([name, ref]) => {
       if (name !== columnName && ref.current) {
@@ -131,12 +149,17 @@ const Board = () => {
   return (
     <div className="board-page">
       <div className="board-container">
-        {successMessage && <div className="success-message">{successMessage}</div>}
-        {error && <div className="error-message">{error}</div>}
-        
+        {/* Success and Error Pop-Ups */}
+        {localSuccessMessage && (
+          <div className="success-popup">{localSuccessMessage}</div>
+        )}
+        {localErrorMessage && (
+          <div className="error-popup">{localErrorMessage}</div>
+        )}
+
         <div className="board-header">
           <h2 className="board-title">Project Board</h2>
-          
+
           <div className="sprint-selector">
             <label htmlFor="sprint-select">Select Sprint:</label>
             <select 

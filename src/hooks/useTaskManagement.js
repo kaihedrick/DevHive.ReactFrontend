@@ -18,7 +18,7 @@ export const useTaskManagement = (projectId, sprintId = null) => {
   // Tasks categorized by status
   const todoTasks = tasks.filter(task => task.status === 0);
   const inProgressTasks = tasks.filter(task => task.status === 1);
-  const completedTasks = tasks.filter(task => task.status === 3);
+  const completedTasks = tasks.filter(task => task.status === 2);
 
   const clearError = () => {
     setError(null);
@@ -146,7 +146,8 @@ export const useTaskManagement = (projectId, sprintId = null) => {
     try {
       console.log(`🔄 Updating task ${taskId} status to ${newStatus}`);
       
-      if (![0, 1, 3].includes(Number(newStatus))) {
+      // Change this line to check for 0, 1, and 2
+      if (![0, 1, 2].includes(Number(newStatus))) {
         throw new Error(`Invalid status value: ${newStatus}`);
       }
       

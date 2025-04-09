@@ -57,7 +57,7 @@
    Backlog Container
 ========================== */
 
-.backlog-container {
+.backlog-page .backlog-container {
   width: 100% !important;
   max-width: 1000px !important; /* Increased max width */
   padding: var(--space-6) !important; /* Increased padding */
@@ -341,16 +341,29 @@
 }
 
 /* Task Assignee Dropdown */
+/* Task Assignee Dropdown */
 .task-assignee-dropdown {
   padding: var(--space-2) !important;
   font-weight: var(--font-weight-medium) !important;
   border-radius: var(--border-radius) !important;
   color: var(--text-primary) !important;
   border: 1px solid var(--border-color) !important;
+  background-color: var(--bg-primary) !important;
   transition: border-color var(--transition-normal) ease !important;
-  min-width: 150px !important; /* Shrink width */
+  min-width: 150px !important; /* Ensure consistent width */
   max-width: 200px !important; /* Prevent it from growing too large */
+  height: 40px !important; /* Match the height of the date field */
+  line-height: 1.5 !important; /* Adjust line height for better alignment */
+  box-shadow: none !important; /* Remove any extra outline or shadow */
 }
+
+/* Remove outline on focus */
+.task-assignee-dropdown:focus {
+  outline: none !important;
+  border-color: var(--accent-primary) !important; /* Highlight border on focus */
+  box-shadow: var(--shadow-focus) !important; /* Add subtle shadow for focus */
+}
+
 
 /* Task Date */
 .task-date {
@@ -458,14 +471,14 @@
    Backlog Actions & Buttons
 ========================== */
 
-.backlog-actions {
+.backlog-page .backlog-actions {
   margin-top: var(--space-5) !important;
   display: flex !important;
   justify-content: center !important;
   gap: var(--space-3) !important;
 }
 
-.backlog-actions button {
+.backlog-page .backlog-actions button {
   padding: var(--space-3) var(--space-4) !important;
   font-size: var(--font-size-base) !important;
   font-weight: var(--font-weight-bold) !important;
@@ -475,22 +488,22 @@
   border: none !important;
 }
 
-.button-primary {
+.backlog-page .button-primary {
   background: var(--accent-primary) !important;
   color: var(--black) !important; /* Changed to black for better readability on gold */
 }
 
-.button-primary:hover {
+.backlog-page .button-primary:hover {
   background: var(--dark-gold) !important;
   transform: translateY(-2px) !important;
 }
 
-.button-secondary {
+.backlog-page .button-secondary {
   background: var(--bg-secondary) !important;
   color: var(--text-primary) !important;
 }
 
-.button-secondary:hover {
+.backlog-page .button-secondary:hover {
   background: var(--gray) !important;
   color: var(--white) !important;
   transform: translateY(-2px) !important;
@@ -500,27 +513,57 @@
    Success Pop-up
 ========================== */
 
-.success-popup {
+/* Success Pop-Up */
+.backlog-page .success-popup {
   position: fixed !important;
   top: var(--space-5) !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  background: hsl(120, 100%, 35%) !important; /* Brighter green */
-  color: var(--white) !important;
+  background: hsl(120, 70%, 40%) !important; /* Match success color from LoginRegister */
+  color: var(--white) !important; /* Ensure text is white for contrast */
   padding: var(--space-3) var(--space-4) !important;
   border-radius: var(--border-radius) !important;
+  font-size: var(--font-size-base) !important;
   font-weight: var(--font-weight-bold) !important;
-  display: flex !important;
-  align-items: center !important;
+  text-align: center !important;
   box-shadow: var(--shadow-md) !important;
-  opacity: 1 !important;
+  z-index: 1000 !important;
   animation: fadeOut 3s ease-in-out forwards !important;
-  z-index: 1000 !important; /* Ensure it's on top */
+  max-width: 400px !important; /* Limit the width for better readability */
+  word-wrap: break-word !important; /* Ensure long text wraps */
 }
 
+/* Error Pop-Up */
+.backlog-page .error-popup {
+  position: fixed !important;
+  top: var(--space-5) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: hsl(0, 70%, 50%) !important; /* Bright red for errors */
+  color: var(--white) !important; /* Ensure text is white for contrast */
+  padding: var(--space-3) var(--space-4) !important;
+  border-radius: var(--border-radius) !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-bold) !important;
+  text-align: center !important;
+  box-shadow: var(--shadow-md) !important;
+  z-index: 1000 !important;
+  animation: fadeOut 3s ease-in-out forwards !important;
+  max-width: 400px !important; /* Limit the width for better readability */
+  word-wrap: break-word !important; /* Ensure long text wraps */
+}
+
+/* Fade-Out Animation */
 @keyframes fadeOut {
-  0% { opacity: 1 !important; }
-  100% { opacity: 0 !important; }
+  0% {
+    opacity: 1 !important;
+  }
+  70% {
+    opacity: 1 !important;
+  }
+  100% {
+    opacity: 0 !important;
+  }
 }
 
 /* =============================
