@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://18.119.104.29:5000/api"; 
+const API_BASE_URL = "http://18.119.104.29:5000/api/Message"; 
 let socket = null;
 // Function to send a new message
 export const sendMessage = async (message) => {
@@ -72,7 +72,7 @@ export const subscribeToMessageStream = (userId, projectID, onMessageReceived) =
       return;
     }
 
-    const wsUrl = `wss://localhost:7170/ws/messages?userId=${userId}`;
+    const wsUrl = `wss://18.119.104.29:5000/ws/messages?userId=${userId}`;
     socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
