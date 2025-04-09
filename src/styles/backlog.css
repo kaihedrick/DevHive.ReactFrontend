@@ -236,7 +236,7 @@
   margin-top: var(--space-4) !important;
 }
 
-/* Task Card Styling - UPDATED to remove hover scaling */
+/* Task Card */
 .task-card {
   display: flex !important;
   flex-direction: column !important;
@@ -245,67 +245,64 @@
   padding: var(--space-3) !important;
   border-radius: var(--border-radius) !important;
   border: 1px solid var(--border-color) !important;
-  transition: box-shadow var(--transition-normal) ease !important; /* Removed transform */
+  transition: box-shadow var(--transition-normal) ease !important;
   color: var(--text-primary) !important;
   box-shadow: var(--shadow-sm) !important;
-  margin-bottom: var(--space-2) !important; /* Add spacing between cards */
+  margin-bottom: var(--space-3) !important;
+  height: auto !important; /* Allow height to adjust dynamically */
+  min-height: 100px !important; /* Ensure a minimum height */
 }
 
-.task-card:hover {
-  /* Removed transform: scale(1.03) to prevent popping out */
-  box-shadow: var(--shadow-md) !important; /* Keep subtle shadow enhancement */
-}
-
-/* Edit Task Icon - Keep hover effect for this icon only */
-.edit-task-icon {
-  position: absolute !important;
-  top: var(--space-2) !important;
-  right: var(--space-2) !important;
-  cursor: pointer !important;
-  color: var(--text-secondary) !important;
-  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
-  z-index: 5 !important;
-}
-
-.edit-task-icon:hover {
+/* Task Content (Description) */
+.task-content {
+  flex-grow: 1 !important;
+  font-size: var(--font-size-base) !important;
   color: var(--text-primary) !important;
-  transform: scale(1.2) !important; /* Keep icon scaling */
+  word-break: break-word !important; /* Allow long text to wrap */
+  margin-bottom: var(--space-3) !important;
+  padding-right: var(--space-5) !important; /* Add space for the edit button */
 }
 
-/* Status Dropdown - Updated to prevent unwanted hover effects */
+/* Task Controls */
+.task-controls {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: var(--space-3) !important;
+  flex-wrap: wrap !important; /* Allow wrapping on smaller screens */
+}
+
+/* Task Status Dropdown */
 .task-status {
   padding: var(--space-2) !important;
   font-weight: var(--font-weight-bold) !important;
   border-radius: var(--border-radius) !important;
   background-color: var(--bg-primary) !important;
   border: 1px solid var(--border-color) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 120px !important;
-  transition: border-color var(--transition-normal) ease !important; /* Changed transition to focus on border */
+  text-align: center !important;
+  transition: border-color var(--transition-normal) ease !important;
+  min-width: 120px !important; /* Shrink width */
+  max-width: 150px !important; /* Prevent it from growing too large */
 }
 
-/* Update hover behavior for status dropdowns */
-.task-status:hover {
-  transform: none !important; /* Remove vertical movement */
-  box-shadow: none !important; /* Remove shadow */
-  border-color: var(--text-secondary) !important; /* Subtle border change instead */
-  cursor: pointer !important;
-}
-
-/* Task Assignee Dropdown - Update style to match */
+/* Task Assignee Dropdown */
 .task-assignee-dropdown {
   padding: var(--space-2) !important;
-  font-weight: var(--font-weight-bold) !important;
+  font-weight: var(--font-weight-medium) !important;
   border-radius: var(--border-radius) !important;
   color: var(--text-primary) !important;
   border: 1px solid var(--border-color) !important;
   transition: border-color var(--transition-normal) ease !important;
+  min-width: 150px !important; /* Shrink width */
+  max-width: 200px !important; /* Prevent it from growing too large */
 }
 
-.task-assignee-dropdown:hover {
-  border-color: var(--text-secondary) !important;
+/* Task Date */
+.task-date {
+  font-size: var(--font-size-sm) !important;
+  color: var(--text-secondary) !important;
+  flex-shrink: 0 !important; /* Prevent shrinking */
+  white-space: nowrap !important; /* Prevent wrapping */
 }
 
 /* Task Content - Add padding for better spacing */
@@ -646,4 +643,53 @@ body {
 /* Button icon */
 .button-icon {
   margin-right: var(--space-2) !important;
+}
+
+/* Edit Description Textarea */
+.edit-description {
+  width: 100% !important;
+  padding: var(--space-3) !important;
+  font-size: var(--font-size-base) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--border-radius) !important;
+  resize: none !important;
+  box-sizing: border-box !important;
+  margin-bottom: var(--space-2) !important;
+}
+
+/* Character Counter */
+.char-counter {
+  font-size: var(--font-size-xs) !important;
+  color: var(--text-tertiary) !important;
+  text-align: right !important;
+  display: block !important;
+  margin-top: var(--space-1) !important;
+}
+
+/* Save and Cancel Buttons */
+.save-btn,
+.cancel-btn {
+  background: none !important;
+  border: none !important;
+  font-size: var(--font-size-lg) !important;
+  cursor: pointer !important;
+  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
+}
+
+.save-btn {
+  color: hsl(145, 63%, 42%) !important;
+}
+
+.save-btn:hover {
+  transform: scale(1.2) !important;
+  color: hsl(145, 63%, 32%) !important;
+}
+
+.cancel-btn {
+  color: hsl(0, 70%, 50%) !important;
+}
+
+.cancel-btn:hover {
+  transform: scale(1.2) !important;
+  color: hsl(0, 70%, 40%) !important;
 }

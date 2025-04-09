@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faCrown, faRightFromBracket, faXmark, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare, faCrown, faRightFromBracket, faTimes, faCheck } from "@fortawesome/free-solid-svg-icons";
 import { useProject } from "../hooks/useProject";
-import { useProjectMembers } from "../hooks/useProjectMembers"; // Change to named import
-import { getSelectedProject, setSelectedProject } from '../services/storageService';
+import { useProjectMembers } from "../hooks/useProjectMembers";
+import { getSelectedProject, setSelectedProject } from "../services/storageService";
 import { editProject } from "../services/projectService";
 import "../styles/project_details.css";
 
@@ -14,7 +14,6 @@ const ProjectDetails = () => {
   const storedProjectId = getSelectedProject();
   const finalProjectId = projectId || storedProjectId;
 
-  // Add cleanup on unmount
   useEffect(() => {
     if (finalProjectId) {
       setSelectedProject(finalProjectId);
@@ -25,9 +24,11 @@ const ProjectDetails = () => {
     };
   }, [finalProjectId]);
 
-  // Replace useProjectDetails with individual hooks
   const { project, loading: projectLoading, error: projectError, refreshProject } = useProject(finalProjectId);
-  const { members, loading: membersLoading, error: membersError, kickMember } = useProjectMembers(finalProjectId);
+  const { members, loading: membersLoading, error: membersError, isCurrentUserOwner, kickMember } = useProjectMembers(
+    finalProjectId,
+    project?.projectOwnerID
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState("");
@@ -45,6 +46,8 @@ const ProjectDetails = () => {
 
   const handleCancelEdit = () => {
     setIsEditing(false);
+    setEditedName(project.name);
+    setEditedDescription(project.description);
   };
 
   const handleSaveEdit = async () => {
@@ -58,7 +61,7 @@ const ProjectDetails = () => {
         projectOwnerID: project.projectOwnerID,
       });
 
-      await refreshProject(); // Use the new refreshProject function
+      await refreshProject();
       setIsEditing(false);
     } catch (error) {
       console.error("❌ Failed to update project:", error.message);
@@ -91,15 +94,14 @@ const ProjectDetails = () => {
 
   return (
     <div className="project-details">
-      {/* Rest of the JSX remains the same, but update error handling */}
       <div className="edit-buttons">
         {project?.projectOwnerID === loggedInUserId && isEditing ? (
           <>
             <button className="save-btn" onClick={handleSaveEdit}>
               <FontAwesomeIcon icon={faCheck} />
             </button>
-            <button className="cancel-btn" onClick={handleCancelEdit}>
-              <FontAwesomeIcon icon={faXmark} />
+            <button className="project-details__cancel-btn" onClick={handleCancelEdit}>
+              <FontAwesomeIcon icon={faTimes} />
             </button>
           </>
         ) : (
@@ -111,29 +113,40 @@ const ProjectDetails = () => {
         )}
       </div>
 
-      {/* Project Details */}
       {!projectError && project && (
         <>
-          {/* Project editing UI remains the same */}
           {isEditing ? (
-            <input
-              className="edit-title"
-              type="text"
-              value={editedName}
-              onChange={(e) => setEditedName(e.target.value)}
-            />
-          ) : (
-            <h1 className="project-title">{project.name}</h1>
-          )}
+            <>
+              {/* Project Name Input with Counter */}
+              <div className="input-container">
+                <input
+                  className="edit-title"
+                  type="text"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  maxLength={50}
+                  placeholder="Enter project name"
+                />
+                <span className="char-counter">{editedName.length} / 50</span>
+              </div>
 
-          {isEditing ? (
-            <textarea
-              className="edit-description"
-              value={editedDescription}
-              onChange={(e) => setEditedDescription(e.target.value)}
-            />
+              {/* Project Description Input with Counter */}
+              <div className="input-container">
+                <textarea
+                  className="edit-description"
+                  value={editedDescription}
+                  onChange={(e) => setEditedDescription(e.target.value)}
+                  maxLength={255}
+                  placeholder="Enter project description"
+                />
+                <span className="char-counter">{editedDescription.length} / 255</span>
+              </div>
+            </>
           ) : (
-            <div className="project-description">{project.description}</div>
+            <>
+              <h1 className="project-title">{project.name}</h1>
+              <div className="project-description">{project.description}</div>
+            </>
           )}
 
           <button className="invite-btn" onClick={() => navigate(`/invite`)}>
@@ -142,7 +155,6 @@ const ProjectDetails = () => {
         </>
       )}
 
-      {/* Members Section */}
       <div className="members-section">
         <h3>Members</h3>
         {membersError ? (
@@ -151,21 +163,19 @@ const ProjectDetails = () => {
           <ul>
             {members.map((member) => (
               <li key={member.id} className={`member-item ${member.isOwner ? "owner" : ""}`}>
-                {/* Member list UI remains the same */}
                 <div className="member-info">
-                  <span className="member-name">{member.name}</span>
+                  <span className="member-name">
+                    {member.isOwner && <FontAwesomeIcon icon={faCrown} className="crown" />}
+                    {member.name}
+                  </span>
                 </div>
                 <div className="member-actions">
-                  {member.isOwner ? (
-                    <FontAwesomeIcon icon={faCrown} className="crown" />
-                  ) : (
-                    project?.projectOwnerID === loggedInUserId && (
-                      <FontAwesomeIcon
-                        icon={faRightFromBracket}
-                        className="kick-member"
-                        onClick={() => handleKickMember(member.id)}
-                      />
-                    )
+                  {isEditing && !member.isOwner && isCurrentUserOwner && (
+                    <FontAwesomeIcon
+                      icon={faRightFromBracket}
+                      className="kick-member"
+                      onClick={() => handleKickMember(member.id)}
+                    />
                   )}
                 </div>
               </li>
@@ -174,7 +184,6 @@ const ProjectDetails = () => {
         )}
       </div>
 
-      {/* Kick Member Modal remains the same */}
       {showKickModal && (
         <div className="modal-overlay active">
           <div className="modal">
@@ -184,8 +193,8 @@ const ProjectDetails = () => {
               <button className="confirm-btn" onClick={confirmKickMember}>
                 <FontAwesomeIcon icon={faCheck} />
               </button>
-              <button className="cancel-btn" onClick={cancelKickMember}>
-                <FontAwesomeIcon icon={faXmark} />
+              <button className="project-details__cancel-btn" onClick={cancelKickMember}>
+                <FontAwesomeIcon icon={faTimes} />
               </button>
             </div>
           </div>

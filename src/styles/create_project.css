@@ -1,112 +1,160 @@
-/* ✅ Container */
+/* ============================= */
+/*  Create Project Page Layout */
+/* ============================= */
+.create-project-page {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: calc(100vh - 100px) !important; /* Match Join Project navbar adjustment */
+  background-color: var(--accent-primary) !important; /* Match Join Project gold background */
+  font-family: var(--primary-font) !important;
+  padding: var(--space-5) !important; /* Consistent padding */
+}
+
 .create-project-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 400px;
-    margin: 50px auto;
-    padding: 20px;
-    background: var(--white);
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    position: relative; /* ✅ Makes the back arrow position relative to this container */
+  width: 100% !important;
+  max-width: 500px !important; /* Match Join Project container width */
+  background: var(--bg-primary) !important; /* White background for the card */
+  border-radius: var(--border-radius) !important; /* Consistent border radius */
+  box-shadow: var(--shadow-lg) !important; /* Consistent shadow */
+  padding: var(--space-5) !important; /* Consistent padding */
+  text-align: center !important;
+  position: relative !important;
+  border: 1px solid var(--border-color) !important; /* Light gray border */
+  min-height: 400px !important; /* Match Join Project container height */
 }
 
-/* ✅ Logo */
-.create-project-container .logo {
-    width: 80px;
-    margin-bottom: 10px;
+/* ============================= */
+/*  Title */
+/* ============================= */
+.create-project-title {
+  font-size: var(--font-size-xl) !important; /* Match Join Project title font size */
+  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-primary) !important; /* Black text */
+  margin-bottom: var(--space-4) !important; /* Consistent spacing */
+  margin-top: var(--space-3) !important; /* Match Join Project title spacing */
 }
 
-/* ✅ Headings */
-.create-project-container h2 {
-    margin-bottom: 20px;
-    color: var(--black) !important;
-    text-align: center;
-}
-
-/* ✅ Form Styling */
-.create-project-container form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    gap: 1rem; /* Adds spacing between inputs and button */
-}
-
-/* ✅ Form Inputs */
+/* ============================= */
+/*  Form Inputs */
+/* ============================= */
 .create-project-container input,
 .create-project-container textarea {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 2px solid var(--gray) !important; /* Darker gray for better visibility */
-    border-radius: var(--border-radius);
-    font-family: var(--primary-font);
-    color: var(--black) !important;
-    background: var(--white) !important;
+  width: 100% !important;
+  padding: var(--space-3) var(--space-4) !important; /* Match Join Project input padding */
+  margin-bottom: var(--space-4) !important; /* Consistent spacing */
+  border: 2px solid var(--border-color) !important; /* Light gray border */
+  border-radius: var(--border-radius) !important; /* Consistent border radius */
+  font-size: var(--font-size-base) !important;
+  color: var(--text-primary) !important;
+  background: var(--bg-primary) !important;
+  font-family: var(--primary-font) !important;
+  text-align: center !important; /* Match Join Project input alignment */
+  transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+  outline: none !important;
+  padding-right: 4rem !important; /* Add space for the counter inside the field */
+  box-sizing: border-box !important; /* Ensure padding doesn't affect width */
 }
 
-/* ✅ Textarea */
 .create-project-container textarea {
-    height: 100px;
-    resize: none;
+  height: 100px !important; /* Match Join Project textarea height */
+  resize: none !important;
 }
 
-/* ✅ Centered and Gold "Create Project" Button */
-.create-project-container .create-project-btn {
-    background: var(--gold) !important; /* Gold background */
-    color: var(--black) !important; /* Dark text for contrast */
-    border: none;
-    padding: var(--button-padding);
-    border-radius: var(--border-radius);
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s ease, box-shadow 0.3s ease;
-    width: 100%;
-    max-width: 320px; /* Prevents button from being too wide */
-    text-align: center;
-    display: block;
+.create-project-container input:focus,
+.create-project-container textarea:focus {
+  border-color: var(--accent-primary) !important; /* Gold border on focus */
+  box-shadow: var(--shadow-focus) !important; /* Consistent focus shadow */
 }
 
-/* ✅ Hover Effect: Darker gold & highlight */
-.create-project-container .create-project-btn:hover {
-    background: var(--dark-gold) !important;
-    box-shadow: 0px 0px 10px rgba(255, 202, 40, 0.8) !important;
+/* Input Container */
+.input-container {
+  position: relative !important;
+  margin-bottom: var(--space-4) !important;
 }
 
-/* ✅ Back Arrow Positioned Inside the Card */
-.create-project-container .back-arrow {
-    position: absolute;
-    top: 10px;  /* ✅ Moves the arrow inside the card at the top */
-    right: 10px; /* ✅ Aligns to the right inside the card */
-    cursor: pointer;
-    z-index: 10;
-    display: block !important; /* ✅ Prevents flexbox centering */
-    padding: 5px;
+/* Character Counter Inside Input Fields */
+.char-counter {
+  position: absolute !important;
+  bottom: 0.5rem !important; /* Position at the bottom inside the field */
+  right: 0.8rem !important; /* Add padding from the right */
+  font-size: var(--font-size-xs) !important; /* Smaller font size */
+  color: var(--text-tertiary) !important;
+  pointer-events: none !important; /* Prevent interaction */
 }
 
-/* ✅ Ensure Icon is Properly Sized */
-.create-project-container .back-arrow svg {
-    font-size: 24px !important; /* ✅ Adjust size */
-    color: var(--black) !important;
-    transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+/* ============================= */
+/*  Buttons */
+/* ============================= */
+.create-project-btn {
+  width: 100% !important;
+  padding: var(--space-3) var(--space-4) !important; /* Match Join Project button padding */
+  border: none !important;
+  border-radius: var(--border-radius) !important; /* Consistent border radius */
+  font-size: var(--font-size-base) !important; /* Match Join Project button font size */
+  font-weight: var(--font-weight-bold) !important;
+  background: var(--accent-primary) !important; /* Gold background */
+  color: var(--white) !important; /* White text for contrast */
+  cursor: pointer !important;
+  transition: all var(--transition-fast) ease !important;
+  margin-top: var(--space-3) !important; /* Match Join Project button spacing */
 }
 
-/* ✅ Hover Effect */
-.create-project-container .back-arrow:hover svg {
-    color: var(--dark-gray) !important;
-    transform: scale(1.1);
+.create-project-btn:hover {
+  background: var(--dark-gold) !important; /* Darker gold on hover */
+  transform: translateY(-2px) !important; /* Subtle hover effect */
+  box-shadow: var(--shadow-md) !important; /* Consistent shadow */
 }
 
-/* ✅ Footer */
-.create-project-container footer {
-    margin-top: 20px;
-    text-align: center;
-    border-top: 1px solid var(--black) !important;
-    padding-top: 10px;
-    width: 100%;
-    color: var(--black) !important;
-    background: var(--white) !important;
+/* ============================= */
+/*  Back Arrow */
+/* ============================= */
+.back-arrow {
+  position: absolute !important;
+  top: var(--space-3) !important; /* Match Join Project back arrow spacing */
+  left: var(--space-3) !important; /* Match Join Project back arrow spacing */
+  font-size: var(--font-size-lg) !important;
+  cursor: pointer !important;
+  color: var(--text-secondary) !important; /* Dark gray */
+  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
+}
+
+.back-arrow:hover {
+  color: var(--text-primary) !important; /* Black on hover */
+  transform: scale(1.2) !important; /* Subtle hover effect */
+}
+
+/* ============================= */
+/*  Error Message */
+/* ============================= */
+.error-message {
+  color: hsl(0, 100%, 50%) !important; /* Red for errors */
+  font-size: var(--font-size-sm) !important;
+  margin-top: var(--space-3) !important;
+  margin-bottom: var(--space-4) !important;
+  text-align: center !important;
+}
+
+/* ============================= */
+/*  Responsive Design */
+/* ============================= */
+@media (max-width: 768px) {
+  .create-project-container {
+    padding: var(--space-3) !important; /* Adjust padding for smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .create-project-title {
+    font-size: var(--font-size-lg) !important; /* Adjust font size for smaller screens */
+  }
+
+  .create-project-container input,
+  .create-project-container textarea {
+    font-size: var(--font-size-sm) !important; /* Adjust font size for smaller screens */
+  }
+
+  .create-project-btn {
+    font-size: var(--font-size-sm) !important; /* Adjust font size for smaller screens */
+  }
 }

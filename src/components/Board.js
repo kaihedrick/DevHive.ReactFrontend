@@ -99,19 +99,19 @@ const Board = () => {
 
   const handleDrop = async (e, statusValue) => {
     e.preventDefault();
-    
+
     // Reset highlighting
-    Object.values(columnRefs).forEach(ref => {
+    Object.values(columnRefs).forEach((ref) => {
       if (ref.current) {
-        ref.current.classList.remove('highlight-drop-target');
+        ref.current.classList.remove("highlight-drop-target");
       }
     });
-    
+
     if (!draggedTask) return;
-    
+
     // If the task is already in this column, do nothing
     if (draggedTask.status === statusValue) return;
-    
+
     await handleStatusUpdate(draggedTask.id, statusValue);
     setDraggedTask(null);
   };
@@ -198,13 +198,14 @@ const Board = () => {
                       <div className="task-content">
                         <div className="task-meta">
                           <div className="task-assignee dropdown">
-                            <select 
+                            {/* Dropdown to show full names */}
+                            <select
                               className="task-assignee-dropdown"
                               value={task.assigneeID || ""}
                               onChange={(e) => handleAssigneeChange(task, e.target.value)}
                             >
                               <option value="">Unassigned</option>
-                              {members.map(member => (
+                              {members.map((member) => (
                                 <option key={member.id} value={member.id}>
                                   {member.firstName} {member.lastName}
                                 </option>
@@ -260,13 +261,14 @@ const Board = () => {
                       <div className="task-content">
                         <div className="task-meta">
                           <div className="task-assignee dropdown">
-                            <select 
+                            {/* Dropdown to show full names */}
+                            <select
                               className="task-assignee-dropdown"
                               value={task.assigneeID || ""}
                               onChange={(e) => handleAssigneeChange(task, e.target.value)}
                             >
                               <option value="">Unassigned</option>
-                              {members.map(member => (
+                              {members.map((member) => (
                                 <option key={member.id} value={member.id}>
                                   {member.firstName} {member.lastName}
                                 </option>
@@ -295,7 +297,7 @@ const Board = () => {
               <div className="board-column">
                 <div className="board-column-header">
                   <h3>Completed</h3>
-                  <div className="task-count">{getTasksByStatus(3).length}</div>
+                  <div className="task-count">{getTasksByStatus(2).length}</div>
                 </div>
                 
                 <div 
@@ -303,9 +305,9 @@ const Board = () => {
                   ref={columnRefs.completed}
                   onDragOver={(e) => handleDragOver(e, 'completed')}
                   onDragLeave={(e) => handleDragLeave(e, 'completed')}
-                  onDrop={(e) => handleDrop(e, 3)}
+                  onDrop={(e) => handleDrop(e, 2)}
                 >
-                  {getTasksByStatus(3).map(task => (
+                  {getTasksByStatus(2).map(task => (
                     <div 
                       key={task.id}
                       className="task-card"
@@ -322,13 +324,14 @@ const Board = () => {
                       <div className="task-content">
                         <div className="task-meta">
                           <div className="task-assignee dropdown">
-                            <select 
+                            {/* Dropdown to show full names */}
+                            <select
                               className="task-assignee-dropdown"
                               value={task.assigneeID || ""}
                               onChange={(e) => handleAssigneeChange(task, e.target.value)}
                             >
                               <option value="">Unassigned</option>
-                              {members.map(member => (
+                              {members.map((member) => (
                                 <option key={member.id} value={member.id}>
                                   {member.firstName} {member.lastName}
                                 </option>
@@ -343,7 +346,7 @@ const Board = () => {
                       </div>
                     </div>
                   ))}
-                  {getTasksByStatus(3).length === 0 && (
+                  {getTasksByStatus(2).length === 0 && (
                     <div className="empty-column-message">
                       No tasks in this column
                     </div>

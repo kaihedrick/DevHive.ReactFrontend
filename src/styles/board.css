@@ -129,18 +129,23 @@
   font-weight: var(--font-weight-bold) !important;
 }
 
+/* Task List */
+/* Task List */
 .task-list {
   padding: var(--space-3) !important;
-  flex: 1 !important; /* Take up all available space */
-  height: 100% !important;
-  max-height: calc(100% - 50px) !important; /* Account for header height */
-  overflow-y: auto !important; /* Ensure vertical overflow shows scrollbar */
+  flex: 1 !important; /* Allow the task list to take up available space */
+  height: 100% !important; /* Ensure it fills the column height */
+  max-height: calc(100% - 50px) !important; /* Account for the header height */
+  overflow-y: auto !important; /* Enable vertical scrolling */
   overflow-x: hidden !important; /* Hide horizontal overflow */
   background: var(--bg-secondary) !important;
   transition: background-color 0.2s ease !important;
-  min-height: 0 !important; /* Critical for flex children to enable scrolling */
+  display: flex !important;
+  flex-direction: column !important; /* Ensure tasks stack vertically */
+  gap: var(--space-3) !important; /* Add spacing between tasks */
 }
 
+/* Scrollbar Styling */
 .task-list::-webkit-scrollbar {
   width: 0.4rem !important;
 }
@@ -171,6 +176,8 @@
   border: 2px dashed var(--accent-primary) !important;
 }
 
+/* Task Card */
+/* Task Card */
 .task-card {
   background: var(--bg-primary) !important;
   border: 1px solid var(--border-color) !important;
@@ -181,6 +188,9 @@
   transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
   cursor: grab !important;
   user-select: none !important; /* Prevents text selection during drag */
+  height: auto !important; /* Allow height to adjust dynamically */
+  min-height: 80px !important; /* Set a minimum height for task cards */
+  flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
 .task-card:last-child {
@@ -239,6 +249,27 @@
   display: flex !important;
   align-items: center !important;
   gap: var(--space-1) !important;
+}
+
+/* Task Assignee Initials */
+.task-assignee-initials {
+  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-primary) !important;
+  margin-right: var(--space-2) !important;
+}
+
+/* Task Assignee Dropdown */
+.task-assignee-dropdown {
+  padding: var(--space-2) !important;
+  font-weight: var(--font-weight-medium) !important;
+  border-radius: var(--border-radius) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: border-color var(--transition-normal) ease !important;
+}
+
+.task-assignee-dropdown:hover {
+  border-color: var(--text-secondary) !important;
 }
 
 .empty-column-message {

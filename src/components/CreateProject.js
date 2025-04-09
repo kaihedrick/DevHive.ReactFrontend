@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createProject } from "../services/projectService";
-import { getUserId } from "../services/authService"; // Import getUserId to get current user ID
-import DevHiveLogo from "./assets/DevHiveLogo.png";
+import { getUserId } from "../services/authService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_project.css";
@@ -15,28 +14,26 @@ const CreateProject = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Basic validation
+
     if (!projectName.trim()) {
       setError("Project name is required");
       return;
     }
-    
+
     try {
-      const userId = getUserId(); // Get the current logged-in user ID
-      
+      const userId = getUserId();
+
       if (!userId) {
         setError("You must be logged in to create a project");
         return;
       }
-      
-      // Create project with all required fields
+
       await createProject({
         name: projectName,
         description: projectDescription,
-        projectOwnerID: userId // Include the project owner ID
+        projectOwnerID: userId,
       });
-      
+
       alert("Project created successfully!");
       navigate("/projects");
     } catch (error) {
@@ -46,38 +43,47 @@ const CreateProject = () => {
   };
 
   return (
-    <div className="create-project-container">
-      <div className="back-arrow" onClick={() => navigate("/projects")}>
-        <FontAwesomeIcon icon={faArrowRotateLeft} />
+    <div className="create-project-page">
+      <div className="create-project-container">
+        <div className="back-arrow" onClick={() => navigate("/projects")}>
+          <FontAwesomeIcon icon={faArrowRotateLeft} />
+        </div>
+
+        <h1 className="create-project-title">Create Project</h1>
+
+        {error && <div className="error-message">{error}</div>}
+
+        <form onSubmit={handleSubmit}>
+          {/* Project Name Input with Counter */}
+          <div className="input-container">
+            <input
+              type="text"
+              placeholder="Enter Project Name"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              maxLength={50}
+              required
+            />
+            <span className="char-counter">{projectName.length} / 50</span>
+          </div>
+
+          {/* Project Description Input with Counter */}
+          <div className="input-container">
+            <textarea
+              placeholder="Enter Description"
+              value={projectDescription}
+              onChange={(e) => setProjectDescription(e.target.value)}
+              maxLength={255}
+              required
+            ></textarea>
+            <span className="char-counter">{projectDescription.length} / 255</span>
+          </div>
+
+          <button type="submit" className="create-project-btn">
+            Create Project
+          </button>
+        </form>
       </div>
-
-      <img src={DevHiveLogo} alt="DevHive Logo" className="logo" />
-      <h2>Create Project</h2>
-
-      {error && <div className="error-message">{error}</div>}
-
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Enter Project Name"
-          value={projectName}
-          onChange={(e) => setProjectName(e.target.value)}
-          required
-        />
-
-        <textarea
-          placeholder="Enter Description"
-          value={projectDescription}
-          onChange={(e) => setProjectDescription(e.target.value)}
-          required
-        ></textarea>
-
-        <button type="submit" className="create-project-btn">
-          Create Project
-        </button>
-      </form>
-
-      <footer>Copyright</footer>
     </div>
   );
 };

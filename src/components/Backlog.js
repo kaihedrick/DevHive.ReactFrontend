@@ -6,7 +6,7 @@ import { fetchProjectTasksWithAssignees, fetchTaskById, editTask } from "../serv
 import { getSelectedProject } from "../services/storageService";
 import useBacklogActions from "../hooks/useBacklogActions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRotateLeft, faCheck, faXmark, faPenToSquare, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRotateLeft, faCheck, faXmark, faPenToSquare, faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
 import "../styles/backlog.css";
 
 const Backlog = ({ projectId }) => {
@@ -22,6 +22,8 @@ const Backlog = ({ projectId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [isEditingTask, setIsEditingTask] = useState(null); // Track which task is being edited
+  const [editedDescription, setEditedDescription] = useState(""); // Track the edited description
 
   const selectedProjectId = projectId || getSelectedProject();
 
@@ -131,6 +133,49 @@ const Backlog = ({ projectId }) => {
     }
   };
 
+  const handleEditTask = async (taskId) => {
+    try {
+      const taskData = await fetchTaskById(taskId); // Fetch task details
+      setIsEditingTask(taskId); // Set the task being edited
+      setEditedDescription(taskData.description); // Pre-fill the description
+    } catch (error) {
+      console.error("❌ Error fetching task details:", error.message);
+      alert("Failed to load task details. Please try again.");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingTask(null); // Exit edit mode
+    setEditedDescription(""); // Clear the description
+  };
+
+  const handleSaveEdit = async (task) => {
+    if (!editedDescription.trim()) {
+      alert("Task description cannot be empty.");
+      return;
+    }
+  
+    try {
+      // Ensure all required fields are included
+      const updatedTask = {
+        ID: task.id, // Ensure task ID is provided (uppercase for backend compatibility)
+        Description: editedDescription, // Updated description
+        AssigneeID: task.assigneeID || null, // Assignee ID (or null if unassigned)
+        SprintID: task.sprintID || null, // Sprint ID (or null if not assigned to a sprint)
+        Status: task.status, // Task status
+        DateCreated: task.dateCreated, // Original creation date
+      };
+  
+      console.log("Updated Task:", updatedTask); // Debugging: Log the task being sent
+  
+      await editTask(updatedTask); // Call the API to save the task
+      setIsEditingTask(null); // Exit edit mode
+      refreshTask(task.id); // Refresh the task to reflect changes
+    } catch (error) {
+      console.error("❌ Error saving task:", error.message);
+      alert("Failed to save task. Please try again.");
+    }
+  };
   // Sort sprints by start date (earliest first)
   const sortedSprints = [...sprints].sort((a, b) => 
     new Date(a.startDate) - new Date(b.startDate)
@@ -166,41 +211,75 @@ const Backlog = ({ projectId }) => {
               {tasks.length > 0 ? (
                 tasks.map((task) => (
                   <div key={task.id} className={`task-card ${task.status === 0 ? "todo" : task.status === 1 ? "in-progress" : "completed"}`}>
-                    <FontAwesomeIcon 
-                      icon={faPenToSquare} 
-                      className="edit-task-icon" 
-                      onClick={(e) => { 
-                        e.stopPropagation();
-                        navigate(`/edit-task/${task.id}`, { 
-                          state: { 
-                            from: location.pathname, 
-                            sprint: selectedSprint // Pass selected sprint data 
-                          } 
-                        }); 
-                      }} 
-                    />
-                    <div className="task-content">
-                      <span className="task-title">{task.description}</span>
-                    </div>
-                    <div className="task-details">
-                      <select className="task-assignee-dropdown" value={task.assigneeID} onChange={(e) => handleAssigneeChange(task, e.target.value)}>
-                        {members.map(member => (
-                          <option key={member.id} value={member.id}>
-                            {member.firstName[0]}{member.lastName[0]}
-                          </option>
-                        ))}
-                      </select>
-                      <span className="task-date">Date: {new Date(task.dateCreated).toLocaleDateString()}</span>
-                      <select 
-                        className={`task-status ${task.status === 0 ? "todo" : task.status === 1 ? "in-progress" : "completed"}`} 
-                        value={task.status} 
-                        onChange={(e) => handleStatusChange(task, e.target.value)}
-                      >
-                        <option value="0">To Do</option>
-                        <option value="1">In Progress</option>
-                        <option value="3">Completed</option>
-                      </select>
-                    </div>
+                    {isEditingTask === task.id ? (
+                      <>
+                        {/* Edit Mode */}
+                        <div className="task-content">
+                          <textarea
+                            className="edit-description"
+                            value={editedDescription}
+                            onChange={(e) => setEditedDescription(e.target.value)}
+                            maxLength={255}
+                            placeholder="Edit task description"
+                          />
+                          <span className="char-counter">{editedDescription.length} / 255</span>
+                        </div>
+                        <div className="task-controls edit-mode">
+                          {/* Save Button */}
+                          <button className="save-btn" onClick={() => handleSaveEdit(task)}>
+                            <FontAwesomeIcon icon={faCheck} />
+                          </button>
+                          {/* Cancel Button */}
+                          <button className="cancel-btn" onClick={handleCancelEdit}>
+                            <FontAwesomeIcon icon={faTimes} />
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* View Mode */}
+                        <div className="task-content">
+                          <span className="task-title">{task.description}</span>
+                        </div>
+                        <div className="task-controls">
+                          <FontAwesomeIcon
+                            icon={faPenToSquare}
+                            className="edit-task-icon"
+                            onClick={() => handleEditTask(task.id)}
+                          />
+                          <select
+                            className={`task-status ${
+                              task.status === 0
+                                ? "todo"
+                                : task.status === 1
+                                ? "in-progress"
+                                : "completed"
+                            }`}
+                            value={task.status}
+                            onChange={(e) => handleStatusChange(task, parseInt(e.target.value))}
+                          >
+                            <option value="0">To Do</option>
+                            <option value="1">In Progress</option>
+                            <option value="2">Completed</option>
+                          </select>
+                          <select
+                            className="task-assignee-dropdown"
+                            value={task.assigneeID || ""}
+                            onChange={(e) => handleAssigneeChange(task, e.target.value)}
+                          >
+                            <option value="">Unassigned</option>
+                            {members.map((member) => (
+                              <option key={member.id} value={member.id}>
+                                {member.firstName} {member.lastName}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="task-date">
+                            Date: {new Date(task.dateCreated).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))
               ) : (

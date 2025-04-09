@@ -143,7 +143,7 @@ const useBoardActions = (projectId) => {
 
   // Filter tasks by status
   const getTasksByStatus = (status) => {
-    return tasks.filter(task => task.status === status);
+    return tasks.filter((task) => task.status === status);
   };
 
   // Format date from ISO string

@@ -20,7 +20,6 @@
   min-height: calc(100vh - 100px) !important;
 }
 
-/* Enhanced project title for better hierarchy */
 .project-details h1 {
   font-size: var(--font-size-2xl) !important;
   font-weight: var(--font-weight-bold) !important;
@@ -29,7 +28,6 @@
   text-align: center !important;
 }
 
-/* Improved section titles */
 .project-details h2 {
   font-size: var(--font-size-xl) !important;
   font-weight: var(--font-weight-bold) !important;
@@ -37,10 +35,17 @@
   margin: var(--space-5) 0 var(--space-3) 0 !important;
 }
 
+/* Add padding to the right of the project title input field */
+.project-details .edit-title {
+  padding-right: 6rem !important; /* Add enough space for the buttons inside the field */
+  box-sizing: border-box !important; /* Ensure padding doesn't affect the width */
+}
+
 /* ======================== */
 /* Edit, Save & Cancel Buttons */
 /* ======================== */
-.edit-buttons {
+
+.project-details .edit-buttons {
   position: absolute !important;
   top: var(--space-5) !important;
   right: var(--space-5) !important;
@@ -48,61 +53,98 @@
   gap: var(--space-3) !important;
 }
 
-/* Ensure all buttons have no background */
-.edit-project-btn, .save-btn, .cancel-btn {
-  width: 50px !important;
-  height: 50px !important;
+/* ======================= */
+/* Edit Button Styling (faPenToSquare) */
+/* ======================= */
+.project-details .edit-project-btn {
+  color: var(--white) !important; /* Make the edit button white */
   background: none !important;
   border: none !important;
-  box-shadow: none !important;
-  outline: none !important;
-  font-size: var(--font-size-xl) !important;
+  font-size: 1.5rem !important; /* Ensure consistent size */
   cursor: pointer !important;
   transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
 }
 
-/* Making FontAwesome icons white and more visible */
-.edit-project-btn .fa, .edit-project-btn .fas,
-.save-btn .fa, .save-btn .fas,
-.cancel-btn .fa, .cancel-btn .fas,
-.invite-btn .fa, .invite-btn .fas,
-.kick-member .fa, .kick-member .fas {
-  color: var(--white) !important;
-  display: inline-block !important;
-  visibility: visible !important;
+.project-details .edit-project-btn:hover {
+  transform: scale(1.1) !important;
+  color: var(--gold) !important; /* Highlight gold on hover */
 }
 
-/* Ensure the X (cancel) button is always red */
-.cancel-btn {
+/* ======================= */
+/* Save Button (faCheck) Styling */
+/* ======================= */
+.project-details .save-btn {
+  color: hsl(145, 63%, 42%) !important;
+  background: none !important; /* Remove any background */
+  border: none !important; /* Remove any border */
+  font-size: 1.5rem !important; /* Ensure consistent size */
+  cursor: pointer !important;
+  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
+  position: absolute !important; /* Position relative to the container */
+  right: 2.5rem !important; /* Adjust padding to overlap inside the text box */
+  top: 0.25rem !important; /* Slightly overlap the top of the text box */
+}
+
+/* Hover effect for save button */
+.project-details .save-btn:hover {
+  transform: scale(1.2) !important; /* Scale on hover */
+  color: hsl(145, 63%, 32%) !important;
+}
+
+/* ======================= */
+/* Cancel Button (faXmark) Styling */
+/* ======================= */
+.project-details .cancel-btn {
   color: hsl(0, 70%, 50%) !important;
+  background: none !important; /* Remove any background */
+  border: none !important; /* Remove any border */
+  font-size: 1.5rem !important; /* Ensure consistent size */
+  cursor: pointer !important;
+  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
+}
+.project-details .cancel-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
-/* Ensure the X button expands slightly on hover */
-.cancel-btn:hover {
+.project-details .cancel-btn:hover {
   transform: scale(1.2) !important;
   color: hsl(0, 70%, 40%) !important;
 }
 
-/* Ensure the ✔ (save) button is always green */
-.save-btn {
-  color: hsl(145, 63%, 42%) !important;
+/* ======================= */
+/* Cancel Button (Scoped to Project Details) */
+/* ======================= */
+.project-details .project-details__cancel-btn {
+  color: hsl(0, 70%, 50%) !important;
+  background: none !important; /* Remove any background */
+  border: none !important; /* Remove any border */
+  font-size: 1.5rem !important; /* Ensure consistent size */
+  cursor: pointer !important;
+  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
+  position: absolute !important; /* Position relative to the container */
+  right: 0.5rem !important; /* Adjust padding to overlap inside the text box */
+  top: 0.25rem !important; /* Slightly overlap the top of the text box */
 }
 
-/* Ensure the checkmark expands slightly on hover */
-.save-btn:hover {
-  transform: scale(1.2) !important;
-  color: hsl(145, 63%, 32%) !important;
+.project-details .project-details__cancel-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Hover effect for cancel button */
+.project-details .project-details__cancel-btn:hover {
+  transform: scale(1.2) !important; /* Scale on hover */
+  color: hsl(0, 70%, 40%) !important;
 }
 
 /* ======================= */
 /* Invite Button */
 /* ======================= */
-.invite-btn {
+
+.project-details .invite-btn {
   width: 200px !important;
-  background-color: var(--accent-primary) !important; /* Using global gold variable */
+  background-color: var(--accent-primary) !important;
   color: var(--white) !important;
   border: none !important;
   padding: var(--space-3) !important;
@@ -111,32 +153,33 @@
   text-align: center !important;
   border-radius: var(--border-radius) !important;
   transition: background-color var(--transition-normal) !important;
-  box-shadow: var(--shadow-sm) !important; /* Added shadow for depth */
+  box-shadow: var(--shadow-sm) !important;
 }
 
-.invite-btn:hover {
-  background-color: var(--dark-gold) !important; /* Using global dark gold variable */
+.project-details .invite-btn:hover {
+  background-color: var(--dark-gold) !important;
   box-shadow: var(--shadow-md) !important;
 }
 
 /* ======================= */
 /* Members Section */
 /* ======================= */
-.members-section {
+
+.project-details .members-section {
   width: 100% !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
 }
 
-.members-section h2 {
+.project-details .members-section h3 {
   font-size: var(--font-size-xl) !important;
   color: var(--text-primary) !important;
   margin-bottom: var(--space-4) !important;
 }
 
-.members-section ul {
-  width: 80% !important;
+.project-details .members-section ul {
+  width: 100% !important;
   max-width: 600px !important;
   padding: 0 !important;
   margin: 0 auto !important;
@@ -147,57 +190,63 @@
 }
 
 /* ======================= */
-/* Member List Item */
+/* Member List Styling */
 /* ======================= */
-.member-item {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
+.project-details .member-item {
+  position: relative !important;
   width: 100% !important;
-  padding: var(--space-3) var(--space-4) !important;
-  border: 1px solid var(--light-gray) !important;
+  max-width: 600px !important;
+  height: 3.25rem !important;
+  border: 1px solid var(--text-tertiary) !important;
   border-radius: var(--border-radius) !important;
   margin-bottom: var(--space-3) !important;
   background-color: var(--bg-secondary) !important;
-  transition: background var(--transition-normal) ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 1rem !important;
+  transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
 }
 
-.member-item.owner {
-  background-color: hsl(48, 100%, 95%) !important;
+.project-details .member-item:hover {
+  border-color: var(--gold) !important;
+  box-shadow: var(--shadow-focus) !important;
+}
+
+.project-details .member-item.owner {
+  border-color: hsl(48, 100%, 50%) !important; /* Gold border for owners */
   font-weight: var(--font-weight-bold) !important;
 }
 
-/* ======================= */
-/* Member Info & Actions */
-/* ======================= */
-.member-info {
-  display: flex !important;
-  align-items: center !important;
-  gap: var(--space-3) !important;
-  flex-grow: 1 !important;
-}
-
-.member-actions {
+.project-details .member-info {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-3) !important;
 }
 
-/* Crown Icon */
-.crown {
+.project-details .member-name {
   font-size: var(--font-size-base) !important;
-  color: hsl(48, 100%, 50%) !important;
+  color: var(--text-primary) !important;
 }
 
-/* Kick Button */
-.kick-member {
+.project-details .crown {
+  font-size: 1.25rem !important;
+  color: hsl(48, 100%, 50%) !important; /* Gold color */
+  margin-right: var(--space-2) !important; /* Add spacing between crown and name */
+  vertical-align: middle !important; /* Align crown with text */
+}
+
+/* ======================= */
+/* Kick Member Styling */
+/* ======================= */
+.project-details .kick-member {
   font-size: var(--font-size-lg) !important;
   color: hsl(0, 70%, 50%) !important;
   cursor: pointer !important;
   transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
 }
 
-.kick-member:hover {
+.project-details .kick-member:hover {
   transform: scale(1.2) !important;
   color: hsl(0, 70%, 40%) !important;
 }
@@ -205,6 +254,7 @@
 /* ======================= */
 /* Modal Overlay & Popup */
 /* ======================= */
+
 .modal-overlay {
   position: fixed !important;
   top: 0 !important;
@@ -303,4 +353,32 @@
 .cancel-btn:hover {
   transform: scale(1.2) !important;
   color: hsl(0, 70%, 40%) !important;
+}
+
+/* ======================= */
+/* Input Container */
+/* ======================= */
+
+.input-container {
+  position: relative !important;
+  margin-bottom: var(--space-4) !important;
+  width: 100% !important; /* Ensure the container takes full width */
+  max-width: 600px !important; /* Revert to the original smaller width */
+}
+
+/* Character Counter Inside Input Fields */
+.char-counter {
+  position: absolute !important;
+  bottom: 0.5rem !important; /* Position at the bottom inside the field */
+  right: 0.8rem !important; /* Add padding from the right */
+  font-size: var(--font-size-xs) !important; /* Smaller font size */
+  color: var(--text-tertiary) !important;
+  pointer-events: none !important; /* Prevent interaction */
+}
+
+/* Input Field Adjustments */
+.project-details .edit-title,
+.project-details .edit-description {
+  padding-right: 4rem !important; /* Add space for the counter inside the field */
+  box-sizing: border-box !important; /* Ensure padding doesn't affect width */
 }

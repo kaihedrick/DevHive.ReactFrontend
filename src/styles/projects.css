@@ -39,6 +39,12 @@
   animation: fadeIn 0.6s ease-in-out !important;
 }
 
+.projects-page .projects-container .projects-list p {
+  color: var(--white) !important; /* Set text color to white */
+  font-size: var(--font-size-lg) !important; /* Optional: Adjust font size for better visibility */
+  text-align: center !important; /* Optional: Center align the text */
+}
+
 /* Individual Project Card */
 .projects-page .project-card {
   background: var(--bg-primary) !important;
