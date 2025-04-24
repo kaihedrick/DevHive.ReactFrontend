@@ -19,6 +19,40 @@ const Message = () => {
   const socketRef = useRef(null);
   const messagePollingRef = useRef(null);
 
+  // Add a formatMessageTime function at the top of your component
+  const formatMessageTime = (dateTime) => {
+    // First ensure we're working with a valid date
+    let date;
+    
+    if (dateTime instanceof Date) {
+      date = dateTime;
+    } else if (typeof dateTime === 'object' && dateTime.seconds) {
+      // Firestore Timestamp format
+      date = new Date(dateTime.seconds * 1000 + (dateTime.nanoseconds || 0) / 1000000);
+    } else if (typeof dateTime === 'string') {
+      date = new Date(dateTime);
+    } else {
+      // Fallback to current time
+      return "Just now";
+    }
+    
+    if (isNaN(date.getTime())) {
+      console.warn("⚠️ Invalid date:", dateTime);
+      return "Just now";
+    }
+    
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    
+    // For messages from today, just show the time
+    if (isToday) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    // For older messages, show date and time
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   // Load user data
   useEffect(() => {
     const loadUser = async () => {
@@ -106,6 +140,7 @@ const Message = () => {
 
     // Create temporary message for optimistic update
     const tempId = `temp-${Date.now()}`;
+    const now = new Date();
     const tempMessage = {
       id: tempId,
       message: trimmedMessage,
@@ -113,7 +148,7 @@ const Message = () => {
       fromUserID: loggedInUserId,
       toUserID,
       projectID,
-      DateSent: new Date(),
+      DateSent: now, // Use consistent date object format
       pending: true
     };
 
@@ -196,7 +231,7 @@ const Message = () => {
                         </span>
                       )}
                       <span className="message-time">
-                        {msg.DateSent ? new Date(msg.DateSent).toLocaleTimeString() : "Invalid Date"}
+                        {msg.DateSent ? formatMessageTime(msg.DateSent instanceof Date ? msg.DateSent : new Date(msg.DateSent)) : "Just now"}
                       </span>
                     </div>
                   </div>
