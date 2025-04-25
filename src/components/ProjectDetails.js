@@ -7,13 +7,32 @@ import { useProjectMembers } from "../hooks/useProjectMembers";
 import { getSelectedProject, setSelectedProject } from "../services/storageService";
 import { editProject } from "../services/projectService";
 import "../styles/project_details.css";
-
+/**
+ * ProjectDetails Component
+ * 
+ * Displays detailed information about a specific project, including project name, description,
+ * and members. Allows the project owner to edit project details, invite new members, and remove existing ones.
+ * 
+ * @component
+ * @returns {JSX.Element} Rendered project details page
+ */
 const ProjectDetails = () => {
+  /**
+   * useParams
+   * 
+   * Extracts the `projectId` from the route parameters if provided via URL
+   */
   const { projectId } = useParams();
   const navigate = useNavigate();
   const storedProjectId = getSelectedProject();
   const finalProjectId = projectId || storedProjectId;
-
+  /**
+   * useEffect - On mount
+   * 
+   * Ensures the selected project ID is stored for global access via `setSelectedProject`
+   * 
+   * @dependencies [finalProjectId]
+   */
   useEffect(() => {
     if (finalProjectId) {
       setSelectedProject(finalProjectId);
@@ -23,8 +42,18 @@ const ProjectDetails = () => {
       // setSelectedProject(null);
     };
   }, [finalProjectId]);
-
+  /**
+   * useProject
+   * 
+   * Fetches and manages the state of the current project's data
+   */
   const { project, loading: projectLoading, error: projectError, refreshProject } = useProject(finalProjectId);
+    /**
+   * useProjectMembers
+   * 
+   * Fetches and manages the list of members in the current project, including
+   * logic to determine if the logged-in user is the project owner
+   */
   const { members, loading: membersLoading, error: membersError, isCurrentUserOwner, kickMember } = useProjectMembers(
     finalProjectId,
     project?.projectOwnerID
@@ -37,19 +66,31 @@ const ProjectDetails = () => {
   const [showKickModal, setShowKickModal] = useState(false);
 
   const loggedInUserId = localStorage.getItem("userId");
-
+  /**
+   * handleEditProject
+   * 
+   * Initializes edit mode and sets temporary state for project name and description
+   */
   const handleEditProject = () => {
     setIsEditing(true);
     setEditedName(project.name);
     setEditedDescription(project.description);
   };
-
+  /**
+   * handleCancelEdit
+   * 
+   * Cancels edit mode and resets temporary name and description fields
+   */
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditedName(project.name);
     setEditedDescription(project.description);
   };
-
+  /**
+   * handleSaveEdit
+   * 
+   * Validates and submits project updates to the backend, then refreshes project data
+   */
   const handleSaveEdit = async () => {
     if (!project) return;
 
@@ -67,12 +108,20 @@ const ProjectDetails = () => {
       console.error("❌ Failed to update project:", error.message);
     }
   };
-
+  /**
+   * handleKickMember
+   * 
+   * Triggers the display of a modal to confirm the removal of a project member
+   */
   const handleKickMember = (memberId) => {
     setKickMemberId(memberId);
     setShowKickModal(true);
   };
-
+  /**
+   * confirmKickMember
+   * 
+   * Executes the member removal and updates the member list
+   */
   const confirmKickMember = async () => {
     if (!kickMemberId || !finalProjectId) return;
 
@@ -84,7 +133,11 @@ const ProjectDetails = () => {
       console.error(`❌ Failed to remove user ${kickMemberId}:`, error.message);
     }
   };
-
+  /**
+   * cancelKickMember
+   * 
+   * Cancels the kick operation and hides the confirmation modal
+   */
   const cancelKickMember = () => {
     setShowKickModal(false);
     setKickMemberId(null);

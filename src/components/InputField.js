@@ -1,7 +1,7 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
-
+//outdated component, use InputField.tsx
 const InputField = ({ icon, type, name, placeholder, value, onChange, error, emailValidationStatus }) => {
   return (
     <div className="input-container">

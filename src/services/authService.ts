@@ -11,16 +11,32 @@ export interface AuthToken {
   userId: string; // Keep lowercase as returned by API
 }
 
-// Local Storage Management
+/**
+ * @function getAuthToken
+ * @returns {string | null} Retrieves JWT token from localStorage.
+ */
 export const getAuthToken = (): string | null => localStorage.getItem('token');
+/**
+ * @function getUserId
+ * @returns {string | null} Retrieves user ID from localStorage.
+ */
 export const getUserId = (): string | null => localStorage.getItem('userId');
 
-// Missing function - needed for login
+/**
+ * @function storeAuthData
+ * @param {string} token - JWT token to store.
+ * @param {string} userId - User ID to store.
+ * Stores token and user ID in localStorage.
+ */
+
 export const storeAuthData = (token: string, userId: string): void => {
   localStorage.setItem('token', token);
   localStorage.setItem('userId', userId);
 };
-
+/**
+ * @function clearAuthData
+ * Clears stored authentication and selected project data from localStorage.
+ */
 export const clearAuthData = (): void => {
   localStorage.removeItem('token');
   localStorage.removeItem('userId');
@@ -30,17 +46,37 @@ export const clearAuthData = (): void => {
 // Alias for backward compatibility
 export const clearAuth = clearAuthData;
 
-// Project selection management
+/**
+ * @function getSelectedProject
+ * @returns {string | null} Retrieves the currently selected project ID.
+ */
 export const getSelectedProject = (): string | null => localStorage.getItem('selectedProjectId');
+/**
+ * @function setSelectedProject
+ * @param {string} projectId - Sets the selected project ID.
+ */
+
 export const setSelectedProject = (projectId: string): void => localStorage.setItem('selectedProjectId', projectId);
+/**
+ * @function clearSelectedProject
+ * Removes the selected project ID from localStorage.
+ */
+
 export const clearSelectedProject = (): void => localStorage.removeItem('selectedProjectId');
 
-// Helper function to check if user is authenticated
+/**
+ * @function isAuthenticated
+ * @returns {boolean} Checks if a user is currently authenticated.
+ */
 export const isAuthenticated = (): boolean => {
   return !!getAuthToken();
 };
 
-// API Calls
+/**
+ * @function validateEmail
+ * @param {string} email - Email to validate for duplication.
+ * @returns {Promise<boolean>} True if email is taken, false if available.
+ */
 export const validateEmail = async (email: string): Promise<boolean> => {
   try {
     // This sends a raw string which matches your C# [FromBody] string email parameter
@@ -65,7 +101,12 @@ export const validateEmail = async (email: string): Promise<boolean> => {
   }
 };
 
-// Replace your current validateUsername function with this corrected one
+/**
+ * @function validateUsername
+ * @param {string} username - Username to validate.
+ * @param {string} [currentUsername] - Optional current username to skip validation.
+ * @returns {Promise<boolean>} True if username is taken, false if available or unchanged.
+ */
 export const validateUsername = async (username: string, currentUsername?: string): Promise<boolean> => {
   // Skip validation if username is unchanged
   if (username === currentUsername) {
@@ -102,7 +143,11 @@ export const validateUsername = async (username: string, currentUsername?: strin
     return false; // Assume username is available to let update proceed
   }
 };
-
+/**
+ * @function login
+ * @param {LoginModel} credentials - User login credentials.
+ * @returns {Promise<AuthToken>} Auth token and user ID if successful.
+ */
 export const login = async (credentials: LoginModel): Promise<AuthToken> => {
   try {
     const response = await api.post(`${ENDPOINTS.USER}/ProcessLogin`, credentials);
@@ -117,12 +162,19 @@ export const login = async (credentials: LoginModel): Promise<AuthToken> => {
     throw handleApiError(error, 'logging in');
   }
 };
-
+/**
+ * @function logout
+ * Logs out the current user and clears session data.
+ */
 export const logout = (): void => {
   clearAuth();
   console.log('✅ Logged out successfully');
 };
-
+/**
+ * @function register
+ * @param {UserModel} userData - New user registration data.
+ * @returns {Promise<any>} API response data from registration.
+ */
 export const register = async (userData: UserModel): Promise<any> => {
   try {
     const response = await api.post(ENDPOINTS.USER, userData);
@@ -131,7 +183,11 @@ export const register = async (userData: UserModel): Promise<any> => {
     throw handleApiError(error, 'registering user');
   }
 };
-
+/**
+ * @function requestPasswordReset
+ * @param {string} email - Email to request a password reset for.
+ * Sends reset request to backend using JSON payload.
+ */
 export const requestPasswordReset = async (email: string): Promise<void> => {
   try {
     // Send the email as a raw JSON string to match [FromBody] string email
@@ -151,7 +207,11 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
     }
   }
 };
-
+/**
+ * @function resetPassword
+ * @param {ResetPasswordModel} resetData - Data to reset the user's password.
+ * Completes password reset process.
+ */
 export const resetPassword = async (resetData: ResetPasswordModel): Promise<void> => {
   try {
     await api.post(`${ENDPOINTS.USER}/ResetPassword`, resetData);
@@ -166,7 +226,12 @@ export const resetPassword = async (resetData: ResetPasswordModel): Promise<void
     }
   }
 };
-
+/**
+ * @function confirmPasswordReset
+ * @param {string} token - Password reset token.
+ * @param {string} newPassword - New password to set.
+ * Confirms password reset with provided token and password.
+ */
 export const confirmPasswordReset = async (token: string, newPassword: string): Promise<void> => {
   try {
     await api.post(`${ENDPOINTS.USER}/ResetPassword`, {
@@ -184,7 +249,11 @@ export const confirmPasswordReset = async (token: string, newPassword: string): 
     }
   }
 };
-
+/**
+ * @function changePassword
+ * @param {ChangePasswordModel} passwordData - Payload to change password for authenticated user.
+ * Changes user password via backend.
+ */
 export const changePassword = async (passwordData: ChangePasswordModel): Promise<void> => {
   try {
     await api.post(`${ENDPOINTS.USER}/ChangePassword`, passwordData);
@@ -201,8 +270,9 @@ export const changePassword = async (passwordData: ChangePasswordModel): Promise
 };
 
 /**
- * Sends an email using the backend email service
- * @param emailRequest The email request details
+ * @function sendEmail
+ * @param {EmailRequest} emailRequest - Email content and metadata.
+ * Sends an email through the backend service.
  */
 export const sendEmail = async (emailRequest: EmailRequest): Promise<void> => {
   try {

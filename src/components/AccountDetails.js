@@ -6,7 +6,43 @@ import useAccountDetails from "../hooks/useAccountDetails";
 import "../styles/account_details.css";
 import { getSelectedProject } from "../services/storageService";
 import { fetchProjectMembers } from "../services/projectService";
-
+/**
+ * AccountDetails Component
+ *
+ * Allows users to view and manage account information including:
+ * - First name, last name, username, email
+ * - Change password
+ * - Leave current project (with ownership reassignment if owner)
+ * - Logout
+ *
+ * @hook useAccountDetails - Provides user data and account-related handlers
+ * @state showPasswordChange - Toggles visibility of password form
+ * @state newPassword - Stores new password input
+ * @state confirmPassword - Stores password confirmation input
+ * @state passwordError - Tracks password validation or submission errors
+ * @state passwordSuccess - Tracks password change success message
+ * 
+ * @state isEditingUsername - Tracks username edit state
+ * @state newUsername - Username input field value
+ * @state usernameError - Username update error message
+ * @state usernameSuccess - Username update success message
+ *
+ * @state showLeaveConfirmation - Toggles leave project confirmation section
+ * @state projectMembers - Members available for ownership reassignment
+ * @state selectedNewOwner - Selected member to reassign ownership to
+ * @state reassignError - Reassignment validation or submission error
+ *
+ * @effect Syncs username field with user context on mount
+ * @effect Fetches project members if owner attempts to leave project
+ *
+ * @function handleUsernameKeyDown - Saves or cancels username edits via Enter or Escape
+ * @function submitPasswordChange - Validates and updates password
+ * @function confirmLeaveProject - Triggers modal for leaving the project
+ * @function handleReassignAndLeave - Reassigns ownership then leaves project
+ * @function executeLeaveProject - Leaves the project as non-owner
+ *
+ * @accessibility All input fields use proper labels or placeholders
+ */
 const AccountDetails = () => {
   const navigate = useNavigate();
   const {

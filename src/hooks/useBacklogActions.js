@@ -1,6 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import { editTask } from "../services/projectService";
-
+/**
+ * useBacklogActions
+ *
+ * Custom React hook providing reusable handler functions for backlog actions.
+ * Includes navigation and task update utilities.
+ *
+ * @returns {Object}
+ *   handleCreateTask - Navigates to the create task page.
+ *   handleCreateSprint - Navigates to the create sprint page.
+ *   handleEditTask - Navigates to the edit task page for a given task ID.
+ *   handleUpdateTaskStatus - Updates the status of a given task.
+ *   handleUpdateTaskAssignee - Updates the assignee of a given task.
+ */
 const useBacklogActions = () => {
   const navigate = useNavigate();
 

@@ -2,7 +2,31 @@ import { useState, useEffect } from 'react';
 import { fetchProjectSprints } from '../services/sprintService';
 import { fetchSprintTasks, updateTaskStatus, editTask } from '../services/taskService';
 import { fetchProjectMembers } from '../services/projectService';
-
+/**
+ * useBoardActions
+ *
+ * Custom hook to manage board-related logic for the project Kanban board.
+ *
+ * @param {string} projectId - The ID of the project to load sprints and tasks for.
+ * @returns {Object} Hook state and actions
+ *   sprints - List of sprints for the project.
+ *   selectedSprint - Currently selected sprint ID.
+ *   tasks - List of tasks for the selected sprint.
+ *   members - Project members available for task assignment.
+ *   loading - Boolean indicating whether data is being loaded.
+ *   error - Error message string, if any.
+ *   successMessage - Status message for UI feedback.
+ *   draggedTask - The task currently being dragged.
+ *   setDraggedTask - Function to update the dragged task state.
+ *   setError - Function to update the error state.
+ *   getTasksByStatus - Function to return tasks filtered by status.
+ *   formatDate - Formats ISO string into a human-readable date.
+ *   getAssigneeName - Returns the full name of a task assignee.
+ *   handleSprintChange - Callback to handle sprint dropdown changes.
+ *   handleAssigneeChange - Assigns or unassigns a task to a user.
+ *   handleStatusUpdate - Updates the status of a task after drag-and-drop.
+ *   setSuccessMessage - Function to update the success message state.
+ */
 const useBoardActions = (projectId) => {
   const [sprints, setSprints] = useState([]);
   const [selectedSprint, setSelectedSprint] = useState(null);

@@ -20,7 +20,23 @@ interface LoginRegisterState {
   emailValidationStatus: 'success' | 'error' | null;
   validatingEmail: boolean;
 }
-
+/**
+ * useLoginRegisterNew
+ *
+ * Custom React hook for managing login and registration functionality.
+ *
+ * @returns {object} Form state and handlers for login/register pages.
+ *
+ * @property {string} action - Either "Login" or "Sign Up".
+ * @property {RegistrationFormModel} credentials - Form fields for registration or login.
+ * @property {Record<string, string>} validationErrors - Field-level validation errors.
+ * @property {string} error - General error message.
+ * @property {boolean} success - Whether the last operation was successful.
+ * @property {boolean} loading - Indicates if a request is in progress.
+ * @property {function} handleChange - Updates form values and triggers validation.
+ * @property {function} handleButtonClick - Handles form mode switching or form submission.
+ * @property {string | null} emailValidationStatus - Email validation result: "success", "error", or null.
+ */
 const useLoginRegisterNew = () => {
   const [state, setState] = useState<LoginRegisterState>({
     action: 'Login',

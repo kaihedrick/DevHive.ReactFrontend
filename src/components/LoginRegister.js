@@ -8,6 +8,7 @@ import user_icon from "./assets/person.png";
 import useLoginRegister from "../hooks/useLoginRegister";
 import InputField from "./InputField";
 import SubmitButton from "./SubmitButton";
+//This is the outdated component of LoginRegister.JSX
 
 //this component will be used to render both the login and register pages dynamically by using our useLoginRegister hook
 const LoginRegister = () => {

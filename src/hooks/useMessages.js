@@ -2,7 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import { fetchMessages, sendMessage, subscribeToMessageStream } from "../services/messageService";
 import { getUserId } from "../services/authService.ts";
 
-// Explicitly define the function with a function declaration
+/**
+ * useMessages
+ *
+ * Custom React hook for managing messaging state and real-time updates within a project.
+ *
+ * @param {string} toUserID - ID of the recipient user.
+ * @param {string} projectID - ID of the current project.
+ * @returns {object} Messaging state and handlers.
+ *
+ * @property {Array} messages - List of messages between users in the selected project.
+ * @property {string} newMessage - Current message input value.
+ * @property {function} setNewMessage - Setter for newMessage input.
+ * @property {function} handleSendMessage - Sends the new message and refreshes the message list.
+ * @property {RefObject} messagesEndRef - Ref to auto-scroll to the bottom of the message list.
+ */
 function useMessages(toUserID, projectID) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");

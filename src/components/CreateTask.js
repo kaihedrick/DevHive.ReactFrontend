@@ -7,7 +7,32 @@ import { useTaskManagement } from "../hooks/useTaskManagement";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft, faExclamationTriangle, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_task.css";
-
+/**
+ * CreateTask Component
+ * 
+ * Allows users to create a new task within the selected project and sprint.
+ * 
+ * @returns {JSX.Element} Form UI for creating a task
+ * 
+ * @param {string} selectedProjectId - Project ID retrieved from local storage
+ * 
+ * @state description - Task description input field
+ * @state assigneeID - Selected assignee's user ID
+ * @state sprintID - Selected sprint ID (may be prefilled from query param)
+ * @state members - List of available project members for selection
+ * @state errorMessage - UI error messaging shown to the user
+ * @state isSubmitting - Flag for disabling form during submission
+ * @state membersLoading - Indicates members are being fetched
+ * 
+ * @hook useSprintManagement - Fetches sprints and sprint-related state from backend
+ * @hook useTaskManagement - Provides task creation logic and task-related error handling
+ * 
+ * @method handleCreateTaskSubmit - Validates and submits the task creation request
+ * @method handleKeyDown - Allows form submission via Enter key
+ * 
+ * @effect Loads project members when component mounts or selectedProjectId changes
+ * @effect Handles sprint/task hook-level errors and sets error state
+ */
 const CreateTask = () => {
   const navigate = useNavigate();
   const location = useLocation();

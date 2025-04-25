@@ -2,7 +2,13 @@ import { api, handleApiError } from '../utils/apiClient';
 import { ENDPOINTS } from '../config';
 import { UserModel, UserProfile } from '../models/user.ts';
 
-// Utility to sanitize update payload
+/**
+ * @function cleanUserUpdatePayload
+ * @description Sanitizes the user update payload to include only changed fields.
+ * @param {UserModel} current - The original user data.
+ * @param {Partial<UserModel>} updates - The incoming updates.
+ * @returns {Partial<UserModel>} - A sanitized payload for update.
+ */
 const cleanUserUpdatePayload = (current: UserModel, updates: Partial<UserModel>): Partial<UserModel> => {
   const sanitized: Partial<UserModel> = { ID: current.ID };
 
@@ -29,7 +35,13 @@ const cleanUserUpdatePayload = (current: UserModel, updates: Partial<UserModel>)
   return sanitized;
 };
 
-// Fetch a user by ID
+/**
+ * @function fetchUserById
+ * @description Fetches a user object from the backend by user ID.
+ * @param {string} userId - The ID of the user to fetch.
+ * @returns {Promise<UserModel>} - A promise resolving to a UserModel object.
+ */
+
 export const fetchUserById = async (userId: string): Promise<UserModel> => {
   try {
     const response = await api.get(`${ENDPOINTS.USER}/${userId}`);
@@ -39,7 +51,12 @@ export const fetchUserById = async (userId: string): Promise<UserModel> => {
   }
 };
 
-// Get user profile with calculated properties
+/**
+ * @function getUserProfile
+ * @description Retrieves and transforms a user into a UserProfile object.
+ * @param {string} userId - The ID of the user to fetch and wrap.
+ * @returns {Promise<UserProfile>} - A promise resolving to a UserProfile instance.
+ */
 export const getUserProfile = async (userId: string): Promise<UserProfile> => {
   try {
     const user = await fetchUserById(userId);
@@ -49,7 +66,13 @@ export const getUserProfile = async (userId: string): Promise<UserProfile> => {
   }
 };
 
-// Update this function to properly handle empty responses
+/**
+ * @function updateUserProfile
+ * @description Updates user profile data and returns the updated model.
+ * @param {Partial<UserModel>} userData - The fields to update.
+ * @param {UserModel} [originalUser] - Original user data for differential updates.
+ * @returns {Promise<UserModel>} - The updated user object.
+ */
 export const updateUserProfile = async (
   userData: Partial<UserModel>,
   originalUser?: UserModel
@@ -116,12 +139,21 @@ export const updateUserProfile = async (
 };
 
 
-// Get current user ID from storage
+/**
+ * @function getCurrentUserId
+ * @description Retrieves the current user's ID from localStorage.
+ * @returns {string | null} - The current user ID or null if not found.
+ */
+
 export const getCurrentUserId = (): string | null => {
   return localStorage.getItem('userId');
 };
 
-// Get current user profile
+/**
+ * @function getCurrentUserProfile
+ * @description Fetches the UserProfile of the currently logged-in user.
+ * @returns {Promise<UserProfile | null>} - A promise resolving to the current UserProfile or null.
+ */
 export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
   const userId = getCurrentUserId();
   if (!userId) return null;
@@ -134,7 +166,11 @@ export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
   }
 };
 
-// Get current user
+/**
+ * @function getCurrentUser
+ * @description Fetches the full UserModel of the currently logged-in user.
+ * @returns {Promise<UserModel | null>} - A promise resolving to the current UserModel or null.
+ */
 export const getCurrentUser = async (): Promise<UserModel | null> => {
   const userId = getCurrentUserId();
   if (!userId) return null;
@@ -146,7 +182,12 @@ export const getCurrentUser = async (): Promise<UserModel | null> => {
     return null;
   }
 };
-// Delete a user account 
+/**
+ * @function deleteUserAccount
+ * @description Deletes a user account from the backend.
+ * @param {string} userId - The ID of the user to delete.
+ * @returns {Promise<boolean>} - True if successful, throws on failure.
+ */
 export const deleteUserAccount = async (userId: string): Promise<boolean> => {
   try {
     await api.delete(`${ENDPOINTS.USER}/${userId}`);

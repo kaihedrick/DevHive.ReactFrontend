@@ -5,8 +5,16 @@ import { ENDPOINTS, API_BASE_URL } from '../config';
 import { StorageKeys } from '../config';
 
 /**
- * Fetch projects for the logged-in user
+ * Fetches all projects associated with the currently authenticated user.
+ *
+ * @returns {Promise<Array>} - A list of project objects.
+ * 
+ * @throws {Error} - If the user ID is not found or the API call fails.
+ *
+ * @example
+ * const projects = await fetchUserProjects();
  */
+
 export const fetchUserProjects = async () => {
   try {
     const userId = getUserId();
@@ -28,7 +36,18 @@ export const fetchUserProjects = async () => {
   }
 };
 
-// Function to fetch a specific project by ID
+/**
+ * Fetches a single project by its ID.
+ *
+ * @param {string} projectId - The ID of the project to retrieve.
+ * @returns {Promise<Object>} - The project data object.
+ * 
+ * @throws {Error} - If the project cannot be retrieved.
+ *
+ * @example
+ * const project = await fetchProjectById("project123");
+ */
+
 export const fetchProjectById = async (projectId) => {
   try {
     const response = await api.get(`${ENDPOINTS.PROJECT}/${projectId}`);
@@ -39,7 +58,16 @@ export const fetchProjectById = async (projectId) => {
   }
 };
 
-//function to explicity check to see if a user is project owner or not: 
+/**
+ * Checks whether the currently logged-in user is the owner of the specified project.
+ *
+ * @param {string} projectId - The ID of the project to check.
+ * @returns {Promise<boolean>} - True if the user is the project owner, false otherwise.
+ *
+ * @example
+ * const isOwner = await isProjectOwner("project123");
+ */
+
 export const isProjectOwner = async (projectId) => {
   try {
     const project = await fetchProjectById(projectId);
@@ -52,7 +80,18 @@ export const isProjectOwner = async (projectId) => {
   }
 };
 
-// Get all project members by project id
+/**
+ * Fetches all members associated with a specific project.
+ *
+ * @param {string} projectId - The ID of the project whose members should be retrieved.
+ * @returns {Promise<Array>} - A list of member objects.
+ *
+ * @throws {Error} - If the request fails.
+ *
+ * @example
+ * const members = await fetchProjectMembers("project123");
+ */
+
 export const fetchProjectMembers = async (projectId) => {
   try {
     const response = await api.get(`${ENDPOINTS.PROJECT}/Members/${projectId}`);
@@ -63,10 +102,27 @@ export const fetchProjectMembers = async (projectId) => {
   }
 };
 
-// Function to store selected project ID in localStorage
+/**
+ * Stores the selected project ID in localStorage for state persistence.
+ *
+ * @param {string} projectId - The project ID to be saved.
+ *
+ * @example
+ * setSelectedProject("project123");
+ */
+
 export const setSelectedProject = (projectId) => {
   localStorage.setItem(StorageKeys.SELECTED_PROJECT, projectId);
 };
+/**
+ * Sets the currently selected project ID for the session.
+ *
+ * @param {string} projectId - The ID of the project to select.
+ * @returns {boolean} - Returns true if the project was successfully selected, false otherwise.
+ *
+ * @example
+ * const success = await selectProject("project123");
+ */
 
 export const selectProject = async (projectId) => {
   try {
@@ -78,7 +134,15 @@ export const selectProject = async (projectId) => {
   }
 };
 
-// Function to get selected project ID from localStorage
+/**
+ * Retrieves the currently selected project ID from localStorage.
+ *
+ * @returns {string|null} - The stored project ID or null if not found.
+ *
+ * @example
+ * const projectId = getSelectedProject();
+ */
+
 export const getSelectedProject = () => {
   try {
     return localStorage.getItem(StorageKeys.SELECTED_PROJECT);
@@ -88,17 +152,39 @@ export const getSelectedProject = () => {
   }
 };
 
-// Function to remove the selected project ID from localStorage
+/**
+ * Removes the selected project ID from localStorage.
+ *
+ * @example
+ * clearSelectedProject();
+ */
+
 export const clearSelectedProject = () => {
   localStorage.removeItem(StorageKeys.SELECTED_PROJECT);
 };
 
-// Function to get JWT token from localStorage
+/**
+ * Retrieves the stored authentication token from localStorage.
+ *
+ * @returns {string|null} - JWT token or null if not found.
+ *
+ * @example
+ * const token = getAuthToken();
+ */
+
 export const getAuthToken = () => {
   return localStorage.getItem(StorageKeys.AUTH_TOKEN);
 };
 
-// Function to get stored user ID safely
+/**
+ * Retrieves the current user ID from localStorage.
+ *
+ * @returns {string|null} - The user ID or null if not found.
+ * Logs a warning if the user ID is missing.
+ *
+ * @example
+ * const userId = getUserId();
+ */
 export const getUserId = () => {
   const userId = localStorage.getItem(StorageKeys.USER_ID);
   if (!userId) {
@@ -106,7 +192,18 @@ export const getUserId = () => {
   }
   return userId;
 };
-// Function to create a new project
+/**
+ * Creates a new project in the system.
+ *
+ * @param {Object} projectData - Data for the new project.
+ * @param {string} projectData.name - Name of the project.
+ * @param {string} projectData.projectOwnerID - ID of the project owner.
+ * @param {string} [projectData.description] - Optional description of the project.
+ * @returns {Promise<Object>} - The created project object from the backend.
+ *
+ * @throws Will throw an error if required fields are missing or the API request fails.
+ */
+
 export const createProject = async (projectData) => {
   try {
     const token = getAuthToken();
@@ -139,7 +236,16 @@ export const createProject = async (projectData) => {
     throw error;
   }
 };
-// Function to join a project using projectId and userId
+/**
+ * Joins an existing project as a team member.
+ *
+ * @param {string} projectId - ID of the project to join.
+ * @param {string} userId - ID of the user joining the project.
+ * @returns {Promise<Object>} - Confirmation data from the backend.
+ *
+ * @throws Will throw an error if parameters are missing or the API request fails.
+ */
+
 export const joinProject = async (projectId, userId) => {
   try {
     const token = getAuthToken(); // Retrieve JWT token for authorization
@@ -167,7 +273,16 @@ export const joinProject = async (projectId, userId) => {
   }
 };
 
-// Function to leave a project
+/**
+ * Leaves the specified project as the current user.
+ *
+ * @param {string} projectId - ID of the project to leave.
+ * @returns {Promise<Object>} - Confirmation response from the API.
+ *
+ * @throws Will throw an error if user or project ID is missing, or if the API call fails.
+ *         If the user is the project owner, an additional validation message is returned.
+ */
+
 export const leaveProject = async (projectId) => {
   try {
     const token = getAuthToken();
@@ -215,7 +330,19 @@ export const leaveProject = async (projectId) => {
   }
 };
 
-// Function to edit a project (Only for project owner)
+/**
+ * Updates an existing project's details. Only the project owner can perform this action.
+ *
+ * @param {Object} project - The project object to update.
+ * @param {string} project.id - Unique identifier of the project to be edited.
+ * @param {string} [project.name] - New name for the project.
+ * @param {string} [project.description] - Optional updated description.
+ * @param {string} [project.projectOwnerID] - ID of the current or new project owner.
+ * @returns {Promise<Object>} - The updated project object returned from the backend.
+ *
+ * @throws Will throw an error if the user is not the project owner, if required fields are missing,
+ *         or if the update operation fails.
+ */
 export const editProject = async (project) => {
   try {
     const token = getAuthToken();
@@ -419,7 +546,6 @@ export const editSprint = async (sprintData) => {
 };
 
 // Function to edit/update an existing task
-// Function to edit/update an existing task
 export const editTask = async (taskData) => {
   try {
     const token = getAuthToken();
@@ -515,7 +641,19 @@ export const fetchProjectTasks = async (projectId) => {
     throw error;
   }
 };
-
+/**
+ * Fetches all tasks for a given project and appends assignee initials to each task.
+ * This is especially useful for displaying avatar labels or tags in UI components.
+ *
+ * @param {string} projectId - The unique identifier for the project whose tasks should be fetched.
+ * @returns {Promise<Array>} A list of task objects, each with an `assigneeInitials` field added.
+ *
+ * Notes:
+ * - If a task is unassigned (`assigneeID` is null or undefined), the field will be set to "Unassigned".
+ * - If user lookup fails, a default of "??" is used for initials.
+ * - Uses `Promise.all()` to parallelize user fetch calls, improving overall performance.
+ * - Assumes `fetchUserById` returns an object with `firstName` and `lastName` properties.
+ */
 export const fetchProjectTasksWithAssignees = async (projectId) => {
   try {
     const tasks = await fetchProjectTasks(projectId);
@@ -543,8 +681,22 @@ export const fetchProjectTasksWithAssignees = async (projectId) => {
   }
 };
 
-// Function to update task status
-// Function to update task status
+
+/**
+ * Updates the status of a specific task using its ID.
+ * This function is typically used in task boards or sprint views where drag-and-drop
+ * or status dropdowns trigger a status update.
+ *
+ * @param {string} taskId - The unique identifier of the task to update.
+ * @param {number} newStatus - The new status to assign to the task (0 = Pending, 1 = In Progress, 2 = Completed).
+ * @returns {Promise<Object>} - The updated task data from the API.
+ *
+ * Best Practices:
+ * - Validates taskId and status before making the API call.
+ * - Only allows status codes explicitly defined (0, 1, 2).
+ * - Uses token-based authentication via headers.
+ * - Returns parsed response data for flexible frontend usage.
+ */
 export const updateTaskStatus = async (taskId, newStatus) => {
   try {
     const token = getAuthToken();
@@ -572,7 +724,20 @@ export const updateTaskStatus = async (taskId, newStatus) => {
   }
 };
 
-// Function to update task assignee
+/**
+ * Updates the assignee for a specific task in the project management system.
+ *
+ * @param {string} taskId - The ID of the task to update.
+ * @param {string} newAssigneeId - The ID of the user to assign the task to.
+ * @returns {Promise<Object>} - The updated task data from the server.
+ *
+ * @throws Will throw an error if the task ID or assignee ID is missing.
+ * @throws Will throw an error if the API request fails.
+ *
+ * @example
+ * await updateTaskAssignee("task123", "user456");
+ */
+
 export const updateTaskAssignee = async (taskId, newAssigneeId) => {
   try {
     const token = getAuthToken();
@@ -596,7 +761,18 @@ export const updateTaskAssignee = async (taskId, newAssigneeId) => {
   }
 };
 
-// Function to fetch all sprints for a given project
+/**
+ * Fetches all sprints associated with a given project.
+ *
+ * @param {string} projectId - The ID of the project whose sprints are to be retrieved.
+ * @returns {Promise<Array>} - A promise that resolves to an array of sprint objects.
+ *
+ * @throws {Error} - Throws an error if the project ID is missing or if the API request fails.
+ *
+ * @example
+ * const sprints = await fetchProjectSprints("project123");
+ */
+
 export const fetchProjectSprints = async (projectId) => {
   try {
     const token = getAuthToken();
@@ -622,7 +798,18 @@ export const fetchProjectSprints = async (projectId) => {
     throw error;
   }
 };
-// Function to fetch a single sprint by its ID
+/**
+ * Fetches detailed information for a specific sprint by its ID.
+ *
+ * @param {string} sprintId - The unique identifier of the sprint to retrieve.
+ * @returns {Promise<Object>} - A promise that resolves to the sprint object.
+ *
+ * @throws {Error} - Throws an error if the sprint ID is not provided or if the request fails.
+ *
+ * @example
+ * const sprint = await fetchSprintById("sprint456");
+ */
+
 export const fetchSprintById = async (sprintId) => {
   try {
     const token = getAuthToken();
@@ -648,7 +835,18 @@ export const fetchSprintById = async (sprintId) => {
     throw error;
   }
 };
-// Function to fetch a single task by its ID
+/**
+ * Fetches detailed information for a specific task by its ID.
+ *
+ * @param {string} taskId - The unique identifier of the task to retrieve.
+ * @returns {Promise<Object>} - A promise that resolves to the task object.
+ *
+ * @throws {Error} - Throws an error if the task ID is not provided or if the request fails.
+ *
+ * @example
+ * const task = await fetchTaskById("task789");
+ */
+
 export const fetchTaskById = async (taskId) => {
   try {
     const token = getAuthToken();
@@ -674,7 +872,18 @@ export const fetchTaskById = async (taskId) => {
     throw error;
   }
 };
-// Function to delete a task by its ID
+/**
+ * Deletes a task by its ID.
+ *
+ * @param {string} taskId - The ID of the task to delete.
+ * @returns {Promise<Object>} - The server response confirming deletion.
+ *
+ * @throws {Error} - If the task ID is not provided or the API call fails.
+ *
+ * @example
+ * await deleteTask("task123");
+ */
+
 export const deleteTask = async (taskId) => {
   try {
     const token = getAuthToken();
@@ -700,7 +909,18 @@ export const deleteTask = async (taskId) => {
     throw error;
   }
 };
-// Function to delete a sprint by its ID
+/**
+ * Deletes a sprint by its ID.
+ *
+ * @param {string} sprintId - The ID of the sprint to delete.
+ * @returns {Promise<Object>} - The server response confirming deletion.
+ *
+ * @throws {Error} - If the sprint ID is not provided or the API call fails.
+ *
+ * @example
+ * await deleteSprint("sprint456");
+ */
+
 export const deleteSprint = async (sprintId) => {
   try {
     const token = getAuthToken();

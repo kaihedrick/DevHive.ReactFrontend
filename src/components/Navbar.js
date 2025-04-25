@@ -4,11 +4,26 @@ import "../styles/navbar.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTableColumns, faListCheck, faAddressBook, faUser } from "@fortawesome/free-solid-svg-icons";
 import { ReactComponent as HiveIcon } from "./assets/hive-icon.svg";
-
+/**
+ * Navbar Component
+ * 
+ * Renders a responsive navigation bar that adapts between a sidebar layout on desktop
+ * and a topbar layout on mobile devices. Includes navigation to main sections of the app.
+ * 
+ * @component
+ * @returns {JSX.Element} Rendered navigation bar
+ */
 const Navbar = () => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 600);
-
+  /**
+   * useEffect - Window Resize Listener
+   * 
+   * Adds an event listener to monitor window resizing and updates `isMobile` state
+   * to trigger layout switch between sidebar and topbar
+   * 
+   * @dependencies []
+   */
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 600;

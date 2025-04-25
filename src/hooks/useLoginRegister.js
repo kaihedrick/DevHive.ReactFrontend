@@ -1,7 +1,23 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { login, register, validateEmail } from "../services/authService";
-
+/**
+ * useLoginRegister
+ *
+ * Custom hook to handle login and registration logic.
+ *
+ * @returns {object} - The current state and handlers for login/register forms.
+ *
+ * @property {string} action - Current form mode: "Login" or "Sign Up".
+ * @property {object} credentials - Form fields including email, username, password, etc.
+ * @property {object} validationErrors - Object mapping field names to validation error messages.
+ * @property {string} error - General error message.
+ * @property {boolean} success - Flag indicating if the last operation was successful.
+ * @property {boolean} loading - Flag indicating if an async operation is in progress.
+ * @property {function} handleChange - Input field change handler with debounced email validation.
+ * @property {function} handleButtonClick - Handles form submit or switching between login/register.
+ * @property {string|null} emailValidationStatus - Validation result: "success", "error", or null.
+ */
 const useLoginRegister = () => {
   const [action, setAction] = useState("Login");
   const [credentials, setCredentials] = useState({

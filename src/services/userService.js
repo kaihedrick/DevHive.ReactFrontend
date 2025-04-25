@@ -2,7 +2,10 @@ import axios from "axios";
 import { API_BASE_URL } from "../config";
 import { getAuthToken, storeAuthData } from "../services/authService";
 import { ENDPOINTS } from '../config';
-
+/**
+ * @constant api
+ * @description Axios instance with a base URL and auth token interceptor for authenticated requests.
+ */
 export const api = axios.create({
   baseURL: API_BASE_URL
 });
@@ -17,7 +20,12 @@ api.interceptors.request.use(config => {
 
 const API_URL = `${API_BASE_URL}/User`;
 
-// Login function to authenticate the user and store token & user ID
+/**
+ * @function login
+ * @description Authenticates a user and stores the JWT token and user ID on successful login.
+ * @param {Object} credentials - The user's login credentials.
+ * @returns {Promise<Object>} - The response data containing user and token info.
+ */
 export const login = async (credentials) => {
   try {
     const response = await axios.post(`${API_URL}/ProcessLogin/`, credentials);
@@ -36,12 +44,22 @@ export const login = async (credentials) => {
     throw error;
   }
 };
-
+/**
+ * @function register
+ * @description Registers a new user by sending user data to the backend.
+ * @param {Object} userData - The new user's registration data.
+ * @returns {Promise<Object>} - The response data from the registration API.
+ */
 export const register = async (userData) => {
   const response = await axios.post(API_URL, userData);
   return response.data;
 };
-
+/**
+ * @function validateEmail
+ * @description Validates if an email address is already in use.
+ * @param {string} email - The email address to validate.
+ * @returns {Promise<Object>} - The response indicating whether the email is unique.
+ */
 export const validateEmail = async (email) => {
   try {
     const response = await axios.post(`${API_URL}/ValidateEmail`, { email });
@@ -51,7 +69,12 @@ export const validateEmail = async (email) => {
     throw error;
   }
 };
-
+/**
+ * @function fetchUserById
+ * @description Retrieves user details by user ID using an authenticated request.
+ * @param {string} userId - The ID of the user to fetch.
+ * @returns {Promise<Object>} - The user object retrieved from the API.
+ */
 export const fetchUserById = async (userId) => {
   try {
     const response = await api.get(`${ENDPOINTS.USER}/${userId}`);

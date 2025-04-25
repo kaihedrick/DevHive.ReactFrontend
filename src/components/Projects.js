@@ -5,7 +5,16 @@ import { faPenToSquare, faXmark, faTrash } from "@fortawesome/free-solid-svg-ico
 import { useProjects } from "../hooks/useProjects";
 import { setSelectedProject } from "../services/storageService";
 import "../styles/projects.css";
-
+/**
+ * Projects Page Component
+ * 
+ * Displays a list of projects for the authenticated user, and provides actions 
+ * for selecting, editing, and deleting projects. Includes navigation to create, 
+ * join, or manage account settings.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered component
+ */
 const Projects = () => {
   const [userId, setUserId] = useState(null);
   const [editingProjectId, setEditingProjectId] = useState(null);
@@ -13,7 +22,14 @@ const Projects = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const navigate = useNavigate();
-
+  /**
+   * useEffect Hook
+   * 
+   * Retrieves user ID from localStorage on initial mount. If no user is found, 
+   * redirects to the login page.
+   * 
+   * @dependencies [navigate, userId]
+   */
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
 
@@ -25,7 +41,13 @@ const Projects = () => {
   }, [navigate, userId]);
 
   const { projects, loading, deleteProject } = useProjects(userId);
-
+  /**
+   * handleProjectSelection
+   * 
+   * @param {Event} e - Click event
+   * @param {string} projectId - ID of the selected project
+   * Navigates to the project details page and stores the project ID
+   */
   const handleProjectSelection = (e, projectId) => {
     if (editingProjectId) return;
     if (e.target.closest(".project-actions")) return;
@@ -33,12 +55,21 @@ const Projects = () => {
     setSelectedProject(projectId);
     navigate(`/project-details`);
   };
-
+  /**
+   * handleDeleteProject
+   * 
+   * @param {string} projectId - ID of the project to delete
+   * Sets the deleteProjectId and opens the confirmation modal
+   */
   const handleDeleteProject = (projectId) => {
     setDeleteProjectId(projectId);
     setShowDeleteModal(true);
   };
-
+  /**
+   * confirmDeleteProject
+   * 
+   * Confirms and deletes the selected project. Refreshes list on success
+   */
   const confirmDeleteProject = async () => {
     if (!deleteProjectId) return;
 
@@ -51,12 +82,21 @@ const Projects = () => {
       console.error(`❌ Failed to delete project:`, error.message);
     }
   };
-
+  /**
+   * cancelDeleteProject
+   * 
+   * Cancels the delete operation and closes the modal
+   */
   const cancelDeleteProject = () => {
     setShowDeleteModal(false);
     setDeleteProjectId(null);
   };
-
+  /**
+   * toggleEditMode
+   * 
+   * @param {string} projectId - ID of the project to edit
+   * Toggles edit mode for a specific project
+   */
   const toggleEditMode = (projectId) => {
     setEditingProjectId(editingProjectId === projectId ? null : projectId);
   };
@@ -124,7 +164,21 @@ const Projects = () => {
   );
 };
 
-// Ensure edit button is only visible to the project owner
+/**
+ * ProjectCard Component
+ * 
+ * Displays project information with conditional actions for editing and deleting
+ * 
+ * @param {Object} props
+ * @param {Object} props.project - Project data
+ * @param {boolean} props.isEditing - Whether the project is in edit mode
+ * @param {Function} props.onSelect - Callback for selecting a project
+ * @param {Function} props.onEdit - Callback for toggling edit mode
+ * @param {Function} props.onDelete - Callback for deleting a project
+ * @param {string} props.loggedInUserId - ID of the currently authenticated user
+ * 
+ * @returns {JSX.Element} A single project card
+ */
 const ProjectCard = ({ project, isEditing, onSelect, onEdit, onDelete, loggedInUserId }) => (
   <div
     className={`project-card ${isEditing ? "editing" : ""}`}

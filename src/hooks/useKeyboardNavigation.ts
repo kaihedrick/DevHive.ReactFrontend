@@ -6,7 +6,14 @@ interface NavigationMap {
 }
 
 /**
- * Custom hook for keyboard navigation between form fields
+ * useKeyboardNavigation
+ *
+ * A reusable React hook for handling Enter key navigation between input fields.
+ *
+ * @param {NavigationMap} navigationMap - A key-value map of current field names to the next field names.
+ * @param {() => void} submitAction - A callback function to trigger when the final input is submitted.
+ * @returns {(e: React.KeyboardEvent<HTMLInputElement>, currentField: string) => void}
+ *   - A key event handler that can be attached to input fields to enable Enter-to-navigate behavior.
  */
 export const useKeyboardNavigation = (
   navigationMap: NavigationMap,

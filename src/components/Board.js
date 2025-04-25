@@ -4,7 +4,32 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt, faBars } from '@fortawesome/free-solid-svg-icons';
 import useBoardActions from '../hooks/useBoardActions';
 import '../styles/board.css';
-
+/**
+ * Board Component
+ *
+ * Displays a Kanban-style task board for a selected project and sprint.
+ * Supports drag-and-drop task movement across three status columns.
+ *
+ * @returns {JSX.Element} The full task board with status columns and sprint selector
+ *
+ * @state localSuccessMessage - Displays temporary success messages
+ * @state localErrorMessage - Displays temporary error messages
+ *
+ * @ref columnRefs - Refs for each task column to highlight drop targets
+ *
+ * @hook useEffect - Auto-clears success and error messages after a delay
+ * @hook useBoardActions - Custom hook for board state, task updates, sprint/task filtering
+ *
+ * @function handleDragStart - Initiates drag with ghost image and sets current task
+ * @function handleDragEnd - Cleans up styles and ghost element
+ * @function handleDragOver - Adds visual highlight to valid drop target
+ * @function handleDragLeave - Removes highlight from drop target
+ * @function handleDrop - Handles logic for moving task to new status
+ *
+ * @conditionalRender - Renders loading, error, empty sprint, or full board depending on state
+ *
+ * @accessibility - Columns support drag events, dropdowns allow assignment updates
+ */
 const Board = () => {
   const projectId = getSelectedProject();
   const {

@@ -1,6 +1,20 @@
 import { useState, useCallback, useEffect } from 'react';
 import { fetchProjectById } from '../services/projectService';
-
+/**
+ * useProject
+ *
+ * Custom hook to manage project data retrieval and state.
+ *
+ * @param {string} projectId - The ID of the project to fetch.
+ * @returns {Object} An object containing:
+ *  - project: The fetched project data.
+ *  - loading: Boolean indicating loading state.
+ *  - error: Any error encountered during fetch.
+ *  - refreshProject: Function to re-fetch the project data.
+ *
+ * @example
+ * const { project, loading, error, refreshProject } = useProject("abc123");
+ */
 export const useProject = (projectId) => {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);

@@ -4,19 +4,51 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { joinProject, fetchProjectById, getUserId } from "../services/projectService";
 import "../styles/join_project.css";
-
+/**
+ * JoinProject Component
+ * 
+ * Allows authenticated users to join an existing project using a unique project code.
+ * Handles validation, API communication, navigation, and error/status feedback.
+ * 
+ * @returns {JSX.Element} Rendered form for joining a project
+ */
 const JoinProject = () => {
+  /**
+   * useNavigate
+   * 
+   * Provides client-side navigation to switch between routes
+   */
   const navigate = useNavigate();
   const userId = getUserId();
-
+  /**
+   * useState - projectCode, status, error
+   * 
+   * projectCode: stores the input value of the join code
+   * status: stores informational messages (e.g., "Joining project...")
+   * error: stores error messages from failed validations or API calls
+   */
   const [projectCode, setProjectCode] = useState("");
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
-
+  /**
+   * handleProjectCodeChange
+   * 
+   * Updates the local state as the user types the project code
+   * 
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input event
+   */
   const handleProjectCodeChange = (e) => {
     setProjectCode(e.target.value);
   };
-
+  /**
+   * handleJoin
+   * 
+   * Validates input, checks if the project exists, and attempts to join the project
+   * Displays success or error messages based on result
+   * 
+   * @async
+   * @returns {Promise<void>}
+   */
   const handleJoin = async () => {
     if (!projectCode) {
       setError("Please enter the project code.");
@@ -40,7 +72,11 @@ const JoinProject = () => {
       setStatus("");
     }
   };
-
+  /**
+   * handleBack
+   * 
+   * Navigates back to the main project list
+   */
   const handleBack = () => {
     navigate("/projects");
   };

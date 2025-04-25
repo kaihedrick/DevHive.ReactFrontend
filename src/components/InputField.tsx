@@ -16,7 +16,28 @@ interface InputFieldProps {
   emailValidationStatus?: 'success' | 'error' | null;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
-
+/**
+ * InputField Component
+ * 
+ * Reusable input component for forms, supports:
+ * - Icon display inside input box
+ * - Error messaging with ARIA support
+ * - Optional success/error validation icon (e.g. for email)
+ * - Keyboard navigation via onKeyDown
+ * - Forwarded ref support
+ *
+ * @param icon FontAwesome icon displayed at the start of the input
+ * @param type Input type (e.g., text, password, email)
+ * @param name Name of the input, used for form value identification
+ * @param placeholder Placeholder text shown inside the input field
+ * @param value Controlled value of the input
+ * @param onChange Handler for value changes
+ * @param error Optional string for validation error messaging
+ * @param emailValidationStatus Optional field for displaying success or error icon
+ * @param onKeyDown Optional keyboard handler (used for Enter key navigation)
+ * 
+ * @returns A styled input with icons and validation support
+ */
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(({
   icon,
   type,

@@ -4,7 +4,18 @@ import useAuth from '../hooks/useAuth';
 import useRoutePermission from '../hooks/useRoutePermission';
 
 /**
- * Protected Route component that handles authentication and route protection
+ * ProtectedRoute
+ * 
+ * React component that guards routes based on authentication and project selection
+ * 
+ * @param {React.ReactNode} children - Components to render if access is allowed
+ * @returns {JSX.Element} Redirect to login or projects if access is denied
+ * 
+ * @behavior 
+ * - Uses useAuth() to check if user is authenticated
+ * - Uses useRoutePermission() to check if route is accessible based on project context
+ * - Logs route evaluation and redirects when necessary
+ * - Preserves original navigation intent using state object when redirecting
  */
 const ProtectedRoute = ({ children }) => {
   const location = useLocation();

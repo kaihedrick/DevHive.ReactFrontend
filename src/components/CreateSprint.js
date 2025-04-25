@@ -5,6 +5,26 @@ import { createSprint } from "../services/sprintService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft, faCalendarAlt, faPlay } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_sprint.css";
+/**
+ * CreateSprint Component
+ * 
+ * Provides UI and logic to create a new sprint for the currently selected project.
+ * 
+ * @returns {JSX.Element} Sprint creation form with validation and submission logic
+ * 
+ * @state sprintName - Sprint title entered by the user
+ * @state startDate - Sprint start date (required)
+ * @state endDate - Sprint end date (required)
+ * @state startImmediately - Whether the sprint should be marked as started upon creation
+ * @state loading - Tracks form submission state
+ * @state error - Displays error messages to the user
+ * 
+ * @hook useNavigate - Allows programmatic navigation between routes
+ * 
+ * @method handleCreateSprintSubmit - Validates input and calls API to create a sprint
+ * 
+ * @conditional UI - If project is not selected, shows an error message with back navigation
+ */
 
 const CreateSprint = () => {
   const navigate = useNavigate();

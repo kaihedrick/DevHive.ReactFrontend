@@ -6,8 +6,20 @@ import { fetchMessages, sendMessage, subscribeToMessageStream } from "../service
 import "../styles/message.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComments, faPaperPlane, faSpinner } from "@fortawesome/free-solid-svg-icons";
-
+/**
+ * Message Component
+ * 
+ * Handles peer-to-peer messaging within a project context.
+ * Supports real-time message updates via WebSocket and optimistic UI updates.
+ * 
+ * @returns {JSX.Element} Rendered chat interface
+ */
 const Message = () => {
+  /**
+   * useParams
+   * 
+   * Extracts `userId` and `projectId` from route parameters for context-aware messaging
+   */
   const { userId: toUserID, projectId: projectID } = useParams();
   const [user, setUser] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -19,7 +31,15 @@ const Message = () => {
   const socketRef = useRef(null);
   const messagePollingRef = useRef(null);
 
-  // Add a formatMessageTime function at the top of your component
+  /**
+   * formatMessageTime
+   * 
+   * Converts various datetime formats (Firestore, ISO string, Date) into a human-readable string
+   * Used for displaying message timestamps
+   * 
+   * @param {Date | string | object} dateTime - The original timestamp value
+   * @returns {string} Formatted timestamp
+   */
   const formatMessageTime = (dateTime) => {
     // First ensure we're working with a valid date
     let date;
@@ -53,7 +73,13 @@ const Message = () => {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Load user data
+  /**
+   * useEffect - Load Recipient User
+   * 
+   * Fetches recipient user data using the provided user ID when component mounts
+   * 
+   * @dependencies [toUserID]
+   */
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -67,7 +93,14 @@ const Message = () => {
     loadUser();
   }, [toUserID]);
 
-  // Initial message load and WebSocket setup
+  /**
+   * useEffect - Initial Message Load and Real-Time Subscription
+   * 
+   * Fetches initial message history and subscribes to new messages via WebSocket.
+   * Also sets up a fallback polling interval every 10 seconds.
+   * 
+   * @dependencies [loggedInUserId, toUserID, projectID]
+   */
   useEffect(() => {
     // Clear any existing polling interval
     if (messagePollingRef.current) {
@@ -120,12 +153,25 @@ const Message = () => {
     };
   }, [loggedInUserId, toUserID, projectID]);
 
-  // Auto-scroll to bottom when messages change
+  /**
+   * useEffect - Auto Scroll on Message Update
+   * 
+   * Automatically scrolls to the bottom of the message list when a new message arrives
+   * 
+   * @dependencies [messages]
+   */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Handle sending a message with optimistic update
+  /**
+   * handleSendMessage
+   * 
+   * Sends a message using optimistic UI updates.
+   * Displays a pending message in the UI until the backend confirms receipt.
+   * 
+   * @returns {Promise<void>}
+   */
   const handleSendMessage = async () => {
     const trimmedMessage = newMessage.trim();
     if (!trimmedMessage || sending) return;
@@ -184,7 +230,14 @@ const Message = () => {
     }
   };
 
-  // Handle retry for failed messages
+  /**
+   * handleRetry
+   * 
+   * Allows retrying failed messages by restoring their text into the input field
+   * 
+   * @param {Object} failedMsg - The message object that failed to send
+   * @returns {void}
+   */
   const handleRetry = async (failedMsg) => {
     // Remove the failed message
     setMessages(prevMessages => prevMessages.filter(msg => msg.id !== failedMsg.id));

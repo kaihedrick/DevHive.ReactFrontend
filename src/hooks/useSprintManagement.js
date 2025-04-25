@@ -8,7 +8,30 @@ import {
   checkSprintDateOverlap,
   getDisabledDates
 } from '../services/sprintService';
-
+/**
+ * useSprintManagement
+ *
+ * Custom hook for managing sprints in a given project.
+ *
+ * @param {string} projectId - The ID of the project whose sprints are being managed
+ * @returns {Object} Sprint state and handler functions
+ *
+ * @property {Array} sprints - List of all sprints in the project
+ * @property {Array} sortedSprints - Sprints sorted by start date
+ * @property {Object|null} selectedSprint - Currently selected sprint
+ * @property {Function} setSelectedSprint - Setter for selectedSprint
+ * @property {Object|null} nextSprintToStart - The next sprint eligible to be started
+ * @property {Object|null} activeSprint - Currently active sprint
+ * @property {boolean} loading - Loading state
+ * @property {string|null} error - Error state message
+ * @property {Function} fetchSprints - Manually fetch all sprints for the project
+ * @property {Function} handleCreateSprint - Create a new sprint
+ * @property {Function} handleUpdateSprint - Update an existing sprint
+ * @property {Function} handleStartSprint - Mark a sprint as started
+ * @property {Function} handleCompleteSprint - Mark a sprint as completed
+ * @property {Function} validateSprintDates - Check for valid start/end dates and overlap
+ * @property {Function} getSprintDisabledDates - Get date strings to disable in a date picker
+ */
 export const useSprintManagement = (projectId) => {
   const [sprints, setSprints] = useState([]);
   const [loading, setLoading] = useState(true);

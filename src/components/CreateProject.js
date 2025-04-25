@@ -5,7 +5,23 @@ import { getUserId } from "../services/authService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_project.css";
-
+/**
+ * CreateProject Component
+ * 
+ * Form component that allows a logged-in user to create a new project.
+ * 
+ * @returns {JSX.Element} A project creation form with validation, submission logic, and inline character counters.
+ * 
+ * @state projectName - Stores the name of the project entered by the user
+ * @state projectDescription - Stores the optional description for the project
+ * @state error - Stores any error message resulting from form submission or validation
+ * 
+ * @hook useNavigate - Used to navigate to the projects page upon successful creation
+ * 
+ * @method handleSubmit - Validates input, calls the createProject service, and handles error or navigation logic
+ * 
+ * @conditional UI - Renders error messages and character counters for project name and description inputs
+ */
 const CreateProject = () => {
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");

@@ -2,8 +2,14 @@ import { useState, useEffect } from 'react';
 import { getAuthToken } from '../services/authService.ts';
 
 /**
- * Custom hook to handle authentication state
- * @returns {Object} Authentication state
+ * useAuth
+ *
+ * Custom React hook to manage authentication state.
+ * Checks for presence of auth token in localStorage and updates state accordingly.
+ * Subscribes to storage events to reflect changes across tabs/windows.
+ *
+ * @returns {Object} 
+ *   isAuthenticated - Boolean indicating if the user is authenticated.
  */
 function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!getAuthToken());

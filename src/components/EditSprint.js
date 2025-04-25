@@ -4,7 +4,33 @@ import { fetchSprintById, editSprint } from "../services/sprintService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft, faCalendarAlt, faPlay, faCheck, faSave } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_sprint.css";
-
+/**
+ * EditSprint Component
+ * 
+ * Allows users to modify sprint metadata, including name, start/end dates, and status.
+ * Supports lifecycle transitions such as starting or completing a sprint.
+ * 
+ * @returns {JSX.Element} Editable form for a single sprint
+ * 
+ * @param {string} sprintId - Sprint identifier retrieved from route parameters
+ * 
+ * @state sprintName - Current name of the sprint
+ * @state startDate - Start date in ISO format (YYYY-MM-DD)
+ * @state endDate - End date in ISO format (YYYY-MM-DD)
+ * @state isStarted - Boolean indicating if the sprint has started
+ * @state isCompleted - Boolean indicating if the sprint is completed
+ * @state projectID - Associated project identifier
+ * @state error - Message shown when operations fail
+ * @state success - Message shown after successful operations
+ * @state loading - Flag indicating loading state during data fetch
+ * @state formModified - Tracks whether changes have been made to the form
+ * 
+ * @method handleUpdateSprint - Submits updated sprint details
+ * @method handleStartSprint - Transitions the sprint to "started" state
+ * @method handleCompleteSprint - Marks the sprint as complete and redirects to backlog
+ * @method useEffect - Loads sprint data on component mount
+ * @method getStatusText - Returns current sprint status as a user-friendly string
+ */
 const EditSprint = () => {
   const navigate = useNavigate();
   const { sprintId } = useParams();

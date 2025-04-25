@@ -4,7 +4,26 @@ import { fetchProjectMembers } from "../services/projectService";
 import { fetchUserById } from "../services/userService";
 import { getSelectedProject } from "../services/storageService";
 import "../styles/contacts.css";
-
+/**
+ * Contacts Component
+ *
+ * Displays a list of project members excluding the currently logged-in user.
+ * Enables navigation to the messaging page when a contact is clicked.
+ *
+ * @returns {JSX.Element} A styled list of project contacts with avatars and basic info.
+ *
+ * @state contacts - Stores the filtered list of project members (excluding the current user)
+ * @state loading - Indicates whether member data is still being fetched
+ * @state error - Stores any error that occurs during fetch operations
+ *
+ * @hook useEffect - Loads contacts from the selected project on component mount
+ * @hook useNavigate - Used to navigate to the messaging page with selected user and project IDs
+ *
+ * @function loadContacts - Fetches project members and their details, filters out invalid entries
+ * @function handleContactClick - Redirects to the messaging route for a specific user
+ *
+ * @styleOverrides - Injects a style override to apply a consistent secondary background color
+ */
 const Contacts = () => {
   const navigate = useNavigate();
   const [contacts, setContacts] = useState([]);

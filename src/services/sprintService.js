@@ -3,7 +3,11 @@ import { API_BASE_URL } from '../config';
 import { useState, useCallback, useEffect } from 'react';
 import { getAuthToken } from './projectService'; 
 
-// Function to fetch all sprints for a given project
+/**
+ * Fetch all sprints for a specific project.
+ * @param {string} projectId - The ID of the project to retrieve sprints for.
+ * @returns {Promise<Array>} - An array of sprint objects.
+ */
 export const fetchProjectSprints = async (projectId) => {
   try {
     // Get auth token
@@ -29,7 +33,11 @@ export const fetchProjectSprints = async (projectId) => {
   }
 };
 
-// Function to fetch a single sprint by its ID
+/**
+ * Fetch a single sprint by its ID.
+ * @param {string} sprintId - The unique ID of the sprint.
+ * @returns {Promise<Object>} - The sprint object retrieved from the API.
+ */
 export const fetchSprintById = async (sprintId) => {
   try {
     // Get auth token
@@ -55,7 +63,11 @@ export const fetchSprintById = async (sprintId) => {
   }
 };
 
-// Function to create a new sprint for a project
+/**
+ * Create a new sprint associated with a given project.
+ * @param {Object} sprintData - Data for the new sprint, including projectID.
+ * @returns {Promise<Object>} - The newly created sprint.
+ */
 export const createSprint = async (sprintData) => {
   try {
     // Get auth token
@@ -83,7 +95,11 @@ export const createSprint = async (sprintData) => {
   }
 };
 
-// Function to edit/update an existing sprint
+/**
+ * Edit an existing sprint's data.
+ * @param {Object} sprintData - Sprint data including an existing sprint ID.
+ * @returns {Promise<Object>} - The updated sprint object.
+ */
 export const editSprint = async (sprintData) => {
   try {
     // Get auth token
@@ -122,7 +138,11 @@ export const editSprint = async (sprintData) => {
   }
 };
 
-// Function to delete a sprint by its ID
+/**
+ * Delete a sprint by its ID.
+ * @param {string} sprintId - The ID of the sprint to delete.
+ * @returns {Promise<Object>} - Response from the delete operation.
+ */
 export const deleteSprint = async (sprintId) => {
   try {
     // Get auth token
@@ -148,7 +168,11 @@ export const deleteSprint = async (sprintId) => {
   }
 };
 
-// Function to start a sprint
+/**
+ * Start a sprint by marking its `isStarted` field to true.
+ * @param {string} sprintId - The ID of the sprint to start.
+ * @returns {Promise<Object>} - The updated sprint object.
+ */
 export const startSprint = async (sprintId) => {
   try {
     // Get auth token
@@ -183,7 +207,11 @@ export const startSprint = async (sprintId) => {
   }
 };
 
-// Function to complete a sprint
+/**
+ * Complete a sprint by marking its `isCompleted` field to true.
+ * @param {string} sprintId - The ID of the sprint to complete.
+ * @returns {Promise<Object>} - The updated sprint object.
+ */
 export const completeSprint = async (sprintId) => {
   try {
     // Get auth token
@@ -218,7 +246,12 @@ export const completeSprint = async (sprintId) => {
   }
 };
 
-// Function to fetch active sprints for a project
+/**
+ * Fetch only the active (in-progress) sprints for a given project.
+ * @param {string} projectId - The ID of the project.
+ * @returns {Promise<Array>} - Array of active sprints.
+ */
+
 export const fetchActiveProjectSprints = async (projectId) => {
   try {
     // Get auth token
@@ -244,7 +277,11 @@ export const fetchActiveProjectSprints = async (projectId) => {
   }
 };
 
-// Function to fetch all tasks for a sprint
+/**
+ * Retrieve all tasks associated with a sprint.
+ * @param {string} sprintId - The ID of the sprint.
+ * @returns {Promise<Array>} - Array of task objects.
+ */
 export const fetchSprintTasks = async (sprintId) => {
   try {
     // Get auth token
@@ -270,7 +307,14 @@ export const fetchSprintTasks = async (sprintId) => {
   }
 };
 
-// Check if dates overlap with existing sprints
+/**
+ * Check for overlapping sprint dates against existing sprints.
+ * @param {Date|string} newStart - Proposed start date.
+ * @param {Date|string} newEnd - Proposed end date.
+ * @param {Array} existingSprints - Array of existing sprints.
+ * @param {string|null} [currentSprintId] - Sprint ID to exclude from check.
+ * @returns {boolean} - True if overlap is found, false otherwise.
+ */
 export const checkSprintDateOverlap = (newStart, newEnd, existingSprints, currentSprintId = null) => {
   const start = new Date(newStart);
   const end = new Date(newEnd);
@@ -293,7 +337,12 @@ export const checkSprintDateOverlap = (newStart, newEnd, existingSprints, curren
   });
 };
 
-// Get disabled dates based on existing sprints
+/**
+ * Calculate all disabled dates between sprints.
+ * @param {Array} existingSprints - Array of sprint objects.
+ * @param {string|null} [currentSprintId] - Sprint ID to exclude from check.
+ * @returns {string[]} - Array of ISO date strings that are disabled.
+ */
 export const getDisabledDates = (existingSprints, currentSprintId = null) => {
   const disabledDates = [];
   
@@ -317,7 +366,12 @@ export const getDisabledDates = (existingSprints, currentSprintId = null) => {
   return disabledDates;
 };
 
-// React hook for working with a single sprint
+/**
+ * React hook to fetch and manage a single sprint.
+ * @param {string} sprintId - The sprint ID to track.
+ * @returns {Object} - Contains sprint data, loading state, error, and a refresh function.
+ */
+
 export const useSprint = (sprintId) => {
   const [sprint, setSprint] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -349,7 +403,11 @@ export const useSprint = (sprintId) => {
   return { sprint, loading, error, refreshSprint: fetchSprint };
 };
 
-// React hook for working with project sprints
+/**
+ * React hook to manage project-level sprint state and actions.
+ * @param {string} projectId - The project ID to track.
+ * @returns {Object} - Contains sprints, loading, error, and CRUD functions.
+ */
 export const useProjectSprints = (projectId) => {
   const [sprints, setSprints] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -428,7 +486,14 @@ export const useProjectSprints = (projectId) => {
   };
 };
 
-// Function to validate sprint dates (check if end date is after start date and no overlaps)
+/**
+ * Validate sprint start and end dates and check for overlap.
+ * @param {string|Date} startDate - Sprint start date.
+ * @param {string|Date} endDate - Sprint end date.
+ * @param {Array} existingSprints - Existing sprints to compare against.
+ * @param {string|null} [currentSprintId] - ID to exclude when editing.
+ * @returns {Object} - Validity status and optional error message.
+ */
 export const validateSprintDates = (startDate, endDate, existingSprints, currentSprintId = null) => {
   const start = new Date(startDate);
   const end = new Date(endDate);

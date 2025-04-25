@@ -8,6 +8,42 @@ import useBacklogActions from "../hooks/useBacklogActions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft, faCheck, faXmark, faPenToSquare, faPlus, faTimes, faExclamationTriangle, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import "../styles/backlog.css";
+/**
+ * Backlog Component
+ *
+ * Displays sprint overviews and allows viewing and managing tasks within a selected sprint.
+ * Supports task status updates, inline editing, assignee assignment, and sprint navigation.
+ *
+ * @prop {string} projectId - Optional project ID, falls back to localStorage if not provided.
+ *
+ * @state sprints - List of project sprints
+ * @state selectedSprint - Currently viewed sprint
+ * @state tasks - Tasks in the selected sprint
+ * @state members - Project members
+ * @state loading - Controls loading UI state
+ * @state error - Stores and displays error messages
+ * @state successMessage - Stores and displays success messages
+ * @state isEditingTask - Task ID currently being edited
+ * @state editedDescription - Local state for task description edit form
+ *
+ * @hook useEffect - Loads sprints and members when projectId is available
+ * @hook useEffect - Filters tasks by selected sprint
+ * @hook useBacklogActions - Custom hook for updating task status
+ *
+ * @function handleSprintClick - Loads and filters sprint tasks
+ * @function handleStatusChange - Updates task status and reflects it in UI
+ * @function handleAssigneeChange - Updates task assignee
+ * @function handleEditTask - Loads task data for editing
+ * @function handleSaveEdit - Submits and saves updated task
+ * @function handleCancelEdit - Exits task edit mode
+ *
+ * @componentCondition - Conditionally renders:
+ *   - Sprint overview if no sprint is selected
+ *   - Task list if a sprint is selected
+ *   - Error/success/loading messages
+ *
+ * @accessibility - Icons include labels, inputs use associated labels
+ */
 
 const Backlog = ({ projectId }) => {
   const navigate = useNavigate();

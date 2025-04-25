@@ -6,7 +6,23 @@ import { ReactComponent as DevHiveLogo } from "./assets/hive-icon.svg";
 import { faEnvelope, faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { requestPasswordReset } from "../services/authService.ts"; // Remove .ts extension
-
+/**
+ * ForgotPassword Component
+ * 
+ * Renders a form for users to request a password reset email.
+ * Handles email validation, loading state, and user feedback.
+ * 
+ * @returns {JSX.Element} ForgotPassword form component
+ * 
+ * @state email - User input email address
+ * @state error - Error message to be displayed
+ * @state success - Flag indicating if the request was successful
+ * @state loading - Loading state for submit action
+ * 
+ * @method handleEmailChange - Updates email and clears error on change
+ * @method handleGoBack - Navigates user back to the login screen
+ * @method handleSubmit - Validates email and triggers reset request
+ */
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");

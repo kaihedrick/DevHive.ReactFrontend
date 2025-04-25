@@ -1,6 +1,8 @@
 /**
- * Represents an email request
- * Maps to the C# EmailRequest model in the backend
+ * @interface EmailRequest
+ * @property {string} To - Recipient email address (capitalized to match C# backend).
+ * @property {string} Subject - Email subject line.
+ * @property {string} Body - Email body content.
  */
 export interface EmailRequest {
   To: string;  // Capital T to match C# property
@@ -9,7 +11,11 @@ export interface EmailRequest {
 }
 
 /**
- * Factory function to create email requests
+ * @function createEmailRequest
+ * @param {string} to - Recipient email address.
+ * @param {string} subject - Email subject line.
+ * @param {string} body - Email body content.
+ * @returns {EmailRequest} A constructed email request object.
  */
 export const createEmailRequest = (to: string, subject: string, body: string): EmailRequest => {
   return {
@@ -20,7 +26,8 @@ export const createEmailRequest = (to: string, subject: string, body: string): E
 };
 
 /**
- * Helper to create an empty email request
+ * @function createEmptyEmailRequest
+ * @returns {EmailRequest} An empty email request template with default values.
  */
 export const createEmptyEmailRequest = (): EmailRequest => ({
   To: '',

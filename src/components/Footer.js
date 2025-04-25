@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/footer.css'; 
-
+//exports the footer for every page
 const Footer = () => {
   return (
     <footer className="footer">

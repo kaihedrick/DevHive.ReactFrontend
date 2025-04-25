@@ -4,7 +4,29 @@ import { fetchTaskById, editTask, fetchProjectMembers, fetchProjectSprints, getS
 import "../styles/create_task.css"; // Reuse styles from create task
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
-
+/**
+ * EditTask Component
+ * 
+ * Renders a form to edit a task's description, assignee, and sprint.
+ * Retrieves the task details, members, and sprints associated with the project.
+ * 
+ * @returns {JSX.Element} Edit Task form interface
+ * 
+ * @param {string} taskId - Task ID from route params
+ * @param {string} previousPage - Fallback navigation target
+ * @param {string|null} sprint - Sprint ID passed from previous navigation state
+ * 
+ * @state description - Task description
+ * @state assigneeID - Selected assignee user ID
+ * @state sprintID - Selected sprint ID
+ * @state members - List of project members
+ * @state sprints - List of project sprints
+ * @state errorMessage - User-facing error message
+ * @state loading - Flag to control initial loading state
+ * 
+ * @method handleUpdateTask - Submits the updated task fields to the server
+ * @method useEffect - Loads task data, members, and sprints on mount
+ */
 const EditTask = () => {
   const navigate = useNavigate();
   const { taskId } = useParams(); // Get task ID from URL params

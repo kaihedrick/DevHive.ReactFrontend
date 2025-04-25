@@ -5,6 +5,18 @@ import "../styles/forgot_password.css";
 import DevHiveLogo from "./assets/DevHiveLogo.png";
 import password_icon from "./assets/password.png";
 import { resetPassword } from "../services/authService";
+/**
+ * ResetPassword component handles password reset flow
+ * 
+ * @component
+ * @returns {JSX.Element} A page for users to reset their password using a reset token
+ * 
+ * @description 
+ * - Extracts token from URL query parameters
+ * - Validates and submits a new password
+ * - Handles user feedback for errors and success
+ * - Automatically scrolls and resets state after update
+ */
 
 const ResetPassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");

@@ -1,7 +1,23 @@
 import { useState, useCallback, useEffect } from 'react';
 import { fetchProjectMembers, removeMemberFromProject } from '../services/projectService';
 import { fetchUserById } from '../services/userService';
-
+/**
+ * useProjectMembers
+ *
+ * Custom hook for managing and retrieving project members.
+ *
+ * @param {string} projectId - The ID of the project to retrieve members for.
+ * @param {string} projectOwnerID - The ID of the user who owns the project.
+ * @returns {Object} An object containing:
+ *  - members: Array of project members with name and ownership flag.
+ *  - loading: Boolean indicating loading state.
+ *  - error: Any error encountered during fetch.
+ *  - isCurrentUserOwner: Boolean indicating if the logged-in user is the project owner.
+ *  - kickMember: Function to remove a member from the project.
+ *
+ * @example
+ * const { members, loading, error, isCurrentUserOwner, kickMember } = useProjectMembers(projectId, ownerId);
+ */
 export const useProjectMembers = (projectId, projectOwnerID) => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -1,29 +1,42 @@
 /**
- * Represents a user in the system
- * Maps to the C# UserModel in the backend
+ * @interface UserModel
+ * Defines the structure of a user as expected by the backend.
+ * @property {string} ID - Unique identifier of the user.
+ * @property {string} Username - User's login name.
+ * @property {string} Password - User's password.
+ * @property {string} Email - User's email address.
+ * @property {string} FirstName - User's first name.
+ * @property {string} LastName - User's last name.
+ * @property {boolean} Active - Indicates if the user account is active.
+ * @property {string} [ConfirmPassword] - Used for client-side validation only.
  */
 export interface UserModel {
-  ID: string;  // Capital ID to match C# property
-  Username: string;  // Capital U to match C# property
-  Password: string;  // Capital P to match C# property
-  Email: string;  // Capital E to match C# property
-  FirstName: string;  // Capital F and N to match C# property
-  LastName: string;  // Capital L and N to match C# property
-  Active: boolean;  // Capital A to match C# property
-  ConfirmPassword?: string; // Added for frontend use only
+  ID: string;  
+  Username: string;  
+  Password: string;  
+  Email: string;  
+  FirstName: string;  
+  LastName: string;  
+  Active: boolean;  
+  ConfirmPassword?: string; 
 }
-
 /**
- * For user login
- * Maps to C# LoginModel
+ * @interface LoginModel
+ * Defines the structure for login credentials.
+ * @property {string} Username - The user's login name.
+ * @property {string} Password - The user's password.
  */
 export interface LoginModel {
-  Username: string;  // Capital U to match C# property
-  Password: string;  // Capital P to match C# property
+  Username: string;  
+  Password: string;  
 }
 
 /**
- * Interface for user profile display with computed properties
+ * @class UserProfile
+ * Wrapper for user data with derived properties.
+ * @method fullName - Returns full name from first and last name.
+ * @method initials - Returns user initials in uppercase.
+ * @method data - Returns original UserModel object.
  */
 export class UserProfile {
   constructor(private user: UserModel) {}
@@ -44,7 +57,10 @@ export class UserProfile {
 
 
 /**
- * Interface for user authentication credentials
+ * @interface UserCredentials
+ * Represents basic login credentials.
+ * @property {string} username - Username used for login.
+ * @property {string} password - Password used for login.
  */
 export interface UserCredentials {
   username: string;
@@ -52,14 +68,21 @@ export interface UserCredentials {
 }
 
 /**
- * Interface for user registration form data
+ * @interface UserRegistration
+ * Extends UserModel without ID and Active fields. Used for frontend form data.
+ * @property {string} password - New password for the user.
+ * @property {string} confirmPassword - Re-entered password for validation.
  */
 export interface UserRegistration extends Omit<UserModel, 'ID' | 'Active'> {
   password: string;
   confirmPassword: string;
 }
 
-// Create an empty user model
+/**
+ * @function createEmptyUserModel
+ * Generates an empty user model object with default values.
+ * @returns {UserModel}
+ */
 export const createEmptyUserModel = (): UserModel => ({
   ID: '',
   Username: '',
@@ -71,7 +94,16 @@ export const createEmptyUserModel = (): UserModel => ({
   ConfirmPassword: ''
 });
 
-// Frontend-specific model for registration form
+/**
+ * @interface RegistrationFormModel
+ * Represents user input from the registration form.
+ * @property {string} Username - Desired username.
+ * @property {string} Password - Password for the account.
+ * @property {string} ConfirmPassword - Password confirmation for validation.
+ * @property {string} Email - Email address for the account.
+ * @property {string} FirstName - User's first name.
+ * @property {string} LastName - User's last name.
+ */
 export interface RegistrationFormModel {
   Username: string;
   Password: string;
@@ -81,7 +113,11 @@ export interface RegistrationFormModel {
   LastName: string;
 }
 
-// Create an empty registration form model
+/**
+ * @function createEmptyRegistrationForm
+ * Generates a blank form model for registration inputs.
+ * @returns {RegistrationFormModel}
+ */
 export const createEmptyRegistrationForm = (): RegistrationFormModel => ({
   Username: '',
   Password: '',
@@ -91,7 +127,12 @@ export const createEmptyRegistrationForm = (): RegistrationFormModel => ({
   LastName: ''
 });
 
-// Convert registration form to UserModel for API calls
+/**
+ * @function convertToUserModel
+ * Converts form input data to a UserModel object for submission.
+ * @param {RegistrationFormModel} form - Form values from the registration UI.
+ * @returns {UserModel}
+ */
 export const convertToUserModel = (form: RegistrationFormModel): UserModel => ({
   ID: '',
   Username: form.Username,

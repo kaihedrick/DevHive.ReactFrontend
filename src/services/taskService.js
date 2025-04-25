@@ -4,7 +4,12 @@ import { getAuthToken } from './projectService'; // Reuse auth helper from proje
 import { fetchUserById } from './userService';
 import { useState, useCallback, useEffect } from 'react';
 
-// Function to fetch all tasks for a given project
+/**
+ * @function fetchProjectTasks
+ * @description Fetches all tasks for a given project.
+ * @param {string} projectId - The ID of the project.
+ * @returns {Promise<Array>} - A list of tasks associated with the project.
+ */
 export const fetchProjectTasks = async (projectId) => {
   try {
     // Get auth token
@@ -30,7 +35,12 @@ export const fetchProjectTasks = async (projectId) => {
   }
 };
 
-// Function to fetch all tasks for a given sprint
+/**
+ * @function fetchSprintTasks
+ * @description Fetches all tasks for a given sprint.
+ * @param {string} sprintId - The ID of the sprint.
+ * @returns {Promise<Array>} - A list of tasks within the sprint.
+ */
 export const fetchSprintTasks = async (sprintId) => {
   try {
     // Get auth token
@@ -56,7 +66,13 @@ export const fetchSprintTasks = async (sprintId) => {
   }
 };
 
-// Enhanced function to fetch tasks with assignee details
+/**
+ * @function fetchProjectTasksWithAssignees
+ * @description Retrieves tasks with assignee initials for UI display.
+ * @param {string} projectId - The ID of the project.
+ * @returns {Promise<Array>} - A list of tasks with assignee initials included.
+ */
+
 export const fetchProjectTasksWithAssignees = async (projectId) => {
   try {
     // Get tasks for the project
@@ -85,7 +101,12 @@ export const fetchProjectTasksWithAssignees = async (projectId) => {
   }
 };
 
-// Function to fetch a single task by its ID
+/**
+ * @function fetchTaskById
+ * @description Fetches detailed information about a task.
+ * @param {string} taskId - The ID of the task.
+ * @returns {Promise<Object>} - The task object.
+ */
 export const fetchTaskById = async (taskId) => {
   try {
     // Get auth token
@@ -111,7 +132,12 @@ export const fetchTaskById = async (taskId) => {
   }
 };
 
-// Function to create a new task
+/**
+ * @function createTask
+ * @description Sends a request to create a new task.
+ * @param {Object} taskData - The data for the new task.
+ * @returns {Promise<Object>} - The newly created task object.
+ */
 export const createTask = async (taskData) => {
   try {
     // Get auth token
@@ -139,7 +165,12 @@ export const createTask = async (taskData) => {
   }
 };
 
-// Function to edit/update an existing task
+/**
+ * @function editTask
+ * @description Updates an existing task using the provided data.
+ * @param {Object} task - The task object with updated data.
+ * @returns {Promise<Object>} - The updated task object.
+ */
 export const editTask = async (task) => {
   try {
     const token = getAuthToken();
@@ -166,7 +197,13 @@ export const editTask = async (task) => {
   }
 };
 
-// Function to update task status
+/**
+ * @function updateTaskStatus
+ * @description Updates the status field of a task.
+ * @param {string} taskId - The ID of the task to update.
+ * @param {number} newStatus - The new status (0 = pending, 1 = in progress, 2 = complete).
+ * @returns {Promise<Object>} - The updated task object.
+ */
 export const updateTaskStatus = async (taskId, newStatus) => {
   try {
     // Get auth token
@@ -198,7 +235,13 @@ export const updateTaskStatus = async (taskId, newStatus) => {
   }
 };
 
-// Function to update task assignee
+/**
+ * @function updateTaskAssignee
+ * @description Assigns or reassigns a task to a user.
+ * @param {string} taskId - The ID of the task.
+ * @param {string} newAssigneeId - The ID of the new assignee.
+ * @returns {Promise<Object>} - The updated task with assignee info.
+ */
 export const updateTaskAssignee = async (taskId, newAssigneeId) => {
   try {
     // Get auth token
@@ -232,7 +275,12 @@ export const updateTaskAssignee = async (taskId, newAssigneeId) => {
   }
 };
 
-// Function to delete a task by its ID
+/**
+ * @function deleteTask
+ * @description Deletes a task based on its ID.
+ * @param {string} taskId - The ID of the task to delete.
+ * @returns {Promise<Object>} - The deletion result.
+ */
 export const deleteTask = async (taskId) => {
   try {
     // Get auth token
@@ -258,7 +306,12 @@ export const deleteTask = async (taskId) => {
   }
 };
 
-// Add a similar hook as in projectService for consistency
+/**
+ * @function useTask
+ * @description React hook to manage the lifecycle and state of a task.
+ * @param {string} taskId - The ID of the task to load.
+ * @returns {Object} - Task data, loading state, error, and a refresh method.
+ */
 export const useTask = (taskId) => {
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -290,7 +343,13 @@ export const useTask = (taskId) => {
   return { task, loading, error, refreshTask: fetchTask };
 };
 
-// Helper function to get tasks by status
+/**
+ * @function getTasksByStatus
+ * @description Filters a list of tasks based on status.
+ * @param {Array} tasks - Array of task objects.
+ * @param {number} status - Status to filter by.
+ * @returns {Array} - Filtered list of tasks matching the status.
+ */
 export const getTasksByStatus = (tasks, status) => {
   return tasks.filter(task => task.status === status);
 };

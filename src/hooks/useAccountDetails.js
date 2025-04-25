@@ -4,7 +4,23 @@ import { getUserId, clearAuth, validateUsername } from "../services/authService.
 import { getSelectedProject, clearSelectedProject } from "../services/storageService";
 import { leaveProject, isProjectOwner, updateProjectOwner, fetchProjectMembers } from "../services/projectService";
 import { useNavigate } from "react-router-dom";
-
+/**
+ * useAccountDetails
+ *
+ * Manages user profile state, username updates, password changes,
+ * and project ownership logic.
+ *
+ * @returns {
+*   user: current user object,
+*   loading: boolean indicating fetch status,
+*   error: error message if failed,
+*   updateUsername: function to update username,
+*   handleChangePassword: function to update password,
+*   handleLeaveGroup: logic to leave or transfer ownership of a project,
+*   handleLogout: clears auth and navigates to login,
+*   leaveProjectState: status of leave attempt
+* }
+*/
 const useAccountDetails = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);

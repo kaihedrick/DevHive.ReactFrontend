@@ -4,7 +4,20 @@ import {
   deleteProject as deleteProjectAPI, 
   fetchProjectById 
 } from "../services/projectService";
-
+/**
+ * useProjects
+ *
+ * Custom hook for fetching and managing a list of projects associated with the current user.
+ *
+ * @returns {Object} An object containing:
+ *  - projects: Array of user projects.
+ *  - loading: Boolean indicating loading state.
+ *  - error: Any error encountered during fetch.
+ *  - deleteProject: Function to delete a project by its ID.
+ *
+ * @example
+ * const { projects, loading, error, deleteProject } = useProjects();
+ */
 const useProjects = (userId) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +61,21 @@ const useProjects = (userId) => {
     deleteProject
   };
 };
-
+/**
+ * useProject
+ *
+ * Custom hook for fetching and managing a single project by ID.
+ *
+ * @param {string} projectId - The ID of the project to fetch.
+ * @returns {Object} An object containing:
+ *  - project: Project details.
+ *  - loading: Boolean indicating loading state.
+ *  - error: Any error encountered during fetch.
+ *  - refreshProject: Function to manually re-fetch project data.
+ *
+ * @example
+ * const { project, loading, error, refreshProject } = useProject("abc123");
+ */
 const useProject = (projectId) => {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);

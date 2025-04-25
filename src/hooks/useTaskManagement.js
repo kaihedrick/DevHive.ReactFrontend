@@ -8,7 +8,32 @@ import {
   updateTaskStatus,
   updateTaskAssignee
 } from '../services/taskService';
-
+/**
+ * useTaskManagement
+ *
+ * Custom React hook for managing tasks at the project or sprint level.
+ *
+ * @param {string} projectId - The ID of the current project
+ * @param {string|null} sprintId - Optional sprint ID for fetching sprint-specific tasks
+ * @returns {Object} Task state and operations
+ *
+ * @property {Array} tasks - Full list of tasks
+ * @property {Array} todoTasks - Tasks with status = 0 (To Do)
+ * @property {Array} inProgressTasks - Tasks with status = 1 (In Progress)
+ * @property {Array} completedTasks - Tasks with status = 2 (Completed)
+ * @property {Object|null} selectedTask - The currently selected task
+ * @property {Function} setSelectedTask - Setter for selectedTask
+ * @property {boolean} loading - Indicates whether data is being loaded
+ * @property {string|null} error - Error message, if any
+ * @property {Function} clearError - Clears the current error state
+ * @property {Function} fetchTasks - Loads tasks for a sprint or the full project
+ * @property {Function} refreshTask - Refreshes a specific task by ID
+ * @property {Function} handleCreateTask - Creates a new task
+ * @property {Function} handleUpdateTask - Updates an existing task
+ * @property {Function} handleUpdateTaskStatus - Changes the status of a task
+ * @property {Function} handleUpdateTaskAssignee - Assigns or reassigns a task to a user
+ * @property {Function} validateTaskData - Validates task form data
+ */
 export const useTaskManagement = (projectId, sprintId = null) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);

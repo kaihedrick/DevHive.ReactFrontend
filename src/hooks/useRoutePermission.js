@@ -3,8 +3,19 @@ import { useMemo } from 'react';
 import { getSelectedProject } from '../services/authService.ts';
 
 /**
- * Custom hook to check if the current route is allowed based on application state
- * @returns {Object} Route permission state
+ * useRoutePermission
+ *
+ * Custom hook to determine route access permissions based on the presence of a selected project.
+ *
+ * @returns {Object} Route access state including:
+ *  - selectedProject: The ID of the currently selected project from local storage.
+ *  - isRouteAllowed: Boolean indicating if the current route is accessible.
+ *
+ * This hook is typically used to guard routes in apps where certain views require a selected project context.
+ *
+ * @example
+ * const { isRouteAllowed } = useRoutePermission();
+ * if (!isRouteAllowed) navigate("/projects");
  */
 const useRoutePermission = () => {
   const location = useLocation();
