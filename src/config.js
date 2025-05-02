@@ -1,5 +1,5 @@
 //config.js
-export const API_BASE_URL = "https://devhive.it.com:5001/api"; // Use HTTPS for all API calls
+export const API_BASE_URL = "https://devhive.it.com/api"; // Use HTTPS for all API calls
 //export const API_BASE_URL = "http://18.119.104.29:5000/api"; // For production
 export const ENDPOINTS = {
   USER: `${API_BASE_URL}/User`,

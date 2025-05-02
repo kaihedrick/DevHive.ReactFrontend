@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Force HTTPS for all requests
-axios.defaults.baseURL = 'https://devhive.it.com:5001/api';
+axios.defaults.baseURL = 'https://devhive.it.com/api';
 
 // Add a request interceptor
 axios.interceptors.request.use(

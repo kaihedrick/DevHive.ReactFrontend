@@ -4,7 +4,7 @@
 import axios from "axios";
 
 // Base URL for REST API message endpoints
-const API_BASE_URL = "https://devhive.it.com:5001/api/Message"; // Use HTTPS 
+const API_BASE_URL = "https://devhive.it.com/api/Message"; // Use HTTPS 
 
 let socket = null;
 let reconnectAttempts = 0;
