@@ -17,7 +17,6 @@ import { resetPassword } from "../services/authService";
  * - Handles user feedback for errors and success
  * - Automatically scrolls and resets state after update
  */
-
 const ResetPassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

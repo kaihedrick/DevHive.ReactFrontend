@@ -5,7 +5,7 @@ import axios from "axios";
 
 // Base URL for REST API message endpoints. For production use, move to environment config.
 const API_BASE_URL = "http://18.119.104.29:5000/api/Message"; 
-const API_HOST = "18.119.104.29:5000"; // Host used for WebSocket connection
+const API_HOST = "18.119.104.29:5001"; // Host used for WebSocket connection
 
 let socket = null;
 let reconnectAttempts = 0;
@@ -23,6 +23,7 @@ let heartbeatInterval = null;
  * @returns {Promise<Object>} - The response object from the backend.
  * @throws {Error} - Throws an error if the request fails.
  */
+// In src/services/messageService.js
 export const sendMessage = async (message) => {
     try {
         const token = getAuthToken();
@@ -33,6 +34,8 @@ export const sendMessage = async (message) => {
             ProjectID: message.projectID,
         };
 
+        console.log("📤 Sending message:", payload);
+
         const response = await axios.post(`${API_BASE_URL}/Send`, payload, {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -40,10 +43,20 @@ export const sendMessage = async (message) => {
             },
         });
 
+        console.log("✅ Message sent successfully:", response.data);
         return response.data;
     } catch (error) {
-        console.error("Error sending message:", error.response?.data || error.message);
-        throw error;
+        // More detailed error logging
+        console.error("❌ Error sending message:", error.response?.status, error.response?.data || error.message);
+        
+        // More user-friendly error message based on status code
+        if (error.response?.status === 500) {
+            throw new Error("Server error - The messaging service is currently unavailable. Our team has been notified.");
+        } else if (error.response?.status === 401 || error.response?.status === 403) {
+            throw new Error("Authentication error - Please try logging out and back in.");
+        } else {
+            throw new Error(`Failed to send message: ${error.response?.data?.message || error.message}`);
+        }
     }
 };
 
@@ -110,8 +123,33 @@ const convertFirestoreTimestamp = (timestamp) => {
  */
 const sendHeartbeat = (ws) => {
     if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "ping" }));
+        try {
+            ws.send(JSON.stringify({ type: "ping" }));
+            console.log("💓 Sent heartbeat to keep WebSocket connection alive");
+        } catch (error) {
+            console.error("❌ Failed to send heartbeat:", error);
+        }
     }
+};
+
+// Helper function to build WebSocket URL
+const buildWebSocketUrl = (userId) => {
+    if (!userId) {
+        console.error("❌ Missing userId for WebSocket URL");
+        return null;
+    }
+
+    // Use dynamic protocol based on page protocol
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    
+    // Use environment variable if available, otherwise use the hardcoded host
+    const host = process.env.REACT_APP_API_HOST || '18.119.104.29:5000';
+    
+    // Format URL in the required pattern: wss://your-domain:5001/ws/messages?userId={userId}
+    const wsUrl = `${protocol}//${host}/ws/messages?userId=${encodeURIComponent(userId)}`;
+    
+    console.log(`🔌 Configured WebSocket URL: ${wsUrl}`);
+    return wsUrl;
 };
 
 /**
@@ -124,68 +162,119 @@ const sendHeartbeat = (ws) => {
  */
 export const subscribeToMessageStream = (userId, projectID, onMessageReceived) => {
     if (!userId || !projectID) {
-        console.error("Missing userId or projectID for WebSocket.");
+        console.error("❌ Missing userId or projectID for WebSocket.");
         return null;
     }
 
+    // Close existing connection if any
     if (socket && socket.readyState !== WebSocket.CLOSED) {
+        console.log("🔄 Closing existing WebSocket connection before creating a new one");
         socket.close();
     }
+    
+    // Clear any existing heartbeat interval
     if (heartbeatInterval) {
         clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
     }
 
     try {
-        const scheme = window.location.protocol === "https:" ? "wss" : "ws";
-        const host = API_HOST;
-        const wsUrl = `${scheme}://${host}/ws/messages?userId=${userId}`;
+        console.log('🔄 Attempting to connect to WebSocket...');
+        const wsUrl = buildWebSocketUrl(userId);
         
+        console.log(`🔌 Connecting to WebSocket at: ${wsUrl}`);
         socket = new WebSocket(wsUrl);
 
         socket.onopen = () => {
+            console.log(`✅ WebSocket connection established for user ${userId} in project ${projectID}`);
+            // Reset reconnect attempts on successful connection
             reconnectAttempts = 0;
-            socket.send(JSON.stringify({ type: "init", userId, projectId: projectID }));
+            
+            // Send initialization message
+            try {
+                socket.send(JSON.stringify({ 
+                    type: "init", 
+                    userId: userId, 
+                    projectId: projectID 
+                }));
+                console.log("📤 Sent initialization message to WebSocket server");
+            } catch (error) {
+                console.error("❌ Failed to send initialization message:", error);
+            }
+            
+            // Start heartbeat to keep connection alive
             heartbeatInterval = setInterval(() => sendHeartbeat(socket), 30000);
         };
 
         socket.onmessage = (event) => {
             try {
+                console.log("📩 Raw WebSocket message received:", event.data);
                 const message = JSON.parse(event.data);
-                if (message.type === "pong") return;
-                if (message.DateSent) {
-                    message.DateSent = convertFirestoreTimestamp(message.DateSent);
+                
+                // Ignore heartbeat responses
+                if (message.type === "pong") {
+                    console.log("💓 Received heartbeat response");
+                    return;
                 }
+                
+                // Handle camel case / pascal case field names
+                const tsObj = message.dateSent ?? message.DateSent;
+                
+                // Convert Firestore timestamp to JS Date
+                if (tsObj) {
+                    message.DateSent = convertFirestoreTimestamp(tsObj);
+                }
+
+                console.log("📨 Processed WebSocket message:", message);
                 onMessageReceived(message);
             } catch (error) {
-                console.error("Error parsing WebSocket message:", error);
+                console.error("❌ Error parsing WebSocket message:", error);
             }
         };
 
         socket.onerror = (error) => {
-            console.error("WebSocket error:", error);
-            clearInterval(heartbeatInterval);
-            heartbeatInterval = null;
+            console.error("❌ WebSocket error:", error);
+            
+            // Clear heartbeat on error
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
         };
 
         socket.onclose = (event) => {
-            clearInterval(heartbeatInterval);
-            heartbeatInterval = null;
+            console.log(`👋 WebSocket closed: Code: ${event.code}, Reason: ${event.reason || "No reason provided"}`);
             
+            // Clear heartbeat on close
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
+            
+            // Implement exponential backoff for reconnection
             if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
                 const delay = Math.min(30000, 1000 * Math.pow(1.5, reconnectAttempts));
                 reconnectAttempts++;
                 
+                console.log(`⏱️ Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}) in ${(delay/1000).toFixed(1)}s...`);
+                
                 setTimeout(() => {
+                    // Only attempt reconnection if the page is visible
                     if (document.visibilityState !== 'hidden') {
+                        console.log(`🔄 Attempting reconnection #${reconnectAttempts}...`);
                         subscribeToMessageStream(userId, projectID, onMessageReceived);
+                    } else {
+                        console.log("📱 Page not visible, delaying reconnection attempt");
                     }
                 }, delay);
+            } else {
+                console.error(`❌ Maximum WebSocket reconnection attempts (${MAX_RECONNECT_ATTEMPTS}) reached. Please refresh the page to reconnect.`);
             }
         };
 
         return socket;
     } catch (error) {
-        console.error("Error establishing WebSocket connection:", error);
+        console.error("❌ Error establishing WebSocket connection:", error);
         return null;
     }
 };
