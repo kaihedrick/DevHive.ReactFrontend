@@ -1,5 +1,5 @@
 //config.js
-export const API_BASE_URL = "http://18.119.104.29:5000/api"; //for testing
+export const API_BASE_URL = "http://18.119.104.29:5001/api"; //for testing
 //export const API_BASE_URL = "http://18.119.104.29:5000/api"; // For production
 export const ENDPOINTS = {
   USER: `${API_BASE_URL}/User`,

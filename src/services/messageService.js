@@ -4,7 +4,7 @@
 import axios from "axios";
 
 // Base URL for REST API message endpoints. For production use, move to environment config.
-const API_BASE_URL = "http://18.119.104.29:5000/api/Message"; 
+const API_BASE_URL = "http://18.119.104.29:5001/api/Message"; 
 const API_HOST = "18.119.104.29:5001"; // Host used for WebSocket connection
 
 let socket = null;
@@ -143,7 +143,7 @@ const buildWebSocketUrl = (userId) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     
     // Use environment variable if available, otherwise use the hardcoded host
-    const host = process.env.REACT_APP_API_HOST || '18.119.104.29:5000';
+    const host = process.env.REACT_APP_API_HOST || '18.119.104.29:5001';
     
     // Format URL in the required pattern: wss://your-domain:5001/ws/messages?userId={userId}
     const wsUrl = `${protocol}//${host}/ws/messages?userId=${encodeURIComponent(userId)}`;
