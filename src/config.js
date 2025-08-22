@@ -1,5 +1,5 @@
 //config.js
-export const API_BASE_URL = "https://api.devhive.it.com"; // Use HTTPS for all API calls
+export const API_BASE_URL = "https://api.devhive.it.com/api"; // Use HTTPS for all API calls
 //export const API_BASE_URL = "http://18.119.104.29:5000/api"; // For production
 
 // Add JWT config
