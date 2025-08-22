@@ -150,7 +150,14 @@ export const validateUsername = async (username: string, currentUsername?: strin
  */
 export const login = async (credentials: LoginModel): Promise<AuthToken> => {
   try {
-    const response = await api.post(`${ENDPOINTS.USER}/ProcessLogin`, credentials);
+    // Include the issuer and audience in the login request
+    const loginData = {
+      ...credentials,
+      issuer: JWT_CONFIG.issuer,
+      audience: JWT_CONFIG.audience
+    };
+    
+    const response = await api.post(`${ENDPOINTS.USER}/ProcessLogin`, loginData);
     const { Token, userId } = response.data;
 
     if (Token && userId) {

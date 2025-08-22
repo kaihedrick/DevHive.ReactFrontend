@@ -2,9 +2,11 @@
 // This module handles message-related API calls and WebSocket communication for real-time messaging in DevHive.
 
 import axios from "axios";
+// Import the centralized config
+import { API_BASE_URL } from '../config';
 
-// Base URL for REST API message endpoints
-const API_BASE_URL = "https://devhive.it.com/api/Message"; // Use HTTPS 
+// Use the imported base URL
+const MESSAGE_API_URL = `${API_BASE_URL}/Message`;
 
 let socket = null;
 let reconnectAttempts = 0;
@@ -35,7 +37,7 @@ export const sendMessage = async (message) => {
 
         console.log("📤 Sending message:", payload);
 
-        const response = await axios.post(`${API_BASE_URL}/Send`, payload, {
+        const response = await axios.post(`${MESSAGE_API_URL}/Send`, payload, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
@@ -72,7 +74,7 @@ export const sendMessage = async (message) => {
 export const fetchMessages = async (fromUserID, toUserID, projectID) => {
     try {
         const token = getAuthToken();
-        const apiUrl = `${API_BASE_URL}/Retrieve/${encodeURIComponent(fromUserID)}/${encodeURIComponent(toUserID)}/${encodeURIComponent(projectID)}`;
+        const apiUrl = `${MESSAGE_API_URL}/Retrieve/${encodeURIComponent(fromUserID)}/${encodeURIComponent(toUserID)}/${encodeURIComponent(projectID)}`;
 
         const response = await axios.get(apiUrl, {
             headers: { Authorization: `Bearer ${token}` },
@@ -141,10 +143,10 @@ const buildWebSocketUrl = (userId) => {
     // Use dynamic protocol based on page protocol
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     
-    // Use environment variable if available, otherwise use the hardcoded host
-    const host = process.env.REACT_APP_API_HOST || '18.119.104.29:5001';
+    // Use environment variable if available, otherwise use the new API domain
+    const host = process.env.REACT_APP_API_HOST || 'api.devhive.it.com';
     
-    // Format URL in the required pattern: wss://your-domain:5001/ws/messages?userId={userId}
+    // Format URL in the required pattern: wss://your-domain/ws/messages?userId={userId}
     const scheme = window.location.protocol === "https:" ? "wss" : "ws";
     const wsUrl = `${scheme}://${host}/ws/messages?userId=${userId}`;
     

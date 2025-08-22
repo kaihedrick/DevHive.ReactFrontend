@@ -15,6 +15,7 @@ import { StorageKeys } from '../config';
  * const projects = await fetchUserProjects();
  */
 
+// In projectService.js
 export const fetchUserProjects = async () => {
   try {
     const userId = getUserId();
@@ -25,13 +26,55 @@ export const fetchUserProjects = async () => {
     }
 
     console.log(`📡 Fetching projects for user: ${userId}`);
+    
+    // Check the token before making the API call
+    const token = getAuthToken();
+    if (!token) {
+      console.error("❌ No auth token found. Please log in again.");
+      throw new Error("Authentication token is missing. Please log in again.");
+    }
+    
+    // DEBUGGING: Log the FULL token (remove in production) to verify its format
+    console.log("🔑 FULL TOKEN:", token);
+    console.log("🔑 TOKEN LENGTH:", token.length);
+    // Check if token already includes "Bearer" prefix
+    if (token.startsWith("Bearer ")) {
+      console.warn("⚠️ Token already includes 'Bearer' prefix!");
+    }
 
-    const response = await api.get(`/Scrum/Projects/User/${userId}`);
+    console.log(`📡 Full API URL: ${ENDPOINTS.PROJECT_USER}/${userId}`);
+
+    // Make direct axios call with explicit headers
+    const response = await axios.get(`${ENDPOINTS.PROJECT_USER}/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      // Add timeout and additional options for better diagnostics
+      timeout: 10000, // 10 seconds
+      validateStatus: status => status < 500 // Don't throw on 4xx errors
+    });
 
     console.log("✅ Projects fetched:", response.data);
     return response.data;
   } catch (error) {
     console.error("❌ Error fetching user projects:", error.response?.data || error.message);
+    
+    // More detailed error information
+    if (error.response) {
+      console.error("📊 Status:", error.response.status);
+      console.error("📄 Headers:", JSON.stringify(error.response.headers, null, 2));
+      console.error("📝 Data:", error.response.data);
+      
+      if (error.response.status === 401) {
+        console.error("🔒 Authentication failed. Token may be invalid or expired.");
+        // Clear invalid token and redirect to login
+        localStorage.removeItem(StorageKeys.AUTH_TOKEN);
+        localStorage.removeItem(StorageKeys.USER_ID);
+        window.location.href = "/";
+      }
+    }
+    
     throw handleApiError(error, 'fetching user projects');
   }
 };

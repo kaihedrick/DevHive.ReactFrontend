@@ -1,6 +1,13 @@
 //config.js
-export const API_BASE_URL = "https://devhive.it.com/api"; // Use HTTPS for all API calls
+export const API_BASE_URL = "https://api.devhive.it.com"; // Use HTTPS for all API calls
 //export const API_BASE_URL = "http://18.119.104.29:5000/api"; // For production
+
+// Add JWT config
+export const JWT_CONFIG = {
+  issuer: "https://api.devhive.it.com",
+  audience: "https://d35scdhidypl44.cloudfront.net/"  // Your frontend domain
+};
+
 export const ENDPOINTS = {
   USER: `${API_BASE_URL}/User`,
   PROJECT: `${API_BASE_URL}/Scrum/Project`,
@@ -9,7 +16,8 @@ export const ENDPOINTS = {
   TASK: `${API_BASE_URL}/Scrum/Task`,
   MEMBER: `${API_BASE_URL}/Scrum/Project/Members`,
   MESSAGE: `${API_BASE_URL}/Message`,
-  UPDATE_PROJECT_OWNER: `${API_BASE_URL}/Scrum/Project/UpdateProjectOwner`
+  UPDATE_PROJECT_OWNER: `${API_BASE_URL}/Scrum/Project/UpdateProjectOwner`,
+  PROJECT_USER: `${API_BASE_URL}/Scrum/Projects/User`
 };
 
 // StorageKeys enum

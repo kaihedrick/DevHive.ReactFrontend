@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Force HTTPS for all requests
-axios.defaults.baseURL = 'https://devhive.it.com/api';
+axios.defaults.baseURL = 'https://api.devhive.it.com';
 
 // Add a request interceptor
 axios.interceptors.request.use(
@@ -11,7 +11,8 @@ axios.interceptors.request.use(
       config.url = config.url.replace('http:', 'https:');
     }
     
-    const token = localStorage.getItem('authToken');
+    // Change 'authToken' to 'token' to match what's stored in authService.ts
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
