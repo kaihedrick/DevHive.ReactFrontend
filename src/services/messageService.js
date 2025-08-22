@@ -140,15 +140,11 @@ const buildWebSocketUrl = (userId) => {
         return null;
     }
 
-    // Use dynamic protocol based on page protocol
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    
-    // Use environment variable if available, otherwise use the new API domain
+    // Always use secure WebSocket (wss) for production
     const host = process.env.REACT_APP_API_HOST || 'api.devhive.it.com';
     
     // Format URL in the required pattern: wss://your-domain/ws/messages?userId={userId}
-    const scheme = window.location.protocol === "https:" ? "wss" : "ws";
-    const wsUrl = `${scheme}://${host}/ws/messages?userId=${userId}`;
+    const wsUrl = `wss://${host}/ws/messages?userId=${userId}`;
     
     console.log(`🔌 Configured WebSocket URL: ${wsUrl}`);
     return wsUrl;
