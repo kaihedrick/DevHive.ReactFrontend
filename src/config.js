@@ -5,7 +5,7 @@ export const API_BASE_URL = "https://api.devhive.it.com/api"; // Use HTTPS for a
 // Add JWT config
 export const JWT_CONFIG = {
   issuer: "https://api.devhive.it.com",
-  audience: "https://d35scdhidypl44.cloudfront.net/"  // Your frontend domain
+  audience: "https://d35scdhidypl44.cloudfront.net/",  // Your frontend domain
   audience: "devhive-clients"  // Your frontend domain
 };
 
