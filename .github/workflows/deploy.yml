@@ -1,95 +1,65 @@
-name: Frontend Deploy to S3 + CloudFront
+name: Deploy React App to AWS
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:
-
-env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-  CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
-  S3_PREFIX: frontend
-
-concurrency:
-  group: frontend-deploy
-  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      AWS_REGION:     ${{ secrets.AWS_REGION }}
+      AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      DIST_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      # If your React app is in a subfolder, set working-directory: frontend
+      - name: Set up Node
+        uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: 'npm'
 
       - name: Install deps
-        run: npm install --legacy-peer-deps
+        run: npm ci || npm install --legacy-peer-deps
 
       - name: Build
         run: CI=false npm run build
 
-      - name: Sanity check build output
-        run: |
-          if [ -d build ]; then ls -lah build; else echo "❌ build/ not found"; exit 1; fi
-          test -f build/index.html
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      # Sync everything except index.html to s3://<bucket>/frontend/ with long cache
+      - name: Sync static assets
+        uses: jakejarvis/s3-sync-action@v0.5.1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      # 1) Upload hashed assets with long cache (immutable)
-      - name: Sync assets (long cache)
-        run: |
-          aws s3 sync build s3://$AWS_S3_BUCKET/$S3_PREFIX \
-            --delete \
-            --exclude "index.html" \
-            --exclude "manifest.json" \
-            --exclude "asset-manifest.json" \
-            --exclude "robots.txt" \
-            --exclude "service-worker.js" \
+          args: >-
+            --delete
+            --exclude "index.html"
             --cache-control "public,max-age=31536000,immutable"
+        env:
+          SOURCE_DIR: build
+          DEST_DIR: frontend
+          AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ env.AWS_REGION }}
 
-      # 2) Upload HTML and root files with short/no cache
-      - name: Upload index.html (no cache)
+      # Upload index.html separately with no-cache so SPA updates show immediately
+      - name: Upload index.html (no-cache)
         run: |
-          aws s3 cp build/index.html s3://$AWS_S3_BUCKET/$S3_PREFIX/index.html \
+          aws s3 cp build/index.html "s3://$AWS_S3_BUCKET/frontend/index.html" \
+            --cache-control "no-cache,no-store,must-revalidate" \
             --content-type "text/html; charset=utf-8" \
-            --cache-control "no-cache, no-store, must-revalidate"
+            --region "$AWS_REGION"
 
-      - name: Upload other root files (short cache)
-        run: |
-          if [ -f build/manifest.json ]; then
-            aws s3 cp build/manifest.json s3://$AWS_S3_BUCKET/$S3_PREFIX/manifest.json \
-              --content-type "application/manifest+json" \
-              --cache-control "public,max-age=300";
-          fi
-          if [ -f build/asset-manifest.json ]; then
-            aws s3 cp build/asset-manifest.json s3://$AWS_S3_BUCKET/$S3_PREFIX/asset-manifest.json \
-              --content-type "application/json" \
-              --cache-control "public,max-age=300";
-          fi
-          if [ -f build/robots.txt ]; then
-            aws s3 cp build/robots.txt s3://$AWS_S3_BUCKET/$S3_PREFIX/robots.txt \
-              --content-type "text/plain" \
-              --cache-control "public,max-age=300";
-          fi
-          if [ -f build/service-worker.js ]; then
-            aws s3 cp build/service-worker.js s3://$AWS_S3_BUCKET/$S3_PREFIX/service-worker.js \
-              --content-type "application/javascript" \
-              --cache-control "no-cache, no-store, must-revalidate";
-          fi
-
-      - name: Show uploaded files
-        run: aws s3 ls s3://$AWS_S3_BUCKET/$S3_PREFIX/ --recursive --human-readable --summarize
-
+      # Invalidate CloudFront so users get the fresh HTML
       - name: Invalidate CloudFront
-        run: aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --paths "/*"
+        uses: chetan/invalidate-cloudfront-action@v2
+        env:
+          DISTRIBUTION: ${{ env.DIST_ID }}
+          PATHS: "/*"
+          AWS_REGION: "us-east-1"
+          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
