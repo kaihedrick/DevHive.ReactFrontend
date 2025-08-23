@@ -42,3 +42,23 @@ export const handleApiError = (error, operation = 'API operation') => {
   console.error(`❌ ${message}`, error);
   throw error;
 };
+
+// Add response interceptor to normalize all errors to strings
+api.interceptors.response.use(
+  response => response,
+  error => {
+    const data = error?.response?.data;
+    const message = 
+      (data && (data.title || data.detail || data.error || data.message)) ||
+      (typeof data === "string" ? data : null) ||
+      error.message || 
+      "Request failed";
+    
+    // Create a new error with the normalized message
+    const normalizedError = new Error(message);
+    normalizedError.status = error.response?.status;
+    normalizedError.originalError = error;
+    
+    return Promise.reject(normalizedError);
+  }
+);

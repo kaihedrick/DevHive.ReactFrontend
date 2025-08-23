@@ -69,7 +69,13 @@ export const validateEmail = async (email) => {
  */
 export const login = async (credentials) => {
   try {
-    const response = await api.post(`${ENDPOINTS.USER}/ProcessLogin`, credentials);
+    // Transform PascalCase to camelCase for backend compatibility
+    const loginPayload = {
+      username: credentials.Username || credentials.username,
+      password: credentials.Password || credentials.password
+    };
+    
+    const response = await api.post(`${ENDPOINTS.USER}/ProcessLogin`, loginPayload);
     const { token, userId } = response.data;
 
     if (token && userId) {
@@ -78,7 +84,8 @@ export const login = async (credentials) => {
     }
     return response.data;
   } catch (error) {
-    throw handleApiError(error, 'logging in'); // Throw the error
+    // Error is already normalized by the interceptor
+    throw error;
   }
 };
 /**

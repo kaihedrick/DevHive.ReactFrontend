@@ -171,8 +171,13 @@ const useLoginRegisterNew = () => {
         });
       }
     } catch (err: any) {
+      // Ensure error is always a string to prevent React crashes
+      const errorMessage = typeof err?.message === 'string' 
+        ? err.message 
+        : '❌ An error occurred. Please try again.';
+      
       updateState({
-        error: err.response?.data || '❌ An error occurred. Please try again.',
+        error: errorMessage,
         success: false
       });
     } finally {
