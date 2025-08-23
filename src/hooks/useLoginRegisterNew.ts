@@ -152,8 +152,8 @@ const useLoginRegisterNew = () => {
     try {
       if (state.action === 'Login') {
         const loginCredentials: LoginModel = {
-          Username: state.credentials.Username,
-          Password: state.credentials.Password
+          username: state.credentials.Username,
+          password: state.credentials.Password
         };
         
         await login(loginCredentials);
