@@ -41,7 +41,7 @@ export const clearAuth = () => {
  */
 export const validateEmail = async (email) => {
   try {
-    const response = await api.post(ENDPOINTS.VALIDATE_EMAIL,  JSON.stringify(email), {
+    const response = await api.post(ENDPOINTS.USER_VALIDATE_EMAIL,  JSON.stringify(email), {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -77,7 +77,7 @@ export const login = async (credentials) => {
     
     console.log('📤 Sending login payload:', payload);
     
-    const response = await api.post(`${ENDPOINTS.USER}/ProcessLogin`, payload);
+    const response = await api.post(ENDPOINTS.USER_PROCESS_LOGIN, payload);
     const { token, userId } = response.data;
 
     if (token && userId) {
@@ -113,7 +113,7 @@ export const register = async (userData) => {
 export const requestPasswordReset = async (email) => {
   try {
     // Send the email as a raw JSON string, not as an object
-    await api.post(`${ENDPOINTS.USER}/RequestPasswordReset`, JSON.stringify(email), {
+    await api.post(ENDPOINTS.USER_REQUEST_PASSWORD_RESET, JSON.stringify(email), {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -131,7 +131,7 @@ export const requestPasswordReset = async (email) => {
  */
 export const resetPassword = async (resetData) => {
   try {
-    await api.post(`${ENDPOINTS.USER}/ResetPassword`, resetData);
+    await api.post(ENDPOINTS.USER_RESET_PASSWORD, resetData);
     console.log('✅ Password reset successful');
   } catch (error) {
     console.error("❌ Error resetting password:", error);

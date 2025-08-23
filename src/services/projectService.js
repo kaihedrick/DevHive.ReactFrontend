@@ -42,10 +42,10 @@ export const fetchUserProjects = async () => {
       console.warn("⚠️ Token already includes 'Bearer' prefix!");
     }
 
-    console.log(`📡 Full API URL: ${ENDPOINTS.PROJECT_USER}/${userId}`);
+    console.log(`📡 Full API URL: ${ENDPOINTS.PROJECTS_BY_USER(userId)}`);
 
     // Make direct axios call with explicit headers
-    const response = await axios.get(`${ENDPOINTS.PROJECT_USER}/${userId}`, {
+    const response = await axios.get(ENDPOINTS.PROJECTS_BY_USER(userId), {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -93,7 +93,7 @@ export const fetchUserProjects = async () => {
 
 export const fetchProjectById = async (projectId) => {
   try {
-    const response = await api.get(`${ENDPOINTS.PROJECT}/${projectId}`);
+    const response = await api.get(ENDPOINTS.PROJECT_BY_ID(projectId));
     return response.data;
   } catch (error) {
     console.error('❌ Error fetching project:', error);
@@ -137,7 +137,7 @@ export const isProjectOwner = async (projectId) => {
 
 export const fetchProjectMembers = async (projectId) => {
   try {
-    const response = await api.get(`${ENDPOINTS.PROJECT}/Members/${projectId}`);
+    const response = await api.get(ENDPOINTS.PROJECT_MEMBERS(projectId));
     return response.data;
   } catch (error) {
     console.error('❌ Error fetching project members:', error);
@@ -438,7 +438,7 @@ export const updateProjectOwner = async (projectId, newOwnerId) => {
       throw new Error("Project ID and new owner ID are required.");
     }
 
-    const apiUrl = ENDPOINTS.UPDATE_PROJECT_OWNER; // Use the endpoint from config
+    const apiUrl = ENDPOINTS.PROJECT_UPDATE_OWNER; // Use the endpoint from config
     console.log(`🚀 Updating project owner for project ${projectId} to user ${newOwnerId}`);
     console.log(`📡 Full API URL: ${apiUrl}`);
 
@@ -467,7 +467,7 @@ export const updateProjectOwner = async (projectId, newOwnerId) => {
 export const removeMemberFromProject = async (projectId, memberId) => {
   try {
     const response = await axios.delete(
-      `${ENDPOINTS.MEMBER}/${projectId}/${memberId}`,
+              `${ENDPOINTS.PROJECT_MEMBERS(projectId)}/${memberId}`,
       createAuthenticatedRequest()
     );
     return response.data;
@@ -480,7 +480,7 @@ export const removeMemberFromProject = async (projectId, memberId) => {
 // Function to delete a project (Only for project owner)
 export const deleteProject = async (projectId) => {
   try {
-    await api.delete(`${ENDPOINTS.PROJECT}/${projectId}`);
+    await api.delete(ENDPOINTS.PROJECT_BY_ID(projectId));
   } catch (error) {
     return handleApiError(error, 'deleting project');
   }
