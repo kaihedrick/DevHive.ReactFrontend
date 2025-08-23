@@ -156,6 +156,9 @@ const useLoginRegisterNew = () => {
           password: state.credentials.Password
         };
         
+        console.log('🔑 Form credentials:', state.credentials);
+        console.log('📤 API credentials:', loginCredentials);
+        
         await login(loginCredentials);
         updateState({ success: true, error: '' });
         navigate('/projects');

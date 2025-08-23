@@ -69,7 +69,15 @@ export const validateEmail = async (email) => {
  */
 export const login = async (credentials) => {
   try {
-    const response = await api.post(`${ENDPOINTS.USER}/ProcessLogin`, credentials);
+    // Ensure we're sending exactly what the backend expects
+    const payload = {
+      username: credentials.username,
+      password: credentials.password
+    };
+    
+    console.log('📤 Sending login payload:', payload);
+    
+    const response = await api.post(`${ENDPOINTS.USER}/ProcessLogin`, payload);
     const { token, userId } = response.data;
 
     if (token && userId) {
@@ -78,7 +86,8 @@ export const login = async (credentials) => {
     }
     return response.data;
   } catch (error) {
-    throw handleApiError(error, 'logging in'); // Throw the error
+    console.error('❌ Login error:', error.response?.data || error.message);
+    throw handleApiError(error, 'logging in');
   }
 };
 /**
