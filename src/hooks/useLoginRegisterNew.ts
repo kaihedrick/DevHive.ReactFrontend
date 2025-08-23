@@ -152,12 +152,9 @@ const useLoginRegisterNew = () => {
     try {
       if (state.action === 'Login') {
         const loginCredentials: LoginModel = {
-          username: state.credentials.Username,
-          password: state.credentials.Password
+          Username: state.credentials.Username,
+          Password: state.credentials.Password
         };
-        
-        console.log('🔑 Form credentials:', state.credentials);
-        console.log('📤 API credentials:', loginCredentials);
         
         await login(loginCredentials);
         updateState({ success: true, error: '' });

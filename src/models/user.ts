@@ -23,12 +23,12 @@ export interface UserModel {
 /**
  * @interface LoginModel
  * Defines the structure for login credentials.
- * @property {string} username - The user's login name.
- * @property {string} password - The user's password.
+ * @property {string} Username - The user's login name.
+ * @property {string} Password - The user's password.
  */
 export interface LoginModel {
-  username: string;  
-  password: string;  
+  Username: string;  
+  Password: string;  
 }
 
 /**

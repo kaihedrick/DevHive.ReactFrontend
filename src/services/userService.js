@@ -77,7 +77,7 @@ export const validateEmail = async (email) => {
  */
 export const fetchUserById = async (userId) => {
   try {
-    const response = await api.get(ENDPOINTS.USER_BY_ID(userId));
+    const response = await api.get(`${ENDPOINTS.USER}/${userId}`);
     return response.data;
   } catch (error) {
     console.error('❌ Error fetching user:', error);

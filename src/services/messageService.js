@@ -5,8 +5,8 @@ import axios from "axios";
 // Import the centralized config
 import { API_BASE_URL } from '../config';
 
-// Use the imported endpoints
-import { ENDPOINTS } from '../config';
+// Use the imported base URL
+const MESSAGE_API_URL = `${API_BASE_URL}/Message`;
 
 let socket = null;
 let reconnectAttempts = 0;
@@ -37,7 +37,7 @@ export const sendMessage = async (message) => {
 
         console.log("📤 Sending message:", payload);
 
-        const response = await axios.post(ENDPOINTS.MESSAGE_SEND, payload, {
+        const response = await axios.post(`${MESSAGE_API_URL}/Send`, payload, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
@@ -74,7 +74,7 @@ export const sendMessage = async (message) => {
 export const fetchMessages = async (fromUserID, toUserID, projectID) => {
     try {
         const token = getAuthToken();
-        const apiUrl = ENDPOINTS.MESSAGE_RETRIEVE(fromUserID, toUserID, projectID);
+        const apiUrl = `${MESSAGE_API_URL}/Retrieve/${encodeURIComponent(fromUserID)}/${encodeURIComponent(toUserID)}/${encodeURIComponent(projectID)}`;
 
         const response = await axios.get(apiUrl, {
             headers: { Authorization: `Bearer ${token}` },
