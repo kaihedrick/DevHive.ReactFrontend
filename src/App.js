@@ -30,7 +30,7 @@ function App() {
   const selectedProject = getSelectedProject();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
 
-  const hideNavbarRoutes = ['/', '/forgot-password', '/create-project', '/projects', '/join-group', '/account-details'];
+  const hideNavbarRoutes = ['/', '/forgot-password', '/reset-password', '/create-project', '/projects', '/join-group', '/account-details'];
   const showNavbar = selectedProject && !hideNavbarRoutes.includes(location.pathname);
 
   // Handle responsive behavior

@@ -1,7 +1,7 @@
 // src/components/ResetPassword.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "../styles/forgot_password.css";
+import "../styles/login_register.css";
 import DevHiveLogo from "./assets/DevHiveLogo.png";
 import password_icon from "./assets/password.png";
 import { resetPassword } from "../services/authService";
@@ -123,81 +123,86 @@ const ResetPassword: React.FC = () => {
   };
   
   return (
-    <div className="background">
-      {/* Logo Section */}
-      <div className="logo-container">
-        <img src={DevHiveLogo} alt="DevHive Logo" className="devhive-logo" />
-        <h1 className="logo-text">DevHive</h1>
-      </div>
-      
-      {/* Form Section */}
-      <div className="container">
-        <div className="header">
-          <div className="text">Reset Your Password</div>
-          <div className="underline"></div>
+    <div className="login-register-page">
+      <div className="background">
+        {/* Logo Section */}
+        <div className="logo-container">
+          <img src={DevHiveLogo} alt="DevHive Logo" className="devhive-logo" />
+          <h1 className="logo-text">DevHive</h1>
         </div>
-        
-        {!token && (
-          <div className="error-message">
-            <p>{error}</p>
-            <button className="back-button" onClick={handleGoBack}>
-              Back to Login
-            </button>
+      
+        {/* Form Section */}
+        <div className="container">
+          <div className="header">
+            <div className="text">Reset Your Password</div>
+            <div className="underline"></div>
           </div>
-        )}
-        
-        {token && success ? (
-          <div className="success-message">
-            <p>Password Reset Successful!</p>
-            <p>Your password has been updated. You can now login with your new password.</p>
-            <button className="back-button" onClick={handleGoBack}>
-              Back to Login
-            </button>
-          </div>
-        ) : token && (
-          <>
-            <p className="reset-instructions">
-              Please enter your new password.
-            </p>
-            
-            <div className="inputs">
-              <div className="input-field">
-                <img src={password_icon} alt="" className="input-icon" />
-                <input
-                  type="password"
-                  placeholder="New Password"
-                  value={newPassword}
-                  onChange={handleNewPasswordChange}
-                />
+          
+          {!token && (
+            <div className="error-message">
+              <p>{error}</p>
+              <div className="submit" onClick={handleGoBack}>
+                Back to Login
+              </div>
+            </div>
+          )}
+          
+          {token && success ? (
+            <div className="success">
+              <p>Password Reset Successful!</p>
+              <p>Your password has been updated. You can now login with your new password.</p>
+              <div className="submit" onClick={handleGoBack}>
+                Back to Login
+              </div>
+            </div>
+          ) : token && (
+            <>
+              <p className="reset-instructions">
+                Please enter your new password.
+              </p>
+              
+              <div className="inputs-section">
+                <div className="input-group">
+                  <div className="inputs">
+                    <img src={password_icon} alt="" className="input-icon" />
+                    <input
+                      type="password"
+                      placeholder="New Password"
+                      value={newPassword}
+                      onChange={handleNewPasswordChange}
+                    />
+                  </div>
+                </div>
+                
+                <div className="input-group">
+                  <div className="inputs">
+                    <img src={password_icon} alt="" className="input-icon" />
+                    <input
+                      type="password"
+                      placeholder="Confirm Password"
+                      value={confirmPassword}
+                      onChange={handleConfirmPasswordChange}
+                    />
+                  </div>
+                </div>
               </div>
               
-              <div className="input-field">
-                <img src={password_icon} alt="" className="input-icon" />
-                <input
-                  type="password"
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={handleConfirmPasswordChange}
-                />
+              {error && <p className="error">{error}</p>}
+              
+              <div className="submit-container">
+                <div
+                  className="submit"
+                  onClick={handleSubmit}
+                >
+                  {loading ? "Resetting..." : "Reset Password"}
+                </div>
+                <div className="submit gray" onClick={handleGoBack}>
+                  Back to Login
+                </div>
               </div>
-            </div>
-            
-            {error && <p className="error">{error}</p>}
-            
-            <div className="submit-container">
-              <button
-                className="reset-button"
-                onClick={handleSubmit}
-                disabled={loading}
-              >
-                {loading ? "Resetting..." : "Reset Password"}
-              </button>
-              <button className="back-button" onClick={handleGoBack}>
-                Back to Login
-              </button>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
