@@ -39,7 +39,7 @@
 }
 
 /* ==========================
-   Input Fields
+   Input Fields - Use Unified Input System
 ========================== */
 .create-task-card label {
   display: block !important;
@@ -51,12 +51,12 @@
   text-align: left !important;
 }
 
+/* Apply unified input styles with component-specific overrides */
 .create-task-card input,
 .create-task-card select {
+  /* Extend unified base styles */
   width: 100% !important;
   padding: var(--space-3) var(--space-4) !important;
-  margin-bottom: var(--space-2) !important;
-  border: 2px solid var(--border-color) !important;
   border-radius: var(--border-radius) !important;
   font-size: var(--font-size-base) !important;
   color: var(--text-primary) !important;
@@ -64,6 +64,10 @@
   font-family: var(--primary-font) !important;
   transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
   outline: none !important;
+  
+  /* Component-specific overrides */
+  border: 2px solid var(--border-color) !important;
+  margin-bottom: var(--space-2) !important;
 }
 
 .create-task-card input:focus,

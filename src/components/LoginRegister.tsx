@@ -105,7 +105,7 @@ const LoginRegister: React.FC = () => {
     validationIcon: boolean = false
   ) => (
     <div className="input-group">
-      <div className="inputs">
+      <div className="input-with-icon">
         <FontAwesomeIcon icon={icon} className="input-icon" />
         <input
           type={type}
@@ -114,12 +114,13 @@ const LoginRegister: React.FC = () => {
           value={credentials[name] || ''}
           onChange={handleChange}
           onKeyDown={(e) => handleKeyNavigation(e, name)}
+          className="input-field-base"
         />
         {validationIcon && memoizedEmailValidationStatus === 'success' && (
-          <FontAwesomeIcon icon={faCheckCircle} className="validation-icon success-icon" />
+          <FontAwesomeIcon icon={faCheckCircle} className="validation-icon success" />
         )}
         {validationIcon && memoizedEmailValidationStatus === 'error' && (
-          <FontAwesomeIcon icon={faTimesCircle} className="validation-icon error-icon" />
+          <FontAwesomeIcon icon={faTimesCircle} className="validation-icon error" />
         )}
       </div>
       {validationErrors[name] && (

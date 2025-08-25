@@ -23,6 +23,8 @@ import EditSprint from './components/EditSprint';
 import EditTask from './components/EditTask';
 import ResetPassword from './components/ResetPassword.tsx';
 import './styles/global.css'; // Import global styles
+import './styles/inputs.css'; // Import unified input system
+import './styles/layout.css'; // Import layout system
 function App() {
   const location = useLocation();
   const selectedProject = getSelectedProject();

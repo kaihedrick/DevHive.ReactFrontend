@@ -1,4 +1,9 @@
-/* Login/Register page specific styling */
+/* ==========================
+   LOGIN/REGISTER PAGE STYLING
+   Component-specific styles with proper scoping
+========================== */
+
+/* Page Background */
 .login-register-page .background {
   display: flex !important;
   flex-direction: column !important; 
@@ -79,34 +84,58 @@
   border-radius: var(--border-radius) !important;
 }
 
-.inputs {
+/* Input Section Layout */
+.login-register-page .inputs {
   display: flex !important;
   flex-direction: column !important;
   gap: var(--space-4) !important;
-  width: 90% !important; /* Added width control to inputs container */
-  margin: 0 auto !important; /* Center the inputs container */
-  align-items: stretch !important; /* Changed from center to stretch */
+  width: 90% !important;
+  margin: 0 auto !important;
+  align-items: stretch !important;
 }
 
-.inputs input {
-  color: var(--text-primary) !important;
-}
-
-.inputs input::placeholder {
-  color: var(--text-tertiary) !important;
-}
-
-.input-field {
+/* Input Groups - Use unified input system */
+.login-register-page .input-group {
   position: relative !important;
+  width: 100% !important;
+  margin-bottom: var(--space-3) !important;
+}
+
+/* Input Container with Icon */
+.login-register-page .inputs .input-with-icon {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
   width: 100% !important;
   height: 3.25rem !important;
   border: 1px solid var(--text-tertiary) !important;
   border-radius: var(--border-radius) !important;
-  margin-bottom: 20px !important;
+  background: var(--bg-primary) !important;
+  transition: border-color var(--transition-normal), 
+              box-shadow var(--transition-normal) !important;
 }
 
-.input-field input {
-  width: 100% !important;
+.login-register-page .inputs .input-with-icon:focus-within {
+  border-color: var(--gold) !important;
+  box-shadow: var(--shadow-focus) !important;
+}
+
+/* Input Icon (Left) */
+.login-register-page .inputs .input-icon {
+  position: absolute !important;
+  left: 0.8rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  font-size: 1.375rem !important;
+  color: var(--text-tertiary) !important;
+  opacity: 0.8 !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+/* Input Field */
+.login-register-page .inputs input {
+  flex: 1 !important;
   height: 100% !important;
   border: none !important;
   outline: none !important;
@@ -114,66 +143,40 @@
   padding: 0 0.8rem 0 3rem !important;
   color: var(--text-primary) !important;
   font-size: 16px !important;
+  font-family: var(--primary-font) !important;
 }
 
-.input-icon {
+.login-register-page .inputs input::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
+/* Validation Icons (Right) */
+.login-register-page .validation-icon {
   position: absolute !important;
-  left: 0.8rem !important;
-  top: 14px !important;
+  right: 0.8rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
   font-size: 1.375rem !important;
-  color: var(--text-tertiary) !important;
-  opacity: 0.8 !important;
   pointer-events: none !important;
-  z-index: 1 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  z-index: 2 !important;
 }
 
-.input-field:focus-within {
-  border-color: var(--gold) !important;
-  box-shadow: var(--shadow-focus) !important;
+.login-register-page .success-icon {
+  color: #27ae60 !important;
 }
 
-/* Remove the duplicate .input-icon styles and use only img.input-icon */
-
-/* Add explicit styles for validation icons */
-.validation-icon {
-  position: absolute !important;
-  right: 0.8rem !important; /* Match the left padding of the input icon */
-  top: 14px !important; /* Match the top positioning of the input icon */
-  font-size: 1.375rem !important; /* Match the size of the input icon */
-  color: var(--text-tertiary) !important;
-  opacity: 0.8 !important;
-  pointer-events: none !important;
-  z-index: 5 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+.login-register-page .error-icon {
+  color: #e74c3c !important;
 }
 
-.success-icon {
-  color: green !important;
-}
-
-.error-icon {
-  color: red !important;
-}
-
-.error-message {
-  color: red !important;
+/* Error Messages */
+.login-register-page .error-message {
+  color: #e74c3c !important;
   font-size: var(--font-size-xs) !important;
   margin-top: var(--space-1) !important;
-}
-
-.error-icon {
-  color: red !important;
-  margin-left: var(--space-1) !important;
-}
-
-.success-icon {
-  color: green !important;
-  margin-left: var(--space-1) !important;
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
 }
 
 .forgot-password {

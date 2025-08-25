@@ -1,0 +1,106 @@
+/* ==========================
+   LAYOUT - NAVBAR INTEGRATION
+   Handles how navbar affects overall page layout
+========================== */
+
+/* Global layout adjustments when navbar is present */
+body.has-sidebar .container, 
+body.has-sidebar main, 
+body.has-sidebar .content-container {
+    margin-left: var(--navbar-width-collapsed) !important;
+    width: calc(100% - var(--navbar-width-collapsed)) !important;
+    transition: margin var(--transition-normal) ease, 
+                width var(--transition-normal) ease !important;
+}
+
+/* When sidebar is hovered (desktop) */
+body.has-sidebar .sidebar-mode:hover ~ .container,
+body.has-sidebar .sidebar-mode:hover ~ main,
+body.has-sidebar .sidebar-mode:hover ~ .content-container {
+    margin-left: var(--navbar-width-expanded) !important;
+    width: calc(100% - var(--navbar-width-expanded)) !important;
+}
+
+/* When topbar is present (mobile) */
+body.has-sidebar .topbar-mode ~ .container,
+body.has-sidebar .topbar-mode ~ main,
+body.has-sidebar .topbar-mode ~ .content-container {
+    margin-left: 0 !important;
+    margin-top: var(--navbar-height-mobile) !important;
+    width: 100% !important;
+}
+
+/* Mobile responsive overrides */
+@media (max-width: 600px) {
+    body.has-sidebar .container, 
+    body.has-sidebar main, 
+    body.has-sidebar .content-container {
+        margin-left: 0 !important;
+        margin-top: var(--navbar-height-mobile) !important;
+        width: 100% !important;
+    }
+    
+    body.has-sidebar .sidebar-mode:hover ~ .container,
+    body.has-sidebar .sidebar-mode:hover ~ main,
+    body.has-sidebar .sidebar-mode:hover ~ .content-container {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}
+
+/* Content layout adjustment for sidebar */
+body .container, 
+body main, 
+body .content-container {
+    width: 100% !important;
+    transition: margin var(--transition-normal) ease !important;
+}
+
+/* When sidebar is present (desktop) */
+body.has-sidebar .container, 
+body.has-sidebar main, 
+body.has-sidebar .content-container {
+    margin-left: var(--navbar-width-collapsed) !important;
+    width: calc(100% - var(--navbar-width-collapsed)) !important;
+}
+
+/* When sidebar is hovered (desktop) */
+body.has-sidebar .sidebar-mode:hover ~ .container,
+body.has-sidebar .sidebar-mode:hover ~ main,
+body.has-sidebar .sidebar-mode:hover ~ .content-container {
+    margin-left: var(--navbar-width-expanded) !important;
+    width: calc(100% - var(--navbar-width-expanded)) !important;
+}
+
+/* When topbar is present (mobile) */
+body.has-sidebar .topbar-mode ~ .container,
+body.has-sidebar .topbar-mode ~ main,
+body.has-sidebar .topbar-mode ~ .content-container {
+    margin-left: 0 !important;
+    margin-top: var(--navbar-height-mobile) !important;
+    width: 100% !important;
+}
+
+/* Media queries for responsive layout */
+@media (max-width: 600px) {
+    /* Force content to adjust for topbar */
+    body.has-sidebar .container, 
+    body.has-sidebar main, 
+    body.has-sidebar .content-container {
+        margin-left: 0 !important;
+        margin-top: var(--navbar-height-mobile) !important;
+        width: 100% !important;
+    }
+    
+    /* Force navbar to stay as topbar */
+    .navbar {
+        width: 100% !important;
+        height: var(--navbar-height-mobile) !important;
+        flex-direction: row !important;
+    }
+    
+    /* Disable hover effect in mobile mode */
+    .navbar:hover {
+        width: 100% !important;
+    }
+}

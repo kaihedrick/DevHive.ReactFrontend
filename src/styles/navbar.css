@@ -92,50 +92,13 @@
     transform: rotate(180deg) !important;
 }
 
-/* Content layout adjustment for sidebar */
-body .container, 
-body main, 
-body .content-container {
-    width: 100% !important;
-    transition: margin var(--transition-normal) ease !important;
-}
-
-/* When sidebar is present (desktop) */
-body.has-sidebar .container, 
-body.has-sidebar main, 
-body.has-sidebar .content-container {
-    margin-left: var(--navbar-width-collapsed) !important;
-    width: calc(100% - var(--navbar-width-collapsed)) !important;
-}
-
-/* When sidebar is hovered (desktop) */
-body.has-sidebar .sidebar-mode:hover ~ .container,
-body.has-sidebar .sidebar-mode:hover ~ main,
-body.has-sidebar .sidebar-mode:hover ~ .content-container {
-    margin-left: var(--navbar-width-expanded) !important;
-    width: calc(100% - var(--navbar-width-expanded)) !important;
-}
-
-/* When topbar is present (mobile) */
-body.has-sidebar .topbar-mode ~ .container,
-body.has-sidebar .topbar-mode ~ main,
-body.has-sidebar .topbar-mode ~ .content-container {
-    margin-left: 0 !important;
-    margin-top: var(--navbar-height-mobile) !important;
-    width: 100% !important;
-}
+/* ==========================
+   NAVBAR RESPONSIVE DESIGN
+   Mobile-specific navbar adjustments
+========================== */
 
 /* Media queries for responsive layout */
 @media (max-width: 600px) {
-    /* Force content to adjust for topbar */
-    body.has-sidebar .container, 
-    body.has-sidebar main, 
-    body.has-sidebar .content-container {
-        margin-left: 0 !important;
-        margin-top: var(--navbar-height-mobile) !important;
-        width: 100% !important;
-    }
-    
     /* Force navbar to stay as topbar */
     .navbar {
         width: 100% !important;

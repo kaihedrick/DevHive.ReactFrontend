@@ -1,0 +1,199 @@
+/* ==========================
+   UNIFIED INPUT FIELD SYSTEM
+   Global input styles that can be extended by components
+========================== */
+
+/* Base Input Styles - Use !important to override browser defaults */
+.input-field-base {
+    width: 100% !important;
+    padding: var(--space-3) var(--space-4) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--border-radius) !important;
+    font-family: var(--primary-font) !important;
+    font-size: var(--font-size-base) !important;
+    color: var(--text-primary) !important;
+    background: var(--bg-primary) !important;
+    transition: border-color var(--transition-normal), 
+                box-shadow var(--transition-normal) !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    margin-bottom: var(--space-3) !important;
+}
+
+.input-field-base:focus {
+    border-color: var(--accent-primary) !important;
+    box-shadow: var(--shadow-focus) !important;
+}
+
+.input-field-base::placeholder {
+    color: var(--text-tertiary) !important;
+}
+
+/* Input Field Container */
+.input-field-container {
+    position: relative !important;
+    width: 100% !important;
+    margin-bottom: var(--space-3) !important;
+}
+
+/* Input with Icon (Left) */
+.input-with-icon {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.input-with-icon .input-icon {
+    position: absolute !important;
+    left: var(--space-3) !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 1.2rem !important;
+    color: var(--text-tertiary) !important;
+    opacity: 0.7 !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+}
+
+.input-with-icon input {
+    padding-left: calc(var(--space-3) + 1.5rem) !important;
+}
+
+/* Input with Validation Icon (Right) */
+.input-with-validation {
+    position: relative !important;
+}
+
+.input-with-validation .validation-icon {
+    position: absolute !important;
+    right: var(--space-3) !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 1.2rem !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+}
+
+.input-with-validation input {
+    padding-right: calc(var(--space-3) + 1.5rem) !important;
+}
+
+/* Validation Icon Colors */
+.validation-icon.success {
+    color: #27ae60 !important;
+}
+
+.validation-icon.error {
+    color: #e74c3c !important;
+}
+
+/* Error Message */
+.input-error-message {
+    color: #e74c3c !important;
+    font-size: var(--font-size-xs) !important;
+    margin-top: var(--space-1) !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+}
+
+/* Input Sizes */
+.input-field-small {
+    padding: var(--space-2) var(--space-3) !important;
+    font-size: var(--font-size-sm) !important;
+}
+
+.input-field-large {
+    padding: var(--space-4) var(--space-5) !important;
+    font-size: var(--font-size-lg) !important;
+}
+
+/* Input Variants */
+.input-field-outlined {
+    border: 2px solid var(--border-color) !important;
+}
+
+.input-field-filled {
+    background: var(--bg-secondary) !important;
+    border: 1px solid transparent !important;
+}
+
+.input-field-filled:focus {
+    background: var(--bg-primary) !important;
+    border-color: var(--accent-primary) !important;
+}
+
+/* Form Layout Components */
+.form-container-base {
+    background: var(--bg-primary) !important;
+    padding: var(--space-5) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-md) !important;
+    max-width: 600px !important;
+    margin: 0 auto !important;
+}
+
+.form-title-base {
+    font-size: var(--font-size-2xl) !important;
+    font-weight: var(--font-weight-bold) !important;
+    color: var(--text-primary) !important;
+    margin-bottom: var(--space-5) !important;
+    text-align: center !important;
+}
+
+.form-group-base {
+    margin-bottom: var(--space-4) !important;
+}
+
+.form-label-base {
+    display: block !important;
+    font-size: var(--font-size-sm) !important;
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--text-secondary) !important;
+    margin-bottom: var(--space-2) !important;
+}
+
+.form-error-base {
+    font-size: var(--font-size-xs) !important;
+    color: hsl(0, 100%, 50%) !important;
+    margin-top: var(--space-1) !important;
+}
+
+.form-success-base {
+    font-size: var(--font-size-xs) !important;
+    color: hsl(120, 100%, 35%) !important;
+    margin-top: var(--space-1) !important;
+}
+
+.form-button-base {
+    width: 100% !important;
+    padding: var(--space-3) var(--space-5) !important;
+    border-radius: var(--border-radius) !important;
+    font-weight: var(--font-weight-medium) !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    transition: all var(--transition-fast) ease !important;
+}
+
+.form-button-primary {
+    background: var(--accent-primary) !important;
+    color: var(--black) !important;
+    border: 1px solid transparent !important;
+}
+
+.form-button-primary:hover {
+    background: var(--dark-gold) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+.form-button-secondary {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.form-button-secondary:hover {
+    background: var(--gray) !important;
+    color: var(--white) !important;
+}
