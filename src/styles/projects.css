@@ -1,5 +1,5 @@
 /* Projects Page Container */
-.projects-page .projects-container {
+.projects-page {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -77,6 +77,21 @@
     margin-top: calc(var(--navbar-height-mobile) + var(--space-2)) !important; /* Position content below navbar */
     background: transparent !important; /* Remove any background from container */
   }
+}
+
+/* Projects container */
+.projects-page .projects-container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important; /* Changed from center to flex-start for better mobile layout */
+  min-height: 100vh !important;
+  width: 100% !important;
+  padding: 0 !important;
+  font-family: var(--primary-font) !important;
+  /* Ensure proper spacing from top and bottom */
+  padding-top: var(--space-4) !important;
+  padding-bottom: var(--space-6) !important;
 }
 
 /* Header Section */
@@ -170,6 +185,11 @@
   display: flex !important;
   gap: var(--space-4) !important;
   margin-top: var(--space-6) !important;
+  width: 90% !important;
+  max-width: 600px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
 }
 
 .projects-page .action-btn {
@@ -240,8 +260,9 @@
 
 /* Responsive Design for Projects Section */
 @media (max-width: 600px) {
-  .projects-page .projects-container {
+  .projects-page {
     padding: var(--space-4) !important;
+    padding-bottom: calc(var(--space-8) + 80px) !important; /* Add extra bottom padding to account for footer */
   }
 
   .projects-page .header h1 {

@@ -4,9 +4,18 @@
 .navbar {
     position: fixed !important;
     background-color: var(--navbar-bg) !important;
-    transition: width var(--transition-normal) ease !important;
+    transition: width var(--transition-normal) ease, height var(--transition-normal) ease !important;
     z-index: 1000 !important;
     box-shadow: var(--shadow-md) !important;
+    /* Ensure navbar is always visible */
+    overflow: visible !important;
+}
+
+.navbar-wrapper {
+    position: relative !important;
+    z-index: 1000 !important;
+    /* Ensure wrapper doesn't interfere with navbar */
+    overflow: visible !important;
 }
 
 .navbar .sidebar-mode {
@@ -97,7 +106,7 @@ body .container,
 body main, 
 body .content-container {
     width: 100% !important;
-    transition: margin var(--transition-normal) ease !important;
+    transition: margin var(--transition-normal) ease, padding var(--transition-normal) ease !important;
 }
 
 /* When sidebar is present (desktop) */
@@ -117,86 +126,115 @@ body.has-sidebar .sidebar-mode:hover ~ .content-container {
 }
 
 /* When topbar is present (mobile) */
-body.has-sidebar .topbar-mode ~ .container,
-body.has-sidebar .topbar-mode ~ main,
-body.has-sidebar .topbar-mode ~ .content-container {
+body.has-topbar .container,
+body.has-topbar main,
+body.has-topbar .content-container {
     margin-left: 0 !important;
-    margin-top: var(--navbar-height-mobile) !important;
+    margin-top: calc(var(--navbar-height-mobile) + var(--space-2)) !important; /* Reduced from just navbar height to navbar + small spacing */
     width: 100% !important;
 }
 
 /* Media queries for responsive layout */
 @media (max-width: 600px) {
-    /* Force content to adjust for topbar */
-    body.has-sidebar .container, 
-    body.has-sidebar main, 
-    body.has-sidebar .content-container {
-        margin-left: 0 !important;
-        margin-top: var(--navbar-height-mobile) !important;
-        width: 100% !important;
-    }
-    
-    /* Force navbar to stay as topbar */
-    .navbar {
-        width: 100% !important;
-        height: var(--navbar-height-mobile) !important;
-        flex-direction: row !important;
-    }
-    
-    /* Disable hover effect in mobile mode */
-    .navbar:hover {
-        width: 100% !important;
-    }
+  /* Force content to adjust for topbar */
+  body.has-sidebar .container, 
+  body.has-sidebar main, 
+  body.has-sidebar .content-container {
+    margin-left: 0 !important;
+    margin-top: calc(var(--navbar-height-mobile) + var(--space-2)) !important; /* Reduced spacing */
+    width: 100% !important;
+    padding-top: var(--space-2) !important; /* Reduced from mobile-padding to space-2 */
+  }
+  
+  /* Force navbar to stay as topbar */
+  .navbar {
+    width: 100% !important;
+    height: var(--navbar-height-mobile) !important;
+    flex-direction: row !important;
+  }
+  
+  /* Disable hover effect in mobile mode */
+  .navbar:hover {
+    width: 100% !important;
+  }
 
-    /* Hide link text in mobile */
-    .link-text {
-        display: none !important;
-    }
-    
-    /* Fix navbar content layout in mobile */
-    .navbar .navbar-content {
-        flex-direction: row !important;
-        align-items: center !important;
-        width: 100% !important;
-    }
-    
-    /* Logo container in mobile - increased spacing */
-    .navbar .logo-container {
-        margin-right: var(--space-5) !important;
-        flex-shrink: 0 !important;
-        height: 100% !important;
-        padding: 0 !important;
-    }
-    
-    /* Adjust navbar nav to horizontal layout */
-    .navbar .navbar-nav {
-        flex-direction: row !important;
-        justify-content: space-around !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
+  /* Hide link text in mobile but keep nav items visible */
+  .link-text {
+    display: none !important;
+  }
+  
+  /* Fix navbar content layout in mobile */
+  .navbar .navbar-content {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding: 0 var(--space-4) !important;
+    gap: var(--space-3) !important; /* Add gap between logo and nav items */
+  }
+  
+  /* Logo container in mobile - more compact */
+  .navbar .logo-container {
+    margin-right: var(--space-4) !important; /* Reduced margin */
+    flex-shrink: 0 !important;
+    height: 100% !important;
+    padding: 0 !important;
+    width: auto !important; /* Let content determine width */
+  }
+  
+  /* Adjust navbar nav to horizontal layout */
+  .navbar .navbar-nav {
+    flex-direction: row !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 1 !important;
+    gap: var(--space-2) !important; /* Reduced gap between nav items */
+  }
 
-    /* Add specific style for mobile nav items */
-    .navbar .nav-item {
-        height: 100% !important;
-    }
-    
-    .navbar .nav-link {
-        height: 100% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    /* Fix any specific icon alignment issues */
-    .navbar .nav-icon {
-        margin: 0 !important;
-    }
-    
-    /* Ensure the navbar has proper height */
-    .navbar, .navbar .navbar-content {
-        height: var(--navbar-height-mobile) !important;
-    }
+  /* Add specific style for mobile nav items */
+  .navbar .nav-item {
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important; /* Prevent nav items from shrinking */
+    width: auto !important; /* Let content determine width */
+  }
+  
+  .navbar .nav-link {
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: var(--space-2) var(--space-2) !important; /* Reduced padding */
+    min-width: 44px !important; /* Ensure touch target size */
+    min-height: 44px !important; /* Ensure touch target size */
+    width: auto !important; /* Let content determine width */
+  }
+  
+  /* Fix any specific icon alignment issues */
+  .navbar .nav-icon {
+    margin: 0 !important;
+    font-size: 1.1rem !important; /* Slightly smaller icons */
+    width: auto !important; /* Let content determine width */
+    height: auto !important; /* Let content determine height */
+    flex-shrink: 0 !important; /* Prevent icon from shrinking */
+  }
+  
+  /* Ensure the navbar has proper height */
+  .navbar, .navbar .navbar-content {
+    height: var(--navbar-height-mobile) !important;
+  }
+
+  /* Ensure topbar mode is properly applied */
+  .navbar.topbar-mode {
+    width: 100% !important;
+    height: var(--navbar-height-mobile) !important;
+    top: 0 !important;
+    left: 0 !important;
+    flex-direction: row !important;
+  }
 }
 
 /* Ensure navbar content fills available space */
@@ -240,32 +278,39 @@ body.has-sidebar .topbar-mode ~ .content-container {
 
 /* Special styles for topbar mode */
 .topbar-mode .navbar-nav {
-    height: 100% !important; /* Take full height */
-    align-items: center !important; /* Center items vertically */
+  height: 100% !important; /* Take full height */
+  align-items: center !important; /* Center items vertically */
 }
 
 .topbar-mode .nav-item {
-    height: 100% !important; /* Take full height */
-    display: flex !important;
-    align-items: center !important; /* Center items vertically */
-    justify-content: center !important;
+  height: 100% !important; /* Take full height */
+  display: flex !important;
+  align-items: center !important; /* Center items vertically */
+  justify-content: center !important;
+  width: auto !important; /* Let content determine width */
+  flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
 .topbar-mode .nav-link {
-    height: 100% !important; /* Take full height */
-    display: flex !important;
-    align-items: center !important; /* Center items vertically */
-    justify-content: center !important;
-    padding: 0 var(--space-3) !important; /* Adjust horizontal padding */
+  height: 100% !important; /* Take full height */
+  display: flex !important;
+  align-items: center !important; /* Center items vertically */
+  justify-content: center !important;
+  padding: 0 var(--space-2) !important; /* Reduced horizontal padding */
+  width: auto !important; /* Let content determine width */
+  min-width: 44px !important; /* Ensure touch target size */
+  min-height: 44px !important; /* Ensure touch target size */
 }
 
 .topbar-mode .nav-icon {
-    margin: 0 !important; /* Remove any default margins */
-    font-size: calc(var(--navbar-height-mobile) * 0.5) !important; /* 50% of navbar height */
-    height: 80% !important; /* 80% of container height */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+  margin: 0 !important; /* Remove any default margins */
+  font-size: calc(var(--navbar-height-mobile) * 0.4) !important; /* 40% of navbar height */
+  height: auto !important; /* Let content determine height */
+  width: auto !important; /* Let content determine width */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important; /* Prevent icon from shrinking */
 }
 
 /* Ensure the navbar content is also properly centered */
@@ -276,67 +321,71 @@ body.has-sidebar .topbar-mode ~ .content-container {
 
 /* Center the SVG in the logo container for topbar mode */
 .topbar-mode .logo-container {
-    display: flex !important;
-    align-items: center !important; /* Center vertically */
-    justify-content: center !important; /* Center horizontally */
-    height: 100% !important; /* Match the height of the topbar */
-    padding: 0 !important; /* Remove any padding */
-    margin: 0 !important; /* Remove any margin */
-    box-sizing: border-box !important; /* Ensure padding and borders are included in height */
+  display: flex !important;
+  align-items: center !important; /* Center vertically */
+  justify-content: center !important; /* Center horizontally */
+  height: 100% !important; /* Match the height of the topbar */
+  padding: 0 !important; /* Remove any padding */
+  margin: 0 !important; /* Remove any margin */
+  box-sizing: border-box !important; /* Ensure padding and borders are included in height */
+  width: auto !important; /* Let content determine width */
+  flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
 .topbar-mode .logo {
-    width: calc(var(--navbar-height-mobile) * 0.8) !important; /* Scale the logo to fit the topbar */
-    height: calc(var(--navbar-height-mobile) * 0.8) !important; /* Maintain aspect ratio */
-    object-fit: contain; /* Ensure the SVG scales properly */
-    margin: 0 !important; /* Remove any margin */
-    display: block !important; /* Ensure it behaves as a block element */
+  width: calc(var(--navbar-height-mobile) * 0.7) !important; /* 70% of navbar height */
+  height: calc(var(--navbar-height-mobile) * 0.7) !important; /* 70% of navbar height */
+  object-fit: contain !important; /* Ensure the SVG scales properly */
+  margin: 0 !important; /* Remove any margin */
+  display: block !important; /* Ensure it behaves as a block element */
+  flex-shrink: 0 !important; /* Prevent logo from shrinking */
 }
 
 /* Fix mobile logo and nav layout */
 
 /* Logo styling for both modes */
 .logo-container {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
 }
 
 /* Desktop logo styling - only apply in sidebar mode */
 .sidebar-mode .logo-container {
-    padding: var(--space-3) !important; /* Apply padding only in sidebar mode */
-    margin-bottom: var(--space-4) !important;
-    width: 100% !important;
+  padding: var(--space-3) !important; /* Apply padding only in sidebar mode */
+  margin-bottom: var(--space-4) !important;
+  width: 100% !important;
 }
 
-/* Mobile logo container - make it more square */
+/* Mobile logo container - make it more compact */
 .mobile-logo {
-    padding: 0 !important; /* Explicitly zero padding */
-    margin: 0 !important;
-    margin-left: var(--space-3) !important; /* Left spacing */
-    margin-right: var(--space-3) !important; /* Right spacing */
-    height: 100% !important;
-    display: flex !important;
-    align-items: center !important; /* Center vertically */
-    justify-content: center !important;
-    aspect-ratio: 1 !important; /* Make it square */
-    width: auto !important; /* Let height determine width */
-    box-sizing: border-box !important;
+  padding: 0 !important; /* Explicitly zero padding */
+  margin: 0 !important;
+  margin-left: var(--space-3) !important; /* Left spacing */
+  margin-right: var(--space-3) !important; /* Right spacing */
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important; /* Center vertically */
+  justify-content: center !important;
+  width: auto !important; /* Let content determine width */
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
 /* Logo sizing for both modes */
 .logo {
-    width: 40px !important;
-    height: 40px !important;
-    transition: transform var(--transition-normal) ease !important;
+  width: 40px !important;
+  height: 40px !important;
+  transition: transform var(--transition-normal) ease !important;
 }
 
-/* Topbar mode logo sizing */
+/* Topbar mode logo sizing - fill navbar height */
 .topbar-mode .logo {
-    width: calc(var(--navbar-height-mobile) * 0.8) !important;
-    height: calc(var(--navbar-height-mobile) * 0.8) !important;
-    display: block !important;
+  width: calc(var(--navbar-height-mobile) * 0.7) !important; /* 70% of navbar height */
+  height: calc(var(--navbar-height-mobile) * 0.7) !important; /* 70% of navbar height */
+  display: block !important;
+  flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
 /* Logo image */
@@ -362,4 +411,92 @@ body.has-sidebar .topbar-mode ~ .content-container {
 /* Rotate logo on sidebar hover */
 .sidebar-mode:hover .logo {
     transform: rotate(180deg) !important;
+}
+
+/* Responsive adjustments for different screen sizes */
+@media (min-width: 601px) and (max-width: 1023px) {
+    /* Tablet adjustments */
+    .navbar .sidebar-mode {
+        width: var(--navbar-width-collapsed) !important;
+    }
+    
+    body.has-sidebar main {
+        margin-left: var(--navbar-width-collapsed) !important;
+        width: calc(100% - var(--navbar-width-collapsed)) !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    /* Desktop adjustments */
+    .navbar .sidebar-mode {
+        width: var(--navbar-width-collapsed) !important;
+    }
+    
+    body.has-sidebar main {
+        margin-left: var(--navbar-width-collapsed) !important;
+        width: calc(100% - var(--navbar-width-collapsed)) !important;
+    }
+}
+
+@media (min-width: 1280px) {
+    /* Large desktop adjustments */
+    .navbar .sidebar-mode {
+        width: var(--navbar-width-collapsed) !important;
+    }
+    
+    body.has-sidebar main {
+        margin-left: var(--navbar-width-collapsed) !important;
+        width: calc(100% - var(--navbar-width-collapsed)) !important;
+    }
+}
+
+/* Touch-friendly interactions for mobile */
+@media (max-width: 768px) {
+    .navbar .nav-link {
+        min-height: 44px !important; /* Ensure touch targets are large enough */
+        min-width: 44px !important;
+    }
+    
+    .navbar .logo-container {
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .navbar .logo {
+        image-rendering: -webkit-optimize-contrast !important;
+        image-rendering: crisp-edges !important;
+    }
+}
+
+/* Landscape mobile adjustments */
+@media (max-width: 600px) and (orientation: landscape) {
+    .navbar .topbar-mode {
+        height: calc(var(--navbar-height-mobile) * 0.8) !important; /* Slightly smaller height for landscape */
+    }
+    
+    body.has-topbar main {
+        margin-top: calc(var(--navbar-height-mobile) * 0.8) !important;
+    }
+    
+    body.has-sidebar main {
+        margin-top: calc(var(--navbar-height-mobile) * 0.8) !important;
+    }
+}
+
+/* Ensure proper spacing for content below navbar */
+body.has-topbar .content,
+body.has-sidebar .content {
+    padding-top: 0 !important; /* Remove top padding since margin handles spacing */
+}
+
+/* Smooth transitions for all navbar state changes */
+.navbar,
+.navbar *,
+body main,
+body .content,
+body .container {
+    transition: all var(--transition-normal) ease !important;
 }
