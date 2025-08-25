@@ -1,20 +1,89 @@
 /* Login/Register page specific styling */
+
+/* Ensure html and body take full height */
+html, body {
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+}
+
+/* Full viewport background - now handled by App.js */
+.background {
+  display: flex !important;
+  flex-direction: column !important; 
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: 100vh !important; 
+  width: 100vw !important;
+  background: linear-gradient(to bottom right, var(--gold), var(--dark-gold)) !important;
+  padding: var(--space-5) !important; 
+  font-family: var(--primary-font) !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  left: 50% !important;
+  right: 50% !important;
+  margin-left: -50vw !important;
+  margin-right: -50vw !important;
+}
+
+/* Also target the login-register-page wrapper if it exists */
 .login-register-page .background {
   display: flex !important;
   flex-direction: column !important; 
   justify-content: center !important;
   align-items: center !important;
   min-height: 100vh !important; 
-  background: linear-gradient(to bottom right, var(--gold), var(--dark-gold)) !important; 
+  width: 100vw !important;
+  background: linear-gradient(to bottom right, var(--gold), var(--dark-gold)) !important;
   padding: var(--space-5) !important; 
   font-family: var(--primary-font) !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  left: 50% !important;
+  right: 50% !important;
+  margin-left: -50vw !important;
+  margin-right: -50vw !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .background {
+    padding: var(--space-3) !important;
+  }
+  
+  .container {
+    width: 95% !important;
+    padding: var(--space-4) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .background {
+    padding: var(--space-2) !important;
+  }
+  
+  .container {
+    width: 98% !important;
+    padding: var(--space-3) !important;
+    min-width: 280px !important;
+  }
+  
+  .logo-container {
+    margin-bottom: var(--space-4) !important;
+  }
 }
 
 .logo-container {
   display: flex !important; 
   align-items: center !important; 
   justify-content: center !important; 
-  margin-bottom: var(--space-6) !important; 
+  margin-bottom: var(--space-6) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  text-align: center !important;
 }
 
 .devhive-logo {
@@ -27,6 +96,7 @@
   stroke-linejoin: round !important;
   stroke-linecap: round !important;
   vector-effect: non-scaling-stroke !important;
+  flex-shrink: 0 !important;
 }
 
 .logo-container:hover .devhive-logo {
@@ -39,6 +109,8 @@
   font-size: var(--font-size-3xl) !important; 
   font-weight: var(--font-weight-bold) !important; 
   font-family: var(--primary-font) !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
 }
 
 .logo-container:hover .logo-text {
@@ -48,13 +120,18 @@
 .container {
   display: flex !important;
   flex-direction: column !important;
-  width: 80% !important;
+  width: 90% !important;
   max-width: 50rem !important;
+  min-width: 320px !important;
   background: var(--bg-primary) !important;
   border-radius: var(--border-radius) !important;
   padding: var(--space-6) !important;
   box-shadow: var(--shadow-md) !important;
-  padding-bottom: var(--space-8) !important; 
+  padding-bottom: var(--space-8) !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+  align-self: center !important;
+  justify-self: center !important;
 }
 
 .header {
