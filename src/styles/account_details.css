@@ -1,6 +1,15 @@
 /* ============================= */
 /*  Account Page Layout */
 /* ============================= */
+
+/* Ensure html and body take full height and prevent horizontal scroll */
+html, body {
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+}
+
 .account-container {
   display: flex !important;
   justify-content: center !important;
@@ -16,13 +25,20 @@
 /* 🌟 Scoped Account Details Page Styling */
 /* ============================= */
 .account-details-page {
-  min-height: calc(100vh - 60px) !important; /* Extend to the footer */
+  min-height: 100vh !important; /* Full viewport height */
+  width: 100vw !important; /* Full viewport width */
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
   align-items: center !important;
   padding: var(--space-5) !important;
   background: var(--accent-primary) !important; /* Match the gold background */
+  position: relative !important;
+  left: 50% !important;
+  right: 50% !important;
+  margin-left: -50vw !important;
+  margin-right: -50vw !important;
+  box-sizing: border-box !important;
 }
 
 .account-details-page .account-container {

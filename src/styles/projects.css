@@ -5,9 +5,78 @@
   align-items: center !important;
   justify-content: center !important;
   min-height: 100vh !important;
-  background: linear-gradient(to bottom right, var(--gold), var(--dark-gold)) !important;
+  width: 100% !important; /* Changed from 100vw since background is now handled by wrapper */
   padding: var(--space-5) !important;
   font-family: var(--primary-font) !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  /* Ensure proper spacing from top and bottom */
+  padding-top: var(--space-4) !important;
+  padding-bottom: var(--space-6) !important;
+  /* Better centering for larger screens */
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Background wrapper - now handles the background */
+.background {
+  width: 100vw !important;
+  min-height: 100vh !important;
+  background: var(--accent-primary) !important; /* Solid gold background instead of gradient */
+  position: relative !important;
+  left: 50% !important;
+  right: 50% !important;
+  margin-left: -50vw !important;
+  margin-right: -50vw !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+/* Projects page - no background, just layout */
+.projects-page {
+  width: 100% !important;
+  min-height: 100vh !important;
+  padding: var(--space-5) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  box-sizing: border-box !important;
+  /* Remove background - now handled by .background wrapper */
+  background: none !important;
+}
+
+/* Ensure navbar is visible when projects page loads */
+.projects-page {
+  /* Remove margin-top to allow background to extend to top */
+  margin-top: 0 !important;
+}
+
+/* Mobile adjustments to ensure background fills entire screen */
+@media (max-width: 600px) {
+  .projects-page {
+    padding: var(--space-4) !important;
+    padding-bottom: calc(var(--space-8) + 80px) !important; /* Add extra bottom padding to account for footer */
+    padding-top: 0 !important; /* No top padding to ensure background fills to top */
+    margin-top: 0 !important; /* Remove navbar margin to allow background to top */
+    min-height: 100vh !important;
+    /* Remove conflicting positioning - background is now handled by .background wrapper */
+    position: relative !important;
+    width: 100% !important; /* Use normal width, not 100vw */
+    height: auto !important;
+    z-index: 0 !important;
+    /* Remove the problematic positioning that was causing off-screen issues */
+    background: none !important; /* No background here - handled by wrapper */
+  }
+  
+  /* Ensure content is properly positioned above the background */
+  .projects-page .projects-container {
+    position: relative !important;
+    z-index: 1 !important;
+    margin-top: calc(var(--navbar-height-mobile) + var(--space-2)) !important; /* Position content below navbar */
+    background: transparent !important; /* Remove any background from container */
+  }
 }
 
 /* Header Section */
@@ -34,18 +103,32 @@
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
   gap: var(--space-5) !important;
-  width: 100% !important;
-  max-width: 1000px !important;
+  width: 90% !important;
+  max-width: 1200px !important; /* Increased max-width for better large screen layout */
   animation: fadeIn 0.6s ease-in-out !important;
+  margin: 0 auto !important;
+  justify-items: center !important;
+  /* Better centering for larger screens */
+  place-items: center !important;
 }
 
+/* Ensure grid items are properly centered */
+.projects-page .projects-list > * {
+  justify-self: center !important;
+  align-self: center !important;
+}
+
+/* Projects list paragraph styling */
 .projects-page .projects-container .projects-list p {
   color: var(--white) !important; /* Set text color to white */
   font-size: var(--font-size-lg) !important; /* Optional: Adjust font size for better visibility */
   text-align: center !important; /* Optional: Center align the text */
+  grid-column: 1 / -1 !important; /* Span all columns for the "no projects" message */
+  width: 100% !important;
+  margin: 0 auto !important;
 }
 
-/* Individual Project Card */
+/* Individual Project Card - Better centering */
 .projects-page .project-card {
   background: var(--bg-primary) !important;
   border: 2px solid var(--accent-primary) !important;
@@ -54,6 +137,10 @@
   box-shadow: var(--shadow-md) !important;
   transition: all var(--transition-normal) ease-in-out !important;
   position: relative !important;
+  /* Ensure cards are properly sized and centered */
+  width: 100% !important;
+  max-width: 320px !important;
+  box-sizing: border-box !important;
 }
 
 .projects-page .project-card h3 {
@@ -163,6 +250,103 @@
 
   .projects-page .projects-list {
     grid-template-columns: 1fr !important;
+    width: 95% !important;
+    margin-bottom: var(--space-4) !important; /* Add bottom margin */
+  }
+
+  .projects-page .actions {
+    flex-direction: column !important;
+    width: 95% !important;
+    align-items: center !important;
+    margin-bottom: var(--space-6) !important; /* Add bottom margin to prevent footer overlap */
+    gap: var(--space-3) !important; /* Reduce gap for mobile */
+  }
+
+  .projects-page .action-btn {
+    width: 100% !important;
+    max-width: 300px !important;
+    height: 48px !important; /* Slightly reduce height for mobile */
+  }
+
+  /* Ensure projects container has proper bottom spacing */
+  .projects-page .projects-container {
+    padding-bottom: var(--space-6) !important;
+  }
+}
+
+/* Large screen optimizations for better centering */
+@media (min-width: 1200px) {
+  .projects-page .projects-container {
+    max-width: 1200px !important;
+    padding-left: var(--space-6) !important;
+    padding-right: var(--space-6) !important;
+  }
+  
+  .projects-page .projects-list {
+    max-width: 1100px !important;
+    gap: var(--space-6) !important; /* Increase gap for larger screens */
+  }
+  
+  .projects-page .project-card {
+    max-width: 350px !important; /* Slightly larger cards on big screens */
+  }
+  
+  .projects-page .actions {
+    max-width: 800px !important; /* Wider action buttons area */
+    gap: var(--space-6) !important; /* More spacing between buttons */
+  }
+}
+
+/* Extra large screen optimizations */
+@media (min-width: 1600px) {
+  .projects-page .projects-container {
+    max-width: 1400px !important;
+  }
+  
+  .projects-page .projects-list {
+    max-width: 1300px !important;
+    gap: var(--space-8) !important; /* Even more gap for very large screens */
+  }
+  
+  .projects-page .project-card {
+    max-width: 380px !important; /* Larger cards on very big screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .projects-page {
+    padding: var(--space-3) !important;
+    padding-bottom: calc(var(--space-6) + 80px) !important; /* Adjust for smaller screens */
+  }
+
+  .projects-page .projects-list {
+    width: 98% !important;
+    margin-bottom: var(--space-3) !important;
+  }
+
+  .projects-page .actions {
+    width: 98% !important;
+    margin-bottom: var(--space-5) !important;
+    gap: var(--space-2) !important; /* Further reduce gap for very small screens */
+  }
+
+  .projects-page .action-btn {
+    height: 44px !important; /* Standard mobile touch target height */
+    font-size: var(--font-size-sm) !important;
+  }
+
+  /* Reduce header margins on very small screens */
+  .projects-page .header {
+    margin-bottom: var(--space-4) !important;
+  }
+
+  .projects-page .header h1 {
+    font-size: var(--font-size-xl) !important;
+    margin-bottom: var(--space-2) !important;
+  }
+
+  .projects-page .header p {
+    font-size: var(--font-size-lg) !important;
   }
 }
 
@@ -334,4 +518,114 @@
 .modal .far {
   display: inline-block !important;
   visibility: visible !important;
+}
+
+/* Additional mobile optimizations */
+@media (max-width: 400px) {
+  .projects-page {
+    padding: var(--space-2) !important;
+    padding-bottom: calc(var(--space-5) + 80px) !important;
+  }
+
+  .projects-page .projects-container {
+    padding-top: var(--space-2) !important;
+    padding-bottom: var(--space-4) !important;
+  }
+
+  .projects-page .header {
+    margin-bottom: var(--space-3) !important;
+  }
+
+  .projects-page .header h1 {
+    font-size: var(--font-size-lg) !important;
+  }
+
+  .projects-page .header p {
+    font-size: var(--font-size-base) !important;
+  }
+
+  .projects-page .projects-list {
+    gap: var(--space-3) !important;
+    margin-bottom: var(--space-2) !important;
+  }
+
+  .projects-page .actions {
+    gap: var(--space-2) !important;
+    margin-bottom: var(--space-4) !important;
+  }
+
+  .projects-page .action-btn {
+    height: 42px !important;
+    font-size: var(--font-size-xs) !important;
+    padding: var(--space-2) var(--space-3) !important;
+  }
+}
+
+/* Ensure footer doesn't overlap on all mobile devices */
+@media (max-width: 768px) {
+  .projects-page {
+    min-height: calc(100vh + 80px) !important; /* Add extra height to account for footer */
+  }
+}
+
+/* Ensure background is visible on very small screens */
+@media (max-width: 400px) {
+  .projects-page {
+    padding: var(--space-2) !important;
+    padding-bottom: calc(var(--space-5) + 80px) !important;
+    /* Remove all the problematic positioning that was causing off-screen issues */
+    background: none !important; /* No background here - handled by wrapper */
+    position: relative !important;
+    z-index: 0 !important;
+    overflow: visible !important;
+    width: 100% !important; /* Use normal width */
+    margin: 0 !important; /* Reset margins */
+    padding: var(--space-2) !important; /* Consistent padding */
+    /* Remove all the left/right/margin positioning that was causing issues */
+  }
+  
+  /* Ensure the pseudo-element background is also visible */
+  .projects-page::before {
+    z-index: -1 !important; /* Place behind content but above page background */
+  }
+  
+  /* Position content below navbar on very small screens */
+  .projects-page .projects-container {
+    margin-top: calc(var(--navbar-height-mobile) + var(--space-2)) !important;
+  }
+}
+
+/* Additional fixes for navigation issues */
+.projects-page {
+  /* Ensure proper spacing when navbar is present */
+  padding-top: var(--space-2) !important;
+}
+
+/* Force navbar visibility on projects page */
+body:has(.projects-page) .navbar,
+body:has(.projects-page) .navbar-wrapper {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
+}
+
+/* Remove the conflicting pseudo-element background - now handled by .background wrapper */
+/* .projects-page::before {
+  background: linear-gradient(to bottom right, var(--gold), var(--dark-gold)) !important;
+  z-index: -3 !important;
+} */
+
+/* Additional CSS to ensure full background coverage */
+html, body {
+  overflow-x: hidden !important; /* Prevent horizontal scrollbars */
+}
+
+/* Ensure content is properly contained within the full-width background */
+.projects-page .projects-container {
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  width: 90% !important;
+  position: relative !important;
+  z-index: 1 !important;
 }

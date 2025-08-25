@@ -3,10 +3,13 @@
 .board-page {
   display: flex !important;
   justify-content: center !important;
+  align-items: flex-start !important; /* Better alignment for content */
   padding: var(--space-5) !important;
   min-height: 100vh !important; /* Min-height instead of fixed height */
   background-color: var(--bg-secondary) !important;
   overflow: auto !important; /* Allow scrolling when needed */
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .board-container {
@@ -20,6 +23,8 @@
   flex-direction: column !important;
   min-height: calc(100vh - 2 * var(--space-5)) !important; /* Min-height instead of height */
   overflow: visible !important; /* Allow content to determine height */
+  margin: 0 auto !important; /* Center the container */
+  box-sizing: border-box !important;
 }
 
 .board-header {
@@ -386,64 +391,127 @@
   }
 }
 
-@media (max-width: 1024px) {
+/* Responsive improvements for larger screens */
+@media (min-width: 1200px) {
   .board-page {
-    height: auto !important; 
-    min-height: 100vh !important;
-    overflow: auto !important;
-    padding-bottom: var(--space-6) !important;
+    padding: var(--space-6) !important;
   }
-
+  
   .board-container {
-    height: auto !important;
-    min-height: auto !important; /* Let content determine height */
-    overflow: visible !important;
-    margin-bottom: var(--space-6) !important;
+    max-width: 1200px !important;
+    padding: var(--space-6) !important;
   }
-
+  
   .board-columns {
-    grid-template-columns: 1fr !important;
-    gap: var(--space-5) !important;
-    height: auto !important;
-    max-height: none !important; /* Remove the max height limit */
-    overflow: visible !important;
+    gap: var(--space-6) !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .board-container {
+    max-width: 1400px !important;
+    padding: var(--space-8) !important;
   }
   
-  .board-column {
-    height: auto !important;
-    overflow: hidden !important;
-    min-height: 400px !important;
-    margin-bottom: var(--space-5) !important;
+  .board-columns {
+    gap: var(--space-8) !important;
   }
+}
 
-  .board-column-wrapper {
-    min-height: 400px !important; /* Ensure minimum height in mobile */
-    margin-bottom: var(--space-5) !important; /* Add space between wrappers */
+/* Ensure proper centering on all screen sizes */
+@media (max-width: 768px) {
+  .board-page {
+    padding: var(--space-3) !important;
   }
-
+  
+  .board-container {
+    padding: var(--space-3) !important;
+    margin: 0 var(--space-2) !important;
+  }
+  
+  /* Stack columns horizontally on mobile */
+  .board-columns {
+    grid-template-columns: 1fr !important; /* Single column on mobile */
+    gap: var(--space-3) !important; /* Reduce gap for mobile */
+    max-height: none !important; /* Allow natural height on mobile */
+    min-height: auto !important; /* Remove fixed min-height on mobile */
+  }
+  
+  /* Adjust column headers for mobile */
+  .board-column-header {
+    padding: var(--space-2) var(--space-3) !important; /* Reduce padding on mobile */
+  }
+  
+  .board-column-header h3 {
+    font-size: var(--font-size-base) !important; /* Smaller font on mobile */
+  }
+  
+  /* Adjust task list for mobile */
+  .task-list {
+    padding: var(--space-2) !important; /* Reduce padding on mobile */
+    gap: var(--space-2) !important; /* Reduce gap between tasks on mobile */
+  }
+  
+  /* Adjust task cards for mobile */
+  .task-card {
+    padding: var(--space-2) !important; /* Reduce padding on mobile */
+    margin-bottom: var(--space-2) !important; /* Reduce margin on mobile */
+    min-height: 60px !important; /* Reduce minimum height on mobile */
+  }
+  
+  /* Adjust board header for mobile */
   .board-header {
-    flex-direction: column !important;
-    align-items: flex-start !important;
+    flex-direction: column !important; /* Stack header elements vertically on mobile */
     gap: var(--space-3) !important;
+    align-items: flex-start !important;
   }
   
+  /* Adjust sprint selector for mobile */
   .sprint-selector {
-    width: 100% !important;
+    width: 100% !important; /* Full width on mobile */
   }
   
   .sprint-selector select {
-    width: 100% !important;
+    width: 100% !important; /* Full width on mobile */
+    min-width: auto !important; /* Remove min-width constraint on mobile */
   }
+}
 
-  .task-list {
-    overflow-y: auto !important;
-    /* Increase the task list height in mobile view */
-    min-height: 350px !important; 
-    max-height: 450px !important;
+/* Additional mobile optimizations for very small screens */
+@media (max-width: 480px) {
+  .board-page {
+    padding: var(--space-2) !important;
   }
   
-  /* Add extra margin to the bottom of the page to prevent content from being cut off */
-  .board-columns:last-child {
-    margin-bottom: var(--space-8) !important; 
+  .board-container {
+    padding: var(--space-2) !important;
+    margin: 0 var(--space-1) !important;
+  }
+  
+  .board-columns {
+    gap: var(--space-2) !important; /* Even smaller gap for very small screens */
+  }
+  
+  .board-column-header {
+    padding: var(--space-2) !important; /* Minimal padding on very small screens */
+  }
+  
+  .board-column-header h3 {
+    font-size: var(--font-size-sm) !important; /* Smaller font on very small screens */
+  }
+  
+  .task-list {
+    padding: var(--space-1) !important; /* Minimal padding on very small screens */
+    gap: var(--space-1) !important; /* Minimal gap on very small screens */
+  }
+  
+  .task-card {
+    padding: var(--space-2) !important; /* Keep readable padding */
+    margin-bottom: var(--space-1) !important; /* Minimal margin on very small screens */
+    min-height: 50px !important; /* Smaller minimum height on very small screens */
+  }
+  
+  .board-header {
+    gap: var(--space-2) !important; /* Smaller gap on very small screens */
   }
 }

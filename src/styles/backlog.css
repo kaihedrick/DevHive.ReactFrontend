@@ -3,16 +3,13 @@
 ========================== */
 
 .backlog-page {
-  width: 80% !important;
-  min-height: 90vh !important; /* Changed to 90% of the viewport height */
-  margin: var(--space-5) auto !important; /* Add top and bottom margin */
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important; /* Changed from center to flex-start */
-  padding-top: var(--space-5) !important; /* Add some padding at the top */
-  padding-bottom: var(--space-8) !important; /* Add more padding at the bottom */
+  width: 100% !important; /* Full width for proper centering */
+  min-height: 100vh !important; /* Use viewport height like other working pages */
+  margin: 0 !important; /* Remove auto margins */
+  display: block !important; /* Remove flexbox complexity */
+  padding: var(--space-5) var(--space-3) !important; /* Consistent padding */
   background-color: var(--bg-secondary) !important;
+  box-sizing: border-box !important; /* Ensure padding is included in width */
 }
 
 /* Scoped alerts for backlog page */
@@ -26,7 +23,7 @@
   font-weight: var(--font-weight-medium) !important;
   margin-bottom: var(--space-4) !important;
   text-align: center !important;
-  box-shadow: var(--shadow-md) !important;
+  box-shadow: var(--shadow-sm) !important; /* Reduced from shadow-md to shadow-sm for cleaner look */
 }
 
 /* Success alert */
@@ -58,18 +55,18 @@
 ========================== */
 
 .backlog-page .backlog-container {
-  width: 100% !important;
+  width: 90% !important; /* Container width within the page */
   max-width: 1000px !important; /* Increased max width */
   padding: var(--space-6) !important; /* Increased padding */
-  background: var(--bg-primary) !important;
-  border-radius: var(--border-radius) !important;
-  box-shadow: var(--shadow-lg) !important; /* Enhanced shadow */
+  background: var(--bg-primary) !important; /* Restored background */
+  border-radius: var(--border-radius) !important; /* Restored border radius */
+  box-shadow: var(--shadow-sm) !important; /* Restored shadow */
   text-align: center !important;
   position: relative !important;
-  border: 1px solid var(--border-color) !important;
-  margin-bottom: var(--space-6) !important; /* Increased bottom margin */
-  display: flex !important;
-  flex-direction: column !important;
+  border: 1px solid var(--border-color) !important; /* Restored border */
+  margin: 0 auto !important; /* Center the container like other working pages */
+  min-height: calc(100vh - 200px) !important; /* Use viewport height calculation like board page */
+  box-sizing: border-box !important; /* Ensure padding is included in width */
 }
 
 /* ==========================
@@ -98,13 +95,14 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  box-shadow: none !important; /* Remove button shadow for cleaner look */
 }
 
 .create-sprint-button:hover,
 .create-task-button:hover {
   background-color: var(--dark-gold) !important; /* Slightly darker gold */
-  transform: translateY(-2px) !important;
-  box-shadow: var(--shadow-md) !important;
+  transform: translateY(-1px) !important; /* Reduced from -2px for subtler effect */
+  box-shadow: var(--shadow-sm) !important; /* Reduced shadow on hover */
   color: var(--white) !important;
 }
 
@@ -125,7 +123,7 @@
 
 .back-arrow:hover {
   color: var(--text-primary) !important; /* Darker on hover */
-  transform: scale(1.2) !important;
+  transform: scale(1.1) !important; /* Reduced from 1.2 for subtler effect */
 }
 
 /* ==========================
@@ -143,19 +141,19 @@
 .sprint-card {
   width: 220px !important;
   padding: var(--space-4) !important;
-  background: var(--bg-primary) !important; /* Changed to bg-primary */
+  background: var(--bg-primary) !important; /* Keep card background for definition */
   border-radius: var(--border-radius) !important;
-  box-shadow: var(--shadow-md) !important; /* Enhanced shadow */
+  box-shadow: var(--shadow-sm) !important; /* Keep light shadow for card definition */
   text-align: center !important;
   cursor: pointer !important;
   transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
-  border: 1px solid var(--border-color) !important;
+  border: 1px solid var(--border-color) !important; /* Keep border for card definition */
 }
 
 .sprint-card:hover {
   background: var(--bg-primary) !important;
-  transform: scale(1.05) !important;
-  box-shadow: var(--shadow-lg) !important; /* Enhanced shadow on hover */
+  transform: scale(1.02) !important; /* Reduced from 1.05 for subtler effect */
+  box-shadow: var(--shadow-md) !important; /* Reduced shadow on hover */
 }
 
 /* Sprint Details */
@@ -191,14 +189,14 @@
    Sprint Task View
 ========================== */
 .sprint-details-container {
-  background: var(--bg-primary) !important;
+  background: var(--bg-primary) !important; /* Keep background for content definition */
   padding: var(--space-5) !important;
   border-radius: var(--border-radius) !important;
-  box-shadow: var(--shadow-md) !important;
+  box-shadow: var(--shadow-sm) !important; /* Keep light shadow for definition */
   text-align: center !important;
   margin-bottom: var(--space-5) !important;
   color: var(--text-primary) !important;
-  border: 1px solid var(--border-color) !important;
+  border: 1px solid var(--border-color) !important; /* Keep border for definition */
   position: relative !important;
   height: 700px !important; /* Increased height to show more tasks */
   overflow: hidden !important; /* Prevent content overflow */
@@ -239,12 +237,13 @@
   border-radius: var(--border-radius) !important;
   cursor: pointer !important;
   transition: background-color var(--transition-normal) ease, transform var(--transition-fast) ease !important;
+  box-shadow: none !important; /* Remove button shadow for cleaner look */
 }
 
 .create-sprint-button:hover,
 .create-task-button:hover {
   background-color: var(--dark-gold) !important; /* Slightly darker gold */
-  transform: scale(1.05) !important;
+  transform: scale(1.02) !important; /* Reduced from 1.05 for subtler effect */
 }
 
 /* Edit Sprint Icon */
@@ -261,7 +260,7 @@
 
 .edit-sprint-button:hover {
   color: var(--text-primary) !important;
-  transform: scale(1.2) !important;
+  transform: scale(1.1) !important; /* Reduced from 1.2 for subtler effect */
 }
 
 /* Ensure Sprint Cards Have Relative Position */
@@ -302,7 +301,7 @@
   border: 1px solid var(--border-color) !important;
   transition: box-shadow var(--transition-normal) ease !important;
   color: var(--text-primary) !important;
-  box-shadow: var(--shadow-md) !important; /* Enhanced shadow */
+  box-shadow: var(--shadow-sm) !important; /* Reduced from shadow-md to shadow-sm for cleaner look */
   margin-bottom: var(--space-4) !important; /* Increased spacing between tasks */
   height: auto !important;
   min-height: 120px !important; /* Slightly larger minimum height */
@@ -462,7 +461,7 @@
 
 /* Hover effects for better interactivity */
 .task-status:hover {
-  transform: translateY(-2px) !important;
+  transform: translateY(-1px) !important; /* Reduced from -2px for subtler effect */
   box-shadow: var(--shadow-sm) !important;
   cursor: pointer !important;
 }
@@ -486,6 +485,7 @@
   border-radius: var(--border-radius) !important;
   transition: var(--transition-normal) ease !important;
   border: none !important;
+  box-shadow: none !important; /* Remove button shadows for cleaner look */
 }
 
 .backlog-page .button-primary {
@@ -495,7 +495,7 @@
 
 .backlog-page .button-primary:hover {
   background: var(--dark-gold) !important;
-  transform: translateY(-2px) !important;
+  transform: translateY(-1px) !important; /* Reduced from -2px for subtler effect */
 }
 
 .backlog-page .button-secondary {
@@ -506,7 +506,7 @@
 .backlog-page .button-secondary:hover {
   background: var(--gray) !important;
   color: var(--white) !important;
-  transform: translateY(-2px) !important;
+  transform: translateY(-1px) !important; /* Reduced from -2px for subtler effect */
 }
 
 /* ==========================
@@ -526,7 +526,7 @@
   font-size: var(--font-size-base) !important;
   font-weight: var(--font-weight-bold) !important;
   text-align: center !important;
-  box-shadow: var(--shadow-md) !important;
+  box-shadow: var(--shadow-sm) !important; /* Reduced from shadow-md to shadow-sm for cleaner look */
   z-index: 1000 !important;
   animation: fadeOut 3s ease-in-out forwards !important;
   max-width: 400px !important; /* Limit the width for better readability */
@@ -546,7 +546,7 @@
   font-size: var(--font-size-base) !important;
   font-weight: var(--font-weight-bold) !important;
   text-align: center !important;
-  box-shadow: var(--shadow-md) !important;
+  box-shadow: var(--shadow-sm) !important; /* Reduced from shadow-md to shadow-sm for cleaner look */
   z-index: 1000 !important;
   animation: fadeOut 3s ease-in-out forwards !important;
   max-width: 400px !important; /* Limit the width for better readability */
@@ -582,7 +582,7 @@
 
 .sprint-details-container .back-arrow.sprint-view:hover {
   color: var(--text-primary) !important;
-  transform: scale(1.2) !important;
+  transform: scale(1.1) !important; /* Reduced from 1.2 for subtler effect */
 }
 
 /* =============================
@@ -594,8 +594,8 @@
   border-radius: var(--border-radius) !important;
   padding: var(--space-3) !important;
   margin-bottom: var(--space-3) !important;
-  box-shadow: var(--shadow-sm) !important;
-  color: var (--text-primary) !important; /* Changed to text-primary for better readability */
+  box-shadow: var(--shadow-sm) !important; /* Reduced from shadow-sm to shadow-sm for consistency */
+  color: var(--text-primary) !important; /* Changed to text-primary for better readability */
   text-align: left !important;
 }
 
@@ -629,7 +629,7 @@
   display: flex !important;
   flex-wrap: wrap !important;
   justify-content: center !important;
-  gap: var (--space-3) !important;
+  gap: var(--space-3) !important; /* Fixed typo */
 }
 
 .backlog-filters h3 {
@@ -675,15 +675,15 @@ body {
   color: var(--accent-primary) !important;
   border: 1px solid var(--accent-primary) !important;
   border-radius: var(--border-radius) !important;
-  padding: var (--space-1) var(--space-2) !important;
+  padding: var(--space-1) var(--space-2) !important; /* Fixed typo */
   display: inline-block !important;
 }
 
 .status-not-started {
-  color: var (--text-tertiary) !important;
-  border: 1px solid var(--text-tertiary) !important;
+  color: var(--text-tertiary) !important; /* Fixed typo */
+  border: 1px solid var(--text-tertiary) !important; /* Fixed typo */
   border-radius: var(--border-radius) !important;
-  padding: var (--space-1) var(--space-2) !important;
+  padding: var(--space-1) var(--space-2) !important; /* Fixed typo */
   display: inline-block !important;
 }
 
@@ -788,7 +788,7 @@ body {
 }
 
 .backlog-page .save-btn:hover {
-  transform: scale(1.2) !important;
+  transform: scale(1.1) !important; /* Reduced from 1.2 for subtler effect */
   color: hsl(145, 63%, 32%) !important;
 }
 
@@ -797,7 +797,7 @@ body {
 }
 
 .backlog-page .cancel-btn:hover {
-  transform: scale(1.2) !important;
+  transform: scale(1.1) !important; /* Reduced from 1.2 for subtler effect */
   color: hsl(0, 70%, 40%) !important;
 }
 
@@ -811,7 +811,7 @@ body {
 
 .backlog-page .edit-task-icon:hover {
   color: var(--text-primary) !important; /* Change color on hover */
-  transform: scale(1.2) !important; /* Slightly enlarge on hover */
+  transform: scale(1.1) !important; /* Reduced from 1.2 for subtler effect */
 }
 
 /* Save Button (Checkmark) */
@@ -824,11 +824,12 @@ body {
   border-radius: var(--border-radius) !important;
   cursor: pointer !important;
   transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+  box-shadow: none !important; /* Remove button shadow for cleaner look */
 }
 
 .save-btn:hover {
-  transform: scale(1.2) !important; /* Slightly enlarge on hover */
-  box-shadow: var(--shadow-md) !important; /* Add shadow on hover */
+  transform: scale(1.1) !important; /* Reduced from 1.2 for subtler effect */
+  box-shadow: var(--shadow-sm) !important; /* Reduced shadow on hover */
 }
 
 /* Cancel Button (X) */
@@ -841,9 +842,10 @@ body {
   border-radius: var(--border-radius) !important;
   cursor: pointer !important;
   transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+  box-shadow: none !important; /* Remove button shadow for cleaner look */
 }
 
 .cancel-btn:hover {
-  transform: scale(1.2) !important; /* Slightly enlarge on hover */
-  box-shadow: var(--shadow-md) !important; /* Add shadow on hover */
+  transform: scale(1.1) !important; /* Reduced from 1.2 for subtler effect */
+  box-shadow: var(--shadow-sm) !important; /* Reduced shadow on hover */
 }

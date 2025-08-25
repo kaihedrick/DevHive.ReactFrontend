@@ -4,7 +4,7 @@
 
 .project-details {
   position: relative !important;
-  width: 100% !important;
+  width: 90% !important;
   max-width: 800px !important;
   margin: var(--space-5) auto !important;
   padding: var(--space-5) !important;
@@ -18,6 +18,11 @@
   gap: var(--space-4) !important;
   transition: all var(--transition-normal) ease !important;
   min-height: calc(100vh - 100px) !important;
+  /* Better centering for larger screens */
+  box-sizing: border-box !important;
+  /* Remove problematic left/transform positioning */
+  /* left: 50% !important; */
+  /* transform: translateX(-50%) !important; */
 }
 
 .project-details h1 {
@@ -329,4 +334,51 @@
 .project-details .edit-description {
   padding-right: 4rem !important; /* Add space for the counter inside the field */
   box-sizing: border-box !important; /* Ensure padding doesn't affect width */
+}
+
+/* Additional centering improvements */
+.project-details {
+  /* Ensure consistent centering across all screen sizes */
+  margin-left: auto !important;
+  margin-right: auto !important;
+  /* Center the content within the container */
+  justify-self: center !important;
+  align-self: center !important;
+}
+
+/* Ensure the project details page is centered within the projects page */
+.projects-page .project-details {
+  /* Center within the projects page container */
+  margin: var(--space-5) auto !important;
+  width: 90% !important;
+  max-width: 800px !important;
+}
+
+/* Large screen optimizations for better centering */
+@media (min-width: 1200px) {
+  .projects-page .project-details {
+    max-width: 900px !important;
+    width: 90% !important;
+    margin: var(--space-6) auto !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .projects-page .project-details {
+    max-width: 1000px !important;
+    width: 90% !important;
+    margin: var(--space-8) auto !important;
+  }
+}
+
+/* Ensure proper centering on smaller screens */
+@media (max-width: 768px) {
+  .project-details {
+    margin: var(--space-3) auto !important;
+    padding: var(--space-4) !important;
+    width: 95% !important;
+    /* Remove problematic positioning */
+    /* left: 0 !important; */
+    /* transform: none !important; */
+  }
 }

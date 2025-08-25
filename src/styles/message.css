@@ -2,7 +2,7 @@
 .chat-container {
     display: flex !important;
     flex-direction: column !important;
-    width: 80% !important;
+    width: 90% !important; /* Increased from 80% for better mobile fit */
     max-width: 800px !important; /* Increased from 600px for better readability */
     margin: var(--space-6) auto !important; /* Centered with more spacing */
     background: var(--bg-primary) !important;
@@ -273,21 +273,16 @@
     color: var(--white) !important; /* White text on hover for contrast */
 }
 
-/* Removed arrow content, will use FontAwesome in the JSX instead */
-/* .message-input button::after {
-    content: "↗" !important;
-    margin-left: var(--space-2) !important;
-    font-size: var(--font-size-lg) !important;
-} */
-
 /* Chat Page Container */
 .message-page {
     display: flex !important;
     justify-content: center !important;
-    align-items: center !important;
+    align-items: flex-start !important; /* Changed from center to flex-start for better mobile layout */
     min-height: calc(100vh - 100px) !important; /* Adjust for navbar */
     padding: var(--space-5) !important;
     background-color: var(--bg-secondary) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 /* Customize scrollbar for Webkit browsers */
@@ -316,39 +311,107 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .message-page {
+        padding: var(--space-2) !important; /* Minimal padding on mobile */
+        align-items: flex-start !important; /* Better mobile alignment */
+    }
+    
     .chat-container {
-        width: 95% !important;
-        margin: var(--space-3) auto !important;
+        width: 100% !important; /* Full width on mobile */
+        max-width: none !important; /* Remove max-width constraint on mobile */
+        margin: 0 !important; /* Remove margins on mobile */
+        border-radius: 0 !important; /* Remove border radius on mobile */
+        box-shadow: none !important; /* Remove shadow on mobile */
+        border: none !important; /* Remove border on mobile */
+        height: calc(100vh - 100px) !important; /* Full height on mobile */
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .chat-header {
+        border-radius: 0 !important; /* Remove border radius on mobile */
+        padding: var(--space-3) !important; /* Reduce padding on mobile */
+        font-size: var(--font-size-lg) !important; /* Smaller font on mobile */
+    }
+    
+    .messages-container {
+        height: auto !important; /* Allow natural height on mobile */
+        flex: 1 !important; /* Take remaining space */
+        padding: var(--space-2) !important; /* Reduce padding on mobile */
+        border-radius: 0 !important; /* Remove border radius on mobile */
     }
     
     .message {
-        max-width: 85% !important;
+        max-width: 90% !important; /* Wider messages on mobile */
+        padding: var(--space-2) !important; /* Reduce padding on mobile */
+    }
+    
+    .message-input {
+        border-radius: 0 !important; /* Remove border radius on mobile */
+        padding: var(--space-2) !important; /* Reduce padding on mobile */
+        background: var(--bg-primary) !important; /* Match container background */
+        border-top: 1px solid var(--border-color) !important;
+    }
+    
+    .message-input input {
+        padding: var(--space-2) var(--space-3) !important; /* Reduce input padding on mobile */
     }
     
     .message-input button {
         min-width: 80px !important;
-        padding: var(--space-3) !important;
-    }
-    
-    .messages-container {
-        height: 50vh !important;
+        padding: var(--space-2) var(--space-3) !important; /* Reduce button padding on mobile */
+        font-size: var(--font-size-sm) !important; /* Smaller font on mobile */
     }
 }
 
 /* For very small screens */
 @media (max-width: 480px) {
+    .message-page {
+        padding: var(--space-1) !important; /* Minimal padding on very small screens */
+    }
+    
+    .chat-container {
+        height: calc(100vh - 80px) !important; /* Adjust height for very small screens */
+    }
+    
     .chat-header {
-        font-size: var(--font-size-lg) !important;
-        padding: var(--space-3) !important;
+        font-size: var(--font-size-base) !important; /* Smaller font on very small screens */
+        padding: var(--space-2) !important; /* Minimal padding on very small screens */
+    }
+    
+    .messages-container {
+        padding: var(--space-1) !important; /* Minimal padding on very small screens */
+    }
+    
+    .message {
+        max-width: 95% !important; /* Almost full width on very small screens */
+        padding: var(--space-2) !important; /* Minimal padding on very small screens */
+        font-size: var(--font-size-sm) !important; /* Smaller font on very small screens */
     }
     
     .message-input {
-        flex-direction: column !important;
+        flex-direction: column !important; /* Stack input and button vertically on very small screens */
         gap: var(--space-2) !important;
+        padding: var(--space-2) !important;
+    }
+    
+    .message-input input {
+        padding: var(--space-2) !important; /* Minimal input padding on very small screens */
+        font-size: var(--font-size-sm) !important; /* Smaller font on very small screens */
     }
     
     .message-input button {
-        width: 100% !important;
+        width: 100% !important; /* Full width button on very small screens */
+        padding: var(--space-2) !important; /* Minimal button padding on very small screens */
+        font-size: var(--font-size-sm) !important; /* Smaller font on very small screens */
+    }
+    
+    .message-text {
+        font-size: var(--font-size-sm) !important; /* Smaller text on very small screens */
+    }
+    
+    .message-time {
+        font-size: var(--font-size-xs) !important; /* Smaller timestamp on very small screens */
     }
 }
 
