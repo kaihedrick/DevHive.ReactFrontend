@@ -3,9 +3,12 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Projects from './components/Projects';
 import Footer from './components/Footer';
-import LoginRegister from './components/LoginRegister.tsx';
+import AuthPage from './features/auth/AuthPage';
+import LoginRegisterFallback from './components/LoginRegisterFallback';
+import { isFeatureEnabled } from './config/featureFlags';
 import Sprint from './components/Sprint';
 import ForgotPassword from './components/ForgotPassword.tsx';
+import ForgotPasswordForm from './features/auth/ForgotPasswordForm';
 import ProtectedRoute from './components/ProtectedRoute';
 import Backlog from './components/Backlog';
 import Board from './components/Board';
@@ -22,9 +25,9 @@ import CreateTask from './components/CreateTask';
 import EditSprint from './components/EditSprint';
 import EditTask from './components/EditTask';
 import ResetPassword from './components/ResetPassword.tsx';
-import './styles/global.css'; // Import global styles
-import './styles/inputs.css'; // Import unified input system
-import './styles/layout.css'; // Import layout system
+import './styles/tokens.css';
+import './styles/utilities.css';
+import './styles/resets.css';
 function App() {
   const location = useLocation();
   const selectedProject = getSelectedProject();
@@ -45,8 +48,12 @@ function App() {
       <div className="content">
         <main>
           <Routes>
-            <Route path="/" element={<LoginRegister />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+                         <Route path="/" element={
+               isFeatureEnabled('USE_NEW_AUTH_PAGE') ? <AuthPage /> : <LoginRegisterFallback />
+             } />
+                         <Route path="/forgot-password" element={
+               isFeatureEnabled('USE_NEW_AUTH_PAGE') ? <ForgotPasswordForm /> : <ForgotPassword />
+             } />
             <Route path="/create-project" element={<CreateProject />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/join-group" element={<JoinProject />} />

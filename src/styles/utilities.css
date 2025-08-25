@@ -1,0 +1,58 @@
+/* ==========================
+   UTILITY CLASSES
+   Helper classes for common patterns
+   ========================== */
+
+/* Layout utilities */
+.stack-2 { display: flex; flex-direction: column; gap: var(--space-2); }
+.stack-3 { display: flex; flex-direction: column; gap: var(--space-3); }
+.stack-4 { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.cluster { display: flex; align-items: center; gap: var(--space-2); }
+.cluster-3 { display: flex; align-items: center; gap: var(--space-3); }
+.cluster-4 { display: flex; align-items: center; gap: var(--space-4); }
+
+/* Spacing utilities */
+.mt-2 { margin-top: var(--space-2); }
+.mt-3 { margin-top: var(--space-3); }
+.mt-4 { margin-top: var(--space-4); }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-3 { margin-bottom: var(--space-3); }
+.mb-4 { margin-bottom: var(--space-4); }
+
+/* Text utilities */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg { font-size: var(--font-size-lg); }
+
+.text-muted { color: var(--muted); }
+.text-primary { color: var(--primary); }
+.text-danger { color: var(--danger); }
+
+/* Accessibility utilities */
+.visuallyHidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0,0,0,0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Layout utilities */
+.stack-3 > * + * { margin-top: .75rem; }
+.stack-4 > * + * { margin-top: 1rem; }
+.cluster { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+
+/* Focus utilities */
+.focus-visible:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

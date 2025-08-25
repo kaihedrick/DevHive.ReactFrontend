@@ -1,8 +1,9 @@
 ---
-description:
-globs:
+description: "Cursor Rules for DevHive React Frontend - Comprehensive styling and coding standards"
+globs: ["**/*.{js,jsx,ts,tsx,css,scss}"]
 alwaysApply: true
 ---
+
 # Cursor Rules for DevHive React Frontend
 
 ## Role & Expertise

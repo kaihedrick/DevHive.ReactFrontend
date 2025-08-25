@@ -1,0 +1,86 @@
+/* ==========================
+   FORM RESETS AND GLOBAL STYLES
+   Scoped baseline that never beats component CSS
+   ========================== */
+
+/* Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body Styling */
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Montserrat', sans-serif;
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Form reset - only applied where explicitly needed */
+.dh-form-reset :where(input, textarea, select) {
+  font: inherit;
+  line-height: 1.35;
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+/* Remove default focus styles - let components handle this */
+.dh-form-reset :where(input:focus, textarea:focus, select:focus) {
+  outline: none;
+}
+
+/* Global focus-visible styles for accessibility */
+:where(button, [role="button"], a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Remove default placeholder styles - let components handle this */
+.dh-form-reset :where(input::placeholder, textarea::placeholder) {
+  color: inherit;
+}
+
+/* App container layout */
+.app-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+.app-container .content {
+  flex-grow: 1;
+  width: 100%;
+  min-height: 100%;
+  overflow-y: auto;
+  transition: padding var(--transition-slow) ease;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 100vh;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  transition: margin var(--transition-normal) ease;
+}
+
+/* Base container styles */
+.container, main, .content-container {
+  box-sizing: border-box;
+  transition: margin var(--transition-normal) ease, 
+              width var(--transition-normal) ease;
+}

@@ -1,0 +1,19 @@
+name: CSS & UX Guardrails
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "package.json"
+      - "stylelint.config.cjs"
+      - ".github/workflows/css-ux-guard.yml"
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci
+      - run: npm run lint:css
+      - run: npm run check:important
+      - run: npm run check:bootstrap

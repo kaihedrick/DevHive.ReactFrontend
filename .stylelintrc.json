@@ -1,0 +1,44 @@
+{
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "rules": {
+    "declaration-no-important": true,
+    "selector-max-specificity": "0,4,0",
+    "selector-no-qualifying-type": true,
+    "selector-no-vendor-prefix": true,
+    "property-no-vendor-prefix": true,
+    "value-no-vendor-prefix": true,
+    "at-rule-no-vendor-prefix": true,
+    "media-feature-name-no-vendor-prefix": true,
+    "selector-pseudo-element-no-unknown": [
+      true,
+      {
+        "ignorePseudoElements": ["v-deep"]
+      }
+    ],
+    "selector-max-type": 0,
+    "selector-no-element": true,
+    "no-duplicate-selectors": true,
+    "declaration-block-no-duplicate-properties": true,
+    "block-no-empty": true,
+    "comment-empty-line-before": "always",
+    "declaration-colon-space-after": "always",
+    "declaration-block-semicolon-newline-after": "always",
+    "declaration-block-trailing-semicolon": "always",
+    "indentation": 2,
+    "max-empty-lines": 1,
+    "no-eol-whitespace": true,
+    "no-missing-end-of-source-newline": true,
+    "no-trailing-whitespace": true,
+    "rule-empty-line-before": "always-multi-line"
+  },
+  "ignoreFiles": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/tokens.css",
+    "**/utilities.css",
+    "**/resets.css"
+  ]
+}

@@ -1,0 +1,72 @@
+/* ==========================
+   DESIGN TOKENS ONLY
+   CSS variables for consistent theming
+   ========================== */
+
+:root {
+  /* Colors */
+  --gold: hsl(45, 100%, 58%);
+  --dark-gold: hsl(45, 100%, 50%);
+  --light-gold: hsl(45, 100%, 70%);
+  
+  --black: hsl(0, 0%, 13%);
+  --dark-gray: hsl(0, 0%, 27%);
+  --gray: hsl(0, 0%, 53%);
+  --light-gray: hsl(0, 0%, 93%);
+  --white: hsl(0, 0%, 100%);
+  
+  --text: var(--black);
+  --muted: var(--gray);
+  --bg: var(--white);
+  --bg2: var(--light-gray);
+  --border: var(--light-gray);
+  
+  --primary: var(--gold);
+  --danger: #ff6b6b;
+  --focus: var(--gold);
+  
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  
+  /* Border radius */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  
+  /* Typography */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  
+  /* Transitions */
+  --transition-fast: 200ms;
+  --transition-normal: 300ms;
+  --transition-slow: 500ms;
+  
+  /* Z-index scale */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.05);
+  --shadow-md: 0 4px 6px hsla(0, 0%, 0%, 0.1);
+  --shadow-lg: 0 10px 15px hsla(0, 0%, 0%, 0.1);
+  --shadow-focus: 0 0 0 3px hsla(45, 100%, 58%, 0.3);
+}

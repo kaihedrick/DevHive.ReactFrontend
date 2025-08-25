@@ -1,262 +1,191 @@
 /* ==========================
    LOGIN/REGISTER PAGE STYLING
-   Component-specific styles with proper scoping
+   Component-specific styles with proper scoping under .authPage
 ========================== */
+
+.authPage {
 
 /* Page Background */
 .login-register-page .background {
-  display: flex !important;
-  flex-direction: column !important; 
-  justify-content: center !important;
-  align-items: center !important;
-  min-height: 100vh !important; 
-  background: linear-gradient(to bottom right, var(--gold), var(--dark-gold)) !important; 
-  padding: var(--space-5) !important; 
-  font-family: var(--primary-font) !important;
+  display: flex;
+  flex-direction: column; 
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; 
+  background: linear-gradient(to bottom right, var(--gold), var(--dark-gold)); 
+  padding: var(--space-5); 
+  font-family: var(--primary-font);
 }
 
 .logo-container {
-  display: flex !important; 
-  align-items: center !important; 
-  justify-content: center !important; 
-  margin-bottom: var(--space-6) !important; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  margin-bottom: var(--space-6); 
 }
 
 .devhive-logo {
-  width: 6.25rem !important;  /* Increased from 4.375rem to 6.25rem (100px) */
-  height: 6.25rem !important; /* Increased from 4.375rem to 6.25rem (100px) */
-  margin-right: var(--space-2) !important;
-  fill: var(--gold) !important;
-  stroke: var(--black) !important;
-  stroke-width: 2px !important;
-  stroke-linejoin: round !important;
-  stroke-linecap: round !important;
-  vector-effect: non-scaling-stroke !important;
+  width: 6.25rem;  /* Increased from 4.375rem to 6.25rem (100px) */
+  height: 6.25rem; /* Increased from 4.375rem to 6.25rem (100px) */
+  margin-right: var(--space-2);
+  fill: var(--gold);
+  stroke: var(--black);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .logo-container:hover .devhive-logo {
-  fill: var(--dark-gold) !important;
-  transition: fill var(--transition-normal) ease !important;
+  fill: var(--dark-gold);
+  transition: fill var(--transition-normal) ease;
 }
 
 .logo-text {
-  color: var(--text-primary) !important; 
-  font-size: var(--font-size-3xl) !important; 
-  font-weight: var(--font-weight-bold) !important; 
-  font-family: var(--primary-font) !important;
+  color: var(--text-primary); 
+  font-size: var(--font-size-3xl); 
+  font-weight: var(--font-weight-bold); 
+  font-family: var(--primary-font);
 }
 
 .logo-container:hover .logo-text {
-  color: var(--dark-gold) !important;
+  color: var(--dark-gold);
 }
 
 .container {
-  display: flex !important;
-  flex-direction: column !important;
-  width: 80% !important;
-  max-width: 50rem !important;
-  background: var(--bg-primary) !important;
-  border-radius: var(--border-radius) !important;
-  padding: var(--space-6) !important;
-  box-shadow: var(--shadow-md) !important;
-  padding-bottom: var(--space-8) !important; 
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  max-width: 50rem;
+  background: var(--bg-primary);
+  border-radius: var(--border-radius);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-md);
+  padding-bottom: var(--space-8); 
 }
 
 .header {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  gap: var(--space-2) !important;
-  width: 100% !important;
-  margin-bottom: var(--space-5) !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  margin-bottom: var(--space-5);
 }
 
 .text {
-  color: var(--gold) !important;
-  font-size: var(--font-size-2xl) !important;
-  font-weight: var(--font-weight-bold) !important;
+  color: var(--gold);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
 }
 
 .underline {
-  width: 3.125rem !important;
-  height: 0.25rem !important;
-  background: var(--gold) !important;
-  border-radius: var(--border-radius) !important;
+  width: 3.125rem;
+  height: 0.25rem;
+  background: var(--gold);
+  border-radius: var(--border-radius);
 }
 
 /* Input Section Layout */
 .login-register-page .inputs {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: var(--space-4) !important;
-  width: 90% !important;
-  margin: 0 auto !important;
-  align-items: stretch !important;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  margin: 0 auto;
+  align-items: stretch;
+
 }
 
 /* Input Groups - Use unified input system */
 .login-register-page .input-group {
-  position: relative !important;
-  width: 100% !important;
-  margin-bottom: var(--space-3) !important;
+  position: relative;
+  width: 100%;
+  margin-bottom: var(--space-3);
 }
 
-/* Input Container with Icon */
-.login-register-page .inputs .input-with-icon {
-  position: relative !important;
-  display: flex !important;
-  align-items: center !important;
-  width: 100% !important;
-  height: 3.25rem !important;
-  border: 1px solid var(--text-tertiary) !important;
-  border-radius: var(--border-radius) !important;
-  background: var(--bg-primary) !important;
-  transition: border-color var(--transition-normal), 
-              box-shadow var(--transition-normal) !important;
-}
-
-.login-register-page .inputs .input-with-icon:focus-within {
-  border-color: var(--gold) !important;
-  box-shadow: var(--shadow-focus) !important;
-}
-
-/* Input Icon (Left) */
-.login-register-page .inputs .input-icon {
-  position: absolute !important;
-  left: 0.8rem !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  font-size: 1.375rem !important;
-  color: var(--text-tertiary) !important;
-  opacity: 0.8 !important;
-  pointer-events: none !important;
-  z-index: 1 !important;
-}
-
-/* Input Field */
-.login-register-page .inputs input {
-  flex: 1 !important;
-  height: 100% !important;
-  border: none !important;
-  outline: none !important;
-  background: transparent !important;
-  padding: 0 0.8rem 0 3rem !important;
-  color: var(--text-primary) !important;
-  font-size: 16px !important;
-  font-family: var(--primary-font) !important;
-}
-
-.login-register-page .inputs input::placeholder {
-  color: var(--text-tertiary) !important;
-}
-
-/* Validation Icons (Right) */
-.login-register-page .validation-icon {
-  position: absolute !important;
-  right: 0.8rem !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  font-size: 1.375rem !important;
-  pointer-events: none !important;
-  z-index: 2 !important;
-}
-
-.login-register-page .success-icon {
-  color: #27ae60 !important;
-}
-
-.login-register-page .error-icon {
-  color: #e74c3c !important;
-}
-
-/* Error Messages */
-.login-register-page .error-message {
-  color: #e74c3c !important;
-  font-size: var(--font-size-xs) !important;
-  margin-top: var(--space-1) !important;
-  position: absolute !important;
-  top: 100% !important;
-  left: 0 !important;
-}
+/* Input styling now handled by InputField.module.css with proper specificity */
 
 .forgot-password {
-  text-align: left !important;
-  margin-top: var(--space-2) !important;
-  font-size: var(--font-size-sm) !important;
-  color: var(--text-tertiary) !important;
+  text-align: left;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
 }
 
 .forgot-password span {
-  color: var(--accent-primary) !important;
-  cursor: pointer !important;
+  color: var(--accent-primary);
+  cursor: pointer;
 }
 
 .submit-container {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: space-between !important;
-  width: 100% !important;
-  margin-top: var(--space-4) !important;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: var(--space-4);
 }
 
 .login-register-page .submit {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  width: 48% !important;
-  flex: 0 0 48% !important;
-  height: 2.8125rem !important;
-  color: var(--white) !important;
-  background: var(--gold) !important;
-  border-radius: 3.125rem !important;
-  font-size: var(--font-size-sm) !important;
-  font-weight: var(--font-weight-bold) !important;
-  cursor: pointer !important;
-  transition: all var(--transition-normal) ease !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 48%;
+  flex: 0 0 48%;
+  height: 2.8125rem;
+  color: var(--white);
+  background: var(--gold);
+  border-radius: 3.125rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: all var(--transition-normal) ease;
 }
 
 .submit:hover {
-  background: var(--dark-gold) !important;
-  transform: scale(1.05) !important;
+  background: var(--dark-gold);
+  transform: scale(1.05);
 }
 
 .submit.gray {
-  background: hsl(0, 0%, 92%) !important;
-  color: hsl(0, 0%, 40%) !important;
+  background: hsl(0, 0%, 92%);
+  color: hsl(0, 0%, 40%);
 }
 
 .validation-warning {
-  color: hsl(0, 100%, 50%) !important;
-  font-size: var(--font-size-xs) !important;
-  text-align: center !important;
-  margin-top: var(--space-2) !important;
+  color: hsl(0, 100%, 50%);
+  font-size: var(--font-size-xs);
+  text-align: center;
+  margin-top: var(--space-2);
 }
 
 .input-error {
-  border: 1px solid red !important;
+  border: 1px solid red;
 }
 
 .login-register-page .error {
-  color: hsl(0, 80%, 50%) !important;
-  font-size: var(--font-size-sm) !important;
-  margin-top: var(--space-2) !important;
-  text-align: center !important;
+  color: hsl(0, 80%, 50%);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-2);
+  text-align: center;
 }
 
 .login-register-page .success {
-  color: hsl(120, 70%, 40%) !important; /* Green color for success */
-  font-size: var(--font-size-sm) !important;
-  margin-top: var(--space-2) !important;
-  text-align: center !important;
-  background: hsl(120, 70%, 90%) !important; /* Light green background */
-  border: 1px solid hsl(120, 70%, 40%) !important; /* Green border */
-  border-radius: var(--border-radius) !important;
-  padding: var(--space-2) var(--space-3) !important;
-  box-shadow: var(--shadow-md) !important;
+  color: hsl(120, 70%, 40%); /* Green color for success */
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-2);
+  text-align: center;
+  background: hsl(120, 70%, 90%); /* Light green background */
+  border: 1px solid hsl(120, 70%, 40%); /* Green border */
+  border-radius: var(--border-radius);
+  padding: var(--space-2) var(--space-3);
+  box-shadow: var(--shadow-md);
 }
 
 .login-register-page .loading-spinner {
-  margin-top: var(--space-3) !important;
-  text-align: center !important;
-  color: var(--gold) !important;
+  margin-top: var(--space-3);
+  text-align: center;
+  color: var(--gold);
 }
+
+} /* Close .authPage */

@@ -3,79 +3,79 @@
 
 :root {
     /* Primary Colors using HSL */
-    --gold-hue: 45 !important;
-    --gold-saturation: 100% !important;
+    --gold-hue: 45;
+    --gold-saturation: 100%;
     
-    --gold: hsl(var(--gold-hue), var(--gold-saturation), 58%) !important;
-    --dark-gold: hsl(var(--gold-hue), var(--gold-saturation), 50%) !important;
-    --light-gold: hsl(var(--gold-hue), var(--gold-saturation), 70%) !important;
+    --gold: hsl(var(--gold-hue), var(--gold-saturation), 58%);
+    --dark-gold: hsl(var(--gold-hue), var(--gold-saturation), 50%);
+    --light-gold: hsl(var(--gold-hue), var(--gold-saturation), 70%);
 
     /* Complementary Colors */
-    --blue-hue: 217 !important;
-    --blue-saturation: 100% !important;
+    --blue-hue: 217;
+    --blue-saturation: 100%;
     
-    --complementary-blue: hsl(var(--blue-hue), var(--blue-saturation), 58%) !important;
-    --dark-blue: hsl(var(--blue-hue), var(--blue-saturation), 45%) !important;
-    --light-blue: hsl(var(--blue-hue), 80%, 75%) !important;
+    --complementary-blue: hsl(var(--blue-hue), var(--blue-saturation), 58%);
+    --dark-blue: hsl(var(--blue-hue), var(--blue-saturation), 45%);
+    --light-blue: hsl(var(--blue-hue), 80%, 75%);
 
     /* Neutral Colors with consistent lightness steps */
-    --black: hsl(0, 0%, 13%) !important;          /* 13% lightness */
-    --dark-gray: hsl(0, 0%, 27%) !important;      /* 27% lightness */
-    --gray: hsl(0, 0%, 53%) !important;           /* 53% lightness */
-    --light-gray: hsl(0, 0%, 93%) !important;     /* 93% lightness */
-    --white: hsl(0, 0%, 100%) !important;         /* 100% lightness */
+    --black: hsl(0, 0%, 13%);          /* 13% lightness */
+    --dark-gray: hsl(0, 0%, 27%);      /* 27% lightness */
+    --gray: hsl(0, 0%, 53%);           /* 53% lightness */
+    --light-gray: hsl(0, 0%, 93%);     /* 93% lightness */
+    --white: hsl(0, 0%, 100%);         /* 100% lightness */
     
     /* Theme colors derived from base colors */
-    --bg-primary: var(--white) !important;
-    --bg-secondary: var(--light-gray) !important;
-    --text-primary: var(--black) !important;
-    --text-secondary: var(--dark-gray) !important;
-    --text-tertiary: var(--gray) !important;
-    --border-color: var(--light-gray) !important;
+    --bg-primary: var(--white);
+    --bg-secondary: var(--light-gray);
+    --text-primary: var(--black);
+    --text-secondary: var(--dark-gray);
+    --text-tertiary: var(--gray);
+    --border-color: var(--light-gray);
     
     /* Accent colors */
-    --accent-primary: var(--gold) !important;
-    --accent-secondary: var(--complementary-blue) !important;
+    --accent-primary: var(--gold);
+    --accent-secondary: var(--complementary-blue);
 
     /* Typography */
-    --primary-font: 'Montserrat', sans-serif !important;
-    --secondary-font: 'Judson', serif !important;
+    --primary-font: 'Montserrat', sans-serif;
+    --secondary-font: 'Judson', serif;
 
     /* Typography Scale */
-    --font-size-xs: 0.75rem !important;    /* 12px */
-    --font-size-sm: 0.875rem !important;   /* 14px */
-    --font-size-base: 1rem !important;     /* 16px */
-    --font-size-lg: 1.125rem !important;   /* 18px */
-    --font-size-xl: 1.25rem !important;    /* 20px */
-    --font-size-2xl: 1.5rem !important;    /* 24px */
-    --font-size-3xl: 1.875rem !important;  /* 30px */
+    --font-size-xs: 0.75rem;    /* 12px */
+    --font-size-sm: 0.875rem;   /* 14px */
+    --font-size-base: 1rem;     /* 16px */
+    --font-size-lg: 1.125rem;   /* 18px */
+    --font-size-xl: 1.25rem;    /* 20px */
+    --font-size-2xl: 1.5rem;    /* 24px */
+    --font-size-3xl: 1.875rem;  /* 30px */
     
     /* Line heights */
-    --line-height-tight: 1.2 !important;
-    --line-height-normal: 1.5 !important;
-    --line-height-loose: 1.8 !important;
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-loose: 1.8;
     
     /* Font weights */
-    --font-weight-normal: 400 !important;
-    --font-weight-medium: 600 !important;
-    --font-weight-bold: 700 !important;
+    --font-weight-normal: 400;
+    --font-weight-medium: 600;
+    --font-weight-bold: 700;
     
     /* Spacing system */
-    --space-1: 0.25rem !important;  /* 4px */
-    --space-2: 0.5rem !important;   /* 8px */
-    --space-3: 0.75rem !important;  /* 12px */
-    --space-4: 1rem !important;     /* 16px */
-    --space-5: 1.5rem !important;   /* 24px */
-    --space-6: 2rem !important;     /* 32px */
-    --space-7: 3rem !important;     /* 48px */
-    --space-8: 4rem !important;     /* 64px */
+    --space-1: 0.25rem;  /* 4px */
+    --space-2: 0.5rem;   /* 8px */
+    --space-3: 0.75rem;  /* 12px */
+    --space-4: 1rem;     /* 16px */
+    --space-5: 1.5rem;   /* 24px */
+    --space-6: 2rem;     /* 32px */
+    --space-7: 3rem;     /* 48px */
+    --space-8: 4rem;     /* 64px */
 
     /* Sizes */
-    --border-radius: 10px !important;
-    --border-radius-sm: 6px !important;
-    --border-radius-lg: 16px !important;
-    --border-radius-full: 9999px !important;
-    --button-padding: 12px 24px !important;
+    --border-radius: 10px;
+    --border-radius-sm: 6px;
+    --border-radius-lg: 16px;
+    --border-radius-full: 9999px;
+    --button-padding: 12px 24px;
 
     /* Transition Speed */
     --transition-fast: 200ms;
@@ -87,67 +87,67 @@
     --navbar-hover: var(--dark-gray);
     --navbar-text: var(--white);
     --navbar-accent: var(--gold);
-    --navbar-height-mobile: 80px !important;
-    --navbar-width-collapsed: 80px !important;
-    --navbar-width-expanded: 200px !important;
+    --navbar-height-mobile: 80px;
+    --navbar-width-collapsed: 80px;
+    --navbar-width-expanded: 200px;
     
     /* Elevation (shadows) */
-    --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.05) !important;
-    --shadow-md: 0 4px 6px hsla(0, 0%, 0%, 0.1) !important;
-    --shadow-lg: 0 10px 15px hsla(0, 0%, 0%, 0.1) !important;
-    --shadow-focus: 0 0 0 3px hsla(var(--gold-hue), var(--gold-saturation), 50%, 0.3) !important;
+    --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.05);
+    --shadow-md: 0 4px 6px hsla(0, 0%, 0%, 0.1);
+    --shadow-lg: 0 10px 15px hsla(0, 0%, 0%, 0.1);
+    --shadow-focus: 0 0 0 3px hsla(var(--gold-hue), var(--gold-saturation), 50%, 0.3);
 }
 
 /* Global Reset */
 * {
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 /* Body Styling */
 html, body {
-    background: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
-    font-family: var(--primary-font) !important;
-    font-size: var(--font-size-base) !important;
-    line-height: var(--line-height-normal) !important;
-    min-height: 100vh !important;
-    width: 100% !important;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: var(--primary-font);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    min-height: 100vh;
+    width: 100%;
 }
 
 .app-container {
-    display: flex !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    overflow: hidden !important;
-    min-height: 100vh !important;
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    min-height: 100vh;
 }
 
 .app-container .content {
-    flex-grow: 1 !important;
-    width: 100% !important;
-    min-height: 100% !important;
-    overflow-y: auto !important;
-    transition: padding var(--transition-slow) ease !important;
+    flex-grow: 1;
+    width: 100%;
+    min-height: 100%;
+    overflow-y: auto;
+    transition: padding var(--transition-slow) ease;
 }
 
 main {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-    min-height: 100vh !important;
-    width: 100% !important; /* Ensure full width */
-    padding: 0 !important; /* Reset padding */
-    margin: 0 !important; /* Reset margin */
-    transition: margin var(--transition-normal) ease !important; /* Simplify transition */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 100vh;
+    width: 100%; /* Ensure full width */
+    padding: 0; /* Reset padding */
+    margin: 0; /* Reset margin */
+    transition: margin var(--transition-normal) ease; /* Simplify transition */
 }
 
 /* Base container styles */
 .container, main, .content-container {
-    box-sizing: border-box !important;
+    box-sizing: border-box;
     transition: margin var(--transition-normal) ease, 
-                width var(--transition-normal) ease !important;
+                width var(--transition-normal) ease;
 }
 
 /* ==========================
@@ -157,46 +157,46 @@ main {
 
 /* Reset main content areas */
 main {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-    min-height: 100vh !important;
-    width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 100vh;
+    width: 100%;
+    padding: 0;
+    margin: 0;
 }
 
 /* Base container styles */
 .container, main, .content-container {
-    box-sizing: border-box !important;
+    box-sizing: border-box;
 }
 
 /* Updated global scrollbar styling to match project board columns */
 
 /* Webkit browsers (Chrome, Safari, newer Edge) */
 ::-webkit-scrollbar {
-  width: 0.4rem !important;
-  height: 0.4rem !important; /* For horizontal scrollbars */
+  width: 0.4rem;
+  height: 0.4rem; /* For horizontal scrollbars */
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary) !important;
-  border-radius: var(--border-radius) !important;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--gray) !important;
-  border-radius: var(--border-radius) !important;
+  background-color: var(--gray);
+  border-radius: var(--border-radius);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--dark-gray) !important;
+  background-color: var(--dark-gray);
 }
 
 /* Firefox */
 html, body, div, main, section, aside, article {
-  scrollbar-width: thin !important;
-  scrollbar-color: var(--gray) var(--bg-secondary) !important;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray) var(--bg-secondary);
 }
 
 /* Ensure scrollable containers have proper styling */
@@ -204,132 +204,132 @@ html, body, div, main, section, aside, article {
 main,
 .content-container,
 .scrollable-container {
-  scrollbar-width: thin !important;
-  scrollbar-color: var(--gray) var(--bg-secondary) !important;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray) var(--bg-secondary);
 }
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
-    font-family: var(--primary-font) !important;
-    color: var(--text-primary) !important;
-    line-height: var(--line-height-tight) !important;
+    font-family: var(--primary-font);
+    color: var(--text-primary);
+    line-height: var(--line-height-tight);
 }
 
 h1 {
-    font-size: var(--font-size-3xl) !important;
-    font-weight: var(--font-weight-bold) !important;
-    margin-bottom: var(--space-5) !important;
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-5);
 }
 
 h2 {
-    font-size: var(--font-size-2xl) !important;
-    font-weight: var(--font-weight-bold) !important;
-    margin-bottom: var(--space-4) !important;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-4);
 }
 
 h3 {
-    font-size: var(--font-size-xl) !important;
-    font-weight: var(--font-weight-bold) !important;
-    margin-bottom: var(--space-3) !important;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-3);
 }
 
 h4 {
-    font-size: var(--font-size-lg) !important;
-    font-weight: var(--font-weight-medium) !important;
-    margin-bottom: var(--space-3) !important;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-3);
 }
 
 p {
-    font-family: var(--secondary-font) !important;
-    font-size: var(--font-size-base) !important;
-    line-height: var(--line-height-normal) !important;
-    margin-bottom: var(--space-4) !important;
-    color: var(--text-secondary) !important;
+    font-family: var(--secondary-font);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    margin-bottom: var(--space-4);
+    color: var(--text-secondary);
 }
 
 /* Small text */
 .text-small {
-    font-size: var(--font-size-sm) !important;
-    line-height: var(--line-height-normal) !important;
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
 }
 
 /* Caption text */
 .caption {
-    font-size: var(--font-size-xs) !important;
-    line-height: var(--line-height-tight) !important;
-    color: var(--text-tertiary) !important;
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-tight);
+    color: var(--text-tertiary);
 }
 
 /* Buttons with improved hierarchy */
 .button {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: var(--space-3) var(--space-5) !important;
-    border-radius: var(--border-radius) !important;
-    font-weight: var(--font-weight-medium) !important;
-    font-size: var(--font-size-sm) !important;
-    line-height: 1 !important;
-    text-align: center !important;
-    cursor: pointer !important;
-    transition: all var(--transition-fast) ease !important;
-    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--border-radius);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    line-height: 1;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast) ease;
+    text-decoration: none;
 }
 
 .button-primary {
-    background: var(--accent-primary) !important;
-    color: var(--black) !important;
-    border: 1px solid transparent !important;
+    background: var(--accent-primary);
+    color: var(--black);
+    border: 1px solid transparent;
 }
 
 .button-primary:hover {
-    background: var(--dark-gold) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: var(--shadow-md) !important;
+    background: var(--dark-gold);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 .button-secondary {
-    background: var(--accent-secondary) !important;
-    color: var(--white) !important;
-    border: 1px solid transparent !important;
+    background: var(--accent-secondary);
+    color: var(--white);
+    border: 1px solid transparent;
 }
 
 .button-secondary:hover {
-    background: var(--dark-blue) !important;
-    transform: translateY(-1px) !important;
-    box-shadow: var(--shadow-md) !important;
+    background: var(--dark-blue);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 .button-outline {
-    background: transparent !important;
-    color: var(--accent-primary) !important;
-    border: 1px solid var(--accent-primary) !important;
+    background: transparent;
+    color: var(--accent-primary);
+    border: 1px solid var(--accent-primary);
 }
 
 .button-outline:hover {
-    background: hsla(var(--gold-hue), var(--gold-saturation), 58%, 0.1) !important;
+    background: hsla(var(--gold-hue), var(--gold-saturation), 58%, 0.1);
 }
 
 .button-small {
-    padding: var(--space-2) var(--space-4) !important;
-    font-size: var(--font-size-xs) !important;
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-xs);
 }
 
 .button-large {
-    padding: var(--space-4) var(--space-6) !important;
-    font-size: var(--font-size-base) !important;
+    padding: var(--space-4) var(--space-6);
+    font-size: var(--font-size-base);
 }
 
 /* Button with icon */
 .button-icon {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: var(--space-2) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
 }
 
 .button-icon svg {
-    width: 16px !important;
-    height: 16px !important;
+    width: 16px;
+    height: 16px;
 }
 
 /* ==========================
@@ -337,76 +337,82 @@ p {
    Basic form element resets - use component-specific classes for styling
 ========================== */
 
-/* Reset form elements to prevent browser defaults from interfering */
-input, textarea, select {
-    font-family: inherit !important;
-    font-size: inherit !important;
-    line-height: inherit !important;
-    color: inherit !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    outline: none !important;
-    background: transparent !important;
-    box-sizing: border-box !important;
+/* Form reset - only applied where explicitly needed */
+.dh-form-reset :where(input, textarea, select) {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    box-sizing: border-box;
 }
 
 /* Remove default focus styles - let components handle this */
-input:focus, textarea:focus, select:focus {
-    outline: none !important;
+.dh-form-reset :where(input:focus, textarea:focus, select:focus) {
+    outline: none;
+}
+
+/* Global focus-visible styles for accessibility */
+:where(button, [role="button"], a, input, select, textarea):focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
 }
 
 /* Remove default placeholder styles - let components handle this */
-input::placeholder, textarea::placeholder {
-    color: inherit !important;
+.dh-form-reset :where(input::placeholder, textarea::placeholder) {
+    color: inherit;
 }
 
 /* Cards with better spacing */
 .card {
-    background: var(--bg-primary) !important;
-    padding: var(--space-5) !important;
-    border-radius: var(--border-radius) !important;
-    box-shadow: var(--shadow-md) !important;
-    margin-bottom: var(--space-5) !important;
+    background: var(--bg-primary);
+    padding: var(--space-5);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--space-5);
 }
 
 .card-title {
-    font-size: var(--font-size-xl) !important;
-    font-weight: var(--font-weight-bold) !important;
-    margin-bottom: var(--space-3) !important;
-    color: var(--text-primary) !important;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-3);
+    color: var(--text-primary);
 }
 
 .card-subtitle {
-    font-size: var(--font-size-base) !important;
-    font-weight: var(--font-weight-medium) !important;
-    margin-bottom: var(--space-4) !important;
-    color: var(--text-secondary) !important;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-4);
+    color: var(--text-secondary);
 }
 
 .card-content {
-    color: var(--text-secondary) !important;
-    margin-bottom: var(--space-4) !important;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-4);
 }
 
 /* Footer */
 .footer {
-    width: 100% !important;
-    background: var(--navbar-bg) !important;
-    color: var(--navbar-text) !important;
-    text-align: center !important;
-    padding: var(--space-4) !important;
-    margin-top: auto !important;
+    width: 100%;
+    background: var(--navbar-bg);
+    color: var(--navbar-text);
+    text-align: center;
+    padding: var(--space-4);
+    margin-top: auto;
 }
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg-primary: hsl(0, 0%, 13%) !important;
-        --bg-secondary: hsl(0, 0%, 18%) !important;
-        --text-primary: hsl(0, 0%, 100%) !important;
-        --text-secondary: hsl(0, 0%, 80%) !important;
-        --text-tertiary: hsl(0, 0%, 65%) !important;
-        --border-color: hsl(0, 0%, 24%) !important;
+        --bg-primary: hsl(0, 0%, 13%);
+        --bg-secondary: hsl(0, 0%, 18%);
+        --text-primary: hsl(0, 0%, 100%);
+        --text-secondary: hsl(0, 0%, 80%);
+        --text-tertiary: hsl(0, 0%, 65%);
+        --border-color: hsl(0, 0%, 24%);
     }
 }
