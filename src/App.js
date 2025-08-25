@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Projects from './components/Projects';
@@ -23,15 +23,60 @@ import EditSprint from './components/EditSprint';
 import EditTask from './components/EditTask';
 import ResetPassword from './components/ResetPassword.tsx';
 import './styles/global.css'; // Import global styles
+import './styles/responsive.css'; // Import responsive utilities
+
 function App() {
   const location = useLocation();
   const selectedProject = getSelectedProject();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
 
   const hideNavbarRoutes = ['/', '/forgot-password', '/create-project', '/projects', '/join-group', '/account-details'];
   const showNavbar = selectedProject && !hideNavbarRoutes.includes(location.pathname);
 
+  // Handle responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 600;
+      setIsMobile(mobile);
+      
+      // Update body classes for responsive behavior
+      if (mobile) {
+        document.body.classList.add('has-topbar');
+        document.body.classList.remove('has-sidebar');
+      } else {
+        document.body.classList.add('has-sidebar');
+        document.body.classList.remove('has-topbar');
+      }
+    };
+
+    // Set initial state
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Update body classes when navbar visibility changes
+  useEffect(() => {
+    if (showNavbar) {
+      if (isMobile) {
+        document.body.classList.add('has-topbar');
+        document.body.classList.remove('has-sidebar');
+      } else {
+        document.body.classList.add('has-sidebar');
+        document.body.classList.remove('has-topbar');
+      }
+    } else {
+      document.body.classList.remove('has-topbar', 'has-sidebar');
+    }
+  }, [showNavbar, isMobile]);
+
   const getBackgroundStyle = () => ({
-    background: showNavbar ? "#ffffff" : "linear-gradient(to bottom right, #f5c542, #ff9f1c)",
+    minHeight: showNavbar ? "auto" : "100vh",
+    width: "100%",
   });
 
   return (

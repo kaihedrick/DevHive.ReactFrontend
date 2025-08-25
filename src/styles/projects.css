@@ -1,13 +1,37 @@
 /* Projects Page Container */
-.projects-page .projects-container {
+.projects-page {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
   min-height: 100vh !important;
+  width: 100vw !important;
   background: linear-gradient(to bottom right, var(--gold), var(--dark-gold)) !important;
   padding: var(--space-5) !important;
   font-family: var(--primary-font) !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  left: 50% !important;
+  right: 50% !important;
+  margin-left: -50vw !important;
+  margin-right: -50vw !important;
+  /* Ensure content doesn't get hidden behind footer */
+  padding-bottom: var(--space-8) !important;
+}
+
+.projects-page .projects-container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important; /* Changed from center to flex-start for better mobile layout */
+  min-height: 100vh !important;
+  width: 100% !important;
+  padding: 0 !important;
+  font-family: var(--primary-font) !important;
+  /* Ensure proper spacing from top and bottom */
+  padding-top: var(--space-4) !important;
+  padding-bottom: var(--space-6) !important;
 }
 
 /* Header Section */
@@ -34,15 +58,18 @@
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
   gap: var(--space-5) !important;
-  width: 100% !important;
+  width: 90% !important;
   max-width: 1000px !important;
   animation: fadeIn 0.6s ease-in-out !important;
+  margin: 0 auto !important;
+  justify-items: center !important;
 }
 
 .projects-page .projects-container .projects-list p {
   color: var(--white) !important; /* Set text color to white */
   font-size: var(--font-size-lg) !important; /* Optional: Adjust font size for better visibility */
   text-align: center !important; /* Optional: Center align the text */
+  grid-column: 1 / -1 !important; /* Span all columns for the "no projects" message */
 }
 
 /* Individual Project Card */
@@ -83,6 +110,11 @@
   display: flex !important;
   gap: var(--space-4) !important;
   margin-top: var(--space-6) !important;
+  width: 90% !important;
+  max-width: 600px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
 }
 
 .projects-page .action-btn {
@@ -153,8 +185,9 @@
 
 /* Responsive Design for Projects Section */
 @media (max-width: 600px) {
-  .projects-page .projects-container {
+  .projects-page {
     padding: var(--space-4) !important;
+    padding-bottom: calc(var(--space-8) + 80px) !important; /* Add extra bottom padding to account for footer */
   }
 
   .projects-page .header h1 {
@@ -163,6 +196,64 @@
 
   .projects-page .projects-list {
     grid-template-columns: 1fr !important;
+    width: 95% !important;
+    margin-bottom: var(--space-4) !important; /* Add bottom margin */
+  }
+
+  .projects-page .actions {
+    flex-direction: column !important;
+    width: 95% !important;
+    align-items: center !important;
+    margin-bottom: var(--space-6) !important; /* Add bottom margin to prevent footer overlap */
+    gap: var(--space-3) !important; /* Reduce gap for mobile */
+  }
+
+  .projects-page .action-btn {
+    width: 100% !important;
+    max-width: 300px !important;
+    height: 48px !important; /* Slightly reduce height for mobile */
+  }
+
+  /* Ensure projects container has proper bottom spacing */
+  .projects-page .projects-container {
+    padding-bottom: var(--space-6) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .projects-page {
+    padding: var(--space-3) !important;
+    padding-bottom: calc(var(--space-6) + 80px) !important; /* Adjust for smaller screens */
+  }
+
+  .projects-page .projects-list {
+    width: 98% !important;
+    margin-bottom: var(--space-3) !important;
+  }
+
+  .projects-page .actions {
+    width: 98% !important;
+    margin-bottom: var(--space-5) !important;
+    gap: var(--space-2) !important; /* Further reduce gap for very small screens */
+  }
+
+  .projects-page .action-btn {
+    height: 44px !important; /* Standard mobile touch target height */
+    font-size: var(--font-size-sm) !important;
+  }
+
+  /* Reduce header margins on very small screens */
+  .projects-page .header {
+    margin-bottom: var(--space-4) !important;
+  }
+
+  .projects-page .header h1 {
+    font-size: var(--font-size-xl) !important;
+    margin-bottom: var(--space-2) !important;
+  }
+
+  .projects-page .header p {
+    font-size: var(--font-size-lg) !important;
   }
 }
 
@@ -335,3 +426,52 @@
   display: inline-block !important;
   visibility: visible !important;
 }
+
+/* Additional mobile optimizations */
+@media (max-width: 400px) {
+  .projects-page {
+    padding: var(--space-2) !important;
+    padding-bottom: calc(var(--space-5) + 80px) !important;
+  }
+
+  .projects-page .projects-container {
+    padding-top: var(--space-2) !important;
+    padding-bottom: var(--space-4) !important;
+  }
+
+  .projects-page .header {
+    margin-bottom: var(--space-3) !important;
+  }
+
+  .projects-page .header h1 {
+    font-size: var(--font-size-lg) !important;
+  }
+
+  .projects-page .header p {
+    font-size: var(--font-size-base) !important;
+  }
+
+  .projects-page .projects-list {
+    gap: var(--space-3) !important;
+    margin-bottom: var(--space-2) !important;
+  }
+
+  .projects-page .actions {
+    gap: var(--space-2) !important;
+    margin-bottom: var(--space-4) !important;
+  }
+
+  .projects-page .action-btn {
+    height: 42px !important;
+    font-size: var(--font-size-xs) !important;
+    padding: var(--space-2) var(--space-3) !important;
+  }
+}
+
+/* Ensure footer doesn't overlap on all mobile devices */
+@media (max-width: 768px) {
+  .projects-page {
+    min-height: calc(100vh + 80px) !important; /* Add extra height to account for footer */
+  }
+}
+
