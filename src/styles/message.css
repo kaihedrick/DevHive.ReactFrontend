@@ -11,6 +11,7 @@
     font-family: var(--primary-font) !important;
     border: 1px solid var(--border-color) !important;
     overflow: hidden !important; /* Prevents content from breaking the container */
+    height: calc(100vh - 120px) !important; /* Better height calculation for mobile */
 }
 
 /* Chat header */
@@ -39,12 +40,18 @@
     flex-direction: column !important;
     gap: var(--space-3) !important;
     padding: var(--space-4) !important;
-    height: 60vh !important;
+    flex: 1 !important; /* Take remaining space instead of fixed height */
+    min-height: 0 !important; /* Allow container to shrink */
     overflow-y: auto !important;
+    overflow-x: hidden !important; /* Prevent horizontal scroll */
     background-color: var(--bg-primary) !important;
     position: relative !important;
     scrollbar-width: thin !important;
     scrollbar-color: var(--accent-primary) var(--bg-secondary) !important;
+    /* Touch scrolling optimizations */
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    scroll-behavior: smooth !important;
 }
 
 /* Align messages in professional chat format */
@@ -278,11 +285,13 @@
     display: flex !important;
     justify-content: center !important;
     align-items: flex-start !important; /* Changed from center to flex-start for better mobile layout */
-    min-height: calc(100vh - 100px) !important; /* Adjust for navbar */
+    min-height: 100vh !important; /* Use full viewport height */
+    height: 100vh !important; /* Fixed height for mobile */
     padding: var(--space-5) !important;
     background-color: var(--bg-secondary) !important;
     width: 100% !important;
     box-sizing: border-box !important;
+    overflow: hidden !important; /* Prevent page-level scrolling */
 }
 
 /* Customize scrollbar for Webkit browsers */
@@ -312,8 +321,11 @@
 /* Responsive Design */
 @media (max-width: 768px) {
     .message-page {
-        padding: var(--space-2) !important; /* Minimal padding on mobile */
-        align-items: flex-start !important; /* Better mobile alignment */
+        padding: 0 !important; /* No padding on mobile for full-screen experience */
+        align-items: stretch !important; /* Stretch to full width */
+        height: 100vh !important; /* Full viewport height */
+        min-height: 100vh !important;
+        overflow: hidden !important; /* Prevent page scrolling */
     }
     
     .chat-container {
@@ -323,22 +335,37 @@
         border-radius: 0 !important; /* Remove border radius on mobile */
         box-shadow: none !important; /* Remove shadow on mobile */
         border: none !important; /* Remove border on mobile */
-        height: calc(100vh - 100px) !important; /* Full height on mobile */
+        height: 100vh !important; /* Full viewport height on mobile */
         display: flex !important;
         flex-direction: column !important;
+        overflow: hidden !important; /* Prevent container overflow */
     }
     
     .chat-header {
         border-radius: 0 !important; /* Remove border radius on mobile */
         padding: var(--space-3) !important; /* Reduce padding on mobile */
         font-size: var(--font-size-lg) !important; /* Smaller font on mobile */
+        flex-shrink: 0 !important; /* Prevent header from shrinking */
     }
     
     .messages-container {
-        height: auto !important; /* Allow natural height on mobile */
         flex: 1 !important; /* Take remaining space */
+        min-height: 0 !important; /* Allow container to shrink */
         padding: var(--space-2) !important; /* Reduce padding on mobile */
         border-radius: 0 !important; /* Remove border radius on mobile */
+                /* Enhanced mobile scrolling */
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: contain !important;
+        scroll-behavior: smooth !important;
+        /* Better touch handling */
+        touch-action: pan-y !important;
+        -webkit-user-select: none !important;
+        user-select: none !important;
+        /* Prevent momentum scrolling issues */
+        -webkit-transform: translate3d(0, 0, 0) !important;
+        transform: translate3d(0, 0, 0) !important;
+        /* Better scroll performance */
+        will-change: scroll-position !important;
     }
     
     .message {
@@ -351,27 +378,41 @@
         padding: var(--space-2) !important; /* Reduce padding on mobile */
         background: var(--bg-primary) !important; /* Match container background */
         border-top: 1px solid var(--border-color) !important;
+        flex-shrink: 0 !important; /* Prevent input from shrinking */
+        /* Better mobile keyboard handling */
+        position: relative !important;
+        z-index: 10 !important;
     }
     
     .message-input input {
         padding: var(--space-2) var(--space-3) !important; /* Reduce input padding on mobile */
+        /* Better mobile input handling */
+        font-size: 16px !important; /* Prevent zoom on iOS */
+        -webkit-appearance: none !important;
+        border-radius: var(--border-radius) !important;
     }
     
     .message-input button {
         min-width: 80px !important;
         padding: var(--space-2) var(--space-3) !important; /* Reduce button padding on mobile */
         font-size: var(--font-size-sm) !important; /* Smaller font on mobile */
+        /* Better mobile button handling */
+        -webkit-tap-highlight-color: transparent !important;
+        touch-action: manipulation !important;
     }
 }
 
 /* For very small screens */
 @media (max-width: 480px) {
     .message-page {
-        padding: var(--space-1) !important; /* Minimal padding on very small screens */
+        padding: 0 !important; /* No padding on very small screens */
+        height: 100vh !important;
+        min-height: 100vh !important;
     }
     
     .chat-container {
-        height: calc(100vh - 80px) !important; /* Adjust height for very small screens */
+        height: 100vh !important; /* Full viewport height on very small screens */
+        min-height: 100vh !important;
     }
     
     .chat-header {
@@ -381,6 +422,9 @@
     
     .messages-container {
         padding: var(--space-1) !important; /* Minimal padding on very small screens */
+        /* Enhanced scrolling for very small screens */
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: contain !important;
     }
     
     .message {
@@ -397,7 +441,7 @@
     
     .message-input input {
         padding: var(--space-2) !important; /* Minimal input padding on very small screens */
-        font-size: var(--font-size-sm) !important; /* Smaller font on very small screens */
+        font-size: 16px !important; /* Prevent zoom on iOS */
     }
     
     .message-input button {
@@ -412,6 +456,70 @@
     
     .message-time {
         font-size: var(--font-size-xs) !important; /* Smaller timestamp on very small screens */
+    }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .message-page {
+        height: -webkit-fill-available !important; /* iOS Safari viewport height fix */
+        min-height: -webkit-fill-available !important;
+        /* iOS safe area support */
+        padding-top: env(safe-area-inset-top) !important;
+        padding-bottom: env(safe-area-inset-bottom) !important;
+        padding-left: env(safe-area-inset-left) !important;
+        padding-right: env(safe-area-inset-right) !important;
+    }
+    
+    .chat-container {
+        height: -webkit-fill-available !important; /* iOS Safari viewport height fix */
+        min-height: -webkit-fill-available !important;
+    }
+    
+    .messages-container {
+        /* iOS Safari scrolling optimizations */
+        -webkit-overflow-scrolling: touch !important;
+        -webkit-transform: translateZ(0) !important; /* Force hardware acceleration */
+        transform: translateZ(0) !important;
+        /* iOS safe area for content */
+        padding-bottom: env(safe-area-inset-bottom) !important;
+    }
+    
+    .message-input {
+        /* iOS safe area for input */
+        padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom)) !important;
+    }
+}
+
+/* Android Chrome specific fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    .messages-container {
+        /* Android Chrome scrolling optimizations */
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: contain !important;
+    }
+}
+
+/* Landscape orientation fixes for mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .message-page {
+        height: 100vh !important;
+        min-height: 100vh !important;
+    }
+    
+    .chat-container {
+        height: 100vh !important;
+        min-height: 100vh !important;
+    }
+    
+    .chat-header {
+        padding: var(--space-2) !important; /* Reduce header height in landscape */
+    }
+    
+    .messages-container {
+        /* Ensure proper scrolling in landscape */
+        flex: 1 !important;
+        min-height: 0 !important;
     }
 }
 
