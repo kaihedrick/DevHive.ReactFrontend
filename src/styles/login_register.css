@@ -336,13 +336,31 @@ img.input-icon {
 /* Mobile submit container adjustments */
 @media (max-width: 480px) {
   .submit-container {
-    flex-direction: column !important;
-    gap: var(--space-3) !important;
+    flex-direction: row !important; /* Keep buttons side by side */
+    gap: var(--space-2) !important; /* Smaller gap for mobile */
   }
   
   .login-register-page .submit {
-    width: 100% !important;
-    flex: 1 1 100% !important;
+    width: 48% !important; /* Keep proportional width */
+    flex: 0 0 48% !important;
+    padding: var(--space-2) var(--space-3) !important; /* Smaller padding for mobile */
+    font-size: var(--font-size-xs) !important; /* Smaller font for mobile */
+    height: 2.5rem !important; /* Slightly smaller height for mobile */
+  }
+}
+
+/* iPhone-specific button adjustments */
+@media (max-width: 375px) {
+  .submit-container {
+    gap: var(--space-1) !important; /* Even smaller gap for very small screens */
+  }
+  
+  .login-register-page .submit {
+    width: 49% !important; /* Slightly wider to fill space better */
+    flex: 0 0 49% !important;
+    padding: var(--space-2) var(--space-2) !important; /* Minimal padding */
+    font-size: var(--font-size-xs) !important;
+    height: 2.25rem !important; /* Compact height */
   }
 }
 
