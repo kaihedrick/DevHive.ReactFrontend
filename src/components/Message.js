@@ -251,11 +251,16 @@ const Message = () => {
 
   return (
     <div className="message-page">
-      <div className="chat-container">
-        <h2 className="chat-header">
+      {/* Chat header positioned absolutely under navbar */}
+      <div className="chat-header-absolute">
+        <h2 className="chat-header-title">
           <FontAwesomeIcon icon={faComments} /> Chat with {user?.firstName} {user?.lastName}
         </h2>
+      </div>
 
+      {/* Main chat container */}
+      <div className="chat-container">
+        {/* Scrollable messages container */}
         <div className="messages-container">
           {error && <div className="error-message">{error}</div>}
           
@@ -297,6 +302,7 @@ const Message = () => {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Message input - always above footer */}
         <div className="message-input">
           <input
             type="text"
@@ -307,8 +313,9 @@ const Message = () => {
             onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
             disabled={sending}
           />
+          {/* Send button - hidden on mobile */}
           <button 
-            className={`btn btn-primary ${sending ? "sending" : ""}`} 
+            className={`btn btn-primary send-button ${sending ? "sending" : ""}`} 
             onClick={handleSendMessage}
             disabled={sending || !newMessage.trim()}
           >
