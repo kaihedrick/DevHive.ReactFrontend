@@ -22,6 +22,7 @@ html, body {
   margin: 0 !important;
   box-sizing: border-box !important;
   position: relative !important;
+  overflow-x: hidden !important;
   left: 50% !important;
   right: 50% !important;
   margin-left: -50vw !important;
@@ -42,6 +43,7 @@ html, body {
   margin: 0 !important;
   box-sizing: border-box !important;
   position: relative !important;
+  overflow-x: hidden !important;
   left: 50% !important;
   right: 50% !important;
   margin-left: -50vw !important;
@@ -84,6 +86,8 @@ html, body {
   width: 100% !important;
   max-width: 100% !important;
   text-align: center !important;
+  position: relative !important;
+  z-index: 15 !important;
 }
 
 .devhive-logo {
@@ -120,9 +124,9 @@ html, body {
 .container {
   display: flex !important;
   flex-direction: column !important;
-  width: 90% !important;
-  max-width: 50rem !important;
-  min-width: 320px !important;
+  width: 100% !important;
+  max-width: 800px !important;
+  min-width: 400px !important;
   background: var(--bg-primary) !important;
   border-radius: var(--border-radius) !important;
   padding: var(--space-6) !important;
@@ -130,8 +134,8 @@ html, body {
   padding-bottom: var(--space-8) !important;
   margin: 0 auto !important;
   box-sizing: border-box !important;
-  align-self: center !important;
-  justify-self: center !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
 .header {
@@ -157,13 +161,9 @@ html, body {
 }
 
 .inputs {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: var(--space-4) !important;
-  width: 90% !important; /* Added width control to inputs container */
-  margin: 0 auto !important; /* Center the inputs container */
-  align-items: stretch !important; /* Changed from center to stretch */
-  position: relative !important; /* Required for absolute positioning of icons */
+  margin-bottom: 20px !important;
+  position: relative !important;
+  width: 100% !important;
 }
 
 .inputs input {
@@ -172,48 +172,53 @@ html, body {
 
 .inputs input::placeholder {
   color: var(--text-tertiary) !important;
+  opacity: 1 !important;
 }
 
-.input-field {
-  position: relative !important;
+.inputs-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-4) !important;
+  width: 100% !important;
+  margin-bottom: var(--space-4) !important;
+}
+
+.input-group {
+  width: 100% !important;
+}
+
+.inputs input {
   width: 100% !important;
   height: 3.25rem !important;
   border: 1px solid var(--text-tertiary) !important;
   border-radius: var(--border-radius) !important;
-  margin-bottom: 20px !important;
-}
-
-.input-field input {
-  width: 100% !important;
-  height: 100% !important;
-  border: none !important;
   outline: none !important;
+  font-size: 16px !important;
   background: transparent !important;
   padding: 0 0.8rem 0 3rem !important;
   color: var(--text-primary) !important;
-  font-size: 16px !important;
+  box-sizing: border-box !important;
+  text-align: left !important;
 }
 
 .input-icon {
   position: absolute !important;
   left: 0.8rem !important;
-  top: 14px !important;
-  font-size: 1.375rem !important;
+  top: 40% !important;
+  transform: translateY(-50%) !important;
+  font-size: 1.5rem !important;
   color: var(--text-tertiary) !important;
   opacity: 0.8 !important;
   pointer-events: none !important;
   z-index: 1 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  display: flex;
+  align-items: center;
 }
 
-.input-field:focus-within {
+.inputs input:focus {
   border-color: var(--gold) !important;
   box-shadow: var(--shadow-focus) !important;
 }
-
-/* Remove the duplicate .input-icon styles and use only img.input-icon */
 
 /* Styles for image input icons (used in ResetPassword) */
 img.input-icon {
