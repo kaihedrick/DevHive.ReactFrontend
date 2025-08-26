@@ -213,7 +213,7 @@
 .mt-6 { margin-top: var(--space-6) !important; }
 
 .mb-0 { margin-bottom: 0 !important; }
-.mb-1 { margin-bottom: var(--space-1) !important; }
+.mb-1 { margin-bottom: var(--space-2) !important; }
 .mb-2 { margin-bottom: var(--space-2) !important; }
 .mb-3 { margin-bottom: var(--space-3) !important; }
 .mb-4 { margin-bottom: var(--space-4) !important; }
@@ -229,7 +229,7 @@
 .ml-6 { margin-left: var(--space-6) !important; }
 
 .mr-0 { margin-right: 0 !important; }
-.mr-1 { margin-right: var(--space-1) !important; }
+.mr-1 { margin-right: var(--space-2) !important; }
 .mr-2 { margin-right: var(--space-2) !important; }
 .mr-3 { margin-right: var(--space-3) !important; }
 .mr-4 { margin-right: var(--space-4) !important; }
@@ -373,6 +373,39 @@
         padding: var(--space-3) !important;
         margin: var(--space-2) !important;
     }
+}
+
+/* ==========================
+   iPhone-Specific Responsive Utilities
+========================== */
+
+/* iPhone SE and small devices */
+@media (max-width: 375px) {
+    .iphone\:p-2 { padding: var(--space-2) !important; }
+    .iphone\:p-3 { padding: var(--space-3) !important; }
+    .iphone\:m-1 { margin: var(--space-1) !important; }
+    .iphone\:m-2 { margin: var(--space-2) !important; }
+    .iphone\:text-sm { font-size: var(--font-size-sm) !important; }
+    .iphone\:text-xs { font-size: var(--font-size-xs) !important; }
+    .iphone\:w-full { width: 100% !important; }
+    .iphone\:max-w-full { max-width: 100% !important; }
+    .iphone\:min-w-auto { min-width: auto !important; }
+}
+
+/* iPhone 12/13/14 Pro and similar */
+@media (max-width: 390px) {
+    .iphone-pro\:p-3 { padding: var(--space-3) !important; }
+    .iphone-pro\:p-4 { padding: var(--space-4) !important; }
+    .iphone-pro\:m-2 { margin: var(--space-2) !important; }
+    .iphone-pro\:m-3 { margin: var(--space-3) !important; }
+}
+
+/* iPhone 12/13/14 Pro Max and similar */
+@media (max-width: 428px) {
+    .iphone-pro-max\:p-4 { padding: var(--space-4) !important; }
+    .iphone-pro-max\:p-5 { padding: var(--space-5) !important; }
+    .iphone-pro-max\:m-3 { margin: var(--space-3) !important; }
+    .iphone-pro-max\:m-4 { margin: var(--space-4) !important; }
 }
 
 /* ==========================

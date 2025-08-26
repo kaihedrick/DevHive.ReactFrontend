@@ -312,6 +312,18 @@ body.has-topbar .content {
     }
 }
 
+/* iPhone-specific adjustments */
+@media (max-width: 375px) {
+    .container, main, .content-container {
+        padding: var(--space-1) !important;
+    }
+    
+    body.has-sidebar main {
+        padding-left: var(--space-1) !important;
+        padding-top: var(--space-1) !important;
+    }
+}
+
 /* Tablet adjustments */
 @media (min-width: 601px) and (max-width: 1023px) {
     .container, main, .content-container {
