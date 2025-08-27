@@ -483,6 +483,7 @@
         padding: var(--space-2) var(--space-3) !important; /* Safe padding for very small screens */
         left: 0 !important;
         width: 100vw !important;
+        bottom: 60px !important; /* Keep consistent with footer height */
     }
     
     .message-input input {
@@ -657,5 +658,135 @@
 @media (min-width: 1280px) {
     .message-input {
         padding: var(--space-4) var(--space-12) !important; /* Match container padding */
+    }
+}
+
+/* ==========================
+   Mobile Device Specific Fixes
+========================== */
+
+/* Mobile devices - eliminate gap between input and footer */
+@media (max-width: 600px) {
+    .message-input {
+        bottom: 60px !important; /* Exact footer height */
+        /* Ensure no gap on mobile devices */
+        position: fixed !important;
+        z-index: 50 !important;
+    }
+    
+    /* Adjust messages container to account for fixed input */
+    .messages-container {
+        padding: var(--space-3) var(--space-4) !important;
+        padding-bottom: calc(var(--space-6) + 60px) !important;
+        /* Ensure proper scrolling to bottom */
+        scroll-padding-bottom: calc(var(--space-6) + 60px) !important;
+    }
+}
+
+/* Very small mobile devices */
+@media (max-width: 480px) {
+    .message-input {
+        bottom: 60px !important; /* Keep consistent */
+        padding: var(--space-2) var(--space-3) !important;
+    }
+    
+    .messages-container {
+        padding: var(--space-2) var(--space-3) !important;
+        padding-bottom: calc(var(--space-5) + 60px) !important;
+        scroll-padding-bottom: calc(var(--space-5) + 60px) !important;
+    }
+}
+
+/* iOS Safari specific fixes for mobile */
+@supports (-webkit-touch-callout: none) {
+    .message-input {
+        /* iOS safe area support */
+        padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom)) !important;
+        bottom: calc(60px + env(safe-area-inset-bottom)) !important; /* Account for iOS safe area */
+    }
+    
+    .messages-container {
+        /* iOS safe area for content */
+        padding-bottom: calc(var(--space-8) + 60px + env(safe-area-inset-bottom)) !important;
+        scroll-padding-bottom: calc(var(--space-8) + 60px + env(safe-area-inset-bottom)) !important;
+    }
+    
+    /* Mobile iOS specific adjustments */
+    @media (max-width: 600px) {
+        .message-input {
+            bottom: calc(60px + env(safe-area-inset-bottom)) !important;
+        }
+        
+        .messages-container {
+            padding-bottom: calc(var(--space-6) + 60px + env(safe-area-inset-bottom)) !important;
+            scroll-padding-bottom: calc(var(--space-6) + 60px + env(safe-area-inset-bottom)) !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .message-input {
+            bottom: calc(60px + env(safe-area-inset-bottom)) !important;
+        }
+        
+        .messages-container {
+            padding-bottom: calc(var(--space-5) + 60px + env(safe-area-inset-bottom)) !important;
+            scroll-padding-bottom: calc(var(--space-5) + 60px + env(safe-area-inset-bottom)) !important;
+        }
+    }
+}
+
+/* ==========================
+   Mobile Viewport Optimizations
+========================== */
+
+/* Mobile devices - ensure proper viewport handling */
+@media (max-width: 600px) {
+    .message-page {
+        height: 100vh !important;
+        min-height: 100vh !important;
+        /* Mobile viewport optimizations */
+        height: -webkit-fill-available !important;
+        min-height: -webkit-fill-available !important;
+    }
+    
+    .chat-container {
+        height: calc(100vh - var(--navbar-height-mobile) - 120px) !important;
+        /* Mobile viewport fallback */
+        height: calc(-webkit-fill-available - var(--navbar-height-mobile) - 120px) !important;
+        margin-top: calc(var(--navbar-height-mobile) + 50px) !important;
+        margin-left: 0 !important;
+        width: 100vw !important;
+        /* Ensure proper mobile layout */
+        overflow: hidden !important;
+        position: relative !important;
+    }
+    
+    /* Ensure input field is perfectly positioned */
+    .message-input {
+        position: fixed !important;
+        bottom: 60px !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        z-index: 50 !important;
+        /* Mobile-specific positioning */
+        transform: translateZ(0) !important;
+        -webkit-transform: translateZ(0) !important;
+    }
+}
+
+/* Very small mobile devices */
+@media (max-width: 480px) {
+    .chat-container {
+        height: calc(100vh - var(--navbar-height-mobile) - 120px) !important;
+        height: calc(-webkit-fill-available - var(--navbar-height-mobile) - 120px) !important;
+        margin-top: calc(var(--navbar-height-mobile) + 45px) !important;
+    }
+    
+    .message-input {
+        bottom: 60px !important;
+        /* Ensure no gap on very small screens */
+        position: fixed !important;
+        z-index: 50 !important;
     }
 }
