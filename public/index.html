@@ -38,32 +38,111 @@
           }
         }
         
+        // Keyboard-aware padding (prevents bottom gap while typing)
+        function setKeyboardPadding() {
+          const vv = window.visualViewport;
+          if (!vv) return;
+          
+          // How much of the page is occluded by bottom chrome/keyboard
+          const occlusion = Math.max(0, (window.innerHeight - vv.height - vv.offsetTop));
+          root.style.setProperty('--kb', occlusion + 'px');
+        }
+        
         // Initialize
         setVH();
         setSafeArea();
+        setKeyboardPadding();
         
         // Listen for viewport changes
-        window.addEventListener('resize', setVH);
+        window.addEventListener('resize', () => {
+          setVH();
+          setSafeArea();
+          setKeyboardPadding();
+        });
+        
         window.addEventListener('orientationchange', () => {
           setTimeout(() => {
             setVH();
             setSafeArea();
+            setKeyboardPadding();
           }, 100);
         });
         
         // Listen for visual viewport changes (iOS keyboard)
         if (window.visualViewport) {
-          window.visualViewport.addEventListener('resize', setVH);
+          window.visualViewport.addEventListener('resize', () => {
+            setVH();
+            setKeyboardPadding();
+          });
         }
         
+        // Reset keyboard padding when input blurs (keyboard dismissed)
+        window.addEventListener('focusout', () => {
+          root.style.setProperty('--kb', '0px');
+        });
+        
         // Set safe area on load
-        window.addEventListener('load', setSafeArea);
+        window.addEventListener('load', () => {
+          setSafeArea();
+          setKeyboardPadding();
+        });
         
         // Fallback for older iOS versions
         if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
           // Force safe area detection
-          setTimeout(setSafeArea, 500);
+          setTimeout(() => {
+            setSafeArea();
+            setKeyboardPadding();
+          }, 500);
         }
+        
+        // Debug probe function for gap detection (paste in DevTools console on iPhone)
+        window.inspectGap = function() {
+          const composer = document.querySelector('.message-input');
+          const footer = document.querySelector('.site-footer');
+          
+          if (!composer || !footer) {
+            console.log('Elements not found. Make sure you have .message-input and .site-footer elements.');
+            return;
+          }
+          
+          const composerRect = composer.getBoundingClientRect();
+          const footerRect = footer.getBoundingClientRect();
+          
+          const gap = footerRect.top - composerRect.bottom;
+          
+          console.log('=== GAP INSPECTION ===');
+          console.log('Composer:', {
+            y: composerRect.y,
+            height: composerRect.height,
+            bottom: composerRect.bottom,
+            marginTop: getComputedStyle(composer).marginTop,
+            marginBottom: getComputedStyle(composer).marginBottom,
+            paddingTop: getComputedStyle(composer).paddingTop,
+            paddingBottom: getComputedStyle(composer).paddingBottom
+          });
+          
+          console.log('Footer:', {
+            y: footerRect.y,
+            height: footerRect.height,
+            top: footerRect.top,
+            marginTop: getComputedStyle(footer).marginTop,
+            marginBottom: getComputedStyle(footer).marginBottom,
+            paddingTop: getComputedStyle(footer).paddingTop,
+            paddingBottom: getComputedStyle(footer).paddingBottom
+          });
+          
+          console.log('Gap in pixels:', gap);
+          
+          if (gap > 0) {
+            console.log('⚠️  GAP DETECTED! Check parent containers for:');
+            console.log('   - gap property on flex/grid containers');
+            console.log('   - padding on parent elements');
+            console.log('   - border on parent elements');
+          } else {
+            console.log('✅ No gap detected!');
+          }
+        };
       })();
     </script>
   </head>

@@ -2,12 +2,29 @@
    Message Page Layout
 ========================== */
 
+/* No-Gap Grid Layout - Most Reliable for iOS */
+.message-page.grid-layout {
+    display: grid !important;
+    grid-template-rows: auto 1fr auto auto !important; /* header | chat | composer | footer */
+    min-height: 100vh !important;
+    min-height: 100dvh !important; /* iOS 16+ dynamic viewport */
+    min-height: 100svh !important; /* Stable viewport height (most reliable) */
+    min-height: calc(var(--vh, 1vh) * 100) !important; /* JavaScript polyfill fallback */
+    width: 100% !important;
+    background-color: var(--bg-secondary) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    gap: 0 !important; /* Ensure no gaps between grid rows */
+}
+
 /* Message page container */
 .message-page {
     position: relative !important;
     width: 100% !important;
     min-height: 100vh !important;
     min-height: 100dvh !important; /* iOS 16+ dynamic viewport */
+    min-height: 100svh !important; /* Stable viewport height (most reliable) */
     min-height: calc(var(--vh, 1vh) * 100) !important; /* JavaScript polyfill fallback */
     background-color: var(--bg-secondary) !important;
     padding: 0 !important;
@@ -62,6 +79,7 @@
     width: 100% !important;
     height: calc(100vh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* Use CSS variables */
     height: calc(100dvh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* iOS 16+ dynamic viewport */
+    height: calc(100svh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* Stable viewport height (most reliable) */
     height: calc(calc(var(--vh, 1vh) * 100) - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* JavaScript polyfill fallback */
     margin-top: calc(var(--navbar-height-mobile) + 60px) !important; /* Default: space for topbar header */
     background: transparent !important;
@@ -80,7 +98,7 @@
     flex-direction: column !important;
     gap: var(--space-3) !important;
     padding: var(--space-4) var(--space-6) !important; /* Increased horizontal padding */
-    padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab)) !important; /* Account for composer, footer, and safe area */
+    padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab) + var(--kb)) !important; /* Account for composer, footer, safe area, and keyboard */
     overflow-y: auto !important;
     overflow-x: hidden !important;
     background-color: transparent !important;
@@ -225,14 +243,14 @@
 .message-input {
     display: flex !important;
     padding: var(--space-4) var(--space-6) !important; /* Increased horizontal padding */
-    padding-bottom: max(var(--space-4), var(--sab)) !important; /* Safe area bottom padding */
+    padding-bottom: max(var(--space-4), calc(var(--sab) + var(--kb))) !important; /* Safe area + keyboard bottom padding */
     background: rgba(0, 0, 0, 0.8) !important; /* Transparent dark background */
     backdrop-filter: blur(15px) !important;
     -webkit-backdrop-filter: blur(15px) !important;
     border-top: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle border */
     gap: var(--space-3) !important;
     position: fixed !important; /* Fixed position to stay above footer */
-    bottom: calc(var(--footer-height) + var(--sab)) !important; /* Position above footer with safe area */
+    bottom: calc(var(--footer-height) + var(--sab) + var(--kb)) !important; /* Position above footer with safe area and keyboard */
     left: 0 !important;
     right: 0 !important;
     z-index: 50 !important;
@@ -807,6 +825,52 @@
 }
 
 /* ==========================
+   Fixed Composer Variant (Bulletproof)
+========================== */
+
+/* Alternative fixed positioning for maximum compatibility */
+.message-input.fixed-composer {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 1000 !important;
+    padding-bottom: max(var(--space-4), calc(var(--sab) + var(--kb))) !important;
+    background: rgba(0, 0, 0, 0.9) !important; /* Slightly more opaque for better visibility */
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* When using fixed composer, reserve space in the scroll area */
+.messages-container.with-fixed-composer {
+    padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab) + var(--kb)) !important;
+    scroll-padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab) + var(--kb)) !important;
+}
+
+/* ==========================
+   Margin Collision Guards
+========================== */
+
+/* On small screens, explicitly remove any margins that could create a visible seam */
+@media (max-width: 768px) {
+    .message-input { 
+        margin-bottom: 0 !important; 
+        margin-top: 0 !important;
+    }
+    
+    .site-footer { 
+        margin-top: 0 !important; 
+        margin-bottom: 0 !important;
+    }
+    
+    /* Ensure no gap between input and footer */
+    .message-input + .site-footer,
+    .message-input ~ .site-footer {
+        margin-top: 0 !important;
+    }
+}
+
+/* ==========================
    iOS Safe Area Debug (Remove in production)
 ========================== */
 
@@ -827,6 +891,13 @@
     font-size: 10px !important;
     border-radius: 4px !important;
     z-index: 1000 !important;
+}
+
+/* Debug probe for gap detection */
+.message-input.debug-probe,
+.site-footer.debug-probe {
+    outline: 2px solid blue !important;
+    background: rgba(0, 0, 255, 0.1) !important;
 }
 
 /* Remove this section after testing */

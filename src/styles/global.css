@@ -138,6 +138,7 @@
     
     /* JavaScript Polyfill Fallbacks */
     --vh: 1vh !important; /* Fallback for dynamic viewport height */
+    --kb: 0px !important; /* Keyboard occlusion height */
     
     /* Component Heights for Consistent Spacing */
     --footer-height: 60px !important;
