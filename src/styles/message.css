@@ -7,6 +7,8 @@
     position: relative !important;
     width: 100% !important;
     min-height: 100vh !important;
+    min-height: 100dvh !important; /* iOS 16+ dynamic viewport */
+    min-height: calc(var(--vh, 1vh) * 100) !important; /* JavaScript polyfill fallback */
     background-color: var(--bg-secondary) !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -58,7 +60,9 @@
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    height: calc(100vh - var(--navbar-height-mobile) - 120px) !important; /* Default: account for topbar, header, footer, and input */
+    height: calc(100vh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* Use CSS variables */
+    height: calc(100dvh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* iOS 16+ dynamic viewport */
+    height: calc(calc(var(--vh, 1vh) * 100) - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* JavaScript polyfill fallback */
     margin-top: calc(var(--navbar-height-mobile) + 60px) !important; /* Default: space for topbar header */
     background: transparent !important;
     position: relative !important;
@@ -76,7 +80,7 @@
     flex-direction: column !important;
     gap: var(--space-3) !important;
     padding: var(--space-4) var(--space-6) !important; /* Increased horizontal padding */
-    padding-bottom: calc(var(--space-8) + 60px) !important; /* Extra bottom padding to account for input field */
+    padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab)) !important; /* Account for composer, footer, and safe area */
     overflow-y: auto !important;
     overflow-x: hidden !important;
     background-color: transparent !important;
@@ -221,13 +225,14 @@
 .message-input {
     display: flex !important;
     padding: var(--space-4) var(--space-6) !important; /* Increased horizontal padding */
+    padding-bottom: max(var(--space-4), var(--sab)) !important; /* Safe area bottom padding */
     background: rgba(0, 0, 0, 0.8) !important; /* Transparent dark background */
     backdrop-filter: blur(15px) !important;
     -webkit-backdrop-filter: blur(15px) !important;
     border-top: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle border */
     gap: var(--space-3) !important;
     position: fixed !important; /* Fixed position to stay above footer */
-    bottom: 60px !important; /* Position above footer */
+    bottom: calc(var(--footer-height) + var(--sab)) !important; /* Position above footer with safe area */
     left: 0 !important;
     right: 0 !important;
     z-index: 50 !important;
@@ -351,7 +356,9 @@
     }
     
     .chat-container {
-        height: calc(100vh - 120px) !important; /* Account for header, footer, and input only */
+        height: calc(100vh - var(--footer-height) - var(--composer-height)) !important; /* Account for header, footer, and input only */
+        height: calc(100dvh - var(--footer-height) - var(--composer-height)) !important; /* iOS 16+ dynamic viewport */
+        height: calc(calc(var(--vh, 1vh) * 100) - var(--footer-height) - var(--composer-height)) !important; /* JavaScript polyfill fallback */
         margin-top: 60px !important; /* Space for header only (no topbar) */
         margin-left: var(--navbar-width-collapsed) !important; /* Account for sidebar */
         width: calc(100vw - var(--navbar-width-collapsed)) !important;
@@ -359,7 +366,7 @@
     
     .messages-container {
         padding: var(--space-4) var(--space-8) !important; /* Generous padding for desktop */
-        padding-bottom: calc(var(--space-10) + 60px) !important; /* Extra bottom padding for desktop */
+        padding-bottom: calc(var(--space-10) + var(--composer-height) + var(--footer-height) + var(--sab)) !important; /* Extra bottom padding for desktop */
     }
     
     .message {
@@ -602,7 +609,7 @@
     
     .messages-container {
         padding: var(--space-4) var(--space-10) !important; /* Even more generous padding on large screens */
-        padding-bottom: calc(var(--space-12) + 60px) !important; /* Extra bottom padding for large screens */
+        padding-bottom: calc(var(--space-12) + var(--composer-height) + var(--footer-height) + var(--sab)) !important; /* Extra bottom padding for large screens */
         max-width: 100% !important;
         width: 100% !important;
         overflow-x: hidden !important;
@@ -628,7 +635,7 @@
 @media (min-width: 1280px) {
     .messages-container {
         padding: var(--space-4) var(--space-12) !important; /* Maximum padding for very large screens */
-        padding-bottom: calc(var(--space-16) + 60px) !important; /* Maximum bottom padding for extra large screens */
+        padding-bottom: calc(var(--space-16) + var(--composer-height) + var(--footer-height) + var(--sab)) !important; /* Maximum bottom padding for extra large screens */
         width: 100% !important;
         overflow-x: hidden !important;
     }
@@ -668,7 +675,7 @@
 /* Mobile devices - eliminate gap between input and footer */
 @media (max-width: 600px) {
     .message-input {
-        bottom: 60px !important; /* Exact footer height */
+        bottom: calc(var(--footer-height) + var(--sab)) !important; /* Use CSS variables */
         /* Ensure no gap on mobile devices */
         position: fixed !important;
         z-index: 50 !important;
@@ -677,23 +684,23 @@
     /* Adjust messages container to account for fixed input */
     .messages-container {
         padding: var(--space-3) var(--space-4) !important;
-        padding-bottom: calc(var(--space-6) + 60px) !important;
+        padding-bottom: calc(var(--space-6) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
         /* Ensure proper scrolling to bottom */
-        scroll-padding-bottom: calc(var(--space-6) + 60px) !important;
+        scroll-padding-bottom: calc(var(--space-6) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
     }
 }
 
 /* Very small mobile devices */
 @media (max-width: 480px) {
     .message-input {
-        bottom: 60px !important; /* Keep consistent */
+        bottom: calc(var(--footer-height) + var(--sab)) !important; /* Use CSS variables */
         padding: var(--space-2) var(--space-3) !important;
     }
     
     .messages-container {
         padding: var(--space-2) var(--space-3) !important;
-        padding-bottom: calc(var(--space-5) + 60px) !important;
-        scroll-padding-bottom: calc(var(--space-5) + 60px) !important;
+        padding-bottom: calc(var(--space-5) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
+        scroll-padding-bottom: calc(var(--space-5) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
     }
 }
 
@@ -701,36 +708,36 @@
 @supports (-webkit-touch-callout: none) {
     .message-input {
         /* iOS safe area support */
-        padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom)) !important;
-        bottom: calc(60px + env(safe-area-inset-bottom)) !important; /* Account for iOS safe area */
+        padding-bottom: max(var(--space-4), var(--sab)) !important;
+        bottom: calc(var(--footer-height) + var(--sab)) !important; /* Use CSS variables */
     }
     
     .messages-container {
         /* iOS safe area for content */
-        padding-bottom: calc(var(--space-8) + 60px + env(safe-area-inset-bottom)) !important;
-        scroll-padding-bottom: calc(var(--space-8) + 60px + env(safe-area-inset-bottom)) !important;
+        padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
+        scroll-padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
     }
     
     /* Mobile iOS specific adjustments */
     @media (max-width: 600px) {
         .message-input {
-            bottom: calc(60px + env(safe-area-inset-bottom)) !important;
+            bottom: calc(var(--footer-height) + var(--sab)) !important;
         }
         
         .messages-container {
-            padding-bottom: calc(var(--space-6) + 60px + env(safe-area-inset-bottom)) !important;
-            scroll-padding-bottom: calc(var(--space-6) + 60px + env(safe-area-inset-bottom)) !important;
+            padding-bottom: calc(var(--space-6) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
+            scroll-padding-bottom: calc(var(--space-6) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
         }
     }
     
     @media (max-width: 480px) {
         .message-input {
-            bottom: calc(60px + env(safe-area-inset-bottom)) !important;
+            bottom: calc(var(--footer-height) + var(--sab)) !important;
         }
         
         .messages-container {
-            padding-bottom: calc(var(--space-5) + 60px + env(safe-area-inset-bottom)) !important;
-            scroll-padding-bottom: calc(var(--space-5) + 60px + env(safe-area-inset-bottom)) !important;
+            padding-bottom: calc(var(--space-5) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
+            scroll-padding-bottom: calc(var(--space-5) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
         }
     }
 }
@@ -744,15 +751,21 @@
     .message-page {
         height: 100vh !important;
         min-height: 100vh !important;
+        height: 100dvh !important; /* iOS 16+ dynamic viewport */
+        min-height: 100dvh !important; /* iOS 16+ dynamic viewport */
+        height: calc(var(--vh, 1vh) * 100) !important; /* JavaScript polyfill fallback */
+        min-height: calc(var(--vh, 1vh) * 100) !important; /* JavaScript polyfill fallback */
         /* Mobile viewport optimizations */
         height: -webkit-fill-available !important;
         min-height: -webkit-fill-available !important;
     }
     
     .chat-container {
-        height: calc(100vh - var(--navbar-height-mobile) - 120px) !important;
+        height: calc(100vh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important;
+        height: calc(100dvh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* iOS 16+ dynamic viewport */
+        height: calc(calc(var(--vh, 1vh) * 100) - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* JavaScript polyfill fallback */
         /* Mobile viewport fallback */
-        height: calc(-webkit-fill-available - var(--navbar-height-mobile) - 120px) !important;
+        height: calc(-webkit-fill-available - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important;
         margin-top: calc(var(--navbar-height-mobile) + 50px) !important;
         margin-left: 0 !important;
         width: 100vw !important;
@@ -764,7 +777,7 @@
     /* Ensure input field is perfectly positioned */
     .message-input {
         position: fixed !important;
-        bottom: 60px !important;
+        bottom: calc(var(--footer-height) + var(--sab)) !important; /* Use CSS variables */
         left: 0 !important;
         right: 0 !important;
         width: 100vw !important;
@@ -778,15 +791,42 @@
 /* Very small mobile devices */
 @media (max-width: 480px) {
     .chat-container {
-        height: calc(100vh - var(--navbar-height-mobile) - 120px) !important;
-        height: calc(-webkit-fill-available - var(--navbar-height-mobile) - 120px) !important;
+        height: calc(100vh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important;
+        height: calc(100dvh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* iOS 16+ dynamic viewport */
+        height: calc(calc(var(--vh, 1vh) * 100) - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* JavaScript polyfill fallback */
+        height: calc(-webkit-fill-available - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important;
         margin-top: calc(var(--navbar-height-mobile) + 45px) !important;
     }
     
     .message-input {
-        bottom: 60px !important;
+        bottom: calc(var(--footer-height) + var(--sab)) !important; /* Use CSS variables */
         /* Ensure no gap on very small screens */
         position: fixed !important;
         z-index: 50 !important;
     }
 }
+
+/* ==========================
+   iOS Safe Area Debug (Remove in production)
+========================== */
+
+/* Temporary class to test safe area - add this to your message input temporarily */
+.message-input.debug-safe-area {
+    outline: 2px solid red !important;
+    background: rgba(255, 0, 0, 0.1) !important;
+}
+
+.message-input.debug-safe-area::before {
+    content: 'Safe Area Bottom: ' attr(data-safe-area) !important;
+    position: absolute !important;
+    top: -20px !important;
+    left: 10px !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    color: white !important;
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+    border-radius: 4px !important;
+    z-index: 1000 !important;
+}
+
+/* Remove this section after testing */

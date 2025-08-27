@@ -6,6 +6,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>DevHive</title> <!-- Set the title of the tab -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- iOS Viewport and Safe Area Polyfill -->
+    <script>
+      (function () {
+        const root = document.documentElement;
+        
+        // Set dynamic viewport height for iOS
+        function setVH() {
+          const vv = window.visualViewport;
+          const h = vv ? vv.height : window.innerHeight;
+          root.style.setProperty('--vh', (h * 0.01) + 'px');
+        }
+        
+        // Set safe area insets
+        function setSafeArea() {
+          const style = getComputedStyle(document.documentElement);
+          const sab = style.getPropertyValue('--sab');
+          
+          // If safe area is not working, set fallback
+          if (!sab || sab === '0px' || sab === '') {
+            // Detect iPhone with home indicator (iPhone X and later)
+            const isIPhone = /iPhone/.test(navigator.userAgent);
+            const hasHomeIndicator = window.screen.height >= 812; // iPhone X height threshold
+            
+            if (isIPhone && hasHomeIndicator) {
+              root.style.setProperty('--sab', '34px');
+            } else {
+              root.style.setProperty('--sab', '0px');
+            }
+          }
+        }
+        
+        // Initialize
+        setVH();
+        setSafeArea();
+        
+        // Listen for viewport changes
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', () => {
+          setTimeout(() => {
+            setVH();
+            setSafeArea();
+          }, 100);
+        });
+        
+        // Listen for visual viewport changes (iOS keyboard)
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener('resize', setVH);
+        }
+        
+        // Set safe area on load
+        window.addEventListener('load', setSafeArea);
+        
+        // Fallback for older iOS versions
+        if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
+          // Force safe area detection
+          setTimeout(setSafeArea, 500);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
