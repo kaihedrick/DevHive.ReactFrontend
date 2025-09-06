@@ -170,6 +170,10 @@
     --mobile-padding: 1rem !important;
     --mobile-margin: 0.5rem !important;
     --mobile-gap: 0.75rem !important;
+    
+    /* Content padding for fixed element alignment */
+    --content-pad: 0px !important;
+    --chat-max: 1100px !important; /* Max width for chat on very large screens - prevents empty left side */
 }
 
 /* Global Reset */
@@ -262,24 +266,32 @@ main {
     .container, main, .content-container {
         padding: 0 1.5rem !important;
     }
+    
+    :root { --content-pad: 1.5rem !important; }
 }
 
 @media (min-width: 768px) {
     .container, main, .content-container {
         padding: 0 2rem !important;
     }
+    
+    :root { --content-pad: 2rem !important; }
 }
 
 @media (min-width: 1024px) {
     .container, main, .content-container {
         padding: 0 2.5rem !important;
     }
+    
+    :root { --content-pad: 2.5rem !important; }
 }
 
 @media (min-width: 1280px) {
     .container, main, .content-container {
         padding: 0 3rem !important;
     }
+    
+    :root { --content-pad: 3rem !important; }
 }
 
 /* Dynamic Layout Adjustments */
