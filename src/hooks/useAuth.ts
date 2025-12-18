@@ -1,4 +1,4 @@
-import { useAuthContext } from '../contexts/AuthContext.tsx';
+import { useAuthContext } from '../contexts/AuthContext';
 
 /**
  * useAuth
