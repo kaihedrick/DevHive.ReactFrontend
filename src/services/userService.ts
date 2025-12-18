@@ -1,4 +1,4 @@
-import { api, handleApiError } from '../utils/apiClient';
+import { api, handleApiError } from '../lib/apiClient.ts';
 import { ENDPOINTS } from '../config';
 import { UserModel, UserProfile } from '../models/user.ts';
 

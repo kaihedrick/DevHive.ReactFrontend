@@ -1,39 +1,20 @@
-import { useState, useEffect } from 'react';
-import { getAuthToken } from '../services/authService';
-import { UseAuthReturn } from '../types/hooks';
+import { useAuthContext } from '../contexts/AuthContext.tsx';
 
 /**
  * useAuth
  *
  * Custom React hook to manage authentication state.
- * Checks for presence of auth token in localStorage and updates state accordingly.
- * Subscribes to storage events to reflect changes across tabs/windows.
+ * Consumes AuthContext which handles refresh token flow and persistent sessions.
  *
- * @returns {UseAuthReturn} Authentication state and utilities
+ * @returns {Object} Authentication state and utilities
  */
-const useAuth = (): UseAuthReturn => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getAuthToken());
+const useAuth = () => {
+  const { isAuthenticated, isLoading } = useAuthContext();
   
-  useEffect(() => {
-    const checkAuthStatus = (): void => {
-      const token = getAuthToken();
-      setIsAuthenticated(!!token);
-    };
-    
-    const handleStorageChange = (e: StorageEvent): void => {
-      if (e.key === 'token') {
-        checkAuthStatus();
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-  
-  return { isAuthenticated };
+  return { 
+    isAuthenticated,
+    isLoading 
+  };
 };
 
 export default useAuth;

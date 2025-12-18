@@ -1,106 +1,117 @@
-import { useState, useEffect, useCallback } from 'react';
-import { 
-  fetchUserProjects, 
-  deleteProject as deleteProjectAPI, 
-  fetchProjectById 
-} from "../services/projectService";
-import { UseProjectsReturn, UseProjectReturn, Project } from '../types/hooks.ts';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  fetchUserProjects,
+  fetchProjectById,
+  createProject,
+  updateProject,
+  deleteProject,
+  joinProjectByCode,
+} from '../services/projectService';
 
-/**
- * useProjects
- *
- * Custom hook for fetching and managing a list of projects associated with the current user.
- *
- * @returns {UseProjectsReturn} Projects state and operations
- */
-export const useProjects = (): UseProjectsReturn => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadProjects = async (): Promise<void> => {
-      try {
-        setLoading(true);
-        const response = await fetchUserProjects({ limit: 50, offset: 0 });
-        // The new API returns { projects: [...], limit: 20, offset: 0 }
-        // Extract the projects array from the response
-        setProjects(response.projects || []);
-        setError(null);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load projects');
-        console.error('Failed to load projects:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProjects();
-  }, []);
-
-  const deleteProject = async (projectId: string): Promise<void> => {
-    try {
-      await deleteProjectAPI(projectId);
-      setProjects(prev => prev.filter(p => p.id !== projectId));
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete project');
-      console.error('Failed to delete project:', err);
-      throw err;
-    }
-  };
-
-  return {
-    projects,
-    loading,
-    error,
-    deleteProject
-  };
+// Query keys
+export const projectKeys = {
+  all: ['projects'] as const,
+  lists: () => [...projectKeys.all, 'list'] as const,
+  list: (filters?: any) => [...projectKeys.lists(), filters] as const,
+  details: () => [...projectKeys.all, 'detail'] as const,
+  detail: (id: string) => [...projectKeys.details(), id] as const,
 };
 
 /**
- * useProject
- *
- * Custom hook for fetching and managing a single project by ID.
- *
- * @param {string} projectId - The ID of the project to fetch.
- * @returns {UseProjectReturn} Project state and operations
+ * Hook to fetch all projects for the authenticated user
+ * @param options Pagination options
+ * @returns Query result with projects data
  */
-export const useProject = (projectId: string): UseProjectReturn => {
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+export const useProjects = (options?: { limit?: number; offset?: number }) => {
+  return useQuery({
+    queryKey: projectKeys.list(options),
+    queryFn: () => fetchUserProjects(options),
+    staleTime: 2 * 60 * 1000, // 2 minutes - projects list changes less frequently
+  });
+};
 
-  const fetchProject = useCallback(async (): Promise<void> => {
-    if (!projectId) {
-      setLoading(false);
-      return;
-    }
+/**
+ * Hook to fetch a single project by ID
+ * @param projectId The project ID
+ * @returns Query result with project data
+ */
+export const useProject = (projectId: string | null | undefined) => {
+  return useQuery({
+    queryKey: projectKeys.detail(projectId || ''),
+    queryFn: () => fetchProjectById(projectId!),
+    enabled: !!projectId, // Only run query if projectId is provided
+    staleTime: 5 * 60 * 1000, // 5 minutes - project details change less frequently
+  });
+};
 
-    try {
-      setLoading(true);
-      const data = await fetchProjectById(projectId);
-      setProject(data);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load project');
-      console.error('❌ Error fetching project:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
+/**
+ * Hook to create a new project
+ * @returns Mutation hook for creating projects
+ */
+export const useCreateProject = () => {
+  const queryClient = useQueryClient();
 
-  const refreshProject = useCallback((): Promise<void> => {
-    return fetchProject();
-  }, [fetchProject]);
+  return useMutation({
+    mutationFn: (projectData: { name: string; description?: string }) =>
+      createProject(projectData),
+    onSuccess: () => {
+      // Invalidate projects list to refetch with new project
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    },
+  });
+};
 
-  useEffect(() => {
-    fetchProject();
-  }, [fetchProject]);
+/**
+ * Hook to update an existing project
+ * @returns Mutation hook for updating projects
+ */
+export const useUpdateProject = () => {
+  const queryClient = useQueryClient();
 
-  return {
-    project,
-    loading,
-    error,
-    refreshProject
-  };
+  return useMutation({
+    mutationFn: ({ projectId, projectData }: { projectId: string; projectData: any }) =>
+      updateProject(projectId, projectData),
+    onSuccess: (data, variables) => {
+      // Update the specific project in cache
+      queryClient.setQueryData(projectKeys.detail(variables.projectId), data);
+      // Invalidate projects list
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    },
+  });
+};
+
+/**
+ * Hook to delete a project
+ * @returns Mutation hook for deleting projects
+ */
+export const useDeleteProject = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (projectId: string) => deleteProject(projectId),
+    onSuccess: () => {
+      // Invalidate projects list to remove deleted project
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    },
+  });
+};
+
+/**
+ * Hook to join a project by code
+ * @returns Mutation hook for joining projects
+ */
+export const useJoinProject = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (projectId: string) => joinProjectByCode(projectId),
+    onSuccess: (data) => {
+      // Invalidate projects list to include newly joined project
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      // Also update the specific project cache if ID is available
+      if (data?.id) {
+        queryClient.setQueryData(projectKeys.detail(data.id), data);
+      }
+    },
+  });
 };

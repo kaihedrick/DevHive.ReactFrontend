@@ -1,7 +1,7 @@
 // MessageService.js
 // This module handles message-related API calls and WebSocket communication for real-time messaging in DevHive.
 
-import { api } from '../lib/api.ts';
+import { api } from '../lib/apiClient';
 import { ENDPOINTS } from '../config';
 
 let socket = null;

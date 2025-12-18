@@ -1,30 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './lib/queryClient';
+import { AuthProvider } from './contexts/AuthContext';
 import { useRoutePermission } from './hooks/useRoutePermission';
 import { isProjectAgnosticRoute } from './config/routeConfig.ts';
 import Navbar from './components/Navbar';
-import Projects from './components/Projects.tsx';
 import Footer from './components/Footer';
-import LoginRegister from './components/LoginRegister.tsx';
-import Sprint from './components/Sprint';
-import ForgotPassword from './components/ForgotPassword.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
-import Backlog from './components/Backlog.tsx';
-import Board from './components/Board.tsx';
-import Contacts from './components/Contacts';
-import Message from './components/Message.tsx';
-import ProjectDetails from './components/ProjectDetails.tsx';
-import CreateProject from './components/CreateProject.tsx';
-import InviteMembers from './components/InviteMembers';
-import AccountDetails from './components/AccountDetails';
-import JoinProject from './components/JoinProject';
-import CreateSprint from './components/CreateSprint.tsx';
-import CreateTask from './components/CreateTask.tsx';
-import EditSprint from './components/EditSprint.tsx';
-import EditTask from './components/EditTask.tsx';
-import ResetPassword from './components/ResetPassword.tsx';
+import LoadingFallback from './components/LoadingFallback';
 import { ToastProvider } from './contexts/ToastContext.tsx';
 import './styles/responsive.css'; // Import responsive utilities
+
+// Lazy load route components
+const LoginRegister = lazy(() => import('./components/LoginRegister.tsx'));
+const Projects = lazy(() => import('./components/Projects.tsx'));
+const Sprint = lazy(() => import('./components/Sprint'));
+const ForgotPassword = lazy(() => import('./components/ForgotPassword.tsx'));
+const Backlog = lazy(() => import('./components/Backlog.tsx'));
+const Board = lazy(() => import('./components/Board.tsx'));
+const Contacts = lazy(() => import('./components/Contacts'));
+const Message = lazy(() => import('./components/Message.tsx'));
+const ProjectDetails = lazy(() => import('./components/ProjectDetails.tsx'));
+const CreateProject = lazy(() => import('./components/CreateProject.tsx'));
+const InviteMembers = lazy(() => import('./components/InviteMembers'));
+const AccountDetails = lazy(() => import('./components/AccountDetails'));
+const JoinProject = lazy(() => import('./components/JoinProject'));
+const CreateSprint = lazy(() => import('./components/CreateSprint.tsx'));
+const CreateTask = lazy(() => import('./components/CreateTask.tsx'));
+const EditSprint = lazy(() => import('./components/EditSprint.tsx'));
+const EditTask = lazy(() => import('./components/EditTask.tsx'));
+const ResetPassword = lazy(() => import('./components/ResetPassword.tsx'));
 
 function App() {
   const location = useLocation();
@@ -81,43 +87,49 @@ function App() {
   });
 
   return (
-    <ToastProvider>
-    <div
-      className={`app-container ${showNavbar ? "has-navbar" : "full-screen"}`}
-      style={getBackgroundStyle()}
-    >
-      {showNavbar && <Navbar />}
-      <div className="content">
-        <main>
-          <Routes>
-            <Route path="/" element={<LoginRegister />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/create-project" element={<CreateProject />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/join-group" element={<JoinProject />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/reset-password/:token" component={ResetPassword} />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ToastProvider>
+          <div
+            className={`app-container ${showNavbar ? "has-navbar" : "full-screen"}`}
+            style={getBackgroundStyle()}
+          >
+            {showNavbar && <Navbar />}
+            <div className="content">
+              <main>
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
+                    <Route path="/" element={<LoginRegister />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/create-project" element={<CreateProject />} />
+                    <Route path="/projects" element={<Projects />} />
+                    <Route path="/join-group" element={<JoinProject />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-            <Route path="/project-details" element={<ProtectedRoute><ProjectDetails /></ProtectedRoute>} />
-            <Route path="/invite" element={<ProtectedRoute><InviteMembers /></ProtectedRoute>} />
-            <Route path="/account-details" element={<ProtectedRoute><AccountDetails /></ProtectedRoute>} />
-            <Route path="/sprint" element={<ProtectedRoute><Sprint /></ProtectedRoute>} />
-            <Route path="/backlog" element={<ProtectedRoute><Backlog /></ProtectedRoute>} />
-            <Route path="/board" element={<ProtectedRoute><Board /></ProtectedRoute>} />
-            <Route path="/contacts" element={<ProtectedRoute><Contacts /></ProtectedRoute>} />
-            <Route path="/messages" element={<ProtectedRoute><Message /></ProtectedRoute>} />
-            <Route path="/create-sprint" element={<ProtectedRoute><CreateSprint /></ProtectedRoute>} />
-            <Route path="/create-task" element={<ProtectedRoute><CreateTask /></ProtectedRoute>} />
-            <Route path="/edit-sprint/:sprintId" element={<ProtectedRoute><EditSprint /></ProtectedRoute>} />
-            <Route path="/edit-task/:taskId" element={<EditTask />} />
-            <Route path="/messages/:userId/:projectId" element={<Message />} />
-          </Routes>
-        </main>
+                    <Route path="/project-details" element={<ProtectedRoute><ProjectDetails /></ProtectedRoute>} />
+                    <Route path="/invite" element={<ProtectedRoute><InviteMembers /></ProtectedRoute>} />
+                    <Route path="/account-details" element={<ProtectedRoute><AccountDetails /></ProtectedRoute>} />
+                    <Route path="/sprint" element={<ProtectedRoute><Sprint /></ProtectedRoute>} />
+                    <Route path="/backlog" element={<ProtectedRoute><Backlog /></ProtectedRoute>} />
+                    <Route path="/board" element={<ProtectedRoute><Board /></ProtectedRoute>} />
+                    <Route path="/contacts" element={<ProtectedRoute><Contacts /></ProtectedRoute>} />
+                    <Route path="/messages" element={<ProtectedRoute><Message /></ProtectedRoute>} />
+                    <Route path="/create-sprint" element={<ProtectedRoute><CreateSprint /></ProtectedRoute>} />
+                    <Route path="/create-task" element={<ProtectedRoute><CreateTask /></ProtectedRoute>} />
+                    <Route path="/edit-sprint/:sprintId" element={<ProtectedRoute><EditSprint /></ProtectedRoute>} />
+                    <Route path="/edit-task/:taskId" element={<EditTask />} />
+                    <Route path="/messages/:userId/:projectId" element={<Message />} />
+                  </Routes>
+                </Suspense>
+              </main>
 
-        <Footer />
-      </div>
-    </div>
-      </ToastProvider>
+              <Footer />
+            </div>
+          </div>
+        </ToastProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

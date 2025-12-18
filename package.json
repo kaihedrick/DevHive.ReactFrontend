@@ -21,7 +21,11 @@
     "react-router-dom": "^7.0.2",
     "react-scripts": "5.0.1",
     "typescript": "^5.8.2",
-    "web-vitals": "^4.2.4"
+    "web-vitals": "^4.2.4",
+    "@tanstack/react-query": "^5.62.11",
+    "@tanstack/query-persist-client-core": "^5.62.11",
+    "@tanstack/react-query-persist-client": "^5.62.11",
+    "@tanstack/query-sync-storage-persister": "^5.62.11"
   },
   "scripts": {
     "start": "react-scripts start",

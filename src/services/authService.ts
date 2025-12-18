@@ -1,4 +1,4 @@
-import { api, handleApiError } from '../utils/apiClient';
+import { api, handleApiError, setAccessToken, clearAccessToken, refreshToken as refreshAccessToken } from '../lib/apiClient.ts';
 import { ENDPOINTS, JWT_CONFIG } from '../config';
 import { EmailRequest } from '../models/email.ts';
 import { ResetPasswordModel, ChangePasswordModel } from '../models/password.ts';
@@ -30,7 +30,8 @@ export const getUserId = (): string | null => localStorage.getItem('userId');
  */
 
 export const storeAuthData = (token: string, userId: string): void => {
-  localStorage.setItem('token', token);
+  // Store in memory via apiClient (also updates localStorage for backward compatibility)
+  setAccessToken(token);
   localStorage.setItem('userId', userId);
 };
 /**
@@ -38,8 +39,8 @@ export const storeAuthData = (token: string, userId: string): void => {
  * Clears stored authentication and selected project data from localStorage.
  */
 export const clearAuthData = (): void => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('userId');
+  // Clear from memory via apiClient (also clears localStorage)
+  clearAccessToken();
   localStorage.removeItem('selectedProjectId');
 };
 
@@ -165,6 +166,7 @@ export const login = async (credentials: LoginModel | any): Promise<AuthToken> =
     if (authToken && userId) {
       storeAuthData(authToken, userId);
       console.log('✅ Login successful');
+      // Refresh token is stored as HttpOnly cookie by backend, no action needed here
     } else {
       console.warn('⚠️ Login response missing token or userId:', response.data);
     }
@@ -175,11 +177,34 @@ export const login = async (credentials: LoginModel | any): Promise<AuthToken> =
   }
 };
 /**
+ * @function refreshToken
+ * Refreshes the access token using the refresh token cookie.
+ * @returns {Promise<AuthToken>} New auth token and user ID if successful.
+ */
+export const refreshToken = async (): Promise<AuthToken> => {
+  try {
+    const newToken = await refreshAccessToken();
+    const userId = localStorage.getItem('userId');
+    
+    if (newToken && userId) {
+      return { Token: newToken, userId };
+    }
+    
+    throw new Error('Refresh token response missing token or userId');
+  } catch (error) {
+    console.error('❌ Refresh token error:', error);
+    clearAuthData();
+    throw error;
+  }
+};
+
+/**
  * @function logout
  * Logs out the current user and clears session data.
+ * Note: Refresh token cookie is cleared by backend on logout endpoint if called.
  */
 export const logout = (): void => {
-  clearAuth();
+  clearAuthData();
   console.log('✅ Logged out successfully');
 };
 /**

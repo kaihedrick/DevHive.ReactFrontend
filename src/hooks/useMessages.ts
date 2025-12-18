@@ -1,78 +1,45 @@
-import { useState, useEffect, useRef } from "react";
-import { fetchProjectMessages, sendMessage, subscribeToMessageStream } from "../services/messageService";
-import { getUserId } from "../services/authService";
-import { UseMessagesReturn, Message } from "../types/hooks.ts";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  fetchProjectMessages,
+  sendMessage,
+} from '../services/messageService';
 
-/**
- * useMessages
- *
- * Custom React hook for managing messaging state and real-time updates within a project.
- *
- * @param {string} toUserID - ID of the recipient user.
- * @param {string} projectID - ID of the current project.
- * @returns {UseMessagesReturn} Messaging state and handlers.
- */
-const useMessages = (toUserID: string, projectID: string): UseMessagesReturn => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState<string>("");
-  const loggedInUserId = getUserId();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Fetch messages on mount and subscribe to real-time updates
-  useEffect(() => {
-    const loadMessages = async (): Promise<void> => {
-      try {
-        const response = await fetchProjectMessages(projectID, { limit: 50, offset: 0 });
-        setMessages(response.messages || []);
-      } catch (error: any) {
-        console.error("❌ Error fetching messages:", error);
-      }
-    };
-
-    loadMessages();
-
-    const socket = subscribeToMessageStream(projectID, (newMsg: Message) => {
-      setMessages((prevMessages) => [...prevMessages, newMsg]);
-    });
-
-    return () => {
-      if (socket) socket.close();
-    };
-  }, [projectID]);
-
-  // Auto-scroll to the bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  // Handle sending a new message
-  const handleSendMessage = async (): Promise<void> => {
-    const trimmedMessage = newMessage.trim();
-    if (!trimmedMessage) return;
-
-    try {
-      await sendMessage({
-        projectId: projectID,
-        content: trimmedMessage,
-        messageType: "text"
-      });
-      
-      // Refresh messages after sending
-      const response = await fetchProjectMessages(projectID, { limit: 50, offset: 0 });
-      setMessages(response.messages || []);
-      setNewMessage("");
-    } catch (error: any) {
-      console.error("❌ Error sending message:", error);
-    }
-  };
-
-  return {
-    messages,
-    newMessage,
-    setNewMessage,
-    handleSendMessage,
-    messagesEndRef,
-  };
+// Query keys
+export const messageKeys = {
+  all: ['messages'] as const,
+  lists: () => [...messageKeys.all, 'list'] as const,
+  project: (projectId: string) => [...messageKeys.lists(), 'project', projectId] as const,
 };
 
-export default useMessages;
+/**
+ * Hook to fetch messages for a project
+ * @param projectId The project ID
+ * @param options Pagination options
+ * @returns Query result with messages data
+ */
+export const useMessages = (projectId: string | null | undefined, options?: { limit?: number; offset?: number }) => {
+  return useQuery({
+    queryKey: messageKeys.project(projectId || ''),
+    queryFn: () => fetchProjectMessages(projectId!, options),
+    enabled: !!projectId, // Only run query if projectId is provided
+    staleTime: 30 * 1000, // 30 seconds - messages are more real-time
+    refetchInterval: 60 * 1000, // Refetch every minute for real-time feel
+  });
+};
+
+/**
+ * Hook to send a message
+ * @returns Mutation hook for sending messages
+ */
+export const useSendMessage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (messageData: { projectId: string; content: string; messageType?: string; parentMessageId?: string }) =>
+      sendMessage(messageData),
+    onSuccess: (data, variables) => {
+      // Invalidate messages list for the project to show new message
+      queryClient.invalidateQueries({ queryKey: messageKeys.project(variables.projectId) });
+    },
+  });
+};

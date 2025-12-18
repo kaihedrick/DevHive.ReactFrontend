@@ -1,7 +1,7 @@
 // SprintService.js
 // This module handles sprint-related API calls for DevHive sprint management.
 
-import { api } from '../lib/api.ts';
+import { api } from '../lib/apiClient';
 import { ENDPOINTS } from '../config';
 
 /**

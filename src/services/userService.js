@@ -1,7 +1,7 @@
 // UserService.js
 // This module handles user-related API calls for DevHive user management.
 
-import { api } from '../lib/api.ts';
+import { api } from '../lib/apiClient';
 import { ENDPOINTS } from '../config';
 import { sendWelcomeEmail } from './mailService';
 

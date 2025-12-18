@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { fetchUserById } from "../services/userService";
 import { getUserId } from "../services/authService";
-import useMessages from "../hooks/useMessages.ts";
+import useMessages from "../hooks/useMessages.js";
 import { User, Message as MessageType } from "../types/hooks.ts";
 import "../styles/message.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
-import { joinProject, fetchProjectById, getUserId } from "../services/projectService";
+import { joinProjectByCode } from "../services/projectService";
 import "../styles/join_project.css";
 /**
  * JoinProject Component
@@ -19,7 +19,6 @@ const JoinProject = () => {
    * Provides client-side navigation to switch between routes
    */
   const navigate = useNavigate();
-  const userId = getUserId();
   /**
    * useState - projectCode, status, error
    * 
@@ -56,19 +55,24 @@ const JoinProject = () => {
     }
 
     try {
-      setStatus("Validating project code...");
+      setStatus("Joining project...");
       setError("");
 
-      const projectData = await fetchProjectById(projectCode);
-      if (!projectData) throw new Error("Invalid project code.");
+      const joinedProject = await joinProjectByCode(projectCode);
 
-      setStatus("Joining project...");
-      await joinProject(projectCode, userId);
-
-      setStatus("Successfully joined the project!");
-      setTimeout(() => navigate("/projects"), 1500);
+      setStatus(`Successfully joined project "${joinedProject?.name || projectCode}"!`);
+      setTimeout(() => navigate("/board"), 1000);
     } catch (err) {
-      setError("Invalid project code or failed to join the project.");
+      console.error("❌ Error joining project by code:", err.response?.data || err.message);
+
+      if (err.response?.status === 404) {
+        setError("Project not found. Please check the code and try again.");
+      } else if (err.response?.status === 403) {
+        setError("You don't have access to this project. The join code may be invalid or expired.");
+      } else {
+        setError("Failed to join the project. Please verify the code and try again.");
+      }
+
       setStatus("");
     }
   };

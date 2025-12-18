@@ -1,7 +1,7 @@
 // ProjectService.js
 // This module handles project-related API calls for DevHive project management.
 
-import { api } from '../lib/api.ts';
+import { api } from '../lib/apiClient';
 import { ENDPOINTS } from '../config';
 import { normalizeProjects } from '../utils/normalize.js';
 
@@ -225,6 +225,47 @@ export const fetchProjectMembers = async (projectId) => {
         return response.data;
     } catch (error) {
         console.error("❌ Error fetching project members:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
+ * Joins a project by project code / ID using the dedicated join endpoint.
+ *
+ * Backend flow:
+ * - Authenticates via JWT (current user)
+ * - Verifies project exists
+ * - Adds the current user as a member (role: member)
+ * - Returns the project object
+ *
+ * @param {string} projectId - The project ID or join code entered by the user
+ * @returns {Promise<Object>} - The joined project object
+ * @throws {Error} - Throws an error if join fails
+ */
+export const joinProjectByCode = async (projectId) => {
+    try {
+        if (!projectId) {
+            throw new Error("Project ID is required");
+        }
+
+        const trimmedId = String(projectId).trim();
+
+        console.log(`📤 Joining project via join endpoint: ${trimmedId}`);
+
+        const response = await api.post(ENDPOINTS.PROJECT_JOIN, {
+            projectId: trimmedId
+        });
+
+        console.log("✅ Joined project successfully:", response.data);
+
+        // Persist selected project for the rest of the app
+        if (response.data && response.data.id) {
+            setSelectedProject(response.data.id);
+        }
+
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error joining project:", error.response?.data || error.message);
         throw error;
     }
 };

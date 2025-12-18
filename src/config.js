@@ -40,6 +40,7 @@ export const ENDPOINTS = {
   
   // Project endpoints
   PROJECTS: `${API_BASE_URL}/projects`, // GET/POST
+  PROJECT_JOIN: `${API_BASE_URL}/projects/join`, // POST - join by project code
   PROJECT_BY_ID: (id) => `${API_BASE_URL}/projects/${id}`, // GET/PATCH/DELETE
   PROJECT_BUNDLE: (id) => `${API_BASE_URL}/projects/${id}/bundle`, // GET
   PROJECT_SPRINTS: (id) => `${API_BASE_URL}/projects/${id}/sprints`, // GET/POST
