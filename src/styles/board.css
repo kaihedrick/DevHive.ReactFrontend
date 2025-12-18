@@ -446,11 +446,14 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 @media (max-width: 768px) {
   .board-page {
     padding: var(--space-3) !important;
+    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
   }
   
   .board-container {
     padding: var(--space-3) !important;
+    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
     margin: 0 var(--space-2) !important;
+    margin-bottom: var(--space-4) !important;
   }
   
   /* Stack columns vertically on mobile */
@@ -468,6 +471,12 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   
   .board-column-header h3 {
     font-size: var(--font-size-base) !important; /* Smaller font on mobile */
+  }
+  
+  /* Add extra bottom padding to column content on mobile to ensure all tasks are visible */
+  .board-column-content {
+    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
+    scroll-padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
   }
   
   /* Adjust task list for mobile */
@@ -505,11 +514,14 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 @media (max-width: 480px) {
   .board-page {
     padding: var(--space-2) !important;
+    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
   }
   
   .board-container {
     padding: var(--space-2) !important;
+    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
     margin: 0 var(--space-1) !important;
+    margin-bottom: var(--space-4) !important;
   }
   
   .board-columns {
@@ -522,6 +534,12 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   
   .board-column-header h3 {
     font-size: var(--font-size-sm) !important; /* Smaller font on very small screens */
+  }
+  
+  /* Ensure extra bottom padding on very small screens too */
+  .board-column-content {
+    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
+    scroll-padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
   }
   
   .task-list {
@@ -537,5 +555,99 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   
   .board-header {
     gap: var(--space-2) !important; /* Smaller gap on very small screens */
+  }
+}
+
+/* Mobile Drop Zones - Appear when dragging on mobile */
+.mobile-drop-zones {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: var(--space-2) !important;
+  padding: var(--space-2) !important;
+  background: var(--bg-primary) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  width: calc(100vw - 32px) !important;
+  max-width: calc(100vw - 32px) !important;
+  min-width: 280px !important;
+  animation: slideDown 0.2s ease-out !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-drop-zone {
+  flex: 1 !important;
+  padding: var(--space-3) var(--space-2) !important;
+  border: 2px solid var(--border-color) !important;
+  border-radius: var(--border-radius) !important;
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-medium) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-align: center !important;
+  min-height: 44px !important; /* Minimum touch target size */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  user-select: none !important;
+}
+
+.mobile-drop-zone:hover,
+.mobile-drop-zone.drag-over {
+  background: var(--accent-primary) !important;
+  color: var(--black) !important;
+  border-color: var(--accent-primary) !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.mobile-drop-zone--todo {
+  border-color: var(--text-tertiary, #999) !important;
+}
+
+.mobile-drop-zone--todo:hover,
+.mobile-drop-zone--todo.drag-over {
+  background: var(--text-tertiary, #999) !important;
+  color: var(--white) !important;
+  border-color: var(--text-tertiary, #999) !important;
+}
+
+.mobile-drop-zone--in-progress {
+  border-color: var(--accent-primary) !important;
+}
+
+.mobile-drop-zone--in-progress:hover,
+.mobile-drop-zone--in-progress.drag-over {
+  background: var(--accent-primary) !important;
+  color: var(--black) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+.mobile-drop-zone--completed {
+  border-color: hsl(120, 50%, 50%) !important;
+}
+
+.mobile-drop-zone--completed:hover,
+.mobile-drop-zone--completed.drag-over {
+  background: hsl(120, 50%, 50%) !important;
+  color: var(--white) !important;
+  border-color: hsl(120, 50%, 50%) !important;
+}
+
+/* Ensure mobile drop zones only show on mobile */
+@media (min-width: 769px) {
+  .mobile-drop-zones {
+    display: none !important;
   }
 }

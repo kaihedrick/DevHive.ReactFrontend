@@ -1,13 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
-import { createPortal } from "react-dom";
-import { fetchUserProjects, updateProject, deleteProject } from "../services/projectService";
+import { fetchUserProjects } from "../services/projectService";
 import { useNavigate } from "react-router-dom";
 import { setSelectedProject, clearSelectedProject } from "../services/storageService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCog, faTimes } from "@fortawesome/free-solid-svg-icons";
-import ConfirmationModal from "./ConfirmationModal.tsx";
+import { faCog, faBars } from "@fortawesome/free-solid-svg-icons";
+import ProjectInspector from "./ProjectInspector.tsx";
 import "../styles/projects.css";
-import "../styles/modal.css";
 
 interface Project {
   id: string;
@@ -21,8 +19,8 @@ const Projects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [fabOpen, setFabOpen] = useState(false);
   const [editing, setEditing] = useState<Project | null>(null);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
@@ -76,6 +74,22 @@ const Projects: React.FC = () => {
     setEditing(project);
   };
 
+  // Close menu on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && menuOpen) {
+        setMenuOpen(false);
+      }
+    };
+
+    if (menuOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [menuOpen]);
+
   return (
     <main className="projects-page with-footer-pad scroll-pad-bottom" role="main">
       {/* #region agent log */}
@@ -104,19 +118,73 @@ const Projects: React.FC = () => {
           <p className="page-subtitle">Manage your workspaces</p>
         </div>
 
-        {/* Actions toolbar - visible on all screen sizes */}
+        {/* Actions toolbar - visible on desktop, hamburger menu on mobile */}
         <div className="projects-toolbar">
-          <button className="primary-action-btn" onClick={handleCreateProject}>
-            <span className="btn-icon" aria-hidden>＋</span>
-            New Project
-          </button>
-          <button className="secondary-action-btn" onClick={handleJoinProject}>
-            Join Project
-          </button>
-          <button className="icon-btn" onClick={handleAccountDetails} aria-label="Account details" title="Account details">
-            <FontAwesomeIcon icon={faCog} className="icon" aria-hidden="true" />
+          {/* Desktop buttons */}
+          <div className="projects-toolbar-buttons">
+            <button className="primary-action-btn" onClick={handleCreateProject}>
+              <span className="btn-icon" aria-hidden>＋</span>
+              New Project
+            </button>
+            <button className="secondary-action-btn" onClick={handleJoinProject}>
+              Join Project
+            </button>
+            <button className="icon-btn" onClick={handleAccountDetails} aria-label="Account details" title="Account details">
+              <FontAwesomeIcon icon={faCog} className="icon" aria-hidden="true" />
+            </button>
+          </div>
+          
+          {/* Mobile hamburger menu button */}
+          <button 
+            className="projects-hamburger-btn"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+          >
+            <FontAwesomeIcon icon={faBars} className="icon" aria-hidden="true" />
           </button>
         </div>
+        
+        {/* Mobile dropdown menu */}
+        {menuOpen && (
+          <>
+            <div className="projects-menu-backdrop is-open" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+            <div className="projects-menu-dropdown" role="menu">
+              <button 
+                className="projects-menu-item" 
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleCreateProject();
+                }}
+              >
+                <span className="btn-icon" aria-hidden>＋</span>
+                New Project
+              </button>
+              <button 
+                className="projects-menu-item" 
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleJoinProject();
+                }}
+              >
+                Join Project
+              </button>
+              <button 
+                className="projects-menu-item" 
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleAccountDetails();
+                }}
+              >
+                <FontAwesomeIcon icon={faCog} className="icon" aria-hidden="true" />
+                Account Details
+              </button>
+            </div>
+          </>
+        )}
       </header>
 
       <section className="projects-container" aria-live="polite">
@@ -170,204 +238,22 @@ const Projects: React.FC = () => {
         )}
       </section>
 
-      {/* Mobile: single FAB → action sheet with New / Join / Account (always available) */}
-      {!loading && !error && (
-        <>
-          <button
-            className="fab show-on-mobile"
-            onClick={() => setFabOpen((v) => !v)}
-            aria-label="Open actions"
-          >
-            <span className="fab__icon">＋</span>
-          </button>
-
-          {fabOpen && (
-            <>
-              <button className="fab-backdrop show-on-mobile" aria-label="Close actions" onClick={() => setFabOpen(false)} />
-              <div className="fab-menu show-on-mobile" role="menu">
-                <button role="menuitem" onClick={() => { setFabOpen(false); handleCreateProject(); }}>New Project</button>
-                <button role="menuitem" onClick={() => { setFabOpen(false); handleJoinProject(); }}>Join Project</button>
-                <button role="menuitem" onClick={() => { setFabOpen(false); handleAccountDetails(); }}>Account Details</button>
-              </div>
-            </>
-          )}
-        </>
-      )}
-
-      {/* Edit Project Modal */}
-      {editing && (
-        <EditProjectModal
-          project={editing}
-          onClose={() => setEditing(null)}
-          onUpdated={() => { setEditing(null); refreshProjects(); }}
-          onDeleted={() => { setEditing(null); refreshProjects(); }}
-        />
-      )}
+      {/* Project Inspector */}
+      <ProjectInspector
+        project={editing}
+        isOpen={!!editing}
+        onClose={() => setEditing(null)}
+        onUpdate={() => {
+          setEditing(null);
+          refreshProjects();
+        }}
+        onDelete={() => {
+          setEditing(null);
+          refreshProjects();
+        }}
+      />
     </main>
   );
-};
-
-// EditProjectModal Component
-interface EditProjectModalProps {
-  project: Project;
-  onClose: () => void;
-  onUpdated: () => void;
-  onDeleted: () => void;
-}
-
-const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onClose, onUpdated, onDeleted }) => {
-  const [name, setName] = useState(project.name);
-  const [description, setDescription] = useState(project.description || '');
-  const [busy, setBusy] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  // Lock scroll while modal is open (prevents background scroll on iOS)
-  useEffect(() => {
-    const prevOverflow = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = 'hidden';
-    document.body.classList.add('modal-open');
-    
-    return () => {
-      document.documentElement.style.overflow = prevOverflow;
-      document.body.classList.remove('modal-open');
-    };
-  }, []);
-
-  const handleSave = async () => {
-    try {
-      setBusy(true);
-      await updateProject(project.id, { name, description });
-      onUpdated();
-    } catch (error) {
-      console.error("Error updating project:", error);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleDeleteClick = () => {
-    setShowDeleteConfirm(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    setShowDeleteConfirm(false);
-    try {
-      setBusy(true);
-      await deleteProject(project.id);
-      onDeleted();
-    } catch (error) {
-      console.error("Error deleting project:", error);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleDeleteCancel = () => {
-    setShowDeleteConfirm(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') onClose();
-  };
-
-  const target = document.getElementById('modal-root') ?? document.body;
-
-  const modalContent = (
-    <div 
-      className="modal is-open" 
-      role="dialog" 
-      aria-modal="true" 
-      aria-label={`Edit ${project.name}`}
-      onKeyDown={handleKeyDown}
-    >
-      <div className="modal__scrim" onClick={onClose} />
-      <div className="modal__card">
-        {/* Header with close button */}
-        <header className="modal__header">
-          <button 
-            className="icon-btn" 
-            aria-label="Close" 
-            onClick={onClose}
-            type="button"
-          >
-            <FontAwesomeIcon icon={faTimes} className="icon" aria-hidden="true" />
-          </button>
-          <h3 className="modal__title">Edit Project</h3>
-        </header>
-
-        {/* Body with form fields */}
-        <div className="modal__body">
-          <label htmlFor="edit-name">
-            <span>Name</span>
-            <input 
-              id="edit-name"
-              type="text"
-              value={name} 
-              onChange={(e) => setName(e.target.value)}
-              disabled={busy}
-              className="form-input"
-            />
-          </label>
-          
-          <label htmlFor="edit-description">
-            <span>Description</span>
-            <textarea 
-              id="edit-description"
-              value={description} 
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={busy}
-              rows={3}
-              className="form-input"
-            />
-          </label>
-        </div>
-
-        {/* Footer with action buttons */}
-        <footer className="modal__footer">
-          <div className="form-actions">
-            <button 
-              className="secondary-action-btn" 
-              onClick={onClose} 
-              disabled={busy}
-              type="button"
-            >
-              Cancel
-            </button>
-            <button 
-              className="danger-action-btn" 
-              onClick={handleDeleteClick} 
-              disabled={busy}
-              type="button"
-            >
-              Delete
-            </button>
-            <button 
-              className="primary-action-btn" 
-              onClick={handleSave} 
-              disabled={busy}
-              type="button"
-            >
-              Save
-            </button>
-          </div>
-        </footer>
-      </div>
-
-      {/* Delete Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={showDeleteConfirm}
-        title="Delete Project"
-        message={`Are you sure you want to delete "${project.name}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
-        type="delete"
-        onConfirm={handleDeleteConfirm}
-        onCancel={handleDeleteCancel}
-      />
-    </div>
-  );
-
-  return createPortal(modalContent, target);
 };
 
 export default Projects;

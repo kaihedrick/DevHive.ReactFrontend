@@ -283,22 +283,149 @@ body.has-sidebar .navbar:hover ~ main .projects-page {
   gap: 8px !important;
   margin-left: auto !important;
   flex-shrink: 0 !important;
+  position: relative !important;
+}
+
+.projects-page .projects-toolbar-buttons {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+/* Hamburger menu button - hidden on desktop */
+.projects-hamburger-btn {
+  display: none !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  border: none !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  cursor: pointer !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.projects-hamburger-btn:hover {
+  background: var(--bg-secondary) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.projects-hamburger-btn .icon {
+  font-size: 18px !important;
+}
+
+/* Mobile dropdown menu */
+.projects-menu-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  z-index: 100 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.2s ease !important;
+}
+
+.projects-menu-backdrop.is-open {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.projects-menu-dropdown {
+  position: absolute !important;
+  top: calc(100% + 8px) !important;
+  right: 0 !important;
+  background: var(--bg-primary) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  min-width: 200px !important;
+  z-index: 101 !important;
+  overflow: hidden !important;
+  animation: slideDown 0.2s ease-out !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.projects-menu-item {
+  width: 100% !important;
+  padding: 12px 16px !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  transition: background 0.2s ease !important;
+  font-family: inherit !important;
+}
+
+.projects-menu-item:hover {
+  background: var(--bg-secondary) !important;
+}
+
+.projects-menu-item:first-child {
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+}
+
+.projects-menu-item:last-child {
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+}
+
+.projects-menu-item .btn-icon {
+  font-size: 18px !important;
+  margin-right: 0 !important;
+}
+
+.projects-menu-item .icon {
+  font-size: 16px !important;
+  width: 20px !important;
+  text-align: center !important;
 }
 
 /* Responsive toolbar adjustments */
+@media (max-width: 768px) {
+  /* Hide desktop buttons on mobile */
+  .projects-page .projects-toolbar-buttons {
+    display: none !important;
+  }
+  
+  /* Show hamburger button on mobile */
+  .projects-hamburger-btn {
+    display: flex !important;
+  }
+}
+
 @media (max-width: 480px) {
   .projects-page .projects-toolbar {
     gap: 6px !important;
   }
   
-  .projects-page .primary-action-btn,
-  .projects-page .secondary-action-btn {
-    padding: 0 16px !important;
-    font-size: var(--font-size-sm) !important;
+  .projects-menu-dropdown {
+    min-width: 180px !important;
   }
   
-  .projects-page .btn-icon {
-    margin-right: 4px !important;
+  .projects-menu-item {
+    padding: 10px 14px !important;
+    font-size: var(--font-size-sm) !important;
   }
 }
 

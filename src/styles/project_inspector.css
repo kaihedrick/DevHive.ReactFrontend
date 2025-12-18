@@ -1,0 +1,270 @@
+/* ==========================
+   Project Inspector Panel
+   Apple-style right-side panel
+========================== */
+
+.project-inspector-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 2147483000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.project-inspector-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.project-inspector {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 320px !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  background: var(--bg-primary, #fff) !important;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15) !important;
+  z-index: 2147483001 !important;
+  transform: translateX(100%) !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.project-inspector.is-open {
+  transform: translateX(0) !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.project-inspector-content {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+}
+
+/* Header */
+.project-inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  flex-shrink: 0;
+}
+
+.project-inspector-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary, #000);
+  margin: 0;
+  letter-spacing: -0.02em;
+  flex: 1;
+  text-align: center;
+}
+
+.project-inspector-back {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #666);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.project-inspector-back:hover {
+  background: var(--bg-secondary, #f5f5f5);
+  color: var(--text-primary, #000);
+}
+
+/* Body */
+.project-inspector-body {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 24px !important;
+  -webkit-overflow-scrolling: touch !important;
+  min-height: 0 !important;
+}
+
+.inspector-field {
+  margin-bottom: 24px;
+}
+
+.inspector-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary, #666);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inspector-input,
+.inspector-textarea,
+.inspector-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 8px;
+  font-size: 15px;
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #000);
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.inspector-input:focus,
+.inspector-textarea:focus,
+.inspector-select:focus {
+  outline: none;
+  border-color: var(--accent-primary, #007aff);
+}
+
+.inspector-input:disabled,
+.inspector-textarea:disabled,
+.inspector-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.inspector-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.inspector-select {
+  cursor: pointer;
+}
+
+/* Separator */
+.project-inspector-separator {
+  height: 1px;
+  background: var(--border-color, #e0e0e0);
+  margin: 24px 0;
+  flex-shrink: 0;
+}
+
+/* Delete Section */
+.project-inspector-delete-section {
+  margin: 0;
+  padding: 0;
+}
+
+.project-inspector-delete-btn {
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  background: transparent;
+  color: #ff3b30;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  font-family: inherit;
+}
+
+.project-inspector-delete-btn:hover:not(:disabled) {
+  background: rgba(255, 59, 48, 0.1);
+}
+
+.project-inspector-delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Footer */
+.project-inspector-footer {
+  display: flex !important;
+  gap: 12px !important;
+  padding: 16px 24px !important;
+  border-top: 1px solid var(--border-color, #e0e0e0) !important;
+  flex-shrink: 0 !important;
+  background: var(--bg-primary, #fff) !important;
+  position: relative !important;
+  z-index: 10 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.inspector-btn {
+  flex: 1 !important;
+  padding: 12px 20px !important;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  min-height: 44px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.inspector-btn--secondary {
+  background: var(--bg-secondary, #f5f5f5);
+  color: var(--text-primary, #000);
+}
+
+.inspector-btn--secondary:hover:not(:disabled) {
+  background: var(--bg-tertiary, #e5e5e5);
+}
+
+.inspector-btn--primary {
+  background: #007aff;
+  color: white;
+}
+
+.inspector-btn--primary:hover:not(:disabled) {
+  background: #0051d5;
+}
+
+.inspector-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Mobile: Bottom Sheet */
+@media (max-width: 768px) {
+  .project-inspector {
+    width: 100%;
+    height: auto;
+    max-height: 90vh;
+    top: auto;
+    bottom: 0;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(100%);
+  }
+
+  .project-inspector.is-open {
+    transform: translateY(0);
+  }
+
+  .project-inspector-backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+

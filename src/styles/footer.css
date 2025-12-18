@@ -25,32 +25,41 @@ body {
    Footer Styling
 ========================== */
 .footer {
-  background-color: var(--black);
-  color: var(--white);
-  padding: 10px 20px;
-  text-align: center;
-  font-size: 0.9rem;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  height: var(--footer-h); /* Fixed height footer */
-  z-index: 900; /* Below navbar z-index for proper layering */
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-color: var(--black) !important;
+  color: var(--white) !important;
+  padding: 10px 20px !important;
+  text-align: center !important;
+  font-size: 0.9rem !important;
+  position: fixed !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: var(--footer-h) !important; /* Fixed height footer */
+  z-index: 900 !important; /* Below navbar z-index for proper layering */
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
 }
 
-.footer-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: var(--white);
+.footer .footer-content {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  color: var(--white) !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .footer p {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--white);
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 1rem !important;
+  color: var(--white) !important;
+  text-align: center !important;
+  width: 100% !important;
+  display: block !important;
 }
 
 /* ==========================
@@ -58,8 +67,24 @@ body {
 ========================== */
 @media (max-width: 600px) {
   .footer {
-    padding: 8px 15px;
-    font-size: 0.8rem;
+    padding: 8px 15px !important;
+    font-size: 0.8rem !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  
+  .footer .footer-content {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+  
+  .footer p {
+    text-align: center !important;
+    width: 100% !important;
   }
   
   .container {
@@ -72,29 +97,31 @@ body {
    Footer Links
 ========================== */
 .footer a {
-  color: var(--accent-primary);
-  text-decoration: none;
-  transition: color var(--transition-normal) ease;
+  color: var(--accent-primary) !important;
+  text-decoration: none !important;
+  transition: color var(--transition-normal) ease !important;
 }
 
 .footer a:hover {
-  color: var(--white);
-  text-decoration: underline;
+  color: var(--white) !important;
+  text-decoration: underline !important;
 }
 
 /* ==========================
    Footer Sections
 ========================== */
-.footer-section {
-  margin: 0 15px;
+.footer .footer-section {
+  margin: 0 15px !important;
+  text-align: center !important;
 }
 
 /* ==========================
    Copyright Text
 ========================== */
-.copyright {
-  font-size: 0.85rem;
-  opacity: 0.8;
+.footer .copyright {
+  font-size: 0.85rem !important;
+  opacity: 0.8 !important;
+  text-align: center !important;
 }
 
 /* ==========================

@@ -52,6 +52,24 @@ const Board: React.FC = () => {
   const [selectedTaskForEdit, setSelectedTaskForEdit] = useState<Task | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState<boolean>(false);
 
+  // Mobile drag-and-drop state
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [draggedTaskElement, setDraggedTaskElement] = useState<HTMLElement | null>(null);
+  const [showMobileDropZones, setShowMobileDropZones] = useState<boolean>(false);
+  const [dropZonePosition, setDropZonePosition] = useState<{ top: number; left: number } | null>(null);
+  const draggedTaskRef = useRef<HTMLElement | null>(null);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Assignee initials helper
   const getAssigneeInitials = (assigneeId: string): string => {
     const member = members.find(m => m.id === assigneeId);
@@ -140,6 +158,24 @@ const Board: React.FC = () => {
     // Add dragging class to the card for custom visual feedback
     const cardElement = e.currentTarget as HTMLElement;
     cardElement.classList.add('dragging');
+    
+    // Mobile-specific: Show drop zones under the task
+    if (isMobile) {
+      draggedTaskRef.current = cardElement;
+      setDraggedTaskElement(cardElement);
+      setShowMobileDropZones(true);
+      
+      // Calculate position for drop zones (right under the task)
+      const rect = cardElement.getBoundingClientRect();
+      const dropZoneWidth = Math.min(400, window.innerWidth - 32); // Max width with margins
+      const taskCenter = rect.left + (rect.width / 2);
+      const dropZoneLeft = Math.max(16, Math.min(taskCenter - (dropZoneWidth / 2), window.innerWidth - dropZoneWidth - 16));
+      
+      setDropZonePosition({
+        top: rect.bottom + 8, // 8px gap below task (using viewport coordinates for fixed positioning)
+        left: dropZoneLeft // Center relative to task, ensuring it stays on screen
+      });
+    }
   };
 
   const handleDragEnd = (e: React.DragEvent): void => {
@@ -154,6 +190,14 @@ const Board: React.FC = () => {
         ref.current.classList.remove('drag-over');
       }
     });
+    
+    // Mobile-specific: Hide drop zones
+    if (isMobile) {
+      setShowMobileDropZones(false);
+      setDraggedTaskElement(null);
+      setDropZonePosition(null);
+      draggedTaskRef.current = null;
+    }
   };
 
   const handleDragOver = (e: React.DragEvent, columnType: string): void => {
@@ -189,6 +233,28 @@ const Board: React.FC = () => {
     const success = await handleStatusUpdate(draggedTask.id, newStatus);
     if (success) {
       setSuccessMessage(`Task moved to ${newStatus === 0 ? 'To Do' : newStatus === 1 ? 'In Progress' : 'Completed'}`);
+      
+      // Mobile-specific: Hide drop zones after successful drop
+      if (isMobile) {
+        setShowMobileDropZones(false);
+        setDraggedTaskElement(null);
+        setDropZonePosition(null);
+        draggedTaskRef.current = null;
+      }
+    }
+  };
+
+  // Mobile-specific: Handle drop on mobile drop zones
+  const handleMobileDrop = async (newStatus: number): Promise<void> => {
+    if (!draggedTask) return;
+
+    const success = await handleStatusUpdate(draggedTask.id, newStatus);
+    if (success) {
+      setSuccessMessage(`Task moved to ${newStatus === 0 ? 'To Do' : newStatus === 1 ? 'In Progress' : 'Completed'}`);
+      setShowMobileDropZones(false);
+      setDraggedTaskElement(null);
+      setDropZonePosition(null);
+      draggedTaskRef.current = null;
     }
   };
 
@@ -455,6 +521,74 @@ const Board: React.FC = () => {
         </div>
       </div>
       </div>
+
+      {/* Mobile Drop Zones - Appears when dragging on mobile */}
+      {isMobile && showMobileDropZones && dropZonePosition && (
+        <div 
+          className="mobile-drop-zones"
+          style={{
+            position: 'fixed',
+            top: `${dropZonePosition.top}px`,
+            left: `${dropZonePosition.left}px`,
+            zIndex: 1001
+          }}
+        >
+          <button
+            className="mobile-drop-zone mobile-drop-zone--todo"
+            onClick={() => handleMobileDrop(0)}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.add('drag-over');
+            }}
+            onDragLeave={(e) => {
+              e.currentTarget.classList.remove('drag-over');
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove('drag-over');
+              handleMobileDrop(0);
+            }}
+          >
+            To Do
+          </button>
+          <button
+            className="mobile-drop-zone mobile-drop-zone--in-progress"
+            onClick={() => handleMobileDrop(1)}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.add('drag-over');
+            }}
+            onDragLeave={(e) => {
+              e.currentTarget.classList.remove('drag-over');
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove('drag-over');
+              handleMobileDrop(1);
+            }}
+          >
+            In Progress
+          </button>
+          <button
+            className="mobile-drop-zone mobile-drop-zone--completed"
+            onClick={() => handleMobileDrop(2)}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.add('drag-over');
+            }}
+            onDragLeave={(e) => {
+              e.currentTarget.classList.remove('drag-over');
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove('drag-over');
+              handleMobileDrop(2);
+            }}
+          >
+            Completed
+          </button>
+        </div>
+      )}
 
       {/* TaskInspector */}
       <TaskInspector
