@@ -36,6 +36,26 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   width: 100% !important;
 }
 
+/* Account for topbar height on mobile - High specificity to override global rules */
+@media (max-width: 600px) {
+  /* Target page when topbar is present - ensure it accounts for fixed navbar */
+  body.has-topbar main .backlog-page,
+  body.has-topbar .backlog-page,
+  body.has-topbar .content main .backlog-page {
+    padding-top: var(--space-4) !important; /* Match base top padding; global .content handles navbar clearance */
+    padding-right: var(--space-4) !important; /* Keep existing side padding */
+    padding-bottom: calc(var(--space-10) + env(safe-area-inset-bottom) + var(--footer-height)) !important; /* Keep existing bottom padding */
+    padding-left: var(--space-4) !important; /* Keep existing side padding */
+    margin-top: 0 !important; /* Override any margin-top from global rules */
+    position: relative !important; /* Ensure proper stacking context */
+  }
+  
+  /* Ensure the first element in the page also has proper spacing */
+  body.has-topbar .backlog-page > *:first-child {
+    margin-top: 0 !important; /* Remove any top margin from first child */
+  }
+}
+
 /* Scoped alerts for backlog page */
 .backlog-page .alert {
   display: flex !important;
@@ -97,7 +117,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
    Create Sprint / Task Button (Inside Container)
 ========================== */
 
-.action-button-container {
+.backlog-page .action-button-container {
   margin-top: var(--space-4) !important;
   padding-top: var(--space-4) !important;
   border-top: 1px solid var(--border-color) !important;
@@ -105,8 +125,8 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   justify-content: center !important;
 }
 
-.create-sprint-button,
-.create-task-button {
+.backlog-page .create-sprint-button,
+.backlog-page .create-task-button {
   background-color: var(--accent-primary) !important;
   color: var(--black) !important; /* Changed to black for better readability on gold */
   font-size: var(--font-size-base) !important;
@@ -122,8 +142,8 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   box-shadow: none !important; /* Remove button shadow for cleaner look */
 }
 
-.create-sprint-button:hover,
-.create-task-button:hover {
+.backlog-page .create-sprint-button:hover,
+.backlog-page .create-task-button:hover {
   background-color: var(--dark-gold) !important; /* Slightly darker gold */
   transform: translateY(-1px) !important; /* Reduced from -2px for subtler effect */
   box-shadow: var(--shadow-sm) !important; /* Reduced shadow on hover */
@@ -134,7 +154,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
    Back Arrow (Outside Container)
 ========================== */
 
-.back-arrow {
+.backlog-page .back-arrow {
   position: absolute !important;
   top: var(--space-3) !important;
   left: var(--space-3) !important;
@@ -145,7 +165,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   z-index: 10 !important; /* Ensure it appears above other elements */
 }
 
-.back-arrow:hover {
+.backlog-page .back-arrow:hover {
   color: var(--text-primary) !important; /* Darker on hover */
   transform: scale(1.1) !important; /* Reduced from 1.2 for subtler effect */
 }
@@ -154,7 +174,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
    Sprint Overview Layout
 ========================== */
 
-.sprint-overview-container {
+.backlog-page .sprint-overview-container {
   display: flex !important;
   flex-wrap: wrap !important;
   gap: var(--space-3) !important;
@@ -162,7 +182,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   margin-bottom: var(--space-5) !important;
 }
 
-.sprint-card {
+.backlog-page .sprint-card {
   width: 220px !important;
   padding: var(--space-4) !important;
   background: var(--bg-primary) !important; /* Keep card background for definition */
@@ -174,45 +194,45 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   border: 1px solid var(--border-color) !important; /* Keep border for card definition */
 }
 
-.sprint-card:hover {
+.backlog-page .sprint-card:hover {
   background: var(--bg-primary) !important;
   transform: scale(1.02) !important; /* Reduced from 1.05 for subtler effect */
   box-shadow: var(--shadow-md) !important; /* Reduced shadow on hover */
 }
 
 /* Sprint Details */
-.sprint-card h3 {
+.backlog-page .sprint-card h3 {
   font-size: var(--font-size-lg) !important;
   font-weight: var(--font-weight-bold) !important;
   color: var(--text-primary) !important; /* Ensure h3 text is readable */
   margin-bottom: var(--space-2) !important;
 }
 
-.sprint-card p {
+.backlog-page .sprint-card p {
   font-size: var(--font-size-base) !important;
   color: var(--text-secondary) !important; /* Changed to text-secondary for better readability */
   margin: var(--space-1) 0 !important;
 }
 
 /* FontAwesome Icons for Started & Completed */
-.sprint-status-icon {
+.backlog-page .sprint-status-icon {
   font-size: var(--font-size-base) !important;
   color: var(--dark-gray) !important;
   margin-left: var(--space-1) !important;
 }
 
-.sprint-status-icon.completed {
+.backlog-page .sprint-status-icon.completed {
   color: var(--success) !important; /* Green */
 }
 
-.sprint-status-icon.not-started {
+.backlog-page .sprint-status-icon.not-started {
   color: var(--error) !important; /* Red */
 }
 
 /* ==========================
    Sprint Task View
 ========================== */
-.sprint-details-container {
+.backlog-page .sprint-details-container {
   background: var(--bg-primary) !important; /* Keep background for content definition */
   padding: var(--space-5) !important;
   border-radius: var(--border-radius) !important;
@@ -229,7 +249,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 /* Sprint Details Title */
-.sprint-details-container h2 {
+.backlog-page .sprint-details-container h2 {
   font-size: var(--font-size-xl) !important;
   font-weight: var(--font-weight-bold) !important;
   color: var(--text-primary) !important;
@@ -237,21 +257,21 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 /* Sprint Details Info */
-.sprint-details-container p {
+.backlog-page .sprint-details-container p {
   font-size: var(--font-size-base) !important;
   color: var(--text-secondary) !important;
   margin-bottom: var(--space-2) !important;
 }
 
 /* Create Sprint Button */
-.create-sprint-button-container {
+.backlog-page .create-sprint-button-container {
   display: flex !important;
   justify-content: center !important;
   margin-top: var(--space-5) !important;
 }
 
-.create-sprint-button,
-.create-task-button {
+.backlog-page .create-sprint-button,
+.backlog-page .create-task-button {
   background-color: var(--accent-primary) !important;
   color: var(--black) !important; /* Changed to black for better readability on gold */
   font-size: var(--font-size-base) !important;
@@ -264,14 +284,14 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   box-shadow: none !important; /* Remove button shadow for cleaner look */
 }
 
-.create-sprint-button:hover,
-.create-task-button:hover {
+.backlog-page .create-sprint-button:hover,
+.backlog-page .create-task-button:hover {
   background-color: var(--dark-gold) !important; /* Slightly darker gold */
   transform: scale(1.02) !important; /* Reduced from 1.05 for subtler effect */
 }
 
 /* Edit Sprint Icon */
-.edit-sprint-button {
+.backlog-page .edit-sprint-button {
   position: absolute !important;
   top: var(--space-2) !important;
   right: var(--space-2) !important;
@@ -282,18 +302,18 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   z-index: 5 !important;
 }
 
-.edit-sprint-button:hover {
+.backlog-page .edit-sprint-button:hover {
   color: var(--text-primary) !important;
   transform: scale(1.1) !important; /* Reduced from 1.2 for subtler effect */
 }
 
 /* Ensure Sprint Cards Have Relative Position */
-.sprint-card {
+.backlog-page .sprint-card {
   position: relative !important; /* Needed for positioning the edit button */
 }
 
 /* Task List */
-.task-list {
+.backlog-page .task-list {
   flex-grow: 1 !important; /* Allow the task list to grow within the container */
   overflow-y: auto !important; /* Enable vertical scrolling for tasks */
   padding-right: var(--space-3) !important; /* Add padding for better spacing */
@@ -302,20 +322,20 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   scrollbar-color: var(--accent-primary) var(--bg-secondary) !important; /* Custom scrollbar colors */
 }
 
-.task-list::-webkit-scrollbar {
+.backlog-page .task-list::-webkit-scrollbar {
   width: 8px !important;
 }
 
-.task-list::-webkit-scrollbar-thumb {
+.backlog-page .task-list::-webkit-scrollbar-thumb {
   background-color: var(--accent-primary) !important;
   border-radius: var(--border-radius) !important;
 }
 
-.task-list::-webkit-scrollbar-track {
+.backlog-page .task-list::-webkit-scrollbar-track {
   background-color: var(--bg-secondary) !important;
 }
 
-.task-card {
+.backlog-page .task-card {
   display: flex !important;
   flex-direction: column !important;
   position: relative !important;
@@ -332,7 +352,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   cursor: pointer !important;
 }
 
-.task-card:hover {
+.backlog-page .task-card:hover {
   background: var(--bg-secondary) !important;
   border-color: var(--accent-primary) !important;
   transform: translateY(-1px) !important;
@@ -340,7 +360,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 /* Task Content (Description) */
-.task-content {
+.backlog-page .task-content {
   flex-grow: 1 !important;
   font-size: var(--font-size-base) !important;
   color: var(--text-primary) !important;
@@ -350,7 +370,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 /* Task Controls */
-.task-controls {
+.backlog-page .task-controls {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
@@ -359,7 +379,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 /* Task Status Dropdown */
-.task-status {
+.backlog-page .task-status {
   padding: var(--space-2) !important;
   font-weight: var(--font-weight-bold) !important;
   border-radius: var(--border-radius) !important;
@@ -373,7 +393,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 
 /* Task Assignee Dropdown */
 /* Task Assignee Dropdown */
-.task-assignee-dropdown {
+.backlog-page .task-assignee-dropdown {
   padding: var(--space-2) !important;
   font-weight: var(--font-weight-medium) !important;
   border-radius: var(--border-radius) !important;
@@ -389,7 +409,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 /* Remove outline on focus */
-.task-assignee-dropdown:focus {
+.backlog-page .task-assignee-dropdown:focus {
   outline: none !important;
   border-color: var(--accent-primary) !important; /* Highlight border on focus */
   box-shadow: var(--shadow-focus) !important; /* Add subtle shadow for focus */
@@ -397,7 +417,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 
 
 /* Task Date */
-.task-date {
+.backlog-page .task-date {
   font-size: var(--font-size-sm) !important;
   color: var(--text-secondary) !important;
   flex-shrink: 0 !important; /* Prevent shrinking */
@@ -405,7 +425,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 /* Task Content - Add padding for better spacing */
-.task-content {
+.backlog-page .task-content {
   padding: var(--space-3) !important;
   border-bottom: 1px solid var(--border-color) !important;
   text-align: left !important; /* Changed to left alignment for better readability */
@@ -415,7 +435,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 /* Task Details - Better space distribution */
-.task-details {
+.backlog-page .task-details {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
@@ -426,22 +446,22 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 /* Task Date - Better formatting */
-.task-date {
+.backlog-page .task-date {
   color: var(--text-tertiary) !important;
   font-size: var(--font-size-sm) !important;
 }
 
 /* Status Colors */
-.task-status.todo { background-color: var(--gray) !important; color: var(--white) !important; }
-.task-status.in-progress { background-color: var(--blue) !important; color: var(--white) !important; }
-.task-status.completed { background-color: var(--green) !important; color: var(--white) !important; }
+.backlog-page .task-status.todo { background-color: var(--gray) !important; color: var(--white) !important; }
+.backlog-page .task-status.in-progress { background-color: var(--blue) !important; color: var(--white) !important; }
+.backlog-page .task-status.completed { background-color: var(--green) !important; color: var(--white) !important; }
 
 /* ==========================
    Status Indicator Styling (Updated)
 ========================== */
 
 /* Status Dropdown - Keep the container neutral */
-.task-status {
+.backlog-page .task-status {
   padding: var(--space-2) !important;
   font-weight: var(--font-weight-bold) !important;
   border-radius: var(--border-radius) !important;
@@ -454,45 +474,45 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 /* Status Text Colors - Using DevHive global variables */
-.task-status.todo { 
+.backlog-page .task-status.todo { 
   color: hsl(0, 100%, 50%) !important; /* Red for "To Do" tasks */
   border-left: 3px solid hsl(0, 100%, 50%) !important; /* Red left border */
 }
 
-.task-status.in-progress { 
+.backlog-page .task-status.in-progress { 
   color: var(--accent-primary) !important; /* DevHive gold for "In Progress" tasks */
   border-left: 3px solid var(--accent-primary) !important; /* Gold left border */
 }
 
-.task-status.completed { 
+.backlog-page .task-status.completed { 
   color: hsl(120, 100%, 35%) !important; /* Green for "Completed" tasks */
   border-left: 3px solid hsl(120, 100%, 35%) !important; /* Green left border */
 }
 
 /* Status Icons - Add icons for better visual indication */
-.task-status::before {
+.backlog-page .task-status::before {
   font-family: "Font Awesome 5 Free" !important;
   margin-right: var(--space-2) !important;
   font-weight: 900 !important;
 }
 
-.task-status.todo::before { 
+.backlog-page .task-status.todo::before { 
   content: "\f111" !important; /* Circle icon for Todo */
   color: hsl(0, 100%, 50%) !important;
 }
 
-.task-status.in-progress::before { 
+.backlog-page .task-status.in-progress::before { 
   content: "\f2f1" !important; /* Spinner icon for In Progress */
   color: var(--accent-primary) !important;
 }
 
-.task-status.completed::before { 
+.backlog-page .task-status.completed::before { 
   content: "\f00c" !important; /* Check icon for Completed */
   color: hsl(120, 100%, 35%) !important;
 }
 
 /* Hover effects for better interactivity */
-.task-status:hover {
+.backlog-page .task-status:hover {
   transform: translateY(-1px) !important; /* Reduced from -2px for subtler effect */
   box-shadow: var(--shadow-sm) !important;
   cursor: pointer !important;
@@ -545,7 +565,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 /* =============================
    Back Arrow Inside Sprint View
 ============================= */
-.sprint-details-container .back-arrow.sprint-view {
+.backlog-page .sprint-details-container .back-arrow.sprint-view {
   position: absolute !important;
   top: var(--space-3) !important;
   left: var(--space-3) !important;
@@ -556,7 +576,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   z-index: 10 !important;
 }
 
-.sprint-details-container .back-arrow.sprint-view:hover {
+.backlog-page .sprint-details-container .back-arrow.sprint-view:hover {
   color: var(--text-primary) !important;
   transform: scale(1.1) !important; /* Reduced from 1.2 for subtler effect */
 }
@@ -564,7 +584,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 /* =============================
    Backlog Item
 ============================= */
-.backlog-item {
+.backlog-page .backlog-item {
   background: var(--bg-primary) !important; /* Changed to bg-primary */
   border-left: 4px solid var(--accent-primary) !important;
   border-radius: var(--border-radius) !important;
@@ -631,7 +651,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 /* =============================
    Section Headers
 ============================= */
-.section-header {
+.backlog-page .section-header {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
@@ -640,7 +660,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   margin-bottom: var(--space-4) !important;
 }
 
-.section-title {
+.backlog-page .section-title {
   margin: 0 !important;
   font-size: var(--font-size-lg) !important;
   font-weight: var(--font-weight-semibold) !important;
@@ -649,7 +669,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   letter-spacing: 0.5px !important;
 }
 
-.create-task-btn {
+.backlog-page .create-task-btn {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-2) !important;
@@ -664,7 +684,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   transition: all 0.2s ease !important;
 }
 
-.create-task-btn:hover {
+.backlog-page .create-task-btn:hover {
   background: hsla(var(--gold-hue), var(--gold-saturation), 70%, 1) !important;
   transform: translateY(-1px) !important;
 }
@@ -672,7 +692,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 /* =============================
    Unified Button Hierarchy
 ============================= */
-.primary-action-btn {
+.backlog-page .primary-action-btn {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-2) !important;
@@ -690,7 +710,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
-.primary-action-btn:hover {
+.backlog-page .primary-action-btn:hover {
   background: hsla(var(--gold-hue), var(--gold-saturation), 70%, 1) !important;
   transform: translateY(-2px) !important;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
@@ -699,7 +719,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 /* =============================
    Sprint List Layout
 ============================= */
-.sprints-list {
+.backlog-page .sprints-list {
   display: grid !important;
   grid-template-columns: 1fr !important; /* mobile - single column */
   gap: var(--space-3) !important;
@@ -708,23 +728,23 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 
 /* Match projects-grid responsive breakpoints */
 @media (min-width: 560px) {
-  .sprints-list { 
+  .backlog-page .sprints-list { 
     grid-template-columns: repeat(2, 1fr) !important; 
   }
 }
 @media (min-width: 900px) {
-  .sprints-list { 
+  .backlog-page .sprints-list { 
     grid-template-columns: repeat(3, 1fr) !important; 
     gap: var(--space-4) !important;
   }
 }
 @media (min-width: 1200px) {
-  .sprints-list { 
+  .backlog-page .sprints-list { 
     grid-template-columns: repeat(4, 1fr) !important; 
   }
 }
 
-.sprint-item {
+.backlog-page .sprint-item {
   display: flex !important;
   flex-direction: column !important;
   position: relative !important;
@@ -738,44 +758,44 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   padding: 16px !important; /* Match project-card padding */
 }
 
-.sprint-item:hover {
+.backlog-page .sprint-item:hover {
   transform: translateY(-2px) !important;
   box-shadow: var(--shadow-md) !important;
   border-color: color-mix(in srgb, var(--border-color), var(--accent-primary) 40%) !important;
 }
 
-.sprint-item:focus-within {
+.backlog-page .sprint-item:focus-within {
   outline: 2px solid var(--accent-primary) !important;
   outline-offset: 2px !important;
 }
 
 /* Match project-card content structure */
-.sprint-item .card-content {
+.backlog-page .sprint-item .card-content {
   padding: 0 !important; /* Padding handled by sprint-item */
   position: relative !important;
   z-index: 1 !important; /* Ensure content is below button */
 }
 
-.sprint-name {
+.backlog-page .sprint-name {
   margin: 0 0 6px 0 !important;
   font-size: 16px !important;
   font-weight: var(--font-weight-bold) !important;
   color: var(--text-primary) !important;
 }
 
-.sprint-metadata {
+.backlog-page .sprint-metadata {
   margin: 0 0 8px 0 !important;
   color: var(--text-tertiary) !important;
   font-size: 13px !important;
 }
 
-.sprint-item .status-badge {
+.backlog-page .sprint-item .status-badge {
   display: inline-block !important;
   margin-top: 8px !important;
 }
 
 /* Sprint Settings Button - matches Projects page card-settings-btn exactly */
-.sprint-item .card-settings-btn {
+.backlog-page .sprint-item .card-settings-btn {
   position: absolute !important;
   right: 10px !important;
   bottom: 10px !important;
@@ -794,30 +814,30 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   z-index: 10 !important; /* Ensure button is above card content */
 }
 
-.sprint-item .card-settings-btn .icon {
+.backlog-page .sprint-item .card-settings-btn .icon {
   width: 20px !important;
   height: 20px !important;
 }
 
-.sprint-item .card-settings-btn:hover {
+.backlog-page .sprint-item .card-settings-btn:hover {
   background: var(--bg-primary) !important;
   color: var(--text-primary) !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 6px 12px rgba(0,0,0,.3) !important;
 }
 
-.sprint-item .card-settings-btn:focus-visible {
+.backlog-page .sprint-item .card-settings-btn:focus-visible {
   outline: 2px solid var(--accent-primary) !important;
   outline-offset: 2px !important;
 }
 
 @media (max-width: 480px) {
-  .sprint-item {
+  .backlog-page .sprint-item {
     padding-bottom: 18px !important;
   }
 }
 
-.status-badge {
+.backlog-page .status-badge {
   padding: var(--space-1) var(--space-3) !important;
   border-radius: 12px !important;
   font-size: var(--font-size-xs) !important;
@@ -826,19 +846,19 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   letter-spacing: 0.5px !important;
 }
 
-.status-badge.active {
+.backlog-page .status-badge.active {
   background: hsl(120, 60%, 45%) !important;
   color: white !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
-.status-badge.inactive {
+.backlog-page .status-badge.inactive {
   background: var(--bg-tertiary) !important;
   color: var(--text-tertiary) !important;
   border: 1px solid var(--border-color) !important;
 }
 
-.sprint-card {
+.backlog-page .sprint-card {
   background: var(--bg-primary) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: var(--border-radius) !important;
@@ -848,14 +868,14 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   overflow: hidden !important;
 }
 
-.sprint-card:hover {
+.backlog-page .sprint-card:hover {
   background: var(--bg-secondary) !important;
   border-color: var(--accent-primary) !important;
   box-shadow: var(--shadow-md) !important;
   transform: translateY(-2px) !important;
 }
 
-.card-header {
+.backlog-page .card-header {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-3) !important;
@@ -864,76 +884,76 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-.sprint-icon {
+.backlog-page .sprint-icon {
   color: var(--text-secondary) !important;
   font-size: var(--font-size-lg) !important;
 }
 
-.sprint-title {
+.backlog-page .sprint-title {
   color: var(--text-primary) !important;
   font-size: var(--font-size-lg) !important;
   font-weight: var(--font-weight-bold) !important;
   margin: 0 !important;
 }
 
-.card-body {
+.backlog-page .card-body {
   padding: var(--space-4) !important;
 }
 
-.sprint-duration {
+.backlog-page .sprint-duration {
   display: flex !important;
   flex-direction: column !important;
   gap: var(--space-1) !important;
   margin-bottom: var(--space-4) !important;
 }
 
-.duration-label {
+.backlog-page .duration-label {
   color: var(--text-secondary) !important;
   font-size: var(--font-size-sm) !important;
   font-weight: var(--font-weight-medium) !important;
 }
 
-.duration-dates {
+.backlog-page .duration-dates {
   color: var(--text-primary) !important;
   font-size: var(--font-size-sm) !important;
 }
 
-.sprint-status {
+.backlog-page .sprint-status {
   display: flex !important;
   flex-direction: column !important;
   gap: var(--space-2) !important;
 }
 
-.status-item {
+.backlog-page .status-item {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
 }
 
-.status-label {
+.backlog-page .status-label {
   color: var(--text-secondary) !important;
   font-size: var(--font-size-sm) !important;
   font-weight: var(--font-weight-medium) !important;
 }
 
-.status-value {
+.backlog-page .status-value {
   font-size: var(--font-size-sm) !important;
   font-weight: var(--font-weight-bold) !important;
 }
 
-.status-value.started {
+.backlog-page .status-value.started {
   color: hsl(120, 70%, 40%) !important;
 }
 
-.status-value.not-started {
+.backlog-page .status-value.not-started {
   color: hsl(0, 70%, 50%) !important;
 }
 
-.status-value.completed {
+.backlog-page .status-value.completed {
   color: hsl(120, 70%, 40%) !important;
 }
 
-.status-value.not-completed {
+.backlog-page .status-value.not-completed {
   color: hsl(0, 70%, 50%) !important;
 }
 
@@ -1044,13 +1064,13 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   justify-content: center !important; 
 }
 
-.create-task-section {
+.backlog-page .create-task-section {
   display: flex !important;
   justify-content: center !important;
   margin-top: var(--space-6) !important;
 }
 
-.create-task-btn {
+.backlog-page .create-task-btn {
   background: var(--accent-primary) !important;
   color: var(--black) !important;
   border: none !important;
@@ -1065,7 +1085,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   transition: all 0.2s ease !important;
 }
 
-.create-task-btn:hover {
+.backlog-page .create-task-btn:hover {
   background: hsl(var(--gold-hue), var(--gold-saturation), 60%) !important;
   transform: translateY(-2px) !important;
   box-shadow: var(--shadow-md) !important;
@@ -1074,11 +1094,11 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 /* =============================
    Adaptive Task Layout
 ============================= */
-.tasks-container {
+.backlog-page .tasks-container {
   margin-top: var(--space-4) !important;
 }
 
-.tasks-adaptive {
+.backlog-page .tasks-adaptive {
   display: flex !important;
   flex-direction: column !important;
   gap: 0 !important;
@@ -1093,7 +1113,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 /* =============================
    Minimal Task Row Cards
 ============================= */
-.task-row {
+.backlog-page .task-row {
   display: flex !important;
   align-items: center !important;
   padding: 12px 16px !important;
@@ -1103,15 +1123,15 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   transition: background 0.15s ease !important;
 }
 
-.task-row:last-child {
+.backlog-page .task-row:last-child {
   border-bottom: none !important;
 }
 
-.task-row:hover {
+.backlog-page .task-row:hover {
   background: var(--bg-secondary) !important;
 }
 
-.task-row-content {
+.backlog-page .task-row-content {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
@@ -1119,7 +1139,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   min-width: 0 !important;
 }
 
-.task-row-title {
+.backlog-page .task-row-title {
   flex: 1 !important;
   font-size: 15px !important;
   color: var(--text-primary) !important;
@@ -1130,7 +1150,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 /* Status Pill */
-.task-status-pill {
+.backlog-page .task-status-pill {
   width: 24px !important;
   height: 24px !important;
   border: none !important;
@@ -1146,17 +1166,17 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   padding: 0 !important;
 }
 
-.task-status-pill:hover {
+.backlog-page .task-status-pill:hover {
   transform: scale(1.2) !important;
   color: var(--text-primary) !important;
 }
 
 /* Assignee Avatar */
-.task-assignee-avatar {
+.backlog-page .task-assignee-avatar {
   flex-shrink: 0 !important;
 }
 
-.assignee-avatar-initials {
+.backlog-page .assignee-avatar-initials {
   width: 28px !important;
   height: 28px !important;
   border-radius: 50% !important;
@@ -1171,11 +1191,11 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   transition: transform 0.2s ease !important;
 }
 
-.assignee-avatar-initials:hover {
+.backlog-page .assignee-avatar-initials:hover {
   transform: scale(1.1) !important;
 }
 
-.assignee-placeholder {
+.backlog-page .assignee-placeholder {
   width: 28px !important;
   height: 28px !important;
   border-radius: 50% !important;
@@ -1192,7 +1212,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   line-height: 1 !important;
 }
 
-.assignee-placeholder:hover {
+.backlog-page .assignee-placeholder:hover {
   border-color: var(--accent-primary) !important;
   color: var(--accent-primary) !important;
   background: rgba(var(--accent-primary-rgb, 255, 215, 0), 0.1) !important;
@@ -1202,16 +1222,16 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
    DEPRECATED: Desktop Card Layout
    Replaced with minimal row cards
 ============================= */
-.task-card-desktop {
+.backlog-page .task-card-desktop {
   display: none !important; /* Disabled - using minimal row cards */
 }
 
-.task-card-mobile {
+.backlog-page .task-card-mobile {
   display: none !important; /* Disabled - using minimal row cards */
 }
 
 /* Primary Row - Title + Status */
-.task-primary-row {
+.backlog-page .task-primary-row {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
@@ -1219,12 +1239,12 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   margin-bottom: var(--space-3) !important;
 }
 
-.task-title-section {
+.backlog-page .task-title-section {
   flex: 1 !important;
   min-width: 0 !important;
 }
 
-.task-title-mobile {
+.backlog-page .task-title-mobile {
   margin: 0 !important;
   font-size: var(--font-size-lg) !important;
   font-weight: var(--font-weight-bold) !important;
@@ -1238,23 +1258,23 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   display: block !important;
 }
 
-.task-title-mobile:hover {
+.backlog-page .task-title-mobile:hover {
   color: var(--accent-primary) !important;
 }
 
-.task-status-section {
+.backlog-page .task-status-section {
   flex-shrink: 0 !important;
 }
 
 /* Secondary Row - Assignee + Date + Actions */
-.task-secondary-row {
+.backlog-page .task-secondary-row {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   gap: var(--space-2) !important;
 }
 
-.task-assignee-section {
+.backlog-page .task-assignee-section {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-2) !important;
@@ -1262,7 +1282,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   min-width: 0 !important;
 }
 
-.assignee-avatar-mobile {
+.backlog-page .assignee-avatar-mobile {
   width: 24px !important;
   height: 24px !important;
   border-radius: 50% !important;
@@ -1276,7 +1296,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   flex-shrink: 0 !important;
 }
 
-.assignee-name-mobile {
+.backlog-page .assignee-name-mobile {
   background: none !important;
   border: none !important;
   color: var(--text-secondary) !important;
@@ -1292,26 +1312,26 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   white-space: nowrap !important;
 }
 
-.assignee-name-mobile:focus {
+.backlog-page .assignee-name-mobile:focus {
   outline: none !important;
   color: var(--accent-primary) !important;
 }
 
-.task-meta-section {
+.backlog-page .task-meta-section {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-3) !important;
   flex-shrink: 0 !important;
 }
 
-.task-date-mobile {
+.backlog-page .task-date-mobile {
   color: var(--text-tertiary) !important;
   font-size: var(--font-size-xs) !important;
   font-weight: var(--font-weight-medium) !important;
   white-space: nowrap !important;
 }
 
-.status-badge-mobile {
+.backlog-page .status-badge-mobile {
   padding: var(--space-1) var(--space-2) !important;
   border-radius: 12px !important;
   font-size: var(--font-size-xs) !important;
@@ -1322,45 +1342,45 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   flex-shrink: 0 !important;
 }
 
-.status-badge-mobile.status-todo {
+.backlog-page .status-badge-mobile.status-todo {
   background: #e3e3e3 !important;
   color: #666 !important;
 }
 
-.status-badge-mobile.status-progress {
+.backlog-page .status-badge-mobile.status-progress {
   background: #ffcc00 !important;
   color: #000 !important;
 }
 
-.status-badge-mobile.status-completed {
+.backlog-page .status-badge-mobile.status-completed {
   background: #4caf50 !important;
   color: #fff !important;
 }
 
-.clickable {
+.backlog-page .clickable {
   cursor: pointer !important;
   transition: all 0.2s ease !important;
 }
 
-.clickable:hover {
+.backlog-page .clickable:hover {
   opacity: 0.8 !important;
   transform: scale(1.05) !important;
 }
 
-.task-meta-row {
+.backlog-page .task-meta-row {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
   gap: var(--space-2) !important;
 }
 
-.assignee-info-container {
+.backlog-page .assignee-info-container {
   position: relative !important;
   flex: 1 !important;
   min-width: 0 !important;
 }
 
-.assignee-info {
+.backlog-page .assignee-info {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-2) !important;
@@ -1370,16 +1390,16 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   transition: background-color 0.2s ease !important;
 }
 
-.assignee-info:hover {
+.backlog-page .assignee-info:hover {
   background: var(--bg-secondary) !important;
 }
 
-.status-container-mobile {
+.backlog-page .status-container-mobile {
   position: relative !important;
   flex-shrink: 0 !important;
 }
 
-.status-pill-mobile {
+.backlog-page .status-pill-mobile {
   background: var(--bg-secondary) !important;
   color: var(--text-primary) !important;
   font-size: var(--font-size-xs) !important;
@@ -1404,18 +1424,18 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   letter-spacing: 0.5px !important;
 }
 
-.status-select-mobile:focus {
+.backlog-page .status-select-mobile:focus {
   outline: none !important;
   border-color: var(--accent-primary) !important;
   box-shadow: 0 0 0 2px hsla(var(--gold-hue), var(--gold-saturation), 60%, 0.2) !important;
 }
 
-.status-select-mobile:hover {
+.backlog-page .status-select-mobile:hover {
   background: var(--bg-primary) !important;
   border-color: var(--accent-primary) !important;
 }
 
-.assignee-select-mobile {
+.backlog-page .assignee-select-mobile {
   background: var(--bg-secondary) !important;
   color: var(--text-primary) !important;
   font-size: var(--font-size-sm) !important;
@@ -1437,18 +1457,18 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   line-height: 1 !important;
 }
 
-.assignee-select-mobile:focus {
+.backlog-page .assignee-select-mobile:focus {
   outline: none !important;
   border-color: var(--accent-primary) !important;
   box-shadow: 0 0 0 2px hsla(var(--gold-hue), var(--gold-saturation), 60%, 0.2) !important;
 }
 
-.assignee-select-mobile:hover {
+.backlog-page .assignee-select-mobile:hover {
   background: var(--bg-primary) !important;
   border-color: var(--accent-primary) !important;
 }
 
-.assignee-avatar {
+.backlog-page .assignee-avatar {
   width: 24px !important;
   height: 24px !important;
   border-radius: 50% !important;
@@ -1462,7 +1482,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   flex-shrink: 0 !important;
 }
 
-.assignee-name {
+.backlog-page .assignee-name {
   color: var(--text-secondary) !important;
   font-size: var(--font-size-sm) !important;
   overflow: hidden !important;
@@ -1470,19 +1490,19 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   white-space: nowrap !important;
 }
 
-.task-date-mobile {
+.backlog-page .task-date-mobile {
   color: var(--text-tertiary) !important;
   font-size: var(--font-size-xs) !important;
   flex-shrink: 0 !important;
 }
 
-.task-actions-mobile {
+.backlog-page .task-actions-mobile {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-1) !important;
 }
 
-.action-btn {
+.backlog-page .action-btn {
   background: none !important;
   border: none !important;
   color: var(--text-secondary) !important;
@@ -1497,35 +1517,35 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   height: 32px !important;
 }
 
-.menu-btn:hover {
+.backlog-page .menu-btn:hover {
   color: var(--accent-primary) !important;
   background: hsla(var(--gold-hue), var(--gold-saturation), 60%, 0.1) !important;
 }
 
-.save-btn {
+.backlog-page .save-btn {
   color: hsl(120, 70%, 40%) !important;
 }
 
-.save-btn:hover {
+.backlog-page .save-btn:hover {
   color: hsl(120, 70%, 35%) !important;
   background: hsla(120, 70%, 40%, 0.1) !important;
 }
 
-.cancel-btn {
+.backlog-page .cancel-btn {
   color: hsl(0, 70%, 50%) !important;
 }
 
-.cancel-btn:hover {
+.backlog-page .cancel-btn:hover {
   color: hsl(0, 70%, 45%) !important;
   background: hsla(0, 70%, 50%, 0.1) !important;
 }
 
-.edit-actions-mobile {
+.backlog-page .edit-actions-mobile {
   display: flex !important;
   gap: var(--space-1) !important;
 }
 
-.task-edit-input-mobile {
+.backlog-page .task-edit-input-mobile {
   width: 100% !important;
   padding: var(--space-1) var(--space-2) !important;
   border: 2px solid var(--accent-primary) !important;
@@ -1538,17 +1558,17 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   font-family: inherit !important;
 }
 
-.task-edit-input-mobile:focus {
+.backlog-page .task-edit-input-mobile:focus {
   outline: none !important;
   box-shadow: 0 0 0 2px hsla(var(--gold-hue), var(--gold-saturation), 60%, 0.2) !important;
 }
 
-.task-edit-container-mobile {
+.backlog-page .task-edit-container-mobile {
   width: 100% !important;
   position: relative !important;
 }
 
-.char-counter-mobile {
+.backlog-page .char-counter-mobile {
   position: absolute !important;
   bottom: -18px !important;
   right: 0 !important;
@@ -1562,12 +1582,12 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   z-index: 10 !important;
 }
 
-.task-edit-container {
+.backlog-page .task-edit-container {
   width: 100% !important;
   position: relative !important;
 }
 
-.char-counter {
+.backlog-page .char-counter {
   position: absolute !important;
   bottom: -20px !important;
   right: 0 !important;
@@ -1584,7 +1604,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 /* =============================
    Apple-Style Mobile Popovers
 ============================= */
-.mobile-popover {
+.backlog-page .mobile-popover {
   position: absolute !important;
   top: 100% !important;
   left: 0 !important;
@@ -1593,7 +1613,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   min-width: 160px !important;
 }
 
-.popover-content {
+.backlog-page .popover-content {
   background: rgba(255, 255, 255, 0.95) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
@@ -1618,7 +1638,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   }
 }
 
-.popover-option {
+.backlog-page .popover-option {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
@@ -1634,34 +1654,34 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   position: relative !important;
 }
 
-.popover-option:last-child {
+.backlog-page .popover-option:last-child {
   margin-bottom: 0 !important;
 }
 
-.popover-option:hover {
+.backlog-page .popover-option:hover {
   background: rgba(0, 0, 0, 0.04) !important;
   transform: translateX(2px) !important;
 }
 
-.popover-option:active {
+.backlog-page .popover-option:active {
   transform: scale(0.98) !important;
   background: rgba(0, 0, 0, 0.08) !important;
 }
 
-.popover-option.selected {
+.backlog-page .popover-option.selected {
   background: var(--accent-primary) !important;
   color: var(--black) !important;
   font-weight: 600 !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
 }
 
-.popover-option.selected:hover {
+.backlog-page .popover-option.selected:hover {
   background: hsl(var(--gold-hue), var(--gold-saturation), 60%) !important;
   transform: translateX(2px) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
 }
 
-.popover-option .assignee-avatar {
+.backlog-page .popover-option .assignee-avatar {
   width: 20px !important;
   height: 20px !important;
   font-size: 10px !important;
@@ -1670,24 +1690,24 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
 }
 
-.popover-option.selected .assignee-avatar {
+.backlog-page .popover-option.selected .assignee-avatar {
   border-color: rgba(0, 0, 0, 0.2) !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
 }
 
-.popover-option span {
+.backlog-page .popover-option span {
   color: inherit !important;
   font-size: 14px !important;
   font-weight: 500 !important;
   letter-spacing: -0.01em !important;
 }
 
-.status-option {
+.backlog-page .status-option {
   justify-content: center !important;
   padding: 12px 16px !important;
 }
 
-.status-option .status-badge-mobile {
+.backlog-page .status-option .status-badge-mobile {
   margin: 0 !important;
   font-size: 12px !important;
   padding: 4px 8px !important;
@@ -1698,30 +1718,30 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  .popover-content {
+  .backlog-page .popover-content {
     background: rgba(28, 28, 30, 0.95) !important;
     border-color: rgba(255, 255, 255, 0.1) !important;
   }
   
-  .popover-option:hover {
+  .backlog-page .popover-option:hover {
     background: rgba(255, 255, 255, 0.05) !important;
   }
   
-  .popover-option:active {
+  .backlog-page .popover-option:active {
     background: rgba(255, 255, 255, 0.1) !important;
   }
   
-  .popover-option .assignee-avatar {
+  .backlog-page .popover-option .assignee-avatar {
     border-color: rgba(255, 255, 255, 0.1) !important;
   }
 }
 
-.card-header {
+.backlog-page .card-header {
   padding: var(--space-4) var(--space-4) var(--space-2) var(--space-4) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-.task-title {
+.backlog-page .task-title {
   margin: 0 !important;
   font-size: var(--font-size-lg) !important;
   font-weight: var(--font-weight-bold) !important;
@@ -1729,18 +1749,18 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   line-height: 1.3 !important;
 }
 
-.task-title-text {
+.backlog-page .task-title-text {
   cursor: pointer !important;
   transition: color 0.2s ease !important;
   display: block !important;
   word-wrap: break-word !important;
 }
 
-.task-title-text:hover {
+.backlog-page .task-title-text:hover {
   color: var(--accent-primary) !important;
 }
 
-.task-edit-input {
+.backlog-page .task-edit-input {
   width: 100% !important;
   padding: var(--space-2) !important;
   border: 2px solid var(--accent-primary) !important;
@@ -1754,34 +1774,34 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   font-family: inherit !important;
 }
 
-.task-edit-input:focus {
+.backlog-page .task-edit-input:focus {
   outline: none !important;
   box-shadow: 0 0 0 3px hsla(var(--gold-hue), var(--gold-saturation), 60%, 0.2) !important;
 }
 
-.card-body {
+.backlog-page .card-body {
   padding: var(--space-3) var(--space-4) !important;
 }
 
-.task-meta {
+.backlog-page .task-meta {
   display: flex !important;
   flex-direction: column !important;
   gap: var(--space-3) !important;
 }
 
-.meta-item {
+.backlog-page .meta-item {
   display: flex !important;
   flex-direction: column !important;
   gap: var(--space-1) !important;
 }
 
-.status-container {
+.backlog-page .status-container {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-2) !important;
 }
 
-.status-badge {
+.backlog-page .status-badge {
   padding: var(--space-1) var(--space-2) !important;
   border-radius: 12px !important;
   font-size: var(--font-size-xs) !important;
@@ -1791,22 +1811,22 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   white-space: nowrap !important;
 }
 
-.status-badge.status-todo {
+.backlog-page .status-badge.status-todo {
   background: #e3e3e3 !important;
   color: #666 !important;
 }
 
-.status-badge.status-progress {
+.backlog-page .status-badge.status-progress {
   background: #ffcc00 !important;
   color: #000 !important;
 }
 
-.status-badge.status-completed {
+.backlog-page .status-badge.status-completed {
   background: #4caf50 !important;
   color: #fff !important;
 }
 
-.meta-label {
+.backlog-page .meta-label {
   font-size: var(--font-size-xs) !important;
   font-weight: var(--font-weight-medium) !important;
   color: var(--text-secondary) !important;
@@ -1814,8 +1834,8 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   letter-spacing: 0.5px !important;
 }
 
-.status-select,
-.assignee-select {
+.backlog-page .status-select,
+.backlog-page .assignee-select {
   width: 100% !important;
   padding: var(--space-2) var(--space-3) !important;
   border: 1px solid var(--border-color) !important;
@@ -1828,33 +1848,33 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   font-family: inherit !important;
 }
 
-.status-select:focus,
-.assignee-select:focus {
+.backlog-page .status-select:focus,
+.backlog-page .assignee-select:focus {
   border-color: var(--accent-primary) !important;
   outline: none !important;
   box-shadow: 0 0 0 2px hsla(var(--gold-hue), var(--gold-saturation), 60%, 0.2) !important;
 }
 
-.status-select:hover,
-.assignee-select:hover {
+.backlog-page .status-select:hover,
+.backlog-page .assignee-select:hover {
   border-color: var(--text-secondary) !important;
 }
 
-.meta-value {
+.backlog-page .meta-value {
   color: var(--text-primary) !important;
   font-size: var(--font-size-sm) !important;
   font-weight: var(--font-weight-medium) !important;
 }
 
-.card-actions {
+.backlog-page .card-actions {
   padding: var(--space-3) var(--space-4) var(--space-4) var(--space-4) !important;
   border-top: 1px solid var(--border-color) !important;
   background: var(--bg-secondary) !important;
 }
 
-.btn-edit,
-.btn-save,
-.btn-cancel {
+.backlog-page .btn-edit,
+.backlog-page .btn-save,
+.backlog-page .btn-cancel {
   background: var(--accent-primary) !important;
   color: var(--black) !important;
   border: none !important;
@@ -1871,56 +1891,56 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   justify-content: center !important;
 }
 
-.btn-edit:hover {
+.backlog-page .btn-edit:hover {
   background: hsl(var(--gold-hue), var(--gold-saturation), 60%) !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
-.btn-save {
+.backlog-page .btn-save {
   background: hsl(120, 70%, 40%) !important;
   color: var(--white) !important;
 }
 
-.btn-save:hover {
+.backlog-page .btn-save:hover {
   background: hsl(120, 70%, 35%) !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
-.btn-cancel {
+.backlog-page .btn-cancel {
   background: var(--bg-primary) !important;
   color: var(--text-primary) !important;
   border: 1px solid var(--border-color) !important;
 }
 
-.btn-cancel:hover {
+.backlog-page .btn-cancel:hover {
   background: var(--bg-secondary) !important;
   border-color: var(--accent-primary) !important;
   transform: translateY(-1px) !important;
 }
 
-.edit-actions {
+.backlog-page .edit-actions {
   display: flex !important;
   gap: var(--space-2) !important;
 }
 
 /* Scrollbar styling for tasks grid */
-.tasks-grid::-webkit-scrollbar {
+.backlog-page .tasks-grid::-webkit-scrollbar {
   width: 6px !important;
 }
 
-.tasks-grid::-webkit-scrollbar-track {
+.backlog-page .tasks-grid::-webkit-scrollbar-track {
   background: var(--bg-secondary) !important;
   border-radius: 3px !important;
 }
 
-.tasks-grid::-webkit-scrollbar-thumb {
+.backlog-page .tasks-grid::-webkit-scrollbar-thumb {
   background: var(--border-color) !important;
   border-radius: 3px !important;
 }
 
-.tasks-grid::-webkit-scrollbar-thumb:hover {
+.backlog-page .tasks-grid::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary) !important;
 }
 
@@ -1930,15 +1950,15 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 
 /* Desktop: Show card layout */
 @media (min-width: 769px) {
-  .task-card-desktop {
+  .backlog-page .task-card-desktop {
     display: block !important;
   }
   
-  .task-row-mobile {
+  .backlog-page .task-row-mobile {
     display: none !important;
   }
   
-  .tasks-adaptive {
+  .backlog-page .tasks-adaptive {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)) !important;
     gap: var(--space-4) !important;
@@ -1947,53 +1967,53 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 
 /* Tablet: Show card layout with smaller cards */
 @media (max-width: 768px) and (min-width: 601px) {
-  .task-card-desktop {
+  .backlog-page .task-card-desktop {
     display: block !important;
   }
   
-  .task-row-mobile {
+  .backlog-page .task-row-mobile {
     display: none !important;
   }
   
-  .tasks-adaptive {
+  .backlog-page .tasks-adaptive {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
     gap: var(--space-3) !important;
   }
   
-  .task-card-desktop {
+  .backlog-page .task-card-desktop {
     border-radius: 8px !important;
   }
   
-  .card-header {
+  .backlog-page .card-header {
     padding: var(--space-3) !important;
   }
   
-  .card-body {
+  .backlog-page .card-body {
     padding: var(--space-2) var(--space-3) !important;
   }
   
-  .card-actions {
+  .backlog-page .card-actions {
     padding: var(--space-2) var(--space-3) !important;
   }
   
-  .task-title {
+  .backlog-page .task-title {
     font-size: var(--font-size-base) !important;
   }
   
-  .meta-label {
+  .backlog-page .meta-label {
     font-size: 10px !important;
   }
   
-  .status-select,
-  .assignee-select {
+  .backlog-page .status-select,
+  .backlog-page .assignee-select {
     padding: var(--space-1) var(--space-2) !important;
     font-size: var(--font-size-xs) !important;
   }
   
-  .btn-edit,
-  .btn-save,
-  .btn-cancel {
+  .backlog-page .btn-edit,
+  .backlog-page .btn-save,
+  .backlog-page .btn-cancel {
     padding: var(--space-1) var(--space-3) !important;
     font-size: var(--font-size-xs) !important;
   }
@@ -2001,43 +2021,43 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 
 /* Mobile: Show Apple-style layout */
 @media (max-width: 600px) {
-  .task-card-desktop {
+  .backlog-page .task-card-desktop {
     display: none !important;
   }
   
-  .task-card-mobile {
+  .backlog-page .task-card-mobile {
     display: block !important;
   }
   
-  .tasks-adaptive {
+  .backlog-page .tasks-adaptive {
     display: flex !important;
     flex-direction: column !important;
     gap: var(--space-2) !important;
     padding: 0 !important;
   }
   
-  .task-card-mobile {
+  .backlog-page .task-card-mobile {
     margin: 0 var(--space-2) !important;
   }
   
-  .task-title-mobile {
+  .backlog-page .task-title-mobile {
     font-size: var(--font-size-base) !important;
     line-height: 1.3 !important;
   }
   
-  .task-edit-input-mobile {
+  .backlog-page .task-edit-input-mobile {
     font-size: var(--font-size-sm) !important;
   }
   
-  .assignee-name-mobile {
+  .backlog-page .assignee-name-mobile {
     font-size: var(--font-size-xs) !important;
   }
   
-  .task-date-mobile {
+  .backlog-page .task-date-mobile {
     font-size: 10px !important;
   }
   
-  .status-pill-mobile {
+  .backlog-page .status-pill-mobile {
     font-size: 9px !important;
     padding: 3px 8px !important;
     height: 24px !important;
@@ -2046,49 +2066,49 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 
 /* Small Mobile: Optimize further */
 @media (max-width: 480px) {
-  .task-row-mobile {
+  .backlog-page .task-row-mobile {
     margin: 0 var(--space-1) !important;
     border-radius: 6px !important;
     padding: var(--space-2) !important;
   }
   
-  .task-title-mobile {
+  .backlog-page .task-title-mobile {
     font-size: var(--font-size-sm) !important;
     line-height: 1.1 !important;
   }
   
-  .task-edit-input-mobile {
+  .backlog-page .task-edit-input-mobile {
     font-size: var(--font-size-xs) !important;
   }
   
-  .status-badge-mobile {
+  .backlog-page .status-badge-mobile {
     font-size: 9px !important;
     padding: 2px 6px !important;
   }
   
-  .assignee-avatar {
+  .backlog-page .assignee-avatar {
     width: 20px !important;
     height: 20px !important;
     font-size: 9px !important;
   }
   
-  .assignee-name {
+  .backlog-page .assignee-name {
     font-size: 10px !important;
   }
   
-  .task-date-mobile {
+  .backlog-page .task-date-mobile {
     font-size: 9px !important;
   }
   
-  .btn-edit-mobile,
-  .btn-save-mobile,
-  .btn-cancel-mobile {
+  .backlog-page .btn-edit-mobile,
+  .backlog-page .btn-save-mobile,
+  .backlog-page .btn-cancel-mobile {
     width: 28px !important;
     height: 28px !important;
   }
 }
 
-.no-tasks-card {
+.backlog-page .no-tasks-card {
   background: var(--bg-primary) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: var(--border-radius) !important;
@@ -2097,14 +2117,14 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   padding: var(--space-8) !important;
 }
 
-.no-tasks-card h3 {
+.backlog-page .no-tasks-card h3 {
   color: var(--text-primary) !important;
   font-size: var(--font-size-xl) !important;
   font-weight: var(--font-weight-bold) !important;
   margin: 0 0 var(--space-3) 0 !important;
 }
 
-.no-tasks-card p {
+.backlog-page .no-tasks-card p {
   color: var(--text-secondary) !important;
   font-size: var(--font-size-base) !important;
   margin: 0 0 var(--space-4) 0 !important;
@@ -2113,7 +2133,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 /* =============================
    Backlog Filters
 ============================= */
-.backlog-filters {
+.backlog-page .backlog-filters {
   background: var(--bg-secondary) !important; /* Changed to bg-secondary */
   padding: var(--space-3) !important;
   border-radius: var(--border-radius) !important;

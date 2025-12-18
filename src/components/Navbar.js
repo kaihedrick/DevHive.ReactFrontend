@@ -1,5 +1,5 @@
 import React, { useEffect } from "react"; 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import "../styles/navbar.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTableColumns, faListCheck, faAddressBook, faUser } from "@fortawesome/free-solid-svg-icons";
@@ -15,6 +15,7 @@ import { ReactComponent as HiveIcon } from "./assets/hive-icon.svg";
  */
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 600);
   /**
    * useEffect - Window Resize Listener
@@ -58,10 +59,20 @@ const Navbar = () => {
           <ul className="navbar-nav">
             {navItems.map((item, index) => (
               <li key={index} className="nav-item">
-                <a href={item.path} className="nav-link">
+                {/** Determine if this nav item matches the current route */}
+                {(() => {
+                  const isActive = location.pathname.startsWith(item.path);
+                  return (
+                    <a
+                      href={item.path}
+                      className={`nav-link ${isActive ? 'active' : ''}`}
+                      aria-current={isActive ? 'page' : undefined}
+                    >
                   <FontAwesomeIcon icon={item.icon} className="nav-icon" />
                   <span className="link-text">{item.label}</span>
-                </a>
+                    </a>
+                  );
+                })()}
               </li>
             ))}
           </ul>

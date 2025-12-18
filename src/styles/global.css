@@ -126,7 +126,7 @@
     --navbar-hover: var(--dark-gray);
     --navbar-text: var(--white);
     --navbar-accent: var(--gold);
-    --navbar-height-mobile: 80px !important;
+    --navbar-height-mobile: 64px !important;
     --navbar-width-collapsed: 80px !important;
     --navbar-width-expanded: 200px !important;
     
@@ -325,7 +325,8 @@ body.has-topbar main {
 }
 
 body.has-topbar .content {
-  margin-top: 0 !important; /* Remove excessive margin */
+  padding-top: var(--navbar-height-mobile) !important; /* Push page content below fixed topbar */
+  margin-top: 0 !important;
 }
 
 /* Mobile-first responsive adjustments */

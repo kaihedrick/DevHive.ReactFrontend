@@ -1,5 +1,6 @@
 /* ==========================
    Navbar Base Styles
+   Scoped to navbar only - does not affect page layouts
 ========================== */
 .navbar {
     position: fixed !important;
@@ -9,6 +10,7 @@
     box-shadow: var(--shadow-md) !important;
     /* Ensure navbar is always visible */
     overflow: visible !important;
+    /* Navbar is self-contained - does not affect page spacing */
 }
 
 .navbar-wrapper {
@@ -124,14 +126,6 @@ body.has-sidebar .sidebar-mode:hover ~ .content-container {
     width: calc(100% - var(--navbar-width-expanded)) !important;
 }
 
-/* When topbar is present (mobile) - only for containers, not main */
-body.has-topbar .container,
-body.has-topbar .content-container {
-    margin-left: 0 !important;
-    margin-top: calc(var(--navbar-height-mobile) + var(--space-2)) !important; /* Reduced from just navbar height to navbar + small spacing */
-    width: 100% !important;
-}
-
 /* Media queries for responsive layout */
 @media (max-width: 600px) {
   /* Force content to adjust for topbar - only for containers, not main */
@@ -183,13 +177,13 @@ body.has-topbar .content-container {
     align-items: center !important;
     justify-content: space-between !important;
     width: 100% !important;
-    padding: 0 var(--space-4) !important;
-    gap: var(--space-3) !important; /* Add gap between logo and nav items */
+    padding: 0 var(--space-2) !important; /* Tighter horizontal padding so all icons fit */
+    gap: var(--space-2) !important; /* Compact gap between logo and nav items */
   }
   
   /* Logo container in mobile - more compact */
   .navbar .logo-container {
-    margin-right: var(--space-4) !important; /* Reduced margin */
+    margin-right: var(--space-2) !important; /* Reduced margin */
     flex-shrink: 0 !important;
     height: 100% !important;
     padding: 0 !important;
@@ -199,11 +193,11 @@ body.has-topbar .content-container {
   /* Adjust navbar nav to horizontal layout */
   .navbar .navbar-nav {
     flex-direction: row !important;
-    justify-content: flex-end !important;
+    justify-content: space-evenly !important; /* Evenly distribute nav icons */
     align-items: center !important;
     padding: 0 !important;
     margin: 0 !important;
-    flex: 1 !important;
+    flex: 1 1 auto !important;
     gap: var(--space-2) !important; /* Reduced gap between nav items */
   }
 
@@ -212,8 +206,8 @@ body.has-topbar .content-container {
     height: 100% !important;
     display: flex !important;
     align-items: center !important;
-    flex-shrink: 0 !important; /* Prevent nav items from shrinking */
-    width: auto !important; /* Let content determine width */
+    flex: 1 1 0 !important; /* Each icon takes an equal share of the width */
+    min-width: 0 !important; /* Allow flexbox to shrink items as needed */
   }
   
   .navbar .nav-link {
@@ -252,15 +246,15 @@ body.has-topbar .content-container {
 }
 
 /* Ensure navbar content fills available space */
-.navbar-content {
+.navbar .navbar-content {
     width: 100% !important;
     height: 100% !important;
     display: flex !important;
     flex-direction: inherit !important; /* Inherits from parent navbar */
 }
 
-/* Navbar nav layout */
-.navbar-nav {
+/* Navbar nav layout - sidebar (desktop) */
+.navbar.sidebar-mode .navbar-nav {
     list-style: none !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -270,16 +264,16 @@ body.has-topbar .content-container {
     align-items: center !important;
 }
 
-/* Basic nav item styling */
-.nav-item {
+/* Basic nav item styling - sidebar (desktop) */
+.navbar.sidebar-mode .nav-item {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     width: 100% !important;
 }
 
-/* Nav link styling - ensure vertical centering */
-.nav-link {
+/* Nav link styling - ensure vertical centering - sidebar (desktop) */
+.navbar.sidebar-mode .nav-link {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -291,12 +285,12 @@ body.has-topbar .content-container {
 }
 
 /* Special styles for topbar mode */
-.topbar-mode .navbar-nav {
+.navbar.topbar-mode .navbar-nav {
   height: 100% !important; /* Take full height */
   align-items: center !important; /* Center items vertically */
 }
 
-.topbar-mode .nav-item {
+.navbar.topbar-mode .nav-item {
   height: 100% !important; /* Take full height */
   display: flex !important;
   align-items: center !important; /* Center items vertically */
@@ -305,7 +299,7 @@ body.has-topbar .content-container {
   flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
-.topbar-mode .nav-link {
+.navbar.topbar-mode .nav-link {
   height: 100% !important; /* Take full height */
   display: flex !important;
   align-items: center !important; /* Center items vertically */
@@ -316,9 +310,27 @@ body.has-topbar .content-container {
   min-height: 44px !important; /* Ensure touch target size */
 }
 
-.topbar-mode .nav-icon {
+/* Active nav link styling (both sidebar and topbar) */
+.navbar .nav-link.active {
+  color: var(--navbar-accent) !important;
+  background-color: var(--navbar-hover) !important;
+}
+
+.navbar .nav-link.active .nav-icon {
+  color: var(--navbar-accent) !important;
+}
+
+.navbar.topbar-mode .nav-link.active {
+  border-bottom: 3px solid var(--navbar-accent) !important;
+}
+
+.navbar.sidebar-mode .nav-link.active {
+  border-left: 3px solid var(--navbar-accent) !important;
+}
+
+.navbar.topbar-mode .nav-icon {
   margin: 0 !important; /* Remove any default margins */
-  font-size: calc(var(--navbar-height-mobile) * 0.4) !important; /* 40% of navbar height */
+  font-size: calc(var(--navbar-height-mobile) * 0.5) !important; /* 50% of navbar height for better balance with logo */
   height: auto !important; /* Let content determine height */
   width: auto !important; /* Let content determine width */
   display: flex !important;
@@ -328,13 +340,13 @@ body.has-topbar .content-container {
 }
 
 /* Ensure the navbar content is also properly centered */
-.topbar-mode .navbar-content {
+.navbar.topbar-mode .navbar-content {
     align-items: center !important; /* Center items vertically */
     height: 100% !important;
 }
 
 /* Center the SVG in the logo container for topbar mode */
-.topbar-mode .logo-container {
+.navbar.topbar-mode .logo-container {
   display: flex !important;
   align-items: center !important; /* Center vertically */
   justify-content: center !important; /* Center horizontally */
@@ -346,9 +358,9 @@ body.has-topbar .content-container {
   flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
-.topbar-mode .logo {
-  width: calc(var(--navbar-height-mobile) * 0.7) !important; /* 70% of navbar height */
-  height: calc(var(--navbar-height-mobile) * 0.7) !important; /* 70% of navbar height */
+.navbar.topbar-mode .logo {
+  width: calc(var(--navbar-height-mobile) * 0.65) !important; /* 65% of navbar height */
+  height: calc(var(--navbar-height-mobile) * 0.65) !important; /* 65% of navbar height */
   object-fit: contain !important; /* Ensure the SVG scales properly */
   margin: 0 !important; /* Remove any margin */
   display: block !important; /* Ensure it behaves as a block element */
@@ -358,7 +370,7 @@ body.has-topbar .content-container {
 /* Fix mobile logo and nav layout */
 
 /* Logo styling for both modes */
-.logo-container {
+.navbar .logo-container {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -366,14 +378,14 @@ body.has-topbar .content-container {
 }
 
 /* Desktop logo styling - only apply in sidebar mode */
-.sidebar-mode .logo-container {
+.navbar.sidebar-mode .logo-container {
   padding: var(--space-3) !important; /* Apply padding only in sidebar mode */
   margin-bottom: var(--space-4) !important;
   width: 100% !important;
 }
 
 /* Mobile logo container - make it more compact */
-.mobile-logo {
+.navbar .mobile-logo {
   padding: 0 !important; /* Explicitly zero padding */
   margin: 0 !important;
   margin-left: var(--space-3) !important; /* Left spacing */
@@ -388,29 +400,29 @@ body.has-topbar .content-container {
 }
 
 /* Logo sizing for both modes */
-.logo {
+.navbar .logo {
   width: 40px !important;
   height: 40px !important;
   transition: transform var(--transition-normal) ease !important;
 }
 
 /* Topbar mode logo sizing - fill navbar height */
-.topbar-mode .logo {
-  width: calc(var(--navbar-height-mobile) * 0.7) !important; /* 70% of navbar height */
-  height: calc(var(--navbar-height-mobile) * 0.7) !important; /* 70% of navbar height */
+.navbar.topbar-mode .logo {
+  width: calc(var(--navbar-height-mobile) * 0.65) !important; /* 65% of navbar height */
+  height: calc(var(--navbar-height-mobile) * 0.65) !important; /* 65% of navbar height */
   display: block !important;
   flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
 /* Logo image */
-.logo {
+.navbar .logo {
     width: 40px !important;
     height: 40px !important;
     transition: transform var(--transition-normal) ease !important;
 }
 
 /* Logo text (only visible on desktop hover) */
-.logo-text {
+.navbar .logo-text {
     display: none !important;
     margin-left: var(--space-3) !important;
     font-weight: var(--font-weight-bold) !important;
@@ -418,12 +430,12 @@ body.has-topbar .content-container {
 }
 
 /* Show text on sidebar hover */
-.sidebar-mode:hover .logo-text {
+.navbar.sidebar-mode:hover .logo-text {
     display: inline !important;
 }
 
 /* Rotate logo on sidebar hover */
-.sidebar-mode:hover .logo {
+.navbar.sidebar-mode:hover .logo {
     transform: rotate(180deg) !important;
 }
 
@@ -486,10 +498,9 @@ body.has-topbar .content-container {
     /* NOTE: main element layout rules are handled in global.css, not here */
 }
 
-/* Ensure proper spacing for content below navbar */
-body.has-topbar .content,
+/* Ensure proper spacing for content below navbar (sidebar mode only) */
 body.has-sidebar .content {
-    padding-top: 0 !important; /* Remove top padding since margin handles spacing */
+    padding-top: 0 !important;
 }
 
 /* Smooth transitions for all navbar state changes */

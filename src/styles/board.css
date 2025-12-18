@@ -26,7 +26,27 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   display: block !important;
 }
 
-.board-container {
+/* Account for topbar height on mobile - High specificity to override global rules */
+@media (max-width: 600px) {
+  /* Target page when topbar is present - ensure it accounts for fixed navbar */
+  body.has-topbar main .board-page,
+  body.has-topbar .board-page,
+  body.has-topbar .content main .board-page {
+    padding-top: var(--space-5) !important; /* Match base top padding; global .content handles navbar clearance */
+    padding-right: var(--space-5) !important; /* Keep existing side padding */
+    padding-bottom: var(--space-5) !important; /* Keep existing bottom padding */
+    padding-left: var(--space-5) !important; /* Keep existing side padding */
+    margin-top: 0 !important; /* Override any margin-top from global rules */
+    position: relative !important; /* Ensure proper stacking context */
+  }
+  
+  /* Ensure the first element in the page also has proper spacing */
+  body.has-topbar .board-page > *:first-child {
+    margin-top: 0 !important; /* Remove any top margin from first child */
+  }
+}
+
+.board-page .board-container {
   width: 100% !important;
   max-width: 1400px !important;
   background: var(--bg-primary) !important;
@@ -42,7 +62,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   box-sizing: border-box !important;
 }
 
-.board-header {
+.board-page .board-header {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
@@ -51,26 +71,26 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-.board-title {
+.board-page .board-title {
   font-size: var(--font-size-2xl) !important;
   font-weight: var(--font-weight-bold) !important;
   color: var(--text-primary) !important;
   margin: 0 !important;
 }
 
-.sprint-selector {
+.board-page .sprint-selector {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-3) !important;
 }
 
-.sprint-selector label {
+.board-page .sprint-selector label {
   font-size: var(--font-size-base) !important;
   color: var(--text-secondary) !important;
   font-weight: var(--font-weight-medium) !important;
 }
 
-.sprint-selector select {
+.board-page .sprint-selector select {
   padding: var(--space-2) var(--space-3) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: var(--border-radius) !important;
@@ -82,12 +102,12 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   cursor: pointer !important;
 }
 
-.sprint-selector select:focus {
+.board-page .sprint-selector select:focus {
   border-color: var(--accent-primary) !important;
   outline: none !important;
 }
 
-.board-columns {
+.board-page .board-columns {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
   gap: var(--space-4) !important;
@@ -101,19 +121,19 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 
 /* Force horizontal layout on desktop by default */
 @media (min-width: 769px) {
-  .board-columns {
+  .board-page .board-columns {
     grid-template-columns: repeat(3, 1fr) !important;
     display: grid !important;
   }
 }
 
-.board-column-wrapper {
+.board-page .board-column-wrapper {
   min-height: 0 !important; /* Critical for grid items to respect parent boundaries */
   display: flex !important;
   flex-direction: column !important;
 }
 
-.board-column {
+.board-page .board-column {
   background: var(--bg-secondary) !important;
   border-radius: var(--border-radius) !important;
   display: flex !important;
@@ -125,7 +145,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   min-height: 0 !important; /* Critical for flex children */
 }
 
-.board-column-content {
+.board-page .board-column-content {
   flex: 1 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
@@ -136,7 +156,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   min-height: 0 !important;
 }
 
-.board-column-header {
+.board-page .board-column-header {
   flex-shrink: 0 !important; /* Prevent header from shrinking */
   background: var(--accent-primary) !important;
   color: var(--black) !important;
@@ -148,14 +168,14 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   align-items: center !important;
 }
 
-.board-column-header h3 {
+.board-page .board-column-header h3 {
   font-size: var(--font-size-lg) !important;
   font-weight: var(--font-weight-bold) !important;
   margin: 0 !important;
   color: var(--black) !important;
 }
 
-.task-count {
+.board-page .task-count {
   background: var(--bg-primary) !important;
   color: var(--text-primary) !important;
   border-radius: 50% !important;
@@ -170,7 +190,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 
 /* Task List */
 /* Task List */
-.task-list {
+.board-page .task-list {
   padding: var(--space-3) !important;
   flex: 1 !important; /* Allow the task list to take up available space */
   height: 100% !important; /* Ensure it fills the column height */
@@ -185,38 +205,38 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 }
 
 /* Scrollbar Styling */
-.task-list::-webkit-scrollbar {
+.board-page .task-list::-webkit-scrollbar {
   width: 0.4rem !important;
 }
 
-.task-list::-webkit-scrollbar-track {
+.board-page .task-list::-webkit-scrollbar-track {
   background: var(--bg-secondary) !important;
   border-radius: var(--border-radius) !important;
 }
 
-.task-list::-webkit-scrollbar-thumb {
+.board-page .task-list::-webkit-scrollbar-thumb {
   background-color: var(--gray) !important;
   border-radius: var(--border-radius) !important;
 }
 
-.task-list::-webkit-scrollbar-thumb:hover {
+.board-page .task-list::-webkit-scrollbar-thumb:hover {
   background-color: var(--dark-gray) !important;
 }
 
 /* Firefox scrollbar styling */
-.task-list {
+.board-page .task-list {
   scrollbar-width: thin !important;
   scrollbar-color: var(--gray) var(--bg-secondary) !important;
 }
 
 /* Highlight effect for drop targets */
-.task-list.highlight-drop-target {
+.board-page .task-list.highlight-drop-target {
   background-color: hsla(var(--gold-hue), var(--gold-saturation), 85%, 0.3) !important;
   border: 2px dashed var(--accent-primary) !important;
 }
 
 /* Task Card */
-.task-card {
+.board-page .task-card {
   background: var(--bg-primary) !important;
   border: none !important;
   border-radius: var(--border-radius) !important;
@@ -231,16 +251,16 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
-.task-card:last-child {
+.board-page .task-card:last-child {
   margin-bottom: 0 !important;
 }
 
-.task-card:hover {
+.board-page .task-card:hover {
   background: var(--bg-secondary, #f5f5f5) !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important;
 }
 
-.task-card.dragging {
+.board-page .task-card.dragging {
   opacity: 0.5 !important;
   transform: scale(1.02) translateY(-4px) !important;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
@@ -249,7 +269,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   transition: none !important; /* Disable transition during drag */
 }
 
-.task-header {
+.board-page .task-header {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
@@ -257,7 +277,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   margin-bottom: 0 !important;
 }
 
-.task-title-wrapper {
+.board-page .task-title-wrapper {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-2) !important;
@@ -265,7 +285,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   min-width: 0 !important;
 }
 
-.task-title {
+.board-page .task-title {
   font-weight: var(--font-weight-medium) !important;
   color: var(--text-primary) !important;
   font-size: var(--font-size-base) !important;
@@ -279,21 +299,21 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   text-overflow: ellipsis !important;
 }
 
-.task-title:hover {
+.board-page .task-title:hover {
   color: var(--accent-primary) !important;
 }
 
-.task-actions {
+.board-page .task-actions {
   color: var(--text-tertiary) !important;
   cursor: pointer !important;
   font-size: var(--font-size-sm) !important;
 }
 
-.task-actions:hover {
+.board-page .task-actions:hover {
   color: var(--accent-primary) !important;
 }
 
-.task-content {
+.board-page .task-content {
   font-size: var(--font-size-sm) !important;
   color: var(--text-secondary) !important;
 }
@@ -301,11 +321,11 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 /* Removed task-meta, task-assignee, task-date styles - no longer used */
 
 /* Task Assignee Avatar */
-.task-assignee-avatar {
+.board-page .task-assignee-avatar {
   flex-shrink: 0 !important;
 }
 
-.assignee-avatar-initials {
+.board-page .assignee-avatar-initials {
   width: 28px !important;
   height: 28px !important;
   border-radius: 50% !important;
@@ -320,11 +340,11 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   transition: transform 0.2s ease !important;
 }
 
-.assignee-avatar-initials:hover {
+.board-page .assignee-avatar-initials:hover {
   transform: scale(1.1) !important;
 }
 
-.assignee-placeholder {
+.board-page .assignee-placeholder {
   width: 28px !important;
   height: 28px !important;
   border-radius: 50% !important;
@@ -341,14 +361,14 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   line-height: 1 !important;
 }
 
-.assignee-placeholder:hover {
+.board-page .assignee-placeholder:hover {
   border-color: var(--accent-primary) !important;
   color: var(--accent-primary) !important;
   background: rgba(255, 215, 0, 0.1) !important;
 }
 
 /* Optional Status Dot */
-.task-status-dot {
+.board-page .task-status-dot {
   width: 6px !important;
   height: 6px !important;
   border-radius: 50% !important;
@@ -357,21 +377,21 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   flex-shrink: 0 !important;
 }
 
-.task-status-dot--todo {
+.board-page .task-status-dot--todo {
   background: var(--text-tertiary, #999) !important;
 }
 
-.task-status-dot--in-progress {
+.board-page .task-status-dot--in-progress {
   background: var(--accent-primary) !important;
 }
 
-.task-status-dot--completed {
+.board-page .task-status-dot--completed {
   background: hsl(120, 50%, 50%) !important;
 }
 
 /* Removed old dropdown styles - using avatars now */
 
-.empty-column-message {
+.board-page .empty-column-message {
   color: var(--text-tertiary) !important;
   text-align: center !important;
   padding: var(--space-4) !important;
@@ -379,27 +399,27 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   font-style: italic !important;
 }
 
-.loading-message,
-.error-message,
-.info-message {
+.board-page .loading-message,
+.board-page .error-message,
+.board-page .info-message {
   text-align: center !important;
   padding: var(--space-6) !important;
   font-size: var(--font-size-lg) !important;
 }
 
-.loading-message {
+.board-page .loading-message {
   color: var(--text-secondary) !important;
 }
 
-.error-message {
+.board-page .error-message {
   color: hsl(0, 100%, 50%) !important;
 }
 
-.info-message {
+.board-page .info-message {
   color: var(--text-secondary) !important;
 }
 
-.success-message {
+.board-page .success-message {
   position: fixed !important;
   top: var(--space-5) !important;
   left: 50% !important;
@@ -421,23 +441,23 @@ body.has-sidebar .navbar:hover ~ main .board-page {
     padding: var(--space-6) !important;
   }
   
-  .board-container {
+  .board-page .board-container {
     max-width: 1200px !important;
     padding: var(--space-6) !important;
   }
   
-  .board-columns {
+  .board-page .board-columns {
     gap: var(--space-6) !important;
   }
 }
 
 @media (min-width: 1600px) {
-  .board-container {
+  .board-page .board-container {
     max-width: 1400px !important;
     padding: var(--space-8) !important;
   }
   
-  .board-columns {
+  .board-page .board-columns {
     gap: var(--space-8) !important;
   }
 }
@@ -449,7 +469,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
     padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
   }
   
-  .board-container {
+  .board-page .board-container {
     padding: var(--space-3) !important;
     padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
     margin: 0 var(--space-2) !important;
@@ -457,7 +477,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   }
   
   /* Stack columns vertically on mobile */
-  .board-columns {
+  .board-page .board-columns {
     grid-template-columns: 1fr !important; /* Single column on mobile */
     gap: var(--space-3) !important; /* Reduce gap for mobile */
     max-height: none !important; /* Allow natural height on mobile */
@@ -465,46 +485,46 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   }
   
   /* Adjust column headers for mobile */
-  .board-column-header {
+  .board-page .board-column-header {
     padding: var(--space-2) var(--space-3) !important; /* Reduce padding on mobile */
   }
   
-  .board-column-header h3 {
+  .board-page .board-column-header h3 {
     font-size: var(--font-size-base) !important; /* Smaller font on mobile */
   }
   
   /* Add extra bottom padding to column content on mobile to ensure all tasks are visible */
-  .board-column-content {
+  .board-page .board-column-content {
     padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
     scroll-padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
   }
   
   /* Adjust task list for mobile */
-  .task-list {
+  .board-page .task-list {
     padding: var(--space-2) !important; /* Reduce padding on mobile */
     gap: var(--space-2) !important; /* Reduce gap between tasks on mobile */
   }
   
   /* Adjust task cards for mobile */
-  .task-card {
+  .board-page .task-card {
     padding: var(--space-2) !important; /* Reduce padding on mobile */
     margin-bottom: var(--space-2) !important; /* Reduce margin on mobile */
     min-height: 60px !important; /* Reduce minimum height on mobile */
   }
   
   /* Adjust board header for mobile */
-  .board-header {
+  .board-page .board-header {
     flex-direction: column !important; /* Stack header elements vertically on mobile */
     gap: var(--space-3) !important;
     align-items: flex-start !important;
   }
   
   /* Adjust sprint selector for mobile */
-  .sprint-selector {
+  .board-page .sprint-selector {
     width: 100% !important; /* Full width on mobile */
   }
   
-  .sprint-selector select {
+  .board-page .sprint-selector select {
     width: 100% !important; /* Full width on mobile */
     min-width: auto !important; /* Remove min-width constraint on mobile */
   }
@@ -517,49 +537,49 @@ body.has-sidebar .navbar:hover ~ main .board-page {
     padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
   }
   
-  .board-container {
+  .board-page .board-container {
     padding: var(--space-2) !important;
     padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
     margin: 0 var(--space-1) !important;
     margin-bottom: var(--space-4) !important;
   }
   
-  .board-columns {
+  .board-page .board-columns {
     gap: var(--space-2) !important; /* Even smaller gap for very small screens */
   }
   
-  .board-column-header {
+  .board-page .board-column-header {
     padding: var(--space-2) !important; /* Minimal padding on very small screens */
   }
   
-  .board-column-header h3 {
+  .board-page .board-column-header h3 {
     font-size: var(--font-size-sm) !important; /* Smaller font on very small screens */
   }
   
   /* Ensure extra bottom padding on very small screens too */
-  .board-column-content {
+  .board-page .board-column-content {
     padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
     scroll-padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
   }
   
-  .task-list {
+  .board-page .task-list {
     padding: var(--space-1) !important; /* Minimal padding on very small screens */
     gap: var(--space-1) !important; /* Minimal gap on very small screens */
   }
   
-  .task-card {
+  .board-page .task-card {
     padding: var(--space-2) !important; /* Keep readable padding */
     margin-bottom: var(--space-1) !important; /* Minimal margin on very small screens */
     min-height: 50px !important; /* Smaller minimum height on very small screens */
   }
   
-  .board-header {
+  .board-page .board-header {
     gap: var(--space-2) !important; /* Smaller gap on very small screens */
   }
 }
 
 /* Mobile Drop Zones - Appear when dragging on mobile */
-.mobile-drop-zones {
+.board-page .mobile-drop-zones {
   display: flex !important;
   flex-direction: row !important;
   gap: var(--space-2) !important;
@@ -584,7 +604,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   }
 }
 
-.mobile-drop-zone {
+.board-page .mobile-drop-zone {
   flex: 1 !important;
   padding: var(--space-3) var(--space-2) !important;
   border: 2px solid var(--border-color) !important;
@@ -603,8 +623,8 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   user-select: none !important;
 }
 
-.mobile-drop-zone:hover,
-.mobile-drop-zone.drag-over {
+.board-page .mobile-drop-zone:hover,
+.board-page .mobile-drop-zone.drag-over {
   background: var(--accent-primary) !important;
   color: var(--black) !important;
   border-color: var(--accent-primary) !important;
@@ -612,34 +632,34 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
-.mobile-drop-zone--todo {
+.board-page .mobile-drop-zone--todo {
   border-color: var(--text-tertiary, #999) !important;
 }
 
-.mobile-drop-zone--todo:hover,
-.mobile-drop-zone--todo.drag-over {
+.board-page .mobile-drop-zone--todo:hover,
+.board-page .mobile-drop-zone--todo.drag-over {
   background: var(--text-tertiary, #999) !important;
   color: var(--white) !important;
   border-color: var(--text-tertiary, #999) !important;
 }
 
-.mobile-drop-zone--in-progress {
+.board-page .mobile-drop-zone--in-progress {
   border-color: var(--accent-primary) !important;
 }
 
-.mobile-drop-zone--in-progress:hover,
-.mobile-drop-zone--in-progress.drag-over {
+.board-page .mobile-drop-zone--in-progress:hover,
+.board-page .mobile-drop-zone--in-progress.drag-over {
   background: var(--accent-primary) !important;
   color: var(--black) !important;
   border-color: var(--accent-primary) !important;
 }
 
-.mobile-drop-zone--completed {
+.board-page .mobile-drop-zone--completed {
   border-color: hsl(120, 50%, 50%) !important;
 }
 
-.mobile-drop-zone--completed:hover,
-.mobile-drop-zone--completed.drag-over {
+.board-page .mobile-drop-zone--completed:hover,
+.board-page .mobile-drop-zone--completed.drag-over {
   background: hsl(120, 50%, 50%) !important;
   color: var(--white) !important;
   border-color: hsl(120, 50%, 50%) !important;
@@ -647,7 +667,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 
 /* Ensure mobile drop zones only show on mobile */
 @media (min-width: 769px) {
-  .mobile-drop-zones {
+  .board-page .mobile-drop-zones {
     display: none !important;
   }
 }

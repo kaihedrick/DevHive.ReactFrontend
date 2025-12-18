@@ -90,11 +90,9 @@
   max-width: 500px !important;
   margin: 0 auto !important;
   position: relative !important;
-  max-height: calc(100vh - 120px) !important;
-  overflow-y: auto !important;
+  max-height: none !important; /* Let the main content scroll container handle vertical scrolling */
+  overflow-y: visible !important;
   overflow-x: hidden !important;
-  -webkit-overflow-scrolling: touch !important;
-  scroll-behavior: smooth !important;
 }
 
 /* Ensure container is centered when sidebar navbar is present */
@@ -199,7 +197,7 @@ body.has-sidebar .navbar:hover ~ main .create-sprint-container::after {
 .create-sprint-container::before {
   content: '' !important;
   position: fixed !important;
-  top: 60px !important; /* Account for nav bar height */
+  top: var(--navbar-height-mobile) !important; /* Align with global navbar height */
   /* Center to match content: when sidebar present, center within available space */
   /* Default (no sidebar): center on viewport */
   left: calc(50vw - 250px) !important;
