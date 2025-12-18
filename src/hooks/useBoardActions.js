@@ -103,14 +103,11 @@ const useBoardActions = (projectId) => {
       // Convert empty string to null for unassigned
       const assigneeValue = newAssigneeId === "" ? null : newAssigneeId;
       
-      // Create a complete task object with all required fields and proper casing
+      // Create a task object with only updatable fields
       const updatedTask = {
-        ID: task.id,
-        Description: task.description,
-        AssigneeID: assigneeValue, // Use the converted value
-        DateCreated: task.dateCreated,
-        Status: task.status,
-        SprintID: task.sprintID
+        id: task.id,
+        description: task.description,
+        assigneeId: assigneeValue // Use the converted value
       };
       
       console.log("Sending to backend:", updatedTask);
@@ -122,7 +119,7 @@ const useBoardActions = (projectId) => {
       setTasks(prevTasks => 
         prevTasks.map(t => 
           t.id === task.id 
-            ? { ...t, assigneeID: assigneeValue } // Use assigneeValue here
+            ? { ...t, assigneeId: assigneeValue } // Use assigneeValue here
             : t
         )
       );

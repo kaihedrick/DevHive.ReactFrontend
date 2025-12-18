@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
-import { getSelectedProject } from '../services/authService.ts';
+import { getSelectedProject } from '../services/storageService';
 
 /**
  * useRoutePermission

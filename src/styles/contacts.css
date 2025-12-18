@@ -1,14 +1,27 @@
 /* ==========================
-   Contacts Page Container
+   Contacts Page Container - Absolute Page-Level Scoping
 ========================== */
 .contacts-page {
-  width: 100% !important; /* Full width for proper centering */
-  min-height: 100vh !important; /* Use viewport height like other working pages */
-  margin: 0 !important; /* Remove auto margins */
-  display: block !important; /* Remove flexbox complexity */
-  padding: var(--space-5) !important; /* Consistent padding */
+  width: 100% !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  display: block !important;
+  padding: var(--space-5) !important;
   background-color: var(--bg-secondary) !important;
-  box-sizing: border-box !important; /* Ensure padding is included in width */
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+
+/* Override global main styles for Contacts page - Absolute Scoping */
+body.has-sidebar .contacts-page {
+  margin-left: 0 !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+body.has-sidebar .navbar:hover ~ main .contacts-page {
+  margin-left: 0 !important;
+  width: 100% !important;
 }
 
 .no-contacts-text {
@@ -23,17 +36,19 @@
    Contacts Container
 ========================== */
 .contact-container {
-  width: 90% !important; /* Increased from 80% for better mobile fit */
-  max-width: 800px !important; /* Consistent with message.css */
+  width: 90% !important;
+  max-width: 800px !important;
   background: var(--bg-primary) !important;
   border-radius: var(--border-radius) !important;
-  box-shadow: var(--shadow-sm) !important; /* Reduced from shadow-lg to shadow-sm for cleaner look */
+  box-shadow: var(--shadow-sm) !important;
   font-family: var(--primary-font) !important;
   border: 1px solid var(--border-color) !important;
-  overflow: hidden !important; /* Prevents content from breaking the container */
-  margin: 0 auto !important; /* Center the container like other working pages */
-  min-height: calc(100vh - 200px) !important; /* Use viewport height calculation like board page */
-  box-sizing: border-box !important; /* Ensure padding is included in width */
+  overflow: hidden !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  min-height: calc(100vh - 200px) !important;
+  box-sizing: border-box !important;
+  display: block !important;
 }
 
 /* ==========================

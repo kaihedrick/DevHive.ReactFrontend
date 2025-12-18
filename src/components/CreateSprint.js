@@ -32,6 +32,7 @@ const CreateSprint = () => {
   
   // State for form inputs
   const [sprintName, setSprintName] = useState("");
+  const [sprintDescription, setSprintDescription] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [startImmediately, setStartImmediately] = useState(false);
@@ -57,14 +58,12 @@ const CreateSprint = () => {
       
       const sprintData = {
         name: sprintName,
+        description: sprintDescription,
         startDate,
         endDate,
-        isCompleted: false,
-        isStarted: startImmediately, // Set isStarted based on checkbox
-        projectID: projectId,
       };
 
-      await createSprint(sprintData);
+      await createSprint(projectId, sprintData);
       navigate("/backlog");
     } catch (err) {
       setError(err.message || "Failed to create sprint.");
@@ -106,6 +105,14 @@ const CreateSprint = () => {
             placeholder="Enter Sprint Name"
             value={sprintName}
             onChange={(e) => setSprintName(e.target.value)}
+          />
+
+          <textarea
+            placeholder="Enter Sprint Description (optional)"
+            value={sprintDescription}
+            onChange={(e) => setSprintDescription(e.target.value)}
+            rows="3"
+            className="sprint-description"
           />
 
           <div className="input-group">

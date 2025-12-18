@@ -10,6 +10,12 @@ html, body {
   overflow-x: hidden !important;
 }
 
+/* ============================= */
+/* 🍎 Progressive Disclosure + Affordance Scroll Indicators */
+/* ============================= */
+/* Scroll indicators are now handled in create_sprint.css with absolute page-level scoping */
+/* This file only contains Account Details specific styles */
+
 .account-container {
   display: flex !important;
   justify-content: center !important;
@@ -235,8 +241,128 @@ html, body {
 }
 
 /* ============================= */
-/* Buttons (Match create_task.css buttons) */
+/* Buttons - Scoped to Account Details Page */
 /* ============================= */
+
+/* Primary Action Button */
+.create-sprint-container .primary-action-btn,
+.account-details-page .primary-action-btn {
+  appearance: none !important;
+  border: none !important;
+  border-radius: 24px !important;
+  padding: 0 24px !important;
+  height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  font-family: var(--primary-font) !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  background: var(--accent-primary) !important;
+  color: var(--black) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast) !important;
+  width: 100% !important;
+  margin-top: var(--space-3) !important;
+}
+
+.create-sprint-container .primary-action-btn:hover,
+.account-details-page .primary-action-btn:hover {
+  background: var(--dark-gold) !important;
+  color: var(--white) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.create-sprint-container .primary-action-btn:focus,
+.account-details-page .primary-action-btn:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent-primary), #000 15%) !important;
+  outline-offset: 2px !important;
+}
+
+/* Secondary Action Button */
+.create-sprint-container .secondary-action-btn,
+.account-details-page .secondary-action-btn {
+  appearance: none !important;
+  border-radius: 24px !important;
+  padding: 0 24px !important;
+  height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  font-family: var(--primary-font) !important;
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--shadow-sm) !important;
+  width: 100% !important;
+  margin-top: var(--space-3) !important;
+}
+
+.create-sprint-container .secondary-action-btn:hover,
+.account-details-page .secondary-action-btn:hover {
+  background: color-mix(in srgb, var(--bg-primary), #fff 5%) !important;
+}
+
+.create-sprint-container .secondary-action-btn:focus,
+.account-details-page .secondary-action-btn:focus {
+  outline: 2px solid var(--border-color) !important;
+  outline-offset: 2px !important;
+}
+
+/* Danger Action Button */
+.create-sprint-container .danger-action-btn,
+.account-details-page .danger-action-btn {
+  appearance: none !important;
+  border: 1px solid #dc2626 !important;
+  background: #dc2626 !important;
+  color: white !important;
+  border-radius: 12px !important;
+  padding: 12px 24px !important;
+  font-weight: var(--font-weight-medium) !important;
+  transition: all 0.2s ease !important;
+  height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin-top: var(--space-3) !important;
+}
+
+.create-sprint-container .danger-action-btn:hover,
+.account-details-page .danger-action-btn:hover {
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
+}
+
+.create-sprint-container .danger-action-btn:focus,
+.account-details-page .danger-action-btn:focus {
+  outline: 2px solid #dc2626 !important;
+  outline-offset: 2px !important;
+}
+
+.create-sprint-container .danger-action-btn:disabled,
+.account-details-page .danger-action-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  background: #9ca3af !important;
+  border-color: #9ca3af !important;
+}
+
+.create-sprint-container .danger-action-btn:disabled:hover,
+.account-details-page .danger-action-btn:disabled:hover {
+  background: #9ca3af !important;
+  border-color: #9ca3af !important;
+  transform: none !important;
+}
+
+/* Legacy button styles for backwards compatibility */
 .account-card button {
   width: 100% !important;
   padding: var(--space-3) var(--space-4) !important;
@@ -249,7 +375,6 @@ html, body {
   transition: all var(--transition-fast) ease !important;
 }
 
-/* Buttons */
 .account-details-page .account-card button {
   width: 100% !important;
   padding: var(--space-3) var(--space-4) !important;
@@ -287,18 +412,7 @@ html, body {
   color: var(--white) !important;
 }
 
-/* Leave Group Button */
-.leave-group-btn {
-  background: var(--bg-secondary) !important;
-  color: var(--text-primary) !important;
-}
-
-.leave-group-btn:hover {
-  background: var(--gray) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: var(--shadow-md) !important;
-  color: var(--white) !important;
-}
+/* Leave Group Button - DEPRECATED: Now using danger-action-btn from projects.css */
 
 /* Logout Button */
 .logout-btn {
@@ -500,18 +614,7 @@ html, body {
 
 /* Add these styles for leave project functionality */
 
-/* Leave project button styling */
-.leave-group-btn {
-  background: var(--dark-gray) !important;
-  color: var(--white) !important;
-  margin-top: var(--space-3) !important;
-}
-
-.leave-group-btn:hover {
-  background: hsl(0, 100%, 50%) !important; /* Red for warning */
-  transform: translateY(-2px) !important;
-  box-shadow: var(--shadow-md) !important;
-}
+/* Leave project button styling - DEPRECATED: Now using danger-action-btn from projects.css */
 
 /* Leave project confirmation section */
 .leave-project-confirmation {
@@ -560,14 +663,11 @@ html, body {
   box-shadow: var(--shadow-md) !important;
 }
 
-/* Disabled button styling */
-.leave-group-btn.disabled {
-  cursor: not-allowed !important;
-  opacity: 0.6 !important;
-  background: var(--gray) !important;
-}
+/* Disabled button styling - DEPRECATED: Now using danger-action-btn from projects.css */
+/* Disabled state is handled by the standard button classes */
 
-.leave-group-btn.disabled:hover {
-  transform: none !important;
-  box-shadow: none !important;
+/* Optional: since we removed the .account-card wrapper */
+.account-details-page, .account-container { 
+  background: var(--bg-primary) !important; 
+  padding: 0 !important; 
 }

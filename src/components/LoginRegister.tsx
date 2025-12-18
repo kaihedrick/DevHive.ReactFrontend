@@ -35,6 +35,7 @@ const LoginRegister: React.FC = () => {
     validationErrors,
     error,
     success,
+    successType,
     loading,
     handleChange,
     handleButtonClick,
@@ -164,7 +165,7 @@ const LoginRegister: React.FC = () => {
           {error && <p className="error">{error}</p>}
           {success && (
             <p className="success">
-              {action === "Sign Up" ? "Registration successful!" : "Login successful!"}
+              {successType === "registration" ? "Registration successful!" : "Login successful!"}
             </p>
           )}
 

@@ -1,8 +1,8 @@
 import { api, handleApiError } from '../utils/apiClient';
-import { ENDPOINTS } from '../config';
-import { EmailRequest } from '../models/email';
-import { ResetPasswordModel, ChangePasswordModel } from '../models/password';
-import { LoginModel, UserModel } from '../models/user';
+import { ENDPOINTS, JWT_CONFIG } from '../config';
+import { EmailRequest } from '../models/email.ts';
+import { ResetPasswordModel, ChangePasswordModel } from '../models/password.ts';
+import { LoginModel, UserModel } from '../models/user.ts';
 import axios, { AxiosError } from 'axios';
 
 // Define interfaces for type safety
@@ -118,7 +118,7 @@ export const validateUsername = async (username: string, currentUsername?: strin
     console.log(`Validating username: "${username}"`);
     
     // Use the api client for correct error handling
-    const response = await api.post(`${ENDPOINTS.USER}/ValidateUsername`, JSON.stringify(username), {
+    const response = await api.post(ENDPOINTS.USER_VALIDATE_USERNAME, JSON.stringify(username), {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${getAuthToken()}`
@@ -148,24 +148,29 @@ export const validateUsername = async (username: string, currentUsername?: strin
  * @param {LoginModel} credentials - User login credentials.
  * @returns {Promise<AuthToken>} Auth token and user ID if successful.
  */
-export const login = async (credentials: LoginModel): Promise<AuthToken> => {
+export const login = async (credentials: LoginModel | any): Promise<AuthToken> => {
   try {
-    // Include the issuer and audience in the login request
+    // Backend expects only username and password (per API spec: POST /auth/login with { "username", "password" })
+    // Handle both capitalized (Username/Password) and lowercase (username/password) field names
     const loginData = {
-      ...credentials,
-      issuer: JWT_CONFIG.issuer,
-      audience: JWT_CONFIG.audience
+      username: credentials.username || credentials.Username,
+      password: credentials.password || credentials.Password
     };
     
-    const response = await api.post(`${ENDPOINTS.USER}/ProcessLogin`, loginData);
-    const { Token, userId } = response.data;
+    console.log('🔐 Attempting login with:', { username: loginData.username, password: '***' });
+    const response = await api.post(ENDPOINTS.AUTH_LOGIN, loginData);
+    const { Token, userId, token } = response.data; // Handle both Token and token (case variations)
 
-    if (Token && userId) {
-      storeAuthData(Token, userId);
+    const authToken = Token || token;
+    if (authToken && userId) {
+      storeAuthData(authToken, userId);
       console.log('✅ Login successful');
+    } else {
+      console.warn('⚠️ Login response missing token or userId:', response.data);
     }
     return response.data;
   } catch (error) {
+    console.error('❌ Login error:', error);
     throw handleApiError(error, 'logging in');
   }
 };
@@ -184,7 +189,8 @@ export const logout = (): void => {
  */
 export const register = async (userData: UserModel): Promise<any> => {
   try {
-    const response = await api.post(ENDPOINTS.USER, userData);
+    // Registration is POST /users/, not /auth/register
+    const response = await api.post(ENDPOINTS.USERS, userData);
     return response.data;
   } catch (error) {
     throw handleApiError(error, 'registering user');
@@ -198,7 +204,7 @@ export const register = async (userData: UserModel): Promise<any> => {
 export const requestPasswordReset = async (email: string): Promise<void> => {
   try {
     // Send the email as a raw JSON string to match [FromBody] string email
-    await api.post(`${ENDPOINTS.USER}/RequestPasswordReset`, JSON.stringify(email), {
+    await api.post(ENDPOINTS.AUTH_PASSWORD_RESET_REQUEST, JSON.stringify(email), {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -221,7 +227,7 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
  */
 export const resetPassword = async (resetData: ResetPasswordModel): Promise<void> => {
   try {
-    await api.post(`${ENDPOINTS.USER}/ResetPassword`, resetData);
+    await api.post(ENDPOINTS.AUTH_PASSWORD_RESET, resetData);
     console.log('✅ Password reset successful');
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -263,7 +269,8 @@ export const confirmPasswordReset = async (token: string, newPassword: string): 
  */
 export const changePassword = async (passwordData: ChangePasswordModel): Promise<void> => {
   try {
-    await api.post(`${ENDPOINTS.USER}/ChangePassword`, passwordData);
+    // Password change is PATCH /users/me/password, not /auth/password/change
+    await api.patch(`${ENDPOINTS.USER_ME}/password`, passwordData);
     console.log('✅ Password changed successfully');
   } catch (error) {
     if (axios.isAxiosError(error)) {

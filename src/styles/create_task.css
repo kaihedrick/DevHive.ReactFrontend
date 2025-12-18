@@ -1,206 +1,202 @@
 /* ==========================
    Create Task Page Container
+   Match Account Details styling (but keep original background)
 ========================== */
-.create-task-container {
-  display: flex !important;
-  justify-content: center !important;
+/* Use create-sprint-container class (shared with Account Details) */
+/* Container styling is handled by create_sprint.css */
+/* Background remains default (not gold) */
+
+/* ==========================
+   Form styles are now handled by create_sprint.css
+   (form-group, form-label, form-input classes)
+========================== */
+
+/* ==========================
+   Buttons - Match Account Details
+========================== */
+
+/* Primary Action Button */
+.create-sprint-container .primary-action-btn {
+  appearance: none !important;
+  border: none !important;
+  border-radius: 24px !important;
+  padding: 0 24px !important;
+  height: 44px !important;
+  display: inline-flex !important;
   align-items: center !important;
-  min-height: calc(100vh - 100px) !important; /* Adjust for navbar */
-  padding: var(--space-5) !important;
-  background-color: var(--bg-secondary) !important;
-}
-
-/* ==========================
-   Create Task Card
-========================== */
-.create-task-card {
-  width: 100% !important;
-  max-width: 500px !important;
-  background: var(--bg-primary) !important;
-  border-radius: var(--border-radius) !important;
-  box-shadow: var(--shadow-lg) !important;
-  font-family: var(--primary-font) !important;
-  border: 1px solid var(--border-color) !important;
-  overflow: hidden !important;
-  padding: var(--space-5) !important;
-  position: relative !important;
-  text-align: center !important;
-}
-
-/* ==========================
-   Create Task Header
-========================== */
-.create-task-card h2 {
-  color: var(--text-primary) !important;
-  font-size: var(--font-size-xl) !important;
-  font-weight: var(--font-weight-bold) !important;
-  margin-bottom: var(--space-4) !important;
-  margin-top: var(--space-3) !important;
-}
-
-/* ==========================
-   Input Fields
-========================== */
-.create-task-card label {
-  display: block !important;
+  justify-content: center !important;
+  gap: var(--space-2) !important;
+  line-height: 1 !important;
+  font-size: var(--font-size-base) !important;
   font-weight: var(--font-weight-medium) !important;
-  margin-bottom: var(--space-2) !important;
-  margin-top: var(--space-3) !important;
-  color: var(--text-primary) !important;
-  font-size: var(--font-size-base) !important;
-  text-align: left !important;
-}
-
-.create-task-card input,
-.create-task-card select {
-  width: 100% !important;
-  padding: var(--space-3) var(--space-4) !important;
-  margin-bottom: var(--space-2) !important;
-  border: 2px solid var(--border-color) !important;
-  border-radius: var(--border-radius) !important;
-  font-size: var(--font-size-base) !important;
-  color: var(--text-primary) !important;
-  background: var(--bg-primary) !important;
   font-family: var(--primary-font) !important;
-  transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
-  outline: none !important;
-}
-
-.create-task-card input:focus,
-.create-task-card select:focus {
-  border-color: var(--accent-primary) !important;
-  box-shadow: var(--shadow-focus) !important;
-}
-
-/* ==========================
-   Create Task Button
-========================== */
-.create-task-btn {
+  text-transform: none !important;
+  letter-spacing: normal !important;
   background: var(--accent-primary) !important;
   color: var(--black) !important;
-  padding: var(--space-3) var(--space-4) !important;
-  border: none !important;
-  border-radius: var(--border-radius) !important;
-  cursor: pointer !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast) !important;
   width: 100% !important;
-  font-size: var(--font-size-base) !important;
-  font-weight: var(--font-weight-bold) !important;
-  margin-top: var(--space-4) !important;
-  transition: all var(--transition-fast) ease !important;
-}
-
-.create-task-btn:hover {
-  background: var(--dark-gold) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: var(--shadow-md) !important;
-  color: var(--white) !important;
-}
-
-/* ==========================
-   Back Arrow
-========================== */
-.back-arrow {
-  position: absolute !important;
-  top: var(--space-3) !important;
-  left: var(--space-3) !important;
-  font-size: var(--font-size-lg) !important;
+  margin-top: var(--space-3) !important;
   cursor: pointer !important;
-  color: var(--text-secondary) !important;
-  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
-  z-index: 10 !important;
 }
 
-.back-arrow:hover {
+.create-sprint-container .primary-action-btn:hover:not(:disabled) {
+  background: var(--dark-gold) !important;
+  color: var(--white) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.create-sprint-container .primary-action-btn:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent-primary), #000 15%) !important;
+  outline-offset: 2px !important;
+}
+
+.create-sprint-container .primary-action-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  background: var(--bg-tertiary) !important;
+  color: var(--text-secondary) !important;
+}
+
+.create-sprint-container .primary-action-btn:disabled:hover {
+  transform: none !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Secondary Action Button */
+.create-sprint-container .secondary-action-btn {
+  appearance: none !important;
+  border-radius: 24px !important;
+  padding: 0 24px !important;
+  height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  font-family: var(--primary-font) !important;
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-primary) !important;
   color: var(--text-primary) !important;
-  transform: scale(1.2) !important;
+  box-shadow: var(--shadow-sm) !important;
+  width: 100% !important;
+  margin-top: var(--space-3) !important;
+  cursor: pointer !important;
+  transition: background var(--transition-fast) !important;
+}
+
+.create-sprint-container .secondary-action-btn:hover {
+  background: color-mix(in srgb, var(--bg-primary), #fff 5%) !important;
+}
+
+.create-sprint-container .secondary-action-btn:focus {
+  outline: 2px solid var(--border-color) !important;
+  outline-offset: 2px !important;
 }
 
 /* ==========================
-   Error Popup
+   Error Popup - Match Account Details
 ========================== */
-.error-popup {
-  position: fixed !important;
-  top: 20px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  background-color: #f8d7da !important;
-  color: #721c24 !important;
-  border: 1px solid #f5c6cb !important;
-  border-radius: 4px !important;
-  padding: 12px 20px !important;
-  z-index: 1000 !important;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+.create-sprint-container .error-popup {
   display: flex !important;
   align-items: center !important;
+  justify-content: center !important;
+  gap: var(--space-2) !important;
+  position: fixed !important;
+  top: var(--space-5) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background-color: hsl(0, 80%, 50%) !important; /* Red background */
+  color: var(--white) !important; /* Ensure text is white for contrast */
+  padding: var(--space-3) var(--space-4) !important;
+  border-radius: var(--border-radius) !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  text-align: center !important;
+  box-shadow: var(--shadow-md) !important;
+  z-index: 1000 !important;
+  animation: fadeOut 3s ease-in-out forwards !important;
   max-width: 80% !important;
 }
 
+/* Fade-out animation */
 @keyframes fadeOut {
-  0% { opacity: 1 !important; }
-  100% { opacity: 0 !important; }
+  0% {
+    opacity: 1 !important;
+  }
+  70% {
+    opacity: 1 !important;
+  }
+  100% {
+    opacity: 0 !important;
+  }
 }
 
-.error-icon {
-  margin-right: 10px;
-  color: #dc3545;
+/* ==========================
+   Form Group and Input Styles
+   (Handled by create_sprint.css, but add task-specific overrides)
+========================== */
+
+/* Textarea styling - ensure it matches form-input */
+.create-sprint-form textarea.form-input {
+  resize: vertical !important;
+  min-height: 100px !important;
+  font-family: var(--primary-font) !important;
 }
 
-.form-group {
-  margin-bottom: 16px;
-  width: 100%;
+/* Loading spinner */
+.loading-spinner {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--space-2) !important;
+  padding: var(--space-3) !important;
+  color: var(--text-secondary) !important;
+  font-size: var(--font-size-sm) !important;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 500;
+/* Form actions container */
+.form-actions {
+  margin-top: var(--space-4) !important;
+  width: 100% !important;
 }
 
-.input-error {
-  border: 1px solid #dc3545 !important;
-  background-color: #fff8f8;
+/* No project message */
+.no-project-message {
+  text-align: center !important;
+  padding: var(--space-5) !important;
+  background: var(--bg-primary) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-lg) !important;
 }
 
-.helper-text {
-  font-size: 0.85em;
-  color: #666;
-  margin-top: 4px;
+.no-project-message h2 {
+  color: var(--text-primary) !important;
+  margin-bottom: var(--space-3) !important;
 }
 
-.select-loading {
-  padding: 8px;
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  color: #6c757d;
-}
-
-button:disabled {
-  background-color: #e9ecef;
-  color: #6c757d;
-  cursor: not-allowed;
+.no-project-message p {
+  color: var(--text-secondary) !important;
+  margin-bottom: var(--space-4) !important;
 }
 
 /* ==========================
    Responsive Design
 ========================== */
 @media (max-width: 768px) {
-  .create-task-container {
-    padding: var(--space-3) !important;
-  }
-  
-  .create-task-card {
-    width: 95% !important;
+  .create-sprint-container {
+    max-width: 95% !important;
   }
 }
 
 @media (max-width: 480px) {
-  .create-task-card h2 {
+  .create-sprint-title {
     font-size: var(--font-size-lg) !important;
   }
   
-  .create-task-card input,
-  .create-task-card select {
+  .create-sprint-form .form-input {
     font-size: var(--font-size-sm) !important;
   }
 }

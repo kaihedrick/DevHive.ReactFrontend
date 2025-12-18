@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { fetchSprintById, editSprint } from "../services/sprintService";
+import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft, faCalendarAlt, faPlay, faCheck, faSave } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_sprint.css";
@@ -45,6 +46,9 @@ const EditSprint = () => {
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(null);
   const [formModified, setFormModified] = useState(false);
+  
+  // Progressive Disclosure + Affordance scroll indicators
+  const containerRef = useScrollIndicators([sprintName, startDate, endDate, error, success]);
 
   useEffect(() => {
     const loadSprintDetails = async () => {
@@ -169,7 +173,7 @@ const EditSprint = () => {
 
   return (
     <div className="create-sprint-page">
-      <div className="create-sprint-container">
+      <div ref={containerRef} className="create-sprint-container with-footer-pad">
         <div className="card">
           <div className="back-arrow" onClick={() => navigate("/backlog")}>
             <FontAwesomeIcon icon={faArrowRotateLeft} />

@@ -83,7 +83,7 @@ export const useSprintManagement = (projectId) => {
   const handleCreateSprint = async (sprintData) => {
     try {
       setLoading(true);
-      await createSprint({ ...sprintData, projectID: projectId });
+      await createSprint(projectId, sprintData);
       await fetchSprints(); // Refresh sprints after creation
       return { success: true };
     } catch (err) {

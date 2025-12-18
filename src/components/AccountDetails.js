@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft, faCheck, faTimes, faExclamationCircle, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
-import useAccountDetails from "../hooks/useAccountDetails";
+import useAccountDetails from "../hooks/useAccountDetails.ts";
+import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import "../styles/account_details.css";
+import "../styles/create_sprint.css"; // Reuse Sprint page layout + fields
 import { getSelectedProject } from "../services/storageService";
 import { fetchProjectMembers } from "../services/projectService";
 /**
@@ -78,6 +80,17 @@ const AccountDetails = () => {
   const selectedProjectId = getSelectedProject();
   const hasSelectedProject = !!selectedProjectId;
 
+  // Use scroll indicators hook for Progressive Disclosure + Affordance
+  // Only include dependencies that actually change DOM structure/height
+  // Error/success messages don't significantly affect height, so excluded to prevent re-runs on every keystroke
+  const containerRef = useScrollIndicators([
+    showPasswordChange,      // Form expansion/collapse
+    showLeaveConfirmation,   // Confirmation modal visibility
+    projectMembers.length,   // Member list changes
+    isEditingUsername,      // Username edit mode toggle
+    user?.id,                // Re-check when user data loads
+  ]);
+
   useEffect(() => {
     if (user?.Username) {
       setNewUsername(user.Username);
@@ -92,7 +105,8 @@ const AccountDetails = () => {
 
   const fetchMembersForProject = async () => {
     try {
-      const members = await fetchProjectMembers(selectedProjectId); // Use the imported function
+      const response = await fetchProjectMembers(selectedProjectId); // Use the imported function
+      const members = response.members || response || [];
       setProjectMembers(members.filter((member) => member.id !== user?.id)); // Exclude the current user
     } catch (err) {
       console.error("❌ Error fetching project members:", err);
@@ -242,196 +256,166 @@ const AccountDetails = () => {
   if (error) return <p className="error">{error}</p>;
 
   return (
-    <div className="account-details-page">
-      <div className="account-container">
-        <div className="account-card">
-          <div className="back-arrow" onClick={handleGoBack}>
-            <FontAwesomeIcon icon={faArrowRotateLeft} />
-          </div>
+    <div ref={containerRef} className="create-sprint-container with-footer-pad"> {/* width clamp ~500px, mobile-first */}
+      {/* Apple-style compact header reused from Sprint */}
+      <div className="create-sprint-nav-bar">
+        <button className="back-nav-btn" onClick={handleGoBack}>Back</button>
+        <h1 className="create-sprint-title">Account</h1>
+        <div className="nav-spacer" />
+      </div>
 
-          <h1>Account Details</h1>
-
-          <div className="profile-placeholder">
-            {getUserProp("firstName")?.charAt(0) || ""}
-            {getUserProp("lastName")?.charAt(0) || ""}
-          </div>
-
+      <form className="create-sprint-form" onSubmit={(e) => e.preventDefault()}>
+        {/* Full name (display only, like before) */}
+        <div className="form-group">
+          <label className="form-label">Name</label>
           <div className="full-name-display">
             {getUserProp("firstName")} {getUserProp("lastName")}
           </div>
+        </div>
 
+        {/* Username (click-to-edit like before) */}
+        <div className="form-group">
+          <label className="form-label" htmlFor="username">Username</label>
           {isEditingUsername ? (
-            <div className="input-group">
-              <input 
-                type="text" 
-                value={newUsername} 
+            <>
+              <input
+                id="username"
+                type="text"
+                value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value)}
                 onKeyDown={handleUsernameKeyDown}
                 placeholder="Enter new username"
                 autoFocus
-                className={usernameError ? "input-error" : ""}
+                className={`form-input ${usernameError ? "input-error" : ""}`}
               />
               {usernameError && (
-                <div className="error-message">
-                  <FontAwesomeIcon icon={faExclamationCircle} className="error-icon" /> {usernameError}
-                </div>
+                <div className="error-message">{usernameError}</div>
               )}
               <small className="helper-text">Press Enter to save or Escape to cancel</small>
-            </div>
+            </>
           ) : (
-            <div className="input-group">
-              <input 
-                type="text" 
-                value={getUserProp('username') || ""} 
-                onClick={handleUsernameClick}
-                readOnly
-                className="editable-field"
-                placeholder="Username"
-              />
-              {usernameSuccess && (
-                <div className="success-popup-account">
-                  <FontAwesomeIcon icon={faCheck} className="success-icon" />
-                  {usernameSuccess}
-                </div>
-                )}
-            </div>
+            <input
+              type="text"
+              value={getUserProp("username") || ""}
+              onClick={handleUsernameClick}
+              readOnly
+              className="form-input editable-field"
+              placeholder="Username"
+            />
           )}
+          {usernameSuccess && (
+            <div className="success-popup-account">{usernameSuccess}</div>
+          )}
+        </div>
 
-          <input 
-            type="email" 
-            value={getUserProp('email') || ""} 
-            readOnly 
-            placeholder="Email" 
+        {/* Email (read-only, same as before) */}
+        <div className="form-group">
+          <label className="form-label" htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            value={getUserProp("email") || ""}
+            readOnly
+            className="form-input"
           />
+        </div>
 
-          {showPasswordChange ? (
-            <div className="password-change-section">
-              <input 
-                type="password" 
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="New Password" 
-                className={passwordError ? "input-error" : ""}
-              />
-              <input 
-                type="password" 
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm Password" 
-                className={passwordError && newPassword === confirmPassword ? "" : (passwordError ? "input-error" : "")}
-              />
-              
-              {passwordError && (
-                <div className="error-message">
-                  <FontAwesomeIcon icon={faExclamationCircle} className="error-icon" /> {passwordError}
-                </div>
-              )}
-              {passwordSuccess && <div className="success-message">{passwordSuccess}</div>}
-              
-              <div className="password-actions">
-                <button className="confirm-btn" onClick={submitPasswordChange}>
-                  <FontAwesomeIcon icon={faCheck} /> Confirm
-                </button>
-                <button className="cancel-btn" onClick={cancelPasswordChange}>
-                  <FontAwesomeIcon icon={faTimes} /> Cancel
+        {/* Change password */}
+        <div className="form-group">
+          <label className="form-label" htmlFor="password">Password</label>
+          {!showPasswordChange ? (
+            <>
+              <input type="password" id="password" value="*************" readOnly className="form-input" />
+              <div className="form-actions">
+                <button type="button" className="secondary-action-btn" onClick={handlePasswordChangeClick}>
+                  Change Password
                 </button>
               </div>
-            </div>
+            </>
           ) : (
             <>
-              <input type="password" value="*************" readOnly placeholder="Password" />
-              <button className="change-password-btn" onClick={handlePasswordChangeClick}>
-                Change Password
-              </button>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New Password"
+                className={`form-input ${passwordError ? "input-error" : ""}`}
+              />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm Password"
+                className={`form-input ${passwordError && newPassword === confirmPassword ? "" : (passwordError ? "input-error" : "")}`}
+              />
+              {passwordError && <div className="error-message">{passwordError}</div>}
+              {passwordSuccess && <div className="success-message">{passwordSuccess}</div>}
+
+              <div className="form-actions">
+                <button type="button" className="primary-action-btn" onClick={submitPasswordChange}>Confirm</button>
+                <button type="button" className="secondary-action-btn" onClick={cancelPasswordChange}>Cancel</button>
+              </div>
             </>
           )}
+        </div>
 
-          {/* Leave Project Section */}
+        {/* Leave Project */}
+        {hasSelectedProject && (
+          <>
+            {leaveProjectState.error && (
+              <div className="error-message">{leaveProjectState.error}</div>
+            )}
+            {leaveProjectState.success && (
+              <div className="success-message">{leaveProjectState.success}</div>
+            )}
+          </>
+        )}
+        <div className="form-actions">
           {hasSelectedProject ? (
-            <>
-              <button
-                className="leave-group-btn"
-                onClick={confirmLeaveProject}
-              >
-                Leave Project
-              </button>
-              {leaveProjectState.error && (
-                <div className="error-message">
-                  <FontAwesomeIcon icon={faExclamationCircle} /> {leaveProjectState.error}
-                </div>
-              )}
-              {leaveProjectState.success && (
-                <div className="success-message">
-                  {leaveProjectState.success}
-                </div>
-              )}
-            </>
+            <button type="button" className="danger-action-btn" onClick={confirmLeaveProject}>
+              Leave Project
+            </button>
           ) : (
-            <button
-              className="leave-group-btn disabled"
-              disabled
-              title="Join or select a project first"
-            >
+            <button type="button" className="danger-action-btn" disabled title="Join or select a project first">
               Leave Project
             </button>
           )}
-
-          {showLeaveConfirmation && (
-            <div className="leave-project-confirmation">
-              {leaveProjectState.error === "You are the project owner. Please reassign ownership to another member before leaving." ? (
-                <>
-                  <div className="warning-message">
-                    <FontAwesomeIcon icon={faExclamationTriangle} className="warning-icon" />
-                    You are the project owner. Please reassign ownership to another member before leaving.
-                  </div>
-                  <select
-                    value={selectedNewOwner}
-                    onChange={(e) => setSelectedNewOwner(e.target.value)}
-                    className="dropdown"
-                  >
-                    <option value="">Select a new owner</option>
-                    {projectMembers.map((member) => (
-                      <option key={member.id} value={member.id}>
-                        {member.username}
-                      </option>
-                    ))}
-                  </select>
-                  {reassignError && (
-                    <div className="error-message">
-                      <FontAwesomeIcon icon={faExclamationCircle} /> {reassignError}
-                    </div>
-                  )}
-                  <div className="confirmation-actions">
-                    <button className="confirm-leave-btn" onClick={handleReassignAndLeave}>
-                      Reassign and Leave
-                    </button>
-                    <button className="cancel-btn" onClick={cancelLeaveProject}>
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="warning-message">
-                    <FontAwesomeIcon icon={faExclamationTriangle} className="warning-icon" />
-                    Are you sure you want to leave this project? Your tasks will be unassigned.
-                  </div>
-                  <div className="confirmation-actions">
-                    <button className="confirm-leave-btn" onClick={executeLeaveProject}>
-                      Yes, Leave Project
-                    </button>
-                    <button className="cancel-btn" onClick={cancelLeaveProject}>
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          <button className="logout-btn" onClick={handleLogout}>Logout</button>
         </div>
-      </div>
+
+        {showLeaveConfirmation && (
+          <div className="leave-project-confirmation">
+            {leaveProjectState.error === "You are the project owner. Please reassign ownership to another member before leaving." ? (
+              <>
+                <div className="warning-message">You are the project owner. Please reassign ownership to another member before leaving.</div>
+                <select value={selectedNewOwner} onChange={(e) => setSelectedNewOwner(e.target.value)} className="dropdown">
+                  <option value="">Select a new owner</option>
+                  {projectMembers.map((member) => (
+                    <option key={member.id} value={member.id}>{member.username}</option>
+                  ))}
+                </select>
+                {reassignError && <div className="error-message">{reassignError}</div>}
+                <div className="form-actions">
+                  <button type="button" className="primary-action-btn" onClick={handleReassignAndLeave}>Reassign and Leave</button>
+                  <button type="button" className="secondary-action-btn" onClick={cancelLeaveProject}>Cancel</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="warning-message">Are you sure you want to leave this project? Your tasks will be unassigned.</div>
+                <div className="form-actions">
+                  <button type="button" className="primary-action-btn" onClick={executeLeaveProject}>Yes, Leave Project</button>
+                  <button type="button" className="secondary-action-btn" onClick={cancelLeaveProject}>Cancel</button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Bottom actions */}
+        <div className="form-actions">
+          <button type="button" className="secondary-action-btn" onClick={handleLogout}>Sign Out</button>
+        </div>
+      </form>
     </div>
   );
 };

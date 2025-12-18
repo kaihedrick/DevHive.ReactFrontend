@@ -5,7 +5,7 @@ import {
   LoginModel, 
   RegistrationFormModel,
   createEmptyRegistrationForm,
-  convertToUserModel
+  convertToRegistrationPayload
 } from '../models/user.ts';
 
 type ActionType = 'Login' | 'Sign Up';
@@ -16,6 +16,7 @@ interface LoginRegisterState {
   validationErrors: Record<string, string>;
   error: string;
   success: boolean;
+  successType: 'login' | 'registration' | null;
   loading: boolean;
   emailValidationStatus: 'success' | 'error' | null;
   validatingEmail: boolean;
@@ -44,6 +45,7 @@ const useLoginRegisterNew = () => {
     validationErrors: {},
     error: '',
     success: false,
+    successType: null,
     loading: false,
     emailValidationStatus: null,
     validatingEmail: false
@@ -151,34 +153,43 @@ const useLoginRegisterNew = () => {
     updateState({ loading: true });
     try {
       if (state.action === 'Login') {
-        const loginCredentials: LoginModel = {
-          Username: state.credentials.Username,
-          Password: state.credentials.Password
+        // Convert to lowercase field names for backend API
+        const loginCredentials = {
+          username: state.credentials.Username,
+          password: state.credentials.Password
         };
         
-        await login(loginCredentials);
-        updateState({ success: true, error: '' });
+        await login(loginCredentials as LoginModel);
+        updateState({ success: true, successType: 'login', error: '' });
         navigate('/projects');
       } else {
-        const userModel = convertToUserModel(state.credentials);
+        const registrationPayload = convertToRegistrationPayload(state.credentials);
         
-        await register(userModel);
+        await register(registrationPayload as any);
         updateState({
           success: true,
+          successType: 'registration',
           error: '',
           action: 'Login',
           credentials: createEmptyRegistrationForm()
         });
       }
     } catch (err: any) {
-      // Ensure error is always a string to prevent React crashes
-      const errorMessage = typeof err?.message === 'string' 
-        ? err.message 
-        : '❌ An error occurred. Please try again.';
+      // Extract error message from normalized error or response data
+      let errorMessage = '❌ An error occurred. Please try again.';
+      if (err?.message) {
+        errorMessage = err.message; // Use normalized error message (includes backend detail)
+      } else if (err?.response?.data) {
+        const data = err.response.data;
+        errorMessage = data.detail || data.title || data.message || JSON.stringify(data);
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
       
       updateState({
         error: errorMessage,
-        success: false
+        success: false,
+        successType: null
       });
     } finally {
       updateState({ loading: false });
@@ -190,6 +201,7 @@ const useLoginRegisterNew = () => {
       updateState({
         action: buttonAction,
         success: false,
+        successType: null,
         error: '',
         validationErrors: {}
       });
@@ -204,6 +216,7 @@ const useLoginRegisterNew = () => {
     validationErrors: state.validationErrors,
     error: state.error,
     success: state.success,
+    successType: state.successType,
     loading: state.loading,
     handleChange,
     handleButtonClick,

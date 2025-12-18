@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fetchProjectMembers } from "../services/projectService";
 import { fetchProjectSprints } from "../services/sprintService";
-import { fetchProjectTasksWithAssignees, fetchTaskById, editTask } from "../services/taskService";
+import { fetchSprintTasks, fetchTaskById, editTask } from "../services/taskService";
 import { getSelectedProject } from "../services/storageService";
 import useBacklogActions from "../hooks/useBacklogActions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -92,8 +92,7 @@ const Backlog = ({ projectId }) => {
     setSelectedSprint(sprint);
     setLoading(true);
     try {
-      const fetchedTasks = await fetchProjectTasksWithAssignees(selectedProjectId);
-      const sprintTasks = fetchedTasks.filter(task => task.sprintID === sprint.id);
+      const sprintTasks = await fetchSprintTasks(sprint.id);
       setTasks(sprintTasks);
     } catch (err) {
       setError("Failed to fetch sprint tasks.");
@@ -142,14 +141,11 @@ const Backlog = ({ projectId }) => {
       // Convert "Unassigned" to null
       const updatedAssigneeId = newAssigneeId === "unassigned" ? null : newAssigneeId;
 
-      // Create a complete task object with all required fields
+      // Create a task object with only updatable fields
       const updatedTask = {
-        ID: task.id, // Ensure task ID is provided (uppercase for backend compatibility)
-        Description: task.description,
-        AssigneeID: updatedAssigneeId, // Set to null if unassigned
-        SprintID: task.sprintID || null,
-        Status: task.status,
-        DateCreated: task.dateCreated,
+        id: task.id,
+        description: task.description,
+        assigneeId: updatedAssigneeId, // Set to null if unassigned
       };
 
       console.log("Updating task with new assignee:", updatedTask);
@@ -160,7 +156,7 @@ const Backlog = ({ projectId }) => {
       // Update the task in the state
       setTasks((prevTasks) =>
         prevTasks.map((t) =>
-          t.id === task.id ? { ...t, assigneeID: updatedAssigneeId } : t
+          t.id === task.id ? { ...t, assigneeId: updatedAssigneeId } : t
         )
       );
 
@@ -197,14 +193,11 @@ const Backlog = ({ projectId }) => {
     }
   
     try {
-      // Ensure all required fields are included
+      // Create a task object with only updatable fields
       const updatedTask = {
-        ID: task.id, // Ensure task ID is provided (uppercase for backend compatibility)
-        Description: editedDescription, // Updated description
-        AssigneeID: task.assigneeID || null, // Assignee ID (or null if unassigned)
-        SprintID: task.sprintID || null, // Sprint ID (or null if not assigned to a sprint)
-        Status: task.status, // Task status
-        DateCreated: task.dateCreated, // Original creation date
+        id: task.id,
+        description: editedDescription, // Updated description
+        assigneeId: task.assigneeId || null, // Assignee ID (or null if unassigned)
       };
   
       console.log("Updated Task:", updatedTask); // Debugging: Log the task being sent
@@ -314,7 +307,7 @@ const Backlog = ({ projectId }) => {
                           </select>
                           <select
                             className="task-assignee-dropdown"
-                            value={task.assigneeID || "unassigned"}
+                            value={task.assigneeId || "unassigned"}
                             onChange={(e) => handleAssigneeChange(task, e.target.value)}
                           >
                             <option value="unassigned">Unassigned</option>
@@ -325,7 +318,7 @@ const Backlog = ({ projectId }) => {
                             ))}
                           </select>
                           <span className="task-date">
-                            Date: {new Date(task.dateCreated).toLocaleDateString()}
+                            Date: {new Date(task.createdAt).toLocaleDateString()}
                           </span>
                         </div>
                         {/* Task Alert */}

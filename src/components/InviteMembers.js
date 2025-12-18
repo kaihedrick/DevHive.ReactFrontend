@@ -50,7 +50,7 @@ const InviteMembers = () => {
 
   return (
     <div className="invite-members">
-      <div className="invite-container">
+      <div className="invite-container with-footer-pad">
         {/* Back Arrow */}
         <div className="back-arrow" onClick={() => navigate(-1)}>
           <FontAwesomeIcon icon={faArrowRotateLeft} />

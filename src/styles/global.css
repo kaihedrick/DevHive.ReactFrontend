@@ -136,6 +136,11 @@
     --sal: env(safe-area-inset-left) !important;    /* Safe Area Left */
     --sar: env(safe-area-inset-right) !important;   /* Safe Area Right */
     
+    /* Footer Safe Area & Bottom Padding */
+    --footer-h: 60px !important;  /* Footer height (desktop & mobile) - matches .footer { height: 60px } */
+    --safe-bottom: env(safe-area-inset-bottom) !important;  /* iOS safe area (0 elsewhere) */
+    --footer-pad-extra: 16px !important;  /* Extra breathing room above footer */
+    
     /* JavaScript Polyfill Fallbacks */
     --vh: 1vh !important; /* Fallback for dynamic viewport height */
     --kb: 0px !important; /* Keyboard occlusion height */
@@ -250,7 +255,8 @@ main {
 }
 
 /* Base container styles */
-.container, main, .content-container {
+/* NOTE: main is NOT included here - it has its own rules below */
+.container, .content-container {
     box-sizing: border-box !important;
     transition: margin var(--transition-normal) ease, 
                 width var(--transition-normal) ease,
@@ -262,8 +268,9 @@ main {
 }
 
 /* Responsive container sizing */
+/* NOTE: main is NOT included here - it has its own rules */
 @media (min-width: 640px) {
-    .container, main, .content-container {
+    .container, .content-container {
         padding: 0 1.5rem !important;
     }
     
@@ -271,7 +278,7 @@ main {
 }
 
 @media (min-width: 768px) {
-    .container, main, .content-container {
+    .container, .content-container {
         padding: 0 2rem !important;
     }
     
@@ -279,7 +286,7 @@ main {
 }
 
 @media (min-width: 1024px) {
-    .container, main, .content-container {
+    .container, .content-container {
         padding: 0 2.5rem !important;
     }
     
@@ -287,7 +294,7 @@ main {
 }
 
 @media (min-width: 1280px) {
-    .container, main, .content-container {
+    .container, .content-container {
         padding: 0 3rem !important;
     }
     
@@ -295,16 +302,21 @@ main {
 }
 
 /* Dynamic Layout Adjustments */
+/* main element should fill available space, not be constrained by container rules */
 body.has-sidebar main {
     margin-left: var(--navbar-width-collapsed) !important;
+    margin-right: 0 !important; /* Explicitly set to override any auto margins */
     width: calc(100% - var(--navbar-width-collapsed)) !important;
+    max-width: none !important; /* Override any max-width from container rules */
     padding-left: 0 !important;
     transition: margin var(--transition-normal) ease, width var(--transition-normal) ease !important;
 }
 
 body.has-sidebar .navbar:hover ~ main {
     margin-left: var(--navbar-width-expanded) !important;
+    margin-right: 0 !important; /* Explicitly set to override any auto margins */
     width: calc(100% - var(--navbar-width-expanded)) !important;
+    max-width: none !important; /* Override any max-width from container rules */
     padding-left: 0 !important;
 }
 
@@ -333,7 +345,8 @@ body.has-topbar .content {
     }
     
     /* Mobile content padding - reduced */
-    .container, main, .content-container {
+    /* NOTE: main is NOT included here - it has its own rules */
+    .container, .content-container {
         padding: var(--space-2) !important; /* Reduced from mobile-padding to space-2 */
     }
     
@@ -353,7 +366,8 @@ body.has-topbar .content {
 
 /* iPhone-specific adjustments */
 @media (max-width: 375px) {
-    .container, main, .content-container {
+    /* NOTE: main is NOT included here - it has its own rules */
+    .container, .content-container {
         padding: var(--space-1) !important;
     }
     
@@ -895,4 +909,31 @@ input::placeholder, textarea::placeholder {
     textarea {
         font-size: 16px !important;
     }
+}
+
+/* ======================= */
+/* Footer Safe-Area & Bottom Padding Utilities */
+/* ======================= */
+
+/* Make pages use dynamic viewport on mobile (prevents iOS 100vh bugs) */
+.screen, .page, body, #root { 
+    min-height: 100dvh; 
+}
+
+/* Reusable utilities */
+.with-footer-pad {
+    /* Use both logical and physical longhands with !important to beat later shorthands */
+    padding-block-end: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra)) !important;
+    padding-bottom:    calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra)) !important;
+}
+
+.scroll-pad-bottom {
+    /* Keep focused inputs/buttons from being hidden after in-page navs */
+    scroll-padding-block-end: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra)) !important;
+}
+
+/* List containers that scroll inside the page (optional) */
+.scroller.with-footer-pad { 
+    padding-block-end: calc(var(--footer-h) + var(--safe-bottom) + 12px) !important;
+    padding-bottom:    calc(var(--footer-h) + var(--safe-bottom) + 12px) !important;
 }

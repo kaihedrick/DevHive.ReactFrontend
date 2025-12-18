@@ -122,11 +122,9 @@ const useAccountDetails = () => {
       
       console.log("✅ Username is available, proceeding with update");
       
-      // Build update data - try both camelCase and PascalCase to ensure compatibility
+      // Build update data - use camelCase for consistency
       const updateData = {
-        // Include both forms of ID
         id: userId,
-        ID: userId,
         // Include both forms of each field
         username: newUsername,
         Username: newUsername,

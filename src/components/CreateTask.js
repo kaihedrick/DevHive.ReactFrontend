@@ -119,10 +119,10 @@ const CreateTask = () => {
       setIsSubmitting(true);
       
       const taskData = {
-        description,
-        assigneeID,
-        sprintID,
-        projectID: selectedProjectId
+        description: description,
+        assigneeId: assigneeID,
+        sprintId: sprintID,
+        projectId: selectedProjectId
       };
       
       const result = await handleCreateTask(taskData);

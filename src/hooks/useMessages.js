@@ -57,9 +57,9 @@ function useMessages(toUserID, projectID) {
 
     const messageData = {
       message: trimmedMessage,
-      fromUserID: loggedInUserId,
-      toUserID,
-      projectID,
+      fromUserId: loggedInUserId,
+      toUserId: toUserID,
+      projectId: projectID,
     };
 
     try {

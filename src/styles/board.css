@@ -1,15 +1,29 @@
 /* src/styles/components/board.css */
-/* Board Component Styling */
+/* Board Component Styling - Absolute Page-Level Scoping */
 .board-page {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: flex-start !important; /* Better alignment for content */
+  display: block !important;
   padding: var(--space-5) !important;
-  min-height: 100vh !important; /* Min-height instead of fixed height */
+  min-height: 100vh !important;
   background-color: var(--bg-secondary) !important;
-  overflow: auto !important; /* Allow scrolling when needed */
+  overflow: auto !important;
   width: 100% !important;
   box-sizing: border-box !important;
+  position: relative !important;
+}
+
+/* Override global main styles for Board page - Absolute Scoping */
+/* Remove flexbox centering - let container handle its own centering */
+body.has-sidebar .board-page {
+  margin-left: 0 !important;
+  width: 100% !important;
+  display: block !important;
+  position: relative !important;
+}
+
+body.has-sidebar .navbar:hover ~ main .board-page {
+  margin-left: 0 !important;
+  width: 100% !important;
+  display: block !important;
 }
 
 .board-container {
@@ -21,9 +35,10 @@
   box-shadow: var(--shadow-md) !important;
   display: flex !important;
   flex-direction: column !important;
-  min-height: calc(100vh - 2 * var(--space-5)) !important; /* Min-height instead of height */
-  overflow: visible !important; /* Allow content to determine height */
-  margin: 0 auto !important; /* Center the container */
+  min-height: calc(100vh - 2 * var(--space-5)) !important;
+  overflow: visible !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
   box-sizing: border-box !important;
 }
 
@@ -84,6 +99,14 @@
   min-height: 0 !important; /* Critical for flex items to respect parent boundaries */
 }
 
+/* Force horizontal layout on desktop by default */
+@media (min-width: 769px) {
+  .board-columns {
+    grid-template-columns: repeat(3, 1fr) !important;
+    display: grid !important;
+  }
+}
+
 .board-column-wrapper {
   min-height: 0 !important; /* Critical for grid items to respect parent boundaries */
   display: flex !important;
@@ -100,6 +123,17 @@
   height: 100% !important;
   max-height: 100% !important;
   min-height: 0 !important; /* Critical for flex children */
+}
+
+.board-column-content {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: var(--space-2) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-2) !important;
+  min-height: 0 !important;
 }
 
 .board-column-header {
@@ -182,19 +216,18 @@
 }
 
 /* Task Card */
-/* Task Card */
 .task-card {
   background: var(--bg-primary) !important;
-  border: 1px solid var(--border-color) !important;
+  border: none !important;
   border-radius: var(--border-radius) !important;
-  padding: var(--space-3) !important;
-  margin-bottom: var(--space-3) !important;
-  box-shadow: var(--shadow-sm) !important;
-  transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
+  padding: var(--space-2) !important; /* Reduced by ~20% from space-3 */
+  margin-bottom: var(--space-2) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease, background var(--transition-fast) ease !important;
   cursor: grab !important;
   user-select: none !important; /* Prevents text selection during drag */
   height: auto !important; /* Allow height to adjust dynamically */
-  min-height: 80px !important; /* Set a minimum height for task cards */
+  min-height: auto !important; /* Remove fixed min-height */
   flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
@@ -203,28 +236,51 @@
 }
 
 .task-card:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: var(--shadow-md) !important;
+  background: var(--bg-secondary, #f5f5f5) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important;
 }
 
 .task-card.dragging {
-  opacity: 0.6 !important;
-  border: 2px solid var(--accent-primary) !important;
-  background-color: hsla(var(--gold-hue), var(--gold-saturation), 90%) !important;
+  opacity: 0.5 !important;
+  transform: scale(1.02) translateY(-4px) !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+  z-index: 1000 !important;
+  cursor: grabbing !important;
+  transition: none !important; /* Disable transition during drag */
 }
 
 .task-header {
   display: flex !important;
   justify-content: space-between !important;
-  align-items: flex-start !important;
-  margin-bottom: var(--space-2) !important;
+  align-items: center !important;
+  gap: var(--space-2) !important;
+  margin-bottom: 0 !important;
+}
+
+.task-title-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--space-2) !important;
+  flex: 1 !important;
+  min-width: 0 !important;
 }
 
 .task-title {
   font-weight: var(--font-weight-medium) !important;
   color: var(--text-primary) !important;
   font-size: var(--font-size-base) !important;
-  flex-grow: 1 !important;
+  flex: 1 !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  transition: color var(--transition-fast) ease !important;
+  line-height: 1.4 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.task-title:hover {
+  color: var(--accent-primary) !important;
 }
 
 .task-actions {
@@ -242,58 +298,78 @@
   color: var(--text-secondary) !important;
 }
 
-.task-meta {
+/* Removed task-meta, task-assignee, task-date styles - no longer used */
+
+/* Task Assignee Avatar */
+.task-assignee-avatar {
+  flex-shrink: 0 !important;
+}
+
+.assignee-avatar-initials {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  background: var(--accent-primary) !important;
+  color: var(--black) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
   display: flex !important;
-  justify-content: space-between !important;
-  margin-top: var(--space-3) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease !important;
+}
+
+.assignee-avatar-initials:hover {
+  transform: scale(1.1) !important;
+}
+
+.assignee-placeholder {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  border: 1.5px dashed var(--border-color) !important;
+  background: transparent !important;
   color: var(--text-tertiary) !important;
-  font-size: var(--font-size-xs) !important;
-}
-
-.task-assignee, .task-date {
+  font-size: 18px !important;
+  cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
-  gap: var(--space-1) !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+  line-height: 1 !important;
 }
 
-/* Task Assignee Initials */
-.task-assignee-initials {
-  font-weight: var(--font-weight-bold) !important;
-  color: var(--text-primary) !important;
+.assignee-placeholder:hover {
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+  background: rgba(255, 215, 0, 0.1) !important;
+}
+
+/* Optional Status Dot */
+.task-status-dot {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
   margin-right: var(--space-2) !important;
+  flex-shrink: 0 !important;
 }
 
-/* Task Assignee Dropdown */
-/* Container: Remove outline and center content */
-.task-assignee.dropdown {
-  outline: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  display: flex !important;
-  align-items: center !important; /* vertical centering */
-  height: 100% !important; /* inherit height from parent */
-  padding: 0 !important; /* remove spacing if any */
-  background: transparent !important; /* remove background if needed */
+.task-status-dot--todo {
+  background: var(--text-tertiary, #999) !important;
 }
 
-/* Dropdown: keep everything the same, just ensure it's vertically centered */
-.task-assignee-dropdown {
-  margin: 0 !important;
-  height: 40px !important; /* already set, but ensures consistency */
-  display: flex !important;
-  align-items: center !important;
-  background-color: var(--bg-primary) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: var(--border-radius) !important;
-  font-weight: var(--font-weight-medium) !important;
-  padding: 0 var(--space-3) !important;
-  box-shadow: none !important;
+.task-status-dot--in-progress {
+  background: var(--accent-primary) !important;
 }
 
-
-.task-assignee-dropdown:hover {
-  border-color: var(--text-secondary) !important;
+.task-status-dot--completed {
+  background: hsl(120, 50%, 50%) !important;
 }
+
+/* Removed old dropdown styles - using avatars now */
 
 .empty-column-message {
   color: var(--text-tertiary) !important;
@@ -338,58 +414,6 @@
   z-index: 1000 !important;
 }
 
-/* Success Pop-Up */
-.board-page .success-popup {
-  position: fixed !important;
-  top: var(--space-5) !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  background: hsl(120, 70%, 40%) !important; /* Match success color from LoginRegister */
-  color: var(--white) !important; /* Ensure text is white for contrast */
-  padding: var(--space-3) var(--space-4) !important;
-  border-radius: var(--border-radius) !important;
-  font-size: var(--font-size-base) !important;
-  font-weight: var(--font-weight-bold) !important;
-  text-align: center !important;
-  box-shadow: var(--shadow-md) !important;
-  z-index: 1000 !important;
-  animation: fadeOut 3s ease-in-out forwards !important;
-  max-width: 400px !important; /* Limit the width for better readability */
-  word-wrap: break-word !important; /* Ensure long text wraps */
-}
-
-/* Error Pop-Up */
-.board-page .error-popup {
-  position: fixed !important;
-  top: var(--space-5) !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  background: hsl(0, 70%, 50%) !important; /* Bright red for errors */
-  color: var(--white) !important; /* Ensure text is white for contrast */
-  padding: var(--space-3) var(--space-4) !important;
-  border-radius: var(--border-radius) !important;
-  font-size: var(--font-size-base) !important;
-  font-weight: var(--font-weight-bold) !important;
-  text-align: center !important;
-  box-shadow: var(--shadow-md) !important;
-  z-index: 1000 !important;
-  animation: fadeOut 3s ease-in-out forwards !important;
-  max-width: 400px !important; /* Limit the width for better readability */
-  word-wrap: break-word !important; /* Ensure long text wraps */
-}
-
-/* Fade-Out Animation */
-@keyframes fadeOut {
-  0% {
-    opacity: 1 !important;
-  }
-  70% {
-    opacity: 1 !important;
-  }
-  100% {
-    opacity: 0 !important;
-  }
-}
 
 /* Responsive improvements for larger screens */
 @media (min-width: 1200px) {
@@ -429,7 +453,7 @@
     margin: 0 var(--space-2) !important;
   }
   
-  /* Stack columns horizontally on mobile */
+  /* Stack columns vertically on mobile */
   .board-columns {
     grid-template-columns: 1fr !important; /* Single column on mobile */
     gap: var(--space-3) !important; /* Reduce gap for mobile */

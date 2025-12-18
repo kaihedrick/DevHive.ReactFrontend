@@ -1,6 +1,7 @@
 //authService.js
 import { api, handleApiError } from '../utils/apiClient';
 import { ENDPOINTS } from '../config';
+import { sendPasswordResetEmail } from './mailService';
 
 /**
  * @function getAuthToken
@@ -40,26 +41,19 @@ export const clearAuth = () => {
  * @returns {Promise<boolean>} - True if the email is taken, false otherwise.
  */
 export const validateEmail = async (email) => {
-  try {
-    const response = await api.post(ENDPOINTS.VALIDATE_EMAIL,  JSON.stringify(email), {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+  const res = await api.post("/users/validate-email", { email });
+  return !res.data?.available; // Invert: available=true means not taken, so we return !available
+};
 
-    if (response.status === 200) {
-      return false; // Email is available
-    } else {
-      return true; // Email is already in use
-    }
-  } catch (error) {
-    if (error.response && error.response.status === 409) {
-      return true; // Email is already in use
-    } else {
-      console.error("❌ Error validating email:", error);
-      throw error;
-    }
-  }
+/**
+ * @function validateUsername
+ * @description Checks if a username is already registered.
+ * @param {string} username - The username to validate.
+ * @returns {Promise<boolean>} - True if the username is taken, false otherwise.
+ */
+export const validateUsername = async (username) => {
+  const res = await api.post("/users/validate-username", { username });
+  return !res.data?.available; // Invert: available=true means not taken, so we return !available
 };
 /**
  * @function login
@@ -69,21 +63,40 @@ export const validateEmail = async (email) => {
  */
 export const login = async (credentials) => {
   try {
-    // Transform PascalCase to camelCase for backend compatibility
+    // Use new Go backend login endpoint - expects username and password
     const loginPayload = {
-      username: credentials.Username || credentials.username,
-      password: credentials.Password || credentials.password
+      username: credentials.username || credentials.Username,
+      password: credentials.password || credentials.Password
     };
     
-    const response = await api.post(`${ENDPOINTS.USER}/ProcessLogin`, loginPayload);
-    const { token, userId } = response.data;
+    console.log('🔐 Attempting login to:', ENDPOINTS.AUTH_LOGIN);
+    console.log('📤 Login payload:', { username: loginPayload.username, password: '***' });
+    
+    const response = await api.post(ENDPOINTS.AUTH_LOGIN, loginPayload);
+    console.log('📥 Login response:', response.data);
+    
+    const { token, userId, Token } = response.data; // Handle both token and Token
 
-    if (token && userId) {
-      storeAuthData(token, userId);
+    const authToken = token || Token;
+    if (authToken && userId) {
+      storeAuthData(authToken, userId);
       console.log('✅ Login successful');
+    } else {
+      console.warn('⚠️ Login response missing token or userId:', response.data);
     }
     return response.data;
   } catch (error) {
+    const errorDetails = {
+      message: error.message,
+      status: error.status,
+      responseData: error.responseData || error.response?.data,
+      responseHeaders: error.response?.headers,
+      requestUrl: error.config?.url,
+      requestMethod: error.config?.method,
+      requestData: error.config?.data
+    };
+    console.error('❌ Login error details:', errorDetails);
+    console.error('❌ Full error object:', error);
     // Error is already normalized by the interceptor
     throw error;
   }
@@ -96,7 +109,7 @@ export const login = async (credentials) => {
  */
 export const register = async (userData) => {
   try {
-    const response = await api.post(ENDPOINTS.USER, userData);
+    const response = await api.post(ENDPOINTS.USERS, userData);
     return response.data;
   } catch (error) {
     throw handleApiError(error, 'registering user'); // Throw the error
@@ -110,13 +123,22 @@ export const register = async (userData) => {
  */
 export const requestPasswordReset = async (email) => {
   try {
-    // Send the email as a raw JSON string, not as an object
-    await api.post(`${ENDPOINTS.USER}/RequestPasswordReset`, JSON.stringify(email), {
-      headers: {
-        'Content-Type': 'application/json'
+    // Use new Go backend password reset endpoint - expects email only
+    const response = await api.post(ENDPOINTS.AUTH_PASSWORD_RESET_REQUEST, { email });
+    
+    // If the backend returns a token (for development), send the email
+    if (response.data.token) {
+      try {
+        await sendPasswordResetEmail(email, response.data.token);
+        console.log('✅ Password reset email sent successfully');
+      } catch (emailError) {
+        console.warn('⚠️ Password reset token created but email failed:', emailError);
+        // Don't throw here - the token was created successfully
       }
-    });
-    console.log('✅ Password reset email sent');
+    }
+    
+    console.log('✅ Password reset request sent:', response.data.message);
+    return response.data;
   } catch (error) {
     console.error("❌ Error requesting password reset:", error);
     throw error;
@@ -129,8 +151,15 @@ export const requestPasswordReset = async (email) => {
  */
 export const resetPassword = async (resetData) => {
   try {
-    await api.post(`${ENDPOINTS.USER}/ResetPassword`, resetData);
-    console.log('✅ Password reset successful');
+    // Use new Go backend password reset endpoint - expects token and password
+    const payload = {
+      token: resetData.token,
+      password: resetData.password
+    };
+    
+    const response = await api.post(ENDPOINTS.AUTH_PASSWORD_RESET, payload);
+    console.log('✅ Password reset successful:', response.data.message);
+    return response.data;
   } catch (error) {
     console.error("❌ Error resetting password:", error);
     throw error;

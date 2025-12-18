@@ -1,13 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import { fetchProjectMembers, removeMemberFromProject } from '../services/projectService';
-import { fetchUserById } from '../services/userService';
 /**
  * useProjectMembers
  *
  * Custom hook for managing and retrieving project members.
  *
  * @param {string} projectId - The ID of the project to retrieve members for.
- * @param {string} projectOwnerID - The ID of the user who owns the project.
+ * @param {string} projectOwnerId - The ID of the user who owns the project.
  * @returns {Object} An object containing:
  *  - members: Array of project members with name and ownership flag.
  *  - loading: Boolean indicating loading state.
@@ -18,7 +17,7 @@ import { fetchUserById } from '../services/userService';
  * @example
  * const { members, loading, error, isCurrentUserOwner, kickMember } = useProjectMembers(projectId, ownerId);
  */
-export const useProjectMembers = (projectId, projectOwnerID) => {
+export const useProjectMembers = (projectId, projectOwnerId) => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,17 +34,12 @@ export const useProjectMembers = (projectId, projectOwnerID) => {
       const loggedInUserId = localStorage.getItem('userId'); // Get the logged-in user's ID
       const membersData = await fetchProjectMembers(projectId);
 
-      // Format member data with full names
-      const formattedMembers = await Promise.all(
-        membersData.map(async (member) => {
-          const userData = await fetchUserById(member.id);
-          return {
-            id: member.id,
-            name: `${userData.firstName} ${userData.lastName}`,
-            isOwner: member.id === projectOwnerID, // Explicitly check if the member is the project owner
-          };
-        })
-      );
+      // Format member data - members already contain full user objects from backend
+      const formattedMembers = membersData.map((member) => ({
+        id: member.id,
+        name: `${member.firstName} ${member.lastName}`,
+        isOwner: member.id === projectOwnerId, // Explicitly check if the member is the project owner
+      }));
 
       // Sort members to ensure the owner is always at the top
       const sortedMembers = formattedMembers.sort((a, b) => {
@@ -55,7 +49,7 @@ export const useProjectMembers = (projectId, projectOwnerID) => {
       });
 
       setMembers(sortedMembers);
-      setIsCurrentUserOwner(loggedInUserId === projectOwnerID); // Check if the logged-in user is the owner
+      setIsCurrentUserOwner(loggedInUserId === projectOwnerId); // Check if the logged-in user is the owner
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -63,7 +57,7 @@ export const useProjectMembers = (projectId, projectOwnerID) => {
     } finally {
       setLoading(false);
     }
-  }, [projectId, projectOwnerID]);
+  }, [projectId, projectOwnerId]);
 
   const kickMember = useCallback(
     async (memberId) => {

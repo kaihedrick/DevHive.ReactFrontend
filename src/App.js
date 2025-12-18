@@ -1,37 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { useRoutePermission } from './hooks/useRoutePermission';
+import { isProjectAgnosticRoute } from './config/routeConfig.ts';
 import Navbar from './components/Navbar';
-import Projects from './components/Projects';
+import Projects from './components/Projects.tsx';
 import Footer from './components/Footer';
 import LoginRegister from './components/LoginRegister.tsx';
 import Sprint from './components/Sprint';
 import ForgotPassword from './components/ForgotPassword.tsx';
-import ProtectedRoute from './components/ProtectedRoute';
-import Backlog from './components/Backlog';
-import Board from './components/Board';
+import ProtectedRoute from './components/ProtectedRoute.tsx';
+import Backlog from './components/Backlog.tsx';
+import Board from './components/Board.tsx';
 import Contacts from './components/Contacts';
-import Message from './components/Message';
-import { getSelectedProject } from './services/projectService';
-import ProjectDetails from './components/ProjectDetails';
-import CreateProject from './components/CreateProject';
+import Message from './components/Message.tsx';
+import ProjectDetails from './components/ProjectDetails.tsx';
+import CreateProject from './components/CreateProject.tsx';
 import InviteMembers from './components/InviteMembers';
 import AccountDetails from './components/AccountDetails';
 import JoinProject from './components/JoinProject';
-import CreateSprint from './components/CreateSprint';
-import CreateTask from './components/CreateTask';
-import EditSprint from './components/EditSprint';
-import EditTask from './components/EditTask';
+import CreateSprint from './components/CreateSprint.tsx';
+import CreateTask from './components/CreateTask.tsx';
+import EditSprint from './components/EditSprint.tsx';
+import EditTask from './components/EditTask.tsx';
 import ResetPassword from './components/ResetPassword.tsx';
-import './styles/global.css'; // Import global styles
+import { ToastProvider } from './contexts/ToastContext.tsx';
 import './styles/responsive.css'; // Import responsive utilities
 
 function App() {
   const location = useLocation();
-  const selectedProject = getSelectedProject();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
+  const { selectedProject } = useRoutePermission();
 
-  const hideNavbarRoutes = ['/', '/forgot-password', '/reset-password', '/create-project', '/projects', '/join-group', '/account-details'];
-  const showNavbar = selectedProject && !hideNavbarRoutes.includes(location.pathname);
+  // Show navbar only when we're on a project-scoped page AND a project is selected
+  const showNavbar = !!selectedProject && !isProjectAgnosticRoute(location.pathname);
 
   // Handle responsive behavior
   useEffect(() => {
@@ -80,6 +81,7 @@ function App() {
   });
 
   return (
+    <ToastProvider>
     <div
       className={`app-container ${showNavbar ? "has-navbar" : "full-screen"}`}
       style={getBackgroundStyle()}
@@ -106,7 +108,7 @@ function App() {
             <Route path="/messages" element={<ProtectedRoute><Message /></ProtectedRoute>} />
             <Route path="/create-sprint" element={<ProtectedRoute><CreateSprint /></ProtectedRoute>} />
             <Route path="/create-task" element={<ProtectedRoute><CreateTask /></ProtectedRoute>} />
-            <Route path="/edit-sprint/:sprintId" element={<EditSprint />} />
+            <Route path="/edit-sprint/:sprintId" element={<ProtectedRoute><EditSprint /></ProtectedRoute>} />
             <Route path="/edit-task/:taskId" element={<EditTask />} />
             <Route path="/messages/:userId/:projectId" element={<Message />} />
           </Routes>
@@ -115,6 +117,7 @@ function App() {
         <Footer />
       </div>
     </div>
+      </ToastProvider>
   );
 }
 

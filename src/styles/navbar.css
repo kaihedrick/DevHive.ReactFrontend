@@ -18,7 +18,7 @@
     overflow: visible !important;
 }
 
-.navbar .sidebar-mode {
+.navbar.sidebar-mode {
     width: var(--navbar-width-collapsed) !important;
     height: 100vh !important;
     left: 0 !important;
@@ -26,11 +26,11 @@
     flex-direction: column !important;
 }
 
-.navbar .sidebar-mode:hover {
+.navbar.sidebar-mode:hover {
     width: var(--navbar-width-expanded) !important;
 }
 
-.navbar .topbar-mode {
+.navbar.topbar-mode {
     width: 100% !important;
     height: var(--navbar-height-mobile) !important;
     top: 0 !important;
@@ -102,32 +102,30 @@
 }
 
 /* Content layout adjustment for sidebar */
+/* NOTE: main element layout rules are handled in global.css, not here */
+/* This file should only handle navbar-specific styling */
 body .container, 
-body main, 
 body .content-container {
     width: 100% !important;
     transition: margin var(--transition-normal) ease, padding var(--transition-normal) ease !important;
 }
 
-/* When sidebar is present (desktop) */
+/* When sidebar is present (desktop) - only for containers, not main */
 body.has-sidebar .container, 
-body.has-sidebar main, 
 body.has-sidebar .content-container {
     margin-left: var(--navbar-width-collapsed) !important;
     width: calc(100% - var(--navbar-width-collapsed)) !important;
 }
 
-/* When sidebar is hovered (desktop) */
+/* When sidebar is hovered (desktop) - only for containers, not main */
 body.has-sidebar .sidebar-mode:hover ~ .container,
-body.has-sidebar .sidebar-mode:hover ~ main,
 body.has-sidebar .sidebar-mode:hover ~ .content-container {
     margin-left: var(--navbar-width-expanded) !important;
     width: calc(100% - var(--navbar-width-expanded)) !important;
 }
 
-/* When topbar is present (mobile) */
+/* When topbar is present (mobile) - only for containers, not main */
 body.has-topbar .container,
-body.has-topbar main,
 body.has-topbar .content-container {
     margin-left: 0 !important;
     margin-top: calc(var(--navbar-height-mobile) + var(--space-2)) !important; /* Reduced from just navbar height to navbar + small spacing */
@@ -136,9 +134,9 @@ body.has-topbar .content-container {
 
 /* Media queries for responsive layout */
 @media (max-width: 600px) {
-  /* Force content to adjust for topbar */
+  /* Force content to adjust for topbar - only for containers, not main */
+  /* NOTE: main element layout rules are handled in global.css, not here */
   body.has-sidebar .container, 
-  body.has-sidebar main, 
   body.has-sidebar .content-container {
     margin-left: 0 !important;
     margin-top: calc(var(--navbar-height-mobile) + var(--space-2)) !important; /* Reduced spacing */
@@ -146,8 +144,20 @@ body.has-topbar .content-container {
     padding-top: var(--space-2) !important; /* Reduced from mobile-padding to space-2 */
   }
   
-  /* Force navbar to stay as topbar */
+  /* Force navbar to stay as topbar on mobile */
   .navbar {
+    width: 100% !important;
+    height: var(--navbar-height-mobile) !important;
+    flex-direction: row !important;
+  }
+  
+  .navbar.sidebar-mode {
+    width: 100% !important;
+    height: var(--navbar-height-mobile) !important;
+    flex-direction: row !important;
+  }
+  
+  .navbar.topbar-mode {
     width: 100% !important;
     height: var(--navbar-height-mobile) !important;
     flex-direction: row !important;
@@ -155,6 +165,10 @@ body.has-topbar .content-container {
   
   /* Disable hover effect in mobile mode */
   .navbar:hover {
+    width: 100% !important;
+  }
+  
+  .navbar.sidebar-mode:hover {
     width: 100% !important;
   }
 
@@ -420,10 +434,7 @@ body.has-topbar .content-container {
         width: var(--navbar-width-collapsed) !important;
     }
     
-    body.has-sidebar main {
-        margin-left: var(--navbar-width-collapsed) !important;
-        width: calc(100% - var(--navbar-width-collapsed)) !important;
-    }
+    /* NOTE: main element layout rules are handled in global.css, not here */
 }
 
 @media (min-width: 1024px) {
@@ -432,10 +443,7 @@ body.has-topbar .content-container {
         width: var(--navbar-width-collapsed) !important;
     }
     
-    body.has-sidebar main {
-        margin-left: var(--navbar-width-collapsed) !important;
-        width: calc(100% - var(--navbar-width-collapsed)) !important;
-    }
+    /* NOTE: main element layout rules are handled in global.css, not here */
 }
 
 @media (min-width: 1280px) {
@@ -444,10 +452,7 @@ body.has-topbar .content-container {
         width: var(--navbar-width-collapsed) !important;
     }
     
-    body.has-sidebar main {
-        margin-left: var(--navbar-width-collapsed) !important;
-        width: calc(100% - var(--navbar-width-collapsed)) !important;
-    }
+    /* NOTE: main element layout rules are handled in global.css, not here */
 }
 
 /* Touch-friendly interactions for mobile */
@@ -472,18 +477,13 @@ body.has-topbar .content-container {
 }
 
 /* Landscape mobile adjustments */
+/* NOTE: main element layout rules are handled in global.css, not here */
 @media (max-width: 600px) and (orientation: landscape) {
     .navbar .topbar-mode {
         height: calc(var(--navbar-height-mobile) * 0.8) !important; /* Slightly smaller height for landscape */
     }
     
-    body.has-topbar main {
-        margin-top: calc(var(--navbar-height-mobile) * 0.8) !important;
-    }
-    
-    body.has-sidebar main {
-        margin-top: calc(var(--navbar-height-mobile) * 0.8) !important;
-    }
+    /* NOTE: main element layout rules are handled in global.css, not here */
 }
 
 /* Ensure proper spacing for content below navbar */

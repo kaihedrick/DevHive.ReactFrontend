@@ -1,512 +1,418 @@
-import axios from "axios";
-import { API_BASE_URL } from '../config';
-import { useState, useCallback, useEffect } from 'react';
-import { getAuthToken } from './projectService'; 
+// SprintService.js
+// This module handles sprint-related API calls for DevHive sprint management.
+
+import { api } from '../lib/api.ts';
+import { ENDPOINTS } from '../config';
 
 /**
- * Fetch all sprints for a specific project.
- * @param {string} projectId - The ID of the project to retrieve sprints for.
- * @returns {Promise<Array>} - An array of sprint objects.
+ * Fetches all sprints for a specific project with pagination.
+ *
+ * @param {string} projectId - The ID of the project
+ * @param {Object} [options] - Pagination options
+ * @param {number} [options.limit] - Number of sprints to fetch (default: 20, max: 100)
+ * @param {number} [options.offset] - Number of sprints to skip (default: 0)
+ * @returns {Promise<Object>} - Object containing sprints array and pagination info
+ * @throws {Error} - Throws an error if fetching sprints fails
  */
-export const fetchProjectSprints = async (projectId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
+export const fetchProjectSprints = async (projectId, options = {}) => {
+    try {
+        if (!projectId) {
+            throw new Error("Project ID is required");
+        }
 
-    if (!projectId) {
-      throw new Error("❌ Project ID is required.");
+        const params = {
+            limit: options.limit || 20,
+            offset: options.offset || 0
+        };
+
+        console.log(`📡 Fetching sprints for project ${projectId}:`, params);
+
+        const response = await api.get(`${ENDPOINTS.PROJECTS}/${projectId}/sprints`, { params });
+
+        console.log("✅ Sprints fetched successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error fetching project sprints:", error.response?.data || error.message);
+        throw error;
     }
-
-    console.log("🚀 Fetching sprints for project:", projectId);
-    
-    const response = await axios.get(`${API_BASE_URL}/Scrum/Project/Sprints/${projectId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    console.log("✅ Retrieved project sprints:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error fetching project sprints:", error.response?.data || error.message);
-    throw error;
-  }
 };
 
 /**
- * Fetch a single sprint by its ID.
- * @param {string} sprintId - The unique ID of the sprint.
- * @returns {Promise<Object>} - The sprint object retrieved from the API.
+ * Fetches a single sprint by its ID.
+ *
+ * @param {string} sprintId - The ID of the sprint to retrieve
+ * @returns {Promise<Object>} - The sprint data object
+ * @throws {Error} - Throws an error if the sprint cannot be retrieved
  */
 export const fetchSprintById = async (sprintId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
+    try {
+        if (!sprintId) {
+            throw new Error("Sprint ID is required");
+        }
 
-    if (!sprintId) {
-      throw new Error("❌ Sprint ID is required.");
+        console.log(`📡 Fetching sprint: ${sprintId}`);
+
+        const response = await api.get(`${ENDPOINTS.SPRINTS}/${sprintId}`);
+
+        console.log("✅ Sprint fetched successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error fetching sprint:", error.response?.data || error.message);
+        throw error;
     }
-
-    console.log("🚀 Fetching sprint details for:", sprintId);
-    
-    const response = await axios.get(`${API_BASE_URL}/Scrum/Sprint/${sprintId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    console.log("✅ Retrieved sprint details:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error fetching sprint:", error.response?.data || error.message);
-    throw error;
-  }
 };
 
 /**
- * Create a new sprint associated with a given project.
- * @param {Object} sprintData - Data for the new sprint, including projectID.
- * @returns {Promise<Object>} - The newly created sprint.
+ * Creates a new sprint for a project.
+ *
+ * @param {string} projectId - The ID of the project
+ * @param {Object} sprintData - Data for the new sprint
+ * @param {string} sprintData.name - Name of the sprint
+ * @param {string} sprintData.description - Description of the sprint
+ * @param {string} sprintData.startDate - Start date (YYYY-MM-DD or RFC3339 format)
+ * @param {string} sprintData.endDate - End date (YYYY-MM-DD or RFC3339 format)
+ * @returns {Promise<Object>} - The created sprint object
+ * @throws {Error} - Throws an error if sprint creation fails
  */
-export const createSprint = async (sprintData) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
+export const createSprint = async (projectId, sprintData) => {
+    try {
+        if (!projectId) {
+            throw new Error("Project ID is required");
+        }
 
-    if (!sprintData || !sprintData.projectID) {
-      throw new Error("❌ Sprint data is missing or project ID is not provided.");
+        if (!sprintData || typeof sprintData !== 'object') {
+            throw new Error("Invalid sprint payload passed to createSprint");
+        }
+        if (!sprintData.name || !sprintData.startDate || !sprintData.endDate) {
+            throw new Error("Sprint name, start date, and end date are required");
+        }
+
+        const payload = {
+            name: sprintData.name,
+            description: sprintData.description || "",
+            startDate: sprintData.startDate,
+            endDate: sprintData.endDate
+        };
+
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sprintService.js:97',message:'createSprint called',data:{projectId,projectIdType:typeof projectId,projectIdValue:String(projectId),isNull:projectId===null,isUndefined:projectId===undefined,payload},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+        // #endregion
+        
+        // #region agent log
+        const apiUrl = `${ENDPOINTS.PROJECTS}/${projectId}/sprints`;
+        fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sprintService.js:101',message:'API URL constructed',data:{apiUrl,projectId,ENDPOINTS_PROJECTS:ENDPOINTS.PROJECTS},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
+        
+        console.log(`📤 Creating sprint for project ${projectId}:`, payload);
+
+        const response = await api.post(apiUrl, payload);
+
+        console.log("✅ Sprint created successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error creating sprint:", error.response?.data || error.message);
+        throw error;
     }
-
-    console.log("🚀 Creating new sprint for project:", sprintData.projectID);
-    console.log("📦 Sprint data:", sprintData);
-    
-    const response = await axios.post(`${API_BASE_URL}/Scrum/Sprint/`, sprintData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    console.log("✅ Sprint created successfully:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error creating sprint:", error.response?.data || error.message);
-    throw error;
-  }
 };
 
 /**
- * Edit an existing sprint's data.
- * @param {Object} sprintData - Sprint data including an existing sprint ID.
- * @returns {Promise<Object>} - The updated sprint object.
+ * Updates an existing sprint.
+ *
+ * @param {string} sprintId - The ID of the sprint to update
+ * @param {Object} sprintData - Updated sprint data
+ * @param {string} [sprintData.name] - New name for the sprint
+ * @param {string} [sprintData.description] - New description for the sprint
+ * @param {string} [sprintData.startDate] - New start date (YYYY-MM-DD or RFC3339 format)
+ * @param {string} [sprintData.endDate] - New end date (YYYY-MM-DD or RFC3339 format)
+ * @returns {Promise<Object>} - The updated sprint object
+ * @throws {Error} - Throws an error if sprint update fails
  */
-export const editSprint = async (sprintData) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
+export const updateSprint = async (sprintId, sprintData) => {
+    try {
+        if (!sprintId) {
+            throw new Error("Sprint ID is required");
+        }
 
-    if (!sprintData || !sprintData.id) {
-      throw new Error("❌ Sprint data is missing or Sprint ID is not provided.");
+        const payload = {};
+        if (sprintData.name !== undefined) payload.name = sprintData.name;
+        if (sprintData.description !== undefined) payload.description = sprintData.description;
+        if (sprintData.startDate !== undefined) payload.startDate = sprintData.startDate;
+        if (sprintData.endDate !== undefined) payload.endDate = sprintData.endDate;
+
+        console.log(`📤 Updating sprint ${sprintId}:`, payload);
+
+        const response = await api.patch(`${ENDPOINTS.SPRINTS}/${sprintId}`, payload);
+
+        console.log("✅ Sprint updated successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error updating sprint:", error.response?.data || error.message);
+        throw error;
     }
-    
-    // Format dates properly if they are provided as Date objects
-    const formattedData = {
-      ...sprintData,
-      startDate: typeof sprintData.startDate === 'object' 
-        ? sprintData.startDate.toISOString() 
-        : sprintData.startDate,
-      endDate: typeof sprintData.endDate === 'object' 
-        ? sprintData.endDate.toISOString() 
-        : sprintData.endDate
-    };
-
-    console.log("🚀 Updating sprint:", formattedData.id);
-    console.log("📦 Updated sprint data:", formattedData);
-    
-    const response = await axios.put(`${API_BASE_URL}/Scrum/Sprint/`, formattedData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    console.log("✅ Sprint updated successfully:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error updating sprint:", error.response?.data || error.message);
-    throw error;
-  }
 };
 
 /**
- * Delete a sprint by its ID.
- * @param {string} sprintId - The ID of the sprint to delete.
- * @returns {Promise<Object>} - Response from the delete operation.
+ * Deletes a sprint.
+ *
+ * @param {string} sprintId - The ID of the sprint to delete
+ * @returns {Promise<Object>} - Confirmation response
+ * @throws {Error} - Throws an error if sprint deletion fails
  */
 export const deleteSprint = async (sprintId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
+    try {
+        if (!sprintId) {
+            throw new Error("Sprint ID is required");
+        }
 
-    if (!sprintId) {
-      throw new Error("❌ Sprint ID is required.");
+        console.log(`📤 Deleting sprint: ${sprintId}`);
+
+        const response = await api.delete(`${ENDPOINTS.SPRINTS}/${sprintId}`);
+
+        console.log("✅ Sprint deleted successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error deleting sprint:", error.response?.data || error.message);
+        throw error;
     }
-
-    console.log("🚀 Deleting sprint:", sprintId);
-    
-    const response = await axios.delete(`${API_BASE_URL}/Scrum/Sprint/${sprintId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    console.log(`✅ Sprint ${sprintId} deleted successfully`);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error deleting sprint:", error.response?.data || error.message);
-    throw error;
-  }
 };
 
 /**
- * Start a sprint by marking its `isStarted` field to true.
- * @param {string} sprintId - The ID of the sprint to start.
- * @returns {Promise<Object>} - The updated sprint object.
+ * Starts a sprint (sets isStarted to true).
+ * NOTE: This endpoint (/sprints/{id}/start) is not in the new API spec.
+ * It may need to be replaced with PATCH /sprints/{id} with status update.
+ *
+ * @param {string} sprintId - The ID of the sprint to start
+ * @returns {Promise<Object>} - The updated sprint object
+ * @throws {Error} - Throws an error if starting sprint fails
  */
 export const startSprint = async (sprintId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
+    try {
+        if (!sprintId) {
+            throw new Error("Sprint ID is required");
+        }
 
-    if (!sprintId) {
-      throw new Error("❌ Sprint ID is required.");
+        console.log(`📤 Starting sprint: ${sprintId}`);
+
+        const response = await api.patch(`${ENDPOINTS.SPRINTS}/${sprintId}/start`);
+
+        console.log("✅ Sprint started successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error starting sprint:", error.response?.data || error.message);
+        throw error;
     }
-
-    console.log("🚀 Starting sprint:", sprintId);
-    
-    // Since there's no dedicated endpoint for this in your backend,
-    // we'll update the sprint with isStarted=true
-    const sprint = await fetchSprintById(sprintId);
-    
-    if (!sprint) {
-      throw new Error("❌ Sprint not found.");
-    }
-    
-    const updateData = {
-      ...sprint,
-      isStarted: true
-    };
-    
-    const response = await editSprint(updateData);
-
-    console.log(`✅ Sprint ${sprintId} started successfully`);
-    return response;
-  } catch (error) {
-    console.error("❌ Error starting sprint:", error.response?.data || error.message);
-    throw error;
-  }
 };
 
 /**
- * Complete a sprint by marking its `isCompleted` field to true.
- * @param {string} sprintId - The ID of the sprint to complete.
- * @returns {Promise<Object>} - The updated sprint object.
+ * Completes a sprint (sets isCompleted to true).
+ * NOTE: This endpoint (/sprints/{id}/complete) is not in the new API spec.
+ * It may need to be replaced with PATCH /sprints/{id} with status update.
+ *
+ * @param {string} sprintId - The ID of the sprint to complete
+ * @returns {Promise<Object>} - The updated sprint object
+ * @throws {Error} - Throws an error if completing sprint fails
  */
 export const completeSprint = async (sprintId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
-
-    if (!sprintId) {
-      throw new Error("❌ Sprint ID is required.");
-    }
-
-    console.log("🚀 Completing sprint:", sprintId);
-    
-    // Since there's no dedicated endpoint for this in your backend,
-    // we'll update the sprint with isCompleted=true
-    const sprint = await fetchSprintById(sprintId);
-    
-    if (!sprint) {
-      throw new Error("❌ Sprint not found.");
-    }
-    
-    const updateData = {
-      ...sprint,
-      isCompleted: true
-    };
-    
-    const response = await editSprint(updateData);
-
-    console.log(`✅ Sprint ${sprintId} completed successfully`);
-    return response;
-  } catch (error) {
-    console.error("❌ Error completing sprint:", error.response?.data || error.message);
-    throw error;
-  }
-};
-
-/**
- * Fetch only the active (in-progress) sprints for a given project.
- * @param {string} projectId - The ID of the project.
- * @returns {Promise<Array>} - Array of active sprints.
- */
-
-export const fetchActiveProjectSprints = async (projectId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
-
-    if (!projectId) {
-      throw new Error("❌ Project ID is required.");
-    }
-
-    console.log("🚀 Fetching active sprints for project:", projectId);
-    
-    const response = await axios.get(`${API_BASE_URL}/Scrum/Project/Sprints/Active/${projectId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    console.log("✅ Retrieved active project sprints:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error fetching active project sprints:", error.response?.data || error.message);
-    throw error;
-  }
-};
-
-/**
- * Retrieve all tasks associated with a sprint.
- * @param {string} sprintId - The ID of the sprint.
- * @returns {Promise<Array>} - Array of task objects.
- */
-export const fetchSprintTasks = async (sprintId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
-
-    if (!sprintId) {
-      throw new Error("❌ Sprint ID is required.");
-    }
-
-    console.log("🚀 Fetching tasks for sprint:", sprintId);
-    
-    const response = await axios.get(`${API_BASE_URL}/Scrum/Sprint/Tasks/${sprintId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    console.log("✅ Retrieved sprint tasks:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error fetching sprint tasks:", error.response?.data || error.message);
-    throw error;
-  }
-};
-
-/**
- * Check for overlapping sprint dates against existing sprints.
- * @param {Date|string} newStart - Proposed start date.
- * @param {Date|string} newEnd - Proposed end date.
- * @param {Array} existingSprints - Array of existing sprints.
- * @param {string|null} [currentSprintId] - Sprint ID to exclude from check.
- * @returns {boolean} - True if overlap is found, false otherwise.
- */
-export const checkSprintDateOverlap = (newStart, newEnd, existingSprints, currentSprintId = null) => {
-  const start = new Date(newStart);
-  const end = new Date(newEnd);
-  
-  return existingSprints.some(sprint => {
-    // Skip current sprint when editing
-    if (currentSprintId && sprint.id === currentSprintId) {
-      return false;
-    }
-    
-    const sprintStart = new Date(sprint.startDate);
-    const sprintEnd = new Date(sprint.endDate);
-    
-    // Check if date ranges overlap
-    return (
-      (start >= sprintStart && start <= sprintEnd) || // New start date falls within existing sprint
-      (end >= sprintStart && end <= sprintEnd) || // New end date falls within existing sprint
-      (start <= sprintStart && end >= sprintEnd) // New sprint completely encompasses existing sprint
-    );
-  });
-};
-
-/**
- * Calculate all disabled dates between sprints.
- * @param {Array} existingSprints - Array of sprint objects.
- * @param {string|null} [currentSprintId] - Sprint ID to exclude from check.
- * @returns {string[]} - Array of ISO date strings that are disabled.
- */
-export const getDisabledDates = (existingSprints, currentSprintId = null) => {
-  const disabledDates = [];
-  
-  existingSprints.forEach(sprint => {
-    // Skip current sprint when editing
-    if (currentSprintId && sprint.id === currentSprintId) {
-      return;
-    }
-    
-    const start = new Date(sprint.startDate);
-    const end = new Date(sprint.endDate);
-    
-    // Add all dates between start and end (inclusive) to disabledDates
-    let current = new Date(start);
-    while (current <= end) {
-      disabledDates.push(new Date(current).toISOString().split('T')[0]);
-      current.setDate(current.getDate() + 1);
-    }
-  });
-  
-  return disabledDates;
-};
-
-/**
- * React hook to fetch and manage a single sprint.
- * @param {string} sprintId - The sprint ID to track.
- * @returns {Object} - Contains sprint data, loading state, error, and a refresh function.
- */
-
-export const useSprint = (sprintId) => {
-  const [sprint, setSprint] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchSprint = useCallback(async () => {
-    if (!sprintId) {
-      setLoading(false);
-      return;
-    }
-
     try {
-      setLoading(true);
-      const data = await fetchSprintById(sprintId);
-      setSprint(data);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-      console.error('❌ Error fetching sprint:', err);
-    } finally {
-      setLoading(false);
+        if (!sprintId) {
+            throw new Error("Sprint ID is required");
+        }
+
+        console.log(`📤 Completing sprint: ${sprintId}`);
+
+        const response = await api.patch(`${ENDPOINTS.SPRINTS}/${sprintId}/complete`);
+
+        console.log("✅ Sprint completed successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error completing sprint:", error.response?.data || error.message);
+        throw error;
     }
-  }, [sprintId]);
-
-  useEffect(() => {
-    fetchSprint();
-  }, [fetchSprint]);
-
-  return { sprint, loading, error, refreshSprint: fetchSprint };
 };
 
 /**
- * React hook to manage project-level sprint state and actions.
- * @param {string} projectId - The project ID to track.
- * @returns {Object} - Contains sprints, loading, error, and CRUD functions.
+ * Gets the current active sprint for a project.
+ * NOTE: This endpoint (/projects/{id}/sprints/active) is not in the new API spec.
+ * You may need to filter sprints client-side or use a different endpoint.
+ *
+ * @param {string} projectId - The ID of the project
+ * @returns {Promise<Object|null>} - The active sprint object or null if none
+ * @throws {Error} - Throws an error if fetching active sprint fails
  */
-export const useProjectSprints = (projectId) => {
-  const [sprints, setSprints] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export const getActiveSprint = async (projectId) => {
+    try {
+        if (!projectId) {
+            throw new Error("Project ID is required");
+        }
 
-  const fetchSprints = useCallback(async () => {
-    if (!projectId) {
-      setLoading(false);
-      return;
+        console.log(`📡 Fetching active sprint for project: ${projectId}`);
+
+        const response = await api.get(`${ENDPOINTS.PROJECTS}/${projectId}/sprints/active`);
+
+        console.log("✅ Active sprint fetched successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            console.log("No active sprint found for project");
+            return null;
+        }
+        console.error("❌ Error fetching active sprint:", error.response?.data || error.message);
+        throw error;
     }
+};
+
+/**
+ * Gets the next sprint to start for a project.
+ * NOTE: This endpoint (/projects/{id}/sprints/next) is not in the new API spec.
+ * You may need to filter sprints client-side or use a different endpoint.
+ *
+ * @param {string} projectId - The ID of the project
+ * @returns {Promise<Object|null>} - The next sprint object or null if none
+ * @throws {Error} - Throws an error if fetching next sprint fails
+ */
+export const getNextSprint = async (projectId) => {
+    try {
+        if (!projectId) {
+            throw new Error("Project ID is required");
+        }
+
+        console.log(`📡 Fetching next sprint for project: ${projectId}`);
+
+        const response = await api.get(`${ENDPOINTS.PROJECTS}/${projectId}/sprints/next`);
+
+        console.log("✅ Next sprint fetched successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            console.log("No next sprint found for project");
+            return null;
+        }
+        console.error("❌ Error fetching next sprint:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
+ * Formats a date string to ensure consistent format for API calls.
+ *
+ * @param {string|Date} date - The date to format
+ * @returns {string} - Formatted date string (YYYY-MM-DD)
+ */
+export const formatDateForAPI = (date) => {
+    if (!date) return null;
     
-    try {
-      setLoading(true);
-      const data = await fetchProjectSprints(projectId);
-      setSprints(data || []);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-      console.error('❌ Error fetching project sprints:', err);
-    } finally {
-      setLoading(false);
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return dateObj.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+};
+
+/**
+ * Formats a date string to RFC3339 format for API calls.
+ *
+ * @param {string|Date} date - The date to format
+ * @returns {string} - Formatted date string (RFC3339)
+ */
+export const formatDateForAPIRFC3339 = (date) => {
+    if (!date) return null;
+    
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return dateObj.toISOString();
+};
+
+/**
+ * Checks if a sprint date range overlaps with existing sprints.
+ *
+ * @param {string|Date} startDate - The start date to check
+ * @param {string|Date} endDate - The end date to check
+ * @param {Array} existingSprints - Array of existing sprints
+ * @param {string} [excludeSprintId] - Sprint ID to exclude from overlap check
+ * @returns {boolean} - True if there's an overlap, false otherwise
+ */
+export const checkSprintDateOverlap = (startDate, endDate, existingSprints, excludeSprintId = null) => {
+    if (!startDate || !endDate || !existingSprints || existingSprints.length === 0) {
+        return false;
     }
-  }, [projectId]);
 
-  // Function to refresh after creating a sprint
-  const createNewSprint = useCallback(async (sprintData) => {
-    try {
-      await createSprint({ ...sprintData, projectID: projectId });
-      await fetchSprints(); // Refresh sprints after creation
-      return { success: true };
-    } catch (err) {
-      setError(err.message);
-      console.error('❌ Error creating sprint:', err);
-      return { success: false, error: err.message };
+    const newStart = new Date(startDate);
+    const newEnd = new Date(endDate);
+
+    // Check if start date is after end date
+    if (newStart >= newEnd) {
+        return true; // Invalid date range
     }
-  }, [projectId, fetchSprints]);
 
-  // Function to refresh after updating a sprint
-  const updateSprint = useCallback(async (sprintData) => {
-    try {
-      await editSprint(sprintData);
-      await fetchSprints(); // Refresh sprints after update
-      return { success: true };
-    } catch (err) {
-      setError(err.message);
-      console.error('❌ Error updating sprint:', err);
-      return { success: false, error: err.message };
+    for (const sprint of existingSprints) {
+        // Skip the sprint we're excluding (for updates)
+        if (excludeSprintId && sprint.id === excludeSprintId) {
+            continue;
+        }
+
+        const existingStart = new Date(sprint.startDate);
+        const existingEnd = new Date(sprint.endDate);
+
+        // Check for overlap: new sprint starts before existing ends AND new sprint ends after existing starts
+        if (newStart < existingEnd && newEnd > existingStart) {
+            return true;
+        }
     }
-  }, [fetchSprints]);
 
-  // Function to delete a sprint
-  const removeSprint = useCallback(async (sprintId) => {
-    try {
-      await deleteSprint(sprintId);
-      await fetchSprints(); // Refresh sprints after deletion
-      return { success: true };
-    } catch (err) {
-      setError(err.message);
-      console.error('❌ Error deleting sprint:', err);
-      return { success: false, error: err.message };
+    return false;
+};
+
+/**
+ * Gets disabled dates for a date picker based on existing sprints.
+ *
+ * @param {Array} existingSprints - Array of existing sprints
+ * @param {string} [excludeSprintId] - Sprint ID to exclude from disabled dates
+ * @returns {Array} - Array of disabled date ranges
+ */
+export const getDisabledDates = (existingSprints, excludeSprintId = null) => {
+    if (!existingSprints || existingSprints.length === 0) {
+        return [];
     }
-  }, [fetchSprints]);
 
-  useEffect(() => {
-    fetchSprints();
-  }, [fetchSprints]);
+    const disabledRanges = [];
 
-  return { 
-    sprints, 
-    loading, 
-    error, 
-    refreshSprints: fetchSprints, 
-    createSprint: createNewSprint,
+    for (const sprint of existingSprints) {
+        // Skip the sprint we're excluding (for updates)
+        if (excludeSprintId && sprint.id === excludeSprintId) {
+            continue;
+        }
+
+        const startDate = new Date(sprint.startDate);
+        const endDate = new Date(sprint.endDate);
+
+        // Add the date range to disabled dates
+        disabledRanges.push({
+            start: startDate,
+            end: endDate
+        });
+    }
+
+    return disabledRanges;
+};
+
+// Legacy functions for backward compatibility
+export const editSprint = async (sprintData) => {
+    console.warn("⚠️ editSprint is deprecated. Use updateSprint instead.");
+    return updateSprint(sprintData.id, sprintData);
+};
+
+const sprintService = {
+    fetchProjectSprints,
+    fetchSprintById,
+    createSprint,
     updateSprint,
-    deleteSprint: removeSprint
-  };
+    deleteSprint,
+    startSprint,
+    completeSprint,
+    getActiveSprint,
+    getNextSprint,
+    formatDateForAPI,
+    formatDateForAPIRFC3339,
+    checkSprintDateOverlap,
+    getDisabledDates,
+    // Legacy functions
+    editSprint
 };
 
-/**
- * Validate sprint start and end dates and check for overlap.
- * @param {string|Date} startDate - Sprint start date.
- * @param {string|Date} endDate - Sprint end date.
- * @param {Array} existingSprints - Existing sprints to compare against.
- * @param {string|null} [currentSprintId] - ID to exclude when editing.
- * @returns {Object} - Validity status and optional error message.
- */
-export const validateSprintDates = (startDate, endDate, existingSprints, currentSprintId = null) => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  
-  // Check if end date is after start date
-  if (end <= start) {
-    return { valid: false, error: "End date must be after start date" };
-  }
-  
-  // Check for overlaps with existing sprints
-  if (checkSprintDateOverlap(startDate, endDate, existingSprints, currentSprintId)) {
-    return { valid: false, error: "Sprint dates overlap with existing sprints" };
-  }
-  
-  return { valid: true };
-};
+export default sprintService;

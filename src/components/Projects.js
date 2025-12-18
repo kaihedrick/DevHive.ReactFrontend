@@ -104,63 +104,61 @@ const Projects = () => {
   if (loading) return <p className="loading">Loading projects...</p>;
 
   return (
-    <div className="background">
-      <div className="projects-page">
-        <div className="projects-container">
-          <div className="header">
-            <h1>Welcome to DevHive</h1>
-            <p>Your Projects:</p>
-          </div>
+    <div className="projects-page">
+      <div className="projects-container">
+        <div className="header">
+          <h1>Welcome to DevHive</h1>
+          <p>Your Projects:</p>
+        </div>
 
-          <div className="projects-list">
-            {projects.length > 0 ? (
-              projects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  isEditing={editingProjectId === project.id}
-                  onSelect={handleProjectSelection}
-                  onEdit={toggleEditMode}
-                  onDelete={handleDeleteProject}
-                  loggedInUserId={userId} // Pass user ID to ProjectCard
-                />
-              ))
-            ) : (
-              <p>No projects available.</p>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="actions">
-            <button className="action-btn create-btn" onClick={() => navigate("/create-project")}>
-              Create a Project
-            </button>
-            <button className="action-btn join-btn" onClick={() => navigate("/join-group")}>
-              Join a Group
-            </button>
-            <button className="action-btn account-btn" onClick={() => navigate("/account-details")}>
-              Account Details
-            </button>
-          </div>
-
-          {/* Delete Confirmation Modal */}
-          {showDeleteModal && (
-            <div className="modal-overlay active">
-              <div className="modal">
-                <h3>Confirm Deletion</h3>
-                <p>Are you sure you want to remove this project?</p>
-                <div className="modal-actions">
-                  <button className="confirm-btn" onClick={confirmDeleteProject}>
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                  <button className="cancel-btn" onClick={cancelDeleteProject}>
-                    <FontAwesomeIcon icon={faXmark} />
-                  </button>
-                </div>
-              </div>
-            </div>
+        <div className="projects-list">
+          {projects && projects.length > 0 ? (
+            projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                isEditing={editingProjectId === project.id}
+                onSelect={handleProjectSelection}
+                onEdit={toggleEditMode}
+                onDelete={handleDeleteProject}
+                loggedInUserId={userId} // Pass user ID to ProjectCard
+              />
+            ))
+          ) : (
+            <p>No projects available.</p>
           )}
         </div>
+
+        {/* Action Buttons */}
+        <div className="actions">
+          <button className="action-btn create-btn" onClick={() => navigate("/create-project")}>
+            Create a Project
+          </button>
+          <button className="action-btn join-btn" onClick={() => navigate("/join-group")}>
+            Join a Group
+          </button>
+          <button className="action-btn account-btn" onClick={() => navigate("/account-details")}>
+            Account Details
+          </button>
+        </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="modal-overlay active">
+            <div className="modal">
+              <h3>Confirm Deletion</h3>
+              <p>Are you sure you want to remove this project?</p>
+              <div className="modal-actions">
+                <button className="confirm-btn" onClick={confirmDeleteProject}>
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+                <button className="cancel-btn" onClick={cancelDeleteProject}>
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -195,7 +193,7 @@ const ProjectCard = ({ project, isEditing, onSelect, onEdit, onDelete, loggedInU
 
     {/* Delete button is only visible to project owners */}
     <div className="project-actions">
-      {project.projectOwnerID === loggedInUserId && isEditing && (
+      {project.owner?.id === loggedInUserId && isEditing && (
         <button
           className="delete-btn"
           onClick={(e) => {
@@ -208,7 +206,7 @@ const ProjectCard = ({ project, isEditing, onSelect, onEdit, onDelete, loggedInU
       )}
 
       {/* Edit button is only visible to project owners */}
-      {project.projectOwnerID === loggedInUserId && (
+      {project.owner?.id === loggedInUserId && (
         <button
           className="edit-btn"
           onClick={(e) => {

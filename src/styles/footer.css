@@ -10,15 +10,15 @@ body {
 
 .container {
   flex: 1;
-  padding-bottom: 60px;
-  min-height: calc(100vh - 60px);
+  padding-bottom: var(--footer-h);
+  min-height: calc(100vh - var(--footer-h));
   box-sizing: border-box;
   transition: all var(--transition-normal) ease-in-out;
 }
 
 .content-wrapper {
-  min-height: calc(100vh - 60px); /* Account for footer height */
-  padding-bottom: 60px; /* Space for footer */
+  min-height: calc(100vh - var(--footer-h)); /* Account for footer height */
+  padding-bottom: var(--footer-h); /* Space for footer */
 }
 
 /* ==========================
@@ -33,7 +33,7 @@ body {
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 60px; /* Fixed height footer */
+  height: var(--footer-h); /* Fixed height footer */
   z-index: 900; /* Below navbar z-index for proper layering */
   display: flex;
   justify-content: center;

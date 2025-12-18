@@ -39,7 +39,7 @@ export const useProjectSprints = (projectId) => {
 
   const createSprint = useCallback(async (sprintData) => {
     try {
-      await projectService.createSprint({ ...sprintData, projectID: projectId });
+      await projectService.createSprint(projectId, sprintData);
       await fetchSprints(); // Refresh sprints after creation
     } catch (err) {
       setError(err.message);

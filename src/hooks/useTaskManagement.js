@@ -112,7 +112,7 @@ export const useTaskManagement = (projectId, sprintId = null) => {
         throw new Error("Task description is required");
       }
       
-      if (!taskData.sprintID) {
+      if (!taskData.sprintId) {
         throw new Error("Sprint selection is required");
       }
       
@@ -123,10 +123,9 @@ export const useTaskManagement = (projectId, sprintId = null) => {
         ...taskData,
         dateCreated: new Date().toISOString(),
         status: 0, // Default status: To Do
-        projectID: projectId // Ensure project ID is included
       };
-      
-      await createTask(fullTaskData);
+
+      await createTask(projectId, fullTaskData);
       console.log("✅ Task created successfully");
       
       await fetchTasks(); // Refresh tasks after creation

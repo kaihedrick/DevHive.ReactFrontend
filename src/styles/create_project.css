@@ -1,160 +1,117 @@
 /* ============================= */
 /*  Create Project Page Layout */
 /* ============================= */
-.create-project-page {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  min-height: calc(100vh - 100px) !important; /* Match Join Project navbar adjustment */
-  background-color: var(--accent-primary) !important; /* Match Join Project gold background */
-  font-family: var(--primary-font) !important;
-  padding: var(--space-5) !important; /* Consistent padding */
-}
+/* Uses create-sprint-container from create_sprint.css */
+/* Additional scoped styles for Create Project page */
 
-.create-project-container {
-  width: 100% !important;
-  max-width: 500px !important; /* Match Join Project container width */
-  background: var(--bg-primary) !important; /* White background for the card */
-  border-radius: var(--border-radius) !important; /* Consistent border radius */
-  box-shadow: var(--shadow-lg) !important; /* Consistent shadow */
-  padding: var(--space-5) !important; /* Consistent padding */
-  text-align: center !important;
-  position: relative !important;
-  border: 1px solid var(--border-color) !important; /* Light gray border */
-  min-height: 400px !important; /* Match Join Project container height */
-}
-
-/* ============================= */
-/*  Title */
-/* ============================= */
-.create-project-title {
-  font-size: var(--font-size-xl) !important; /* Match Join Project title font size */
-  font-weight: var(--font-weight-bold) !important;
-  color: var(--text-primary) !important; /* Black text */
-  margin-bottom: var(--space-4) !important; /* Consistent spacing */
-  margin-top: var(--space-3) !important; /* Match Join Project title spacing */
-}
-
-/* ============================= */
-/*  Form Inputs */
-/* ============================= */
-.create-project-container input,
-.create-project-container textarea {
-  width: 100% !important;
-  padding: var(--space-3) var(--space-4) !important; /* Match Join Project input padding */
-  margin-bottom: var(--space-4) !important; /* Consistent spacing */
-  border: 2px solid var(--border-color) !important; /* Light gray border */
-  border-radius: var(--border-radius) !important; /* Consistent border radius */
-  font-size: var(--font-size-base) !important;
-  color: var(--text-primary) !important;
-  background: var(--bg-primary) !important;
-  font-family: var(--primary-font) !important;
-  text-align: center !important; /* Match Join Project input alignment */
-  transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
-  outline: none !important;
-  padding-right: 4rem !important; /* Add space for the counter inside the field */
-  box-sizing: border-box !important; /* Ensure padding doesn't affect width */
-}
-
-.create-project-container textarea {
-  height: 100px !important; /* Match Join Project textarea height */
-  resize: none !important;
-}
-
-.create-project-container input:focus,
-.create-project-container textarea:focus {
-  border-color: var(--accent-primary) !important; /* Gold border on focus */
-  box-shadow: var(--shadow-focus) !important; /* Consistent focus shadow */
-}
-
-/* Input Container */
-.input-container {
-  position: relative !important;
-  margin-bottom: var(--space-4) !important;
-}
-
-/* Character Counter Inside Input Fields */
-.char-counter {
-  position: absolute !important;
-  bottom: 0.5rem !important; /* Position at the bottom inside the field */
-  right: 0.8rem !important; /* Add padding from the right */
-  font-size: var(--font-size-xs) !important; /* Smaller font size */
+/* Character counter styling */
+.create-sprint-container .character-count {
+  font-size: var(--font-size-xs) !important;
   color: var(--text-tertiary) !important;
-  pointer-events: none !important; /* Prevent interaction */
+  text-align: right !important;
+  margin-top: var(--space-1) !important;
+  margin-bottom: 0 !important;
 }
 
-/* ============================= */
-/*  Buttons */
-/* ============================= */
-.create-project-btn {
-  width: 100% !important;
-  padding: var(--space-3) var(--space-4) !important; /* Match Join Project button padding */
-  border: none !important;
-  border-radius: var(--border-radius) !important; /* Consistent border radius */
-  font-size: var(--font-size-base) !important; /* Match Join Project button font size */
-  font-weight: var(--font-weight-bold) !important;
-  background: var(--accent-primary) !important; /* Gold background */
-  color: var(--white) !important; /* White text for contrast */
-  cursor: pointer !important;
-  transition: all var(--transition-fast) ease !important;
-  margin-top: var(--space-3) !important; /* Match Join Project button spacing */
+/* Textarea styling to match form-input */
+.create-sprint-container textarea.form-input {
+  min-height: 100px !important;
+  resize: vertical !important;
+  font-family: var(--primary-font) !important;
 }
 
-.create-project-btn:hover {
-  background: var(--dark-gold) !important; /* Darker gold on hover */
-  transform: translateY(-2px) !important; /* Subtle hover effect */
-  box-shadow: var(--shadow-md) !important; /* Consistent shadow */
-}
-
-/* ============================= */
-/*  Back Arrow */
-/* ============================= */
-.back-arrow {
-  position: absolute !important;
-  top: var(--space-3) !important; /* Match Join Project back arrow spacing */
-  left: var(--space-3) !important; /* Match Join Project back arrow spacing */
-  font-size: var(--font-size-lg) !important;
-  cursor: pointer !important;
-  color: var(--text-secondary) !important; /* Dark gray */
-  transition: transform var(--transition-normal) ease, color var(--transition-normal) ease !important;
-}
-
-.back-arrow:hover {
-  color: var(--text-primary) !important; /* Black on hover */
-  transform: scale(1.2) !important; /* Subtle hover effect */
-}
-
-/* ============================= */
-/*  Error Message */
-/* ============================= */
-.error-message {
-  color: hsl(0, 100%, 50%) !important; /* Red for errors */
+/* Error message styling */
+.create-sprint-container .error-message {
+  color: hsl(0, 100%, 50%) !important;
   font-size: var(--font-size-sm) !important;
   margin-top: var(--space-3) !important;
   margin-bottom: var(--space-4) !important;
   text-align: center !important;
+  padding: var(--space-3) !important;
+  background: rgba(255, 0, 0, 0.1) !important;
+  border-radius: var(--border-radius) !important;
+  border: 1px solid hsl(0, 100%, 50%) !important;
+}
+
+/* Form actions container */
+.create-sprint-container .form-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+  margin-top: var(--space-6) !important;
+}
+
+/* Button scoping to match Account Details page */
+.create-sprint-container .primary-action-btn,
+.create-sprint-container .secondary-action-btn {
+  width: 100% !important;
+  appearance: none !important;
+  border-radius: 24px !important;
+  padding: 0 24px !important;
+  height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  font-family: var(--primary-font) !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast) !important;
+}
+
+.create-sprint-container .primary-action-btn {
+  border: none !important;
+  background: var(--accent-primary) !important;
+  color: var(--black) !important;
+}
+
+.create-sprint-container .primary-action-btn:hover {
+  background: var(--dark-gold) !important;
+  color: var(--white) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.create-sprint-container .primary-action-btn:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent-primary), #000 15%) !important;
+  outline-offset: 2px !important;
+}
+
+.create-sprint-container .secondary-action-btn {
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.create-sprint-container .secondary-action-btn:hover {
+  background: color-mix(in srgb, var(--bg-primary), #fff 5%) !important;
+}
+
+.create-sprint-container .secondary-action-btn:focus {
+  outline: 2px solid var(--border-color) !important;
+  outline-offset: 2px !important;
 }
 
 /* ============================= */
 /*  Responsive Design */
 /* ============================= */
 @media (max-width: 768px) {
-  .create-project-container {
-    padding: var(--space-3) !important; /* Adjust padding for smaller screens */
+  .create-sprint-container .form-actions {
+    gap: var(--space-2) !important;
   }
 }
 
 @media (max-width: 480px) {
-  .create-project-title {
-    font-size: var(--font-size-lg) !important; /* Adjust font size for smaller screens */
+  .create-sprint-container .primary-action-btn,
+  .create-sprint-container .secondary-action-btn {
+    padding: 0 16px !important;
+    font-size: var(--font-size-sm) !important;
   }
-
-  .create-project-container input,
-  .create-project-container textarea {
-    font-size: var(--font-size-sm) !important; /* Adjust font size for smaller screens */
-  }
-
-  .create-project-btn {
-    font-size: var(--font-size-sm) !important; /* Adjust font size for smaller screens */
+  
+  .create-sprint-container .character-count {
+    font-size: 10px !important;
   }
 }

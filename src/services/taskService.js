@@ -1,355 +1,428 @@
-import axios from "axios";
-import { API_BASE_URL } from '../config';
-import { getAuthToken } from './projectService'; // Reuse auth helper from projectService
-import { fetchUserById } from './userService';
-import { useState, useCallback, useEffect } from 'react';
+// TaskService.js
+// This module handles task-related API calls for DevHive task management.
+
+import { api } from '../lib/api.ts';
+import { ENDPOINTS } from '../config';
 
 /**
- * @function fetchProjectTasks
- * @description Fetches all tasks for a given project.
- * @param {string} projectId - The ID of the project.
- * @returns {Promise<Array>} - A list of tasks associated with the project.
+ * Fetches all tasks for a specific project with pagination.
+ *
+ * @param {string} projectId - The ID of the project
+ * @param {Object} [options] - Pagination options
+ * @param {number} [options.limit] - Number of tasks to fetch (default: 20, max: 100)
+ * @param {number} [options.offset] - Number of tasks to skip (default: 0)
+ * @returns {Promise<Object>} - Object containing tasks array and pagination info
+ * @throws {Error} - Throws an error if fetching tasks fails
  */
-export const fetchProjectTasks = async (projectId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
+export const fetchProjectTasks = async (projectId, options = {}) => {
+    try {
+        if (!projectId) {
+            throw new Error("Project ID is required");
+        }
 
-    if (!projectId) {
-      throw new Error("❌ Project ID is required.");
+        const params = {
+            limit: options.limit || 20,
+            offset: options.offset || 0
+        };
+
+        console.log(`📡 Fetching tasks for project ${projectId}:`, params);
+
+        const response = await api.get(`${ENDPOINTS.PROJECTS}/${projectId}/tasks`, { params });
+
+        console.log("✅ Tasks fetched successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error fetching project tasks:", error.response?.data || error.message);
+        throw error;
     }
-
-    console.log("🚀 Fetching tasks for project:", projectId);
-    
-    const response = await axios.get(`${API_BASE_URL}/Scrum/Project/Tasks/${projectId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    console.log("✅ Retrieved project tasks:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error fetching project tasks:", error.response?.data || error.message);
-    throw error;
-  }
 };
 
 /**
- * @function fetchSprintTasks
- * @description Fetches all tasks for a given sprint.
- * @param {string} sprintId - The ID of the sprint.
- * @returns {Promise<Array>} - A list of tasks within the sprint.
+ * Fetches all tasks for a specific sprint with pagination.
+ *
+ * @param {string} sprintId - The ID of the sprint
+ * @param {Object} [options] - Pagination options
+ * @param {number} [options.limit] - Number of tasks to fetch (default: 20, max: 100)
+ * @param {number} [options.offset] - Number of tasks to skip (default: 0)
+ * @returns {Promise<Object>} - Object containing tasks array and pagination info
+ * @throws {Error} - Throws an error if fetching tasks fails
  */
-export const fetchSprintTasks = async (sprintId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
+export const fetchSprintTasks = async (sprintId, options = {}) => {
+    try {
+        if (!sprintId) {
+            throw new Error("Sprint ID is required");
+        }
 
-    if (!sprintId) {
-      throw new Error("❌ Sprint ID is required.");
+        const params = {
+            limit: options.limit || 20,
+            offset: options.offset || 0
+        };
+
+        console.log(`📡 Fetching tasks for sprint ${sprintId}:`, params);
+
+        const response = await api.get(`${ENDPOINTS.SPRINTS}/${sprintId}/tasks`, { params });
+
+        console.log("✅ Sprint tasks fetched successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error fetching sprint tasks:", error.response?.data || error.message);
+        throw error;
     }
-
-    console.log("🚀 Fetching tasks for sprint:", sprintId);
-    
-    const response = await axios.get(`${API_BASE_URL}/Scrum/Sprint/Tasks/${sprintId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    console.log("✅ Retrieved sprint tasks:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error fetching sprint tasks:", error.response?.data || error.message);
-    throw error;
-  }
 };
 
 /**
- * @function fetchProjectTasksWithAssignees
- * @description Retrieves tasks with assignee initials for UI display.
- * @param {string} projectId - The ID of the project.
- * @returns {Promise<Array>} - A list of tasks with assignee initials included.
- */
-
-export const fetchProjectTasksWithAssignees = async (projectId) => {
-  try {
-    // Get tasks for the project
-    const tasks = await fetchProjectTasks(projectId);
-    
-    // Fetch each user's initials from `fetchUserById`
-    const tasksWithAssignees = await Promise.all(tasks.map(async (task) => {
-      if (!task.assigneeID) {
-        return { ...task, assigneeInitials: "Unassigned" };
-      }
-
-      try {
-        const user = await fetchUserById(task.assigneeID);
-        const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
-        return { ...task, assigneeInitials: initials };
-      } catch (error) {
-        console.error(`Error fetching user for task ${task.id}:`, error);
-        return { ...task, assigneeInitials: "??" }; // Default initials in case of error
-      }
-    }));
-
-    return tasksWithAssignees;
-  } catch (error) {
-    console.error("❌ Error fetching tasks with assignees:", error);
-    throw error;
-  }
-};
-
-/**
- * @function fetchTaskById
- * @description Fetches detailed information about a task.
- * @param {string} taskId - The ID of the task.
- * @returns {Promise<Object>} - The task object.
+ * Fetches a single task by its ID.
+ *
+ * @param {string} taskId - The ID of the task to retrieve
+ * @returns {Promise<Object>} - The task data object
+ * @throws {Error} - Throws an error if the task cannot be retrieved
  */
 export const fetchTaskById = async (taskId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
+    try {
+        if (!taskId) {
+            throw new Error("Task ID is required");
+        }
 
-    if (!taskId) {
-      throw new Error("❌ Task ID is required.");
+        console.log(`📡 Fetching task: ${taskId}`);
+
+        const response = await api.get(ENDPOINTS.TASK_BY_ID(taskId));
+
+        console.log("✅ Task fetched successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error fetching task:", error.response?.data || error.message);
+        throw error;
     }
-
-    console.log("🚀 Fetching task details for:", taskId);
-    
-    const response = await axios.get(`${API_BASE_URL}/Scrum/Task/${taskId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    console.log("✅ Retrieved task details:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error fetching task:", error.response?.data || error.message);
-    throw error;
-  }
 };
 
 /**
- * @function createTask
- * @description Sends a request to create a new task.
- * @param {Object} taskData - The data for the new task.
- * @returns {Promise<Object>} - The newly created task object.
+ * Creates a new task for a project.
+ *
+ * @param {string} projectId - The ID of the project
+ * @param {Object} taskData - Data for the new task
+ * @param {string} taskData.description - Description of the task
+ * @param {string} [taskData.sprintId] - ID of the sprint to assign the task to
+ * @param {string} [taskData.assigneeId] - ID of the user to assign the task to
+ * @param {number} [taskData.status] - Status of the task (default: 0)
+ * @returns {Promise<Object>} - The created task object
+ * @throws {Error} - Throws an error if task creation fails
  */
-export const createTask = async (taskData) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
+export const createTask = async (projectId, taskData) => {
+    try {
+        if (!projectId) {
+            throw new Error("Project ID is required");
+        }
 
-    if (!taskData || !taskData.sprintID) {
-      throw new Error("❌ Task data is missing or Sprint ID is not provided.");
+        if (!taskData.description) {
+            throw new Error("Task description is required");
+        }
+
+        const payload = {
+            description: taskData.description,
+            status: taskData.status || 0,
+            ...(taskData.sprintId && { sprintId: taskData.sprintId }),
+            ...(taskData.assigneeId && { assigneeId: taskData.assigneeId })
+        };
+
+        console.log(`📤 Creating task for project ${projectId}:`, payload);
+
+        const response = await api.post(`${ENDPOINTS.PROJECTS}/${projectId}/tasks`, payload);
+
+        console.log("✅ Task created successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error creating task:", error.response?.data || error.message);
+        throw error;
     }
-
-    console.log("🚀 Creating new task for sprint:", taskData.sprintID);
-    console.log("📦 Task data:", taskData);
-    
-    const response = await axios.post(`${API_BASE_URL}/Scrum/Task/`, taskData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    console.log("✅ Task created successfully:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error creating task:", error.response?.data || error.message);
-    throw error;
-  }
 };
 
 /**
- * @function editTask
- * @description Updates an existing task using the provided data.
- * @param {Object} task - The task object with updated data.
- * @returns {Promise<Object>} - The updated task object.
+ * Updates an existing task.
+ *
+ * @param {string} taskId - The ID of the task to update
+ * @param {Object} taskData - Updated task data
+ * @param {string} [taskData.description] - New description for the task
+ * @param {string} [taskData.assigneeId] - New assignee ID for the task
+ * @returns {Promise<Object>} - The updated task object
+ * @throws {Error} - Throws an error if task update fails
  */
-export const editTask = async (task) => {
-  try {
-    const token = getAuthToken();
-    
-    if (!task || !task.ID) {
-      throw new Error("❌ Task data is missing or Task ID is not provided.");
-    }
-    
-    console.log("🚀 Updating task:", task.ID);
-    console.log("📦 Updated task data:", task);
-    
-    const response = await axios.put(`${API_BASE_URL}/Scrum/Task/`, task, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
+export const updateTask = async (taskId, taskData) => {
+    try {
+        if (!taskId) {
+            throw new Error("Task ID is required");
+        }
 
-    console.log("✅ Task updated successfully");
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error updating task:", error.response?.data || error.message);
-    throw error;
-  }
+        const payload = {};
+        if (taskData.description !== undefined) payload.description = taskData.description;
+        if (taskData.assigneeId !== undefined) payload.assigneeId = taskData.assigneeId;
+
+        console.log(`📤 Updating task ${taskId}:`, payload);
+
+        const response = await api.patch(ENDPOINTS.TASK_BY_ID(taskId), payload);
+
+        console.log("✅ Task updated successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error updating task:", error.response?.data || error.message);
+        throw error;
+    }
 };
 
 /**
- * @function updateTaskStatus
- * @description Updates the status field of a task.
- * @param {string} taskId - The ID of the task to update.
- * @param {number} newStatus - The new status (0 = pending, 1 = in progress, 2 = complete).
- * @returns {Promise<Object>} - The updated task object.
+ * Updates the status of a task.
+ *
+ * @param {string} taskId - The ID of the task to update
+ * @param {number} status - The new status (0 = Pending, 1 = In Progress, 2 = Completed)
+ * @returns {Promise<Object>} - The updated task object
+ * @throws {Error} - Throws an error if status update fails
  */
-export const updateTaskStatus = async (taskId, newStatus) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
+export const updateTaskStatus = async (taskId, status) => {
+    try {
+        if (!taskId) {
+            throw new Error("Task ID is required");
+        }
 
-    if (!taskId) {
-      throw new Error("❌ Task ID is required.");
+        if (status === undefined || status === null) {
+            throw new Error("Status is required");
+        }
+
+        // Validate status values
+        if (![0, 1, 2].includes(Number(status))) {
+            throw new Error("Status must be 0 (Pending), 1 (In Progress), or 2 (Completed)");
+        }
+
+        const payload = { status: Number(status) };
+
+        console.log(`📤 Updating task ${taskId} status to ${status}:`, payload);
+
+        const response = await api.patch(ENDPOINTS.TASK_STATUS(taskId), payload);
+
+        console.log("✅ Task status updated successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error updating task status:", error.response?.data || error.message);
+        throw error;
     }
-
-    console.log(`🚀 Updating status for task ${taskId} to ${newStatus}`);
-    
-    const payload = {
-      ID: taskId,
-      Status: Number(newStatus)
-    };
-
-    const response = await axios.put(`${API_BASE_URL}/Scrum/Task/Status/`, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    console.log(`✅ Task ${taskId} status updated successfully`);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error updating task status:", error.response?.data || error.message);
-    throw error;
-  }
 };
 
 /**
- * @function updateTaskAssignee
- * @description Assigns or reassigns a task to a user.
- * @param {string} taskId - The ID of the task.
- * @param {string} newAssigneeId - The ID of the new assignee.
- * @returns {Promise<Object>} - The updated task with assignee info.
- */
-export const updateTaskAssignee = async (taskId, newAssigneeId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
-
-    if (!taskId) {
-      throw new Error("❌ Task ID is required.");
-    }
-    if (!newAssigneeId) {
-      throw new Error("❌ Assignee ID is required.");
-    }
-
-    console.log(`🚀 Updating assignee for task ${taskId} to user ${newAssigneeId}`);
-    
-    const payload = {
-      assigneeID: newAssigneeId
-    };
-
-    const response = await axios.put(`${API_BASE_URL}/Scrum/Task/${taskId}/Assignee`, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    console.log(`✅ Task ${taskId} assignee updated successfully`);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error updating task assignee:", error.response?.data || error.message);
-    throw error;
-  }
-};
-
-/**
- * @function deleteTask
- * @description Deletes a task based on its ID.
- * @param {string} taskId - The ID of the task to delete.
- * @returns {Promise<Object>} - The deletion result.
+ * Deletes a task.
+ *
+ * @param {string} taskId - The ID of the task to delete
+ * @returns {Promise<Object>} - Confirmation response
+ * @throws {Error} - Throws an error if task deletion fails
  */
 export const deleteTask = async (taskId) => {
-  try {
-    // Get auth token
-    const token = getAuthToken();
-
-    if (!taskId) {
-      throw new Error("❌ Task ID is required.");
-    }
-
-    console.log("🚀 Deleting task:", taskId);
-    
-    const response = await axios.delete(`${API_BASE_URL}/Scrum/Task/${taskId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    console.log(`✅ Task ${taskId} deleted successfully`);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error deleting task:", error.response?.data || error.message);
-    throw error;
-  }
-};
-
-/**
- * @function useTask
- * @description React hook to manage the lifecycle and state of a task.
- * @param {string} taskId - The ID of the task to load.
- * @returns {Object} - Task data, loading state, error, and a refresh method.
- */
-export const useTask = (taskId) => {
-  const [task, setTask] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchTask = useCallback(async () => {
-    if (!taskId) {
-      setLoading(false);
-      return;
-    }
-
     try {
-      setLoading(true);
-      const data = await fetchTaskById(taskId);
-      setTask(data);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-      console.error('❌ Error fetching task:', err);
-    } finally {
-      setLoading(false);
+        if (!taskId) {
+            throw new Error("Task ID is required");
+        }
+
+        console.log(`📤 Deleting task: ${taskId}`);
+
+        const response = await api.delete(ENDPOINTS.TASK_BY_ID(taskId));
+
+        console.log("✅ Task deleted successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error deleting task:", error.response?.data || error.message);
+        throw error;
     }
-  }, [taskId]);
-
-  useEffect(() => {
-    fetchTask();
-  }, [fetchTask]);
-
-  return { task, loading, error, refreshTask: fetchTask };
 };
 
 /**
- * @function getTasksByStatus
- * @description Filters a list of tasks based on status.
- * @param {Array} tasks - Array of task objects.
- * @param {number} status - Status to filter by.
- * @returns {Array} - Filtered list of tasks matching the status.
+ * Assigns a task to a user.
+ *
+ * @param {string} taskId - The ID of the task
+ * @param {string} assigneeId - The ID of the user to assign the task to
+ * @returns {Promise<Object>} - The updated task object
+ * @throws {Error} - Throws an error if assignment fails
  */
-export const getTasksByStatus = (tasks, status) => {
-  return tasks.filter(task => task.status === status);
+export const assignTask = async (taskId, assigneeId) => {
+    try {
+        if (!taskId) {
+            throw new Error("Task ID is required");
+        }
+
+        if (!assigneeId) {
+            throw new Error("Assignee ID is required");
+        }
+
+        console.log(`📤 Assigning task ${taskId} to user ${assigneeId}`);
+
+        // Use the standard updateTask endpoint instead of /assign
+        const response = await api.patch(ENDPOINTS.TASK_BY_ID(taskId), { assigneeId });
+
+        console.log("✅ Task assigned successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error assigning task:", error.response?.data || error.message);
+        throw error;
+    }
 };
+
+/**
+ * Unassigns a task from its current assignee.
+ *
+ * @param {string} taskId - The ID of the task
+ * @returns {Promise<Object>} - The updated task object
+ * @throws {Error} - Throws an error if unassignment fails
+ */
+export const unassignTask = async (taskId) => {
+    try {
+        if (!taskId) {
+            throw new Error("Task ID is required");
+        }
+
+        console.log(`📤 Unassigning task: ${taskId}`);
+
+        // Use the standard updateTask endpoint instead of /unassign
+        const response = await api.patch(ENDPOINTS.TASK_BY_ID(taskId), { assigneeId: null });
+
+        console.log("✅ Task unassigned successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error unassigning task:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
+ * Moves a task to a different sprint.
+ *
+ * @param {string} taskId - The ID of the task
+ * @param {string} sprintId - The ID of the sprint to move the task to
+ * @returns {Promise<Object>} - The updated task object
+ * @throws {Error} - Throws an error if move fails
+ */
+export const moveTaskToSprint = async (taskId, sprintId) => {
+    try {
+        if (!taskId) {
+            throw new Error("Task ID is required");
+        }
+
+        if (!sprintId) {
+            throw new Error("Sprint ID is required");
+        }
+
+        console.log(`📤 Moving task ${taskId} to sprint ${sprintId}`);
+
+        const response = await api.patch(`${ENDPOINTS.TASK_BY_ID(taskId)}/sprint`, { sprintId });
+
+        console.log("✅ Task moved successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error moving task:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
+ * Removes a task from its current sprint.
+ *
+ * @param {string} taskId - The ID of the task
+ * @returns {Promise<Object>} - The updated task object
+ * @throws {Error} - Throws an error if removal fails
+ */
+export const removeTaskFromSprint = async (taskId) => {
+    try {
+        if (!taskId) {
+            throw new Error("Task ID is required");
+        }
+
+        console.log(`📤 Removing task ${taskId} from sprint`);
+
+        const response = await api.patch(`${ENDPOINTS.TASK_BY_ID(taskId)}/sprint`, { sprintId: null });
+
+        console.log("✅ Task removed from sprint successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error removing task from sprint:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
+ * Gets tasks with assignee information for display purposes.
+ * This is a helper function that fetches tasks and enriches them with assignee details.
+ *
+ * @param {string} projectId - The ID of the project
+ * @param {Object} [options] - Pagination options
+ * @returns {Promise<Array>} - Array of tasks with assignee information
+ * @throws {Error} - Throws an error if fetching fails
+ */
+export const fetchProjectTasksWithAssignees = async (projectId, options = {}) => {
+    try {
+        const response = await fetchProjectTasks(projectId, options);
+        
+        // The backend already includes assignee information in the response
+        // so we can return the tasks directly
+        return response.tasks || [];
+    } catch (error) {
+        console.error("❌ Error fetching tasks with assignees:", error);
+        throw error;
+    }
+};
+
+/**
+ * Gets the status name for a given status code.
+ *
+ * @param {number} status - The status code
+ * @returns {string} - The status name
+ */
+export const getStatusName = (status) => {
+    const statusMap = {
+        0: "Pending",
+        1: "In Progress", 
+        2: "Completed"
+    };
+    return statusMap[status] || "Unknown";
+};
+
+/**
+ * Gets the status color for a given status code.
+ *
+ * @param {number} status - The status code
+ * @returns {string} - The status color class
+ */
+export const getStatusColor = (status) => {
+    const colorMap = {
+        0: "text-yellow-600 bg-yellow-100",
+        1: "text-blue-600 bg-blue-100",
+        2: "text-green-600 bg-green-100"
+    };
+    return colorMap[status] || "text-gray-600 bg-gray-100";
+};
+
+// Legacy functions for backward compatibility
+export const editTask = async (taskData) => {
+    console.warn("⚠️ editTask is deprecated. Use updateTask instead.");
+    return updateTask(taskData.id, taskData);
+};
+
+export const updateTaskAssignee = async (taskId, newAssigneeId) => {
+    console.warn("⚠️ updateTaskAssignee is deprecated. Use assignTask instead.");
+    return assignTask(taskId, newAssigneeId);
+};
+
+const taskService = {
+    fetchProjectTasks,
+    fetchSprintTasks,
+    fetchTaskById,
+    createTask,
+    updateTask,
+    updateTaskStatus,
+    deleteTask,
+    assignTask,
+    unassignTask,
+    moveTaskToSprint,
+    removeTaskFromSprint,
+    fetchProjectTasksWithAssignees,
+    getStatusName,
+    getStatusColor,
+    // Legacy functions
+    editTask,
+    updateTaskAssignee
+};
+
+export default taskService;

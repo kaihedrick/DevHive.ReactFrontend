@@ -1,652 +1,482 @@
-/* Projects Page Container */
+/* =============================
+   Projects — Mobile‑first Apple look
+============================= */
+
+:root {
+  --page-max: 1120px;
+  --footer-height: 56px; /* Global footer offset (tune this to your footer height). If no footer, set to 0px */
+}
+
+/***** Page - Absolute Page-Level Scoping *****/
 .projects-page {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
+  min-height: 100vh !important;
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  padding: var(--space-4) !important;
+  padding-bottom: calc(var(--space-10) + env(safe-area-inset-bottom) + var(--footer-height)) !important;
+  position: relative !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Override global main styles for Projects page - Absolute Scoping */
+body.has-sidebar .projects-page {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+
+body.has-sidebar .navbar:hover ~ main .projects-page {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+
+/***** Sticky header on mobile *****/
+.projects-page .projects-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: saturate(180%) blur(12px);
+  background: color-mix(in srgb, var(--bg-secondary), #fff 25%) !important;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
+  display: flex !important; 
+  align-items: flex-end !important; 
+  justify-content: space-between !important; 
+  gap: var(--space-3) !important;
+}
+.page-title { margin: 0; font-weight: var(--font-weight-bold); font-size: clamp(22px, 4.5vw, 34px); letter-spacing: -0.02em; }
+.page-subtitle { margin: var(--space-1) 0 0; color: var(--text-secondary); }
+.header-actions { display: flex; gap: var(--space-3); }
+
+/***** Primary button *****/
+.projects-page .primary-action-btn, 
+.projects-page .empty-action-btn {
+  appearance: none !important; 
+  border: none !important; 
+  border-radius: 24px !important; 
+  padding: 0 24px !important;
+  height: 44px !important;
+  display: inline-flex !important; 
+  align-items: center !important; 
   justify-content: center !important;
-  min-height: 100vh !important;
-  width: 100% !important; /* Changed from 100vw since background is now handled by wrapper */
-  padding: var(--space-5) !important;
+  line-height: 1 !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
   font-family: var(--primary-font) !important;
-  margin: 0 !important;
-  box-sizing: border-box !important;
-  position: relative !important;
-  /* Ensure proper spacing from top and bottom */
-  padding-top: var(--space-4) !important;
-  padding-bottom: var(--space-6) !important;
-  /* Better centering for larger screens */
-  margin: 0 auto !important;
-  box-sizing: border-box !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  background: var(--accent-primary) !important; 
+  color: var(--black) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast) !important;
+}
+.projects-page .primary-action-btn:hover, 
+.projects-page .empty-action-btn:hover { 
+  background: var(--dark-gold) !important; 
+  color: var(--white) !important; 
+  transform: translateY(-1px) !important; 
+  box-shadow: var(--shadow-md) !important; 
+}
+.projects-page .primary-action-btn:focus, 
+.projects-page .empty-action-btn:focus { 
+  outline: 2px solid color-mix(in srgb, var(--accent-primary), #000 15%) !important; 
+  outline-offset: 2px !important; 
+}
+.projects-page .btn-icon { 
+  font-size: 18px !important; 
+  line-height: 0 !important; 
+  margin-right: 8px !important; 
 }
 
-/* Background wrapper - now handles the background */
-.background {
-  width: 100vw !important;
-  min-height: 100vh !important;
-  background: var(--accent-primary) !important; /* Solid gold background instead of gradient */
-  position: relative !important;
-  left: 50% !important;
-  right: 50% !important;
-  margin-left: -50vw !important;
-  margin-right: -50vw !important;
-  box-sizing: border-box !important;
-  overflow-x: hidden !important;
+.projects-page .secondary-action-btn {
+  appearance: none !important; 
+  border-radius: 24px !important; 
+  padding: 0 24px !important; 
+  height: 44px !important;
+  display: inline-flex !important; 
+  align-items: center !important; 
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  font-family: var(--primary-font) !important;
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-primary) !important; 
+  color: var(--text-primary) !important; 
+  box-shadow: var(--shadow-sm) !important;
+}
+.projects-page .secondary-action-btn:hover { 
+  background: color-mix(in srgb, var(--bg-primary), #fff 5%) !important; 
+}
+.projects-page .secondary-action-btn:focus { 
+  outline: 2px solid var(--border-color) !important; 
+  outline-offset: 2px !important; 
 }
 
-/* Projects page - no background, just layout */
-.projects-page {
-  width: 100% !important;
-  min-height: 100vh !important;
-  padding: var(--space-5) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  box-sizing: border-box !important;
-  /* Remove background - now handled by .background wrapper */
-  background: none !important;
-}
-
-/* Ensure navbar is visible when projects page loads */
-.projects-page {
-  /* Remove margin-top to allow background to extend to top */
-  margin-top: 0 !important;
-}
-
-/* Mobile adjustments to ensure background fills entire screen */
-@media (max-width: 600px) {
-  .projects-page {
-    padding: var(--space-4) !important;
-    padding-bottom: calc(var(--space-8) + 80px) !important; /* Add extra bottom padding to account for footer */
-    padding-top: 0 !important; /* No top padding to ensure background fills to top */
-    margin-top: 0 !important; /* Remove navbar margin to allow background to top */
-    min-height: 100vh !important;
-    /* Remove conflicting positioning - background is now handled by .background wrapper */
-    position: relative !important;
-    width: 100% !important; /* Use normal width, not 100vw */
-    height: auto !important;
-    z-index: 0 !important;
-    /* Remove the problematic positioning that was causing off-screen issues */
-    background: none !important; /* No background here - handled by wrapper */
-  }
-  
-  /* Ensure content is properly positioned above the background */
-  .projects-page .projects-container {
-    position: relative !important;
-    z-index: 1 !important;
-    margin-top: calc(var(--navbar-height-mobile) + var(--space-2)) !important; /* Position content below navbar */
-    background: transparent !important; /* Remove any background from container */
-  }
-}
-
-/* Projects container */
-.projects-page .projects-container {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important; /* Changed from center to flex-start for better mobile layout */
-  min-height: 100vh !important;
-  width: 100% !important;
+.projects-page .icon-btn { 
+  appearance: none !important; 
+  border: 1px solid var(--border-color) !important; 
+  background: var(--bg-primary) !important; 
+  color: var(--text-secondary) !important; 
+  border-radius: 12px !important; 
+  width: 44px !important; 
+  height: 44px !important;
+  display: inline-flex !important; 
+  align-items: center !important; 
+  justify-content: center !important;
   padding: 0 !important;
-  font-family: var(--primary-font) !important;
-  /* Ensure proper spacing from top and bottom */
-  padding-top: var(--space-4) !important;
-  padding-bottom: var(--space-6) !important;
+}
+.projects-page .icon-btn:hover { 
+  color: var(--text-primary) !important; 
+}
+.projects-page .icon-btn .icon { 
+  width: 20px !important; 
+  height: 20px !important; 
+}
+.projects-page .icon-btn:focus-visible { 
+  outline: 2px solid var(--accent-primary) !important; 
+  outline-offset: 2px !important; 
 }
 
-/* Header Section */
-.projects-page .header {
-  text-align: center !important;
-  margin-bottom: var(--space-6) !important;
-}
 
-.projects-page .header h1 {
-  color: var(--white) !important; /* Changed from var(--text-primary) for better contrast */
-  font-size: var(--font-size-3xl) !important;
-  font-weight: var(--font-weight-bold) !important;
-  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5) !important; /* Made shadow darker */
-}
-
-.projects-page .header p {
-  color: var(--black) !important; /* Changed to black for better readability */
-  font-size: var(--font-size-xl) !important; /* Increased size for better legibility */
-  opacity: 0.9 !important; /* Slight opacity for visual hierarchy */
-}
-
-/* Project List using CSS Grid for Responsiveness */
-.projects-page .projects-list {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
-  gap: var(--space-5) !important;
-  width: 90% !important;
-  max-width: 1200px !important; /* Increased max-width for better large screen layout */
-  animation: fadeIn 0.6s ease-in-out !important;
-  margin: 0 auto !important;
-  justify-items: center !important;
-  /* Better centering for larger screens */
-  place-items: center !important;
-}
-
-/* Ensure grid items are properly centered */
-.projects-page .projects-list > * {
-  justify-self: center !important;
-  align-self: center !important;
-}
-
-/* Projects list paragraph styling */
-.projects-page .projects-container .projects-list p {
-  color: var(--white) !important; /* Set text color to white */
-  font-size: var(--font-size-lg) !important; /* Optional: Adjust font size for better visibility */
-  text-align: center !important; /* Optional: Center align the text */
-  grid-column: 1 / -1 !important; /* Span all columns for the "no projects" message */
-  width: 100% !important;
-  margin: 0 auto !important;
-}
-
-/* Individual Project Card - Better centering */
-.projects-page .project-card {
-  background: var(--bg-primary) !important;
-  border: 2px solid var(--accent-primary) !important;
-  border-radius: var(--border-radius) !important;
-  padding: var(--space-5) !important;
-  box-shadow: var(--shadow-md) !important;
-  transition: all var(--transition-normal) ease-in-out !important;
-  position: relative !important;
-  /* Ensure cards are properly sized and centered */
-  width: 100% !important;
-  max-width: 320px !important;
-  box-sizing: border-box !important;
-}
-
-.projects-page .project-card h3 {
-  color: var(--text-primary) !important;
-  font-size: var(--font-size-xl) !important;
-  margin-bottom: var(--space-3) !important;
-}
-
-.projects-page .project-card p {
-  color: var(--text-secondary) !important;
-  font-size: var(--font-size-base) !important;
-}
-
-.projects-page .project-card:hover {
-  transform: translateY(-5px) scale(1.02) !important;
-  box-shadow: var(--shadow-lg) !important;
-}
-
-/* Loading Indicator */
-.projects-page .loading {
-  font-size: var(--font-size-lg) !important;
-  color: var(--white) !important;
-}
-
-/* Action Buttons */
-.projects-page .actions {
-  display: flex !important;
-  gap: var(--space-4) !important;
-  margin-top: var(--space-6) !important;
-  width: 90% !important;
-  max-width: 600px !important;
-  justify-content: center !important;
-  align-items: center !important;
-  flex-wrap: wrap !important;
-}
-
-.projects-page .action-btn {
-  width: 180px !important;
-  height: 50px !important;
-  border: none !important;
-  border-radius: var(--border-radius) !important; /* Standard rounded corners */
-  font-size: var(--font-size-base) !important;
-  font-weight: var(--font-weight-bold) !important;
-  cursor: pointer !important;
-  transition: all var(--transition-fast) ease-in-out !important;
-  background: var(--bg-primary) !important; /* Solid background color */
-  color: var(--text-primary) !important; /* Text color matching the theme */
-  box-shadow: var(--shadow-md) !important; /* Subtle shadow for depth */
-}
-
-/* Hover Effect for Buttons */
-.projects-page .action-btn:hover {
-  background: var(--bg-secondary) !important; /* Slightly darker background on hover */
-  transform: translateY(-2px) !important; /* Slight elevation on hover */
-  box-shadow: var(--shadow-lg) !important; /* Larger shadow on hover */
-}
-
-/* Create Button */
-.create-btn {
-  background: linear-gradient(to bottom, var(--gold), var(--dark-gold)) !important; /* Gold gradient */
-  color: var(--black) !important; /* Black text for contrast */
-}
-
-.create-btn:hover {
-  background: linear-gradient(to bottom, var(--dark-gold), var(--gold)) !important; /* Reverse gradient on hover */
-  transform: translateY(-2px) !important;
-  box-shadow: var(--shadow-lg) !important;
-}
-
-/* Join Button */
-.join-btn {
-  background: linear-gradient(to bottom, var(--black), var(--dark-gray)) !important; /* Black gradient */
-  color: var(--white) !important; /* White text for contrast */
-}
-
-.join-btn:hover {
-  background: linear-gradient(to bottom, var(--dark-gray), var(--gray)) !important; /* Lighter gradient on hover */
-  transform: translateY(-2px) !important;
-  box-shadow: var(--shadow-lg) !important;
-}
-
-/* Account Details Button */
-.account-btn {
-  background: linear-gradient(to bottom, var(--gray), var(--dark-gray)) !important; /* Gray gradient */
-  color: var(--white) !important; /* White text for contrast */
-}
-
-.account-btn:hover {
-  background: linear-gradient(to bottom, var(--dark-gray), var(--black)) !important; /* Darker gradient on hover */
-  transform: translateY(-2px) !important;
-  box-shadow: var(--shadow-lg) !important;
-}
-
-/* Responsive Design for Buttons */
-@media (max-width: 600px) {
-  .projects-page .action-btn {
-    width: 100% !important; /* Full width on smaller screens */
-    height: 45px !important;
-    font-size: var(--font-size-sm) !important;
-  }
-}
-
-/* Responsive Design for Projects Section */
-@media (max-width: 600px) {
-  .projects-page {
-    padding: var(--space-4) !important;
-    padding-bottom: calc(var(--space-8) + 80px) !important; /* Add extra bottom padding to account for footer */
-  }
-
-  .projects-page .header h1 {
-    font-size: var(--font-size-2xl) !important;
-  }
-
-  .projects-page .projects-list {
-    grid-template-columns: 1fr !important;
-    width: 95% !important;
-    margin-bottom: var(--space-4) !important; /* Add bottom margin */
-  }
-
-  .projects-page .actions {
-    flex-direction: column !important;
-    width: 95% !important;
-    align-items: center !important;
-    margin-bottom: var(--space-6) !important; /* Add bottom margin to prevent footer overlap */
-    gap: var(--space-3) !important; /* Reduce gap for mobile */
-  }
-
-  .projects-page .action-btn {
-    width: 100% !important;
-    max-width: 300px !important;
-    height: 48px !important; /* Slightly reduce height for mobile */
-  }
-
-  /* Ensure projects container has proper bottom spacing */
-  .projects-page .projects-container {
-    padding-bottom: var(--space-6) !important;
-  }
-}
-
-/* Large screen optimizations for better centering */
-@media (min-width: 1200px) {
-  .projects-page .projects-container {
-    max-width: 1200px !important;
-    padding-left: var(--space-6) !important;
-    padding-right: var(--space-6) !important;
-  }
-  
-  .projects-page .projects-list {
-    max-width: 1100px !important;
-    gap: var(--space-6) !important; /* Increase gap for larger screens */
-  }
-  
-  .projects-page .project-card {
-    max-width: 350px !important; /* Slightly larger cards on big screens */
-  }
-  
-  .projects-page .actions {
-    max-width: 800px !important; /* Wider action buttons area */
-    gap: var(--space-6) !important; /* More spacing between buttons */
-  }
-}
-
-/* Extra large screen optimizations */
-@media (min-width: 1600px) {
-  .projects-page .projects-container {
-    max-width: 1400px !important;
-  }
-  
-  .projects-page .projects-list {
-    max-width: 1300px !important;
-    gap: var(--space-8) !important; /* Even more gap for very large screens */
-  }
-  
-  .projects-page .project-card {
-    max-width: 380px !important; /* Larger cards on very big screens */
-  }
-}
-
-@media (max-width: 480px) {
-  .projects-page {
-    padding: var(--space-3) !important;
-    padding-bottom: calc(var(--space-6) + 80px) !important; /* Adjust for smaller screens */
-  }
-
-  .projects-page .projects-list {
-    width: 98% !important;
-    margin-bottom: var(--space-3) !important;
-  }
-
-  .projects-page .actions {
-    width: 98% !important;
-    margin-bottom: var(--space-5) !important;
-    gap: var(--space-2) !important; /* Further reduce gap for very small screens */
-  }
-
-  .projects-page .action-btn {
-    height: 44px !important; /* Standard mobile touch target height */
-    font-size: var(--font-size-sm) !important;
-  }
-
-  /* Reduce header margins on very small screens */
-  .projects-page .header {
-    margin-bottom: var(--space-4) !important;
-  }
-
-  .projects-page .header h1 {
-    font-size: var(--font-size-xl) !important;
-    margin-bottom: var(--space-2) !important;
-  }
-
-  .projects-page .header p {
-    font-size: var(--font-size-lg) !important;
-  }
-}
-
-/* Fade-in Animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0 !important;
-    transform: translateY(10px) !important;
-  }
-  to {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-  }
-}
-
-/* Accessibility Improvements */
-.projects-page .project-card:focus {
-  outline: 2px solid var(--accent-primary) !important;
-}
-
-/* ======================== */
-/* Project Card Actions (Edit & Delete Buttons) */
-/* ======================== */
-.projects-page .project-actions {
-  display: flex !important;
-  justify-content: space-between !important;
-  position: absolute !important;
-  bottom: var(--space-3) !important;
-  left: var(--space-3) !important;
-  width: 95% !important;
-  pointer-events: none !important;
-}
-
-/* Trash (🗑️) - Bottom Left (Hidden by Default) */
-.projects-page .delete-btn {
-  background: none !important;
-  border: none !important;
-  font-size: var(--font-size-lg) !important;
-  color: var(--error) !important; /* Using global error color */
-  cursor: pointer !important;
-  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
-  display: none !important;
-  pointer-events: auto !important;
-}
-
-/* Show delete button in edit mode */
-.projects-page .project-card.editing .delete-btn {
-  display: block !important;
-}
-
-/* Delete Button Hover Effect */
-.projects-page .delete-btn:hover {
-  transform: scale(1.2) !important;
-  color: var(--dark-error) !important; /* Using global dark error color */
-}
-
-/* Edit Button (✏️) - Bottom Right */
-.projects-page .edit-btn {
-  background: none !important;
-  border: none !important;
-  font-size: var(--font-size-lg) !important;
-  color: var(--text-primary) !important;
-  cursor: pointer !important;
-  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
+/***** Layout container - Absolute Scoping *****/
+.projects-container { 
+  max-width: var(--page-max) !important; 
   margin-left: auto !important;
-  pointer-events: auto !important;
+  margin-right: auto !important;
+  width: 100% !important;
 }
 
-/* Edit Button Hover Effect */
-.projects-page .edit-btn:hover {
-  transform: scale(1.2) !important;
-  color: var(--text-secondary) !important;
+/***** Grid (mobile → desktop) *****/
+.projects-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* mobile */
+  gap: var(--space-3);
+}
+@media (min-width: 560px) {
+  .projects-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 900px) {
+  .projects-grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+}
+@media (min-width: 1200px) {
+  .projects-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
-/* ======================== */
-/* Prevent Click-Through */
-/* ======================== */
-.project-actions button {
-  pointer-events: auto !important;
+/***** Cards *****/
+.project-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer; min-height: 84px; /* ≥44pt target */
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
+.project-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: color-mix(in srgb, var(--border-color), var(--accent-primary) 40%); }
+.project-card:focus-within { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+.card-content { padding: 16px; }
+.project-title { margin: 0 0 6px; font-size: 16px; font-weight: var(--font-weight-bold); }
+.project-metadata { margin: 0; color: var(--text-tertiary); font-size: 13px; }
 
-/* ======================== */
-/* Modal Overlay & Popup */
-/* ======================== */
-.modal-overlay {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background: rgba(0, 0, 0, 0.5) !important;
-  display: none !important;
+/***** Empty state *****/
+.empty-state { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm); padding: clamp(24px, 6vw, 40px); text-align: center; }
+.empty-illustration { font-size: 48px; margin-bottom: 8px; }
+.empty-title { margin: 0 0 6px; font-size: 20px; font-weight: var(--font-weight-bold); }
+.empty-subtitle { margin: 0 0 16px; color: var(--text-secondary); }
+
+.projects-page .empty-actions { 
+  display: grid !important; 
+  gap: 12px !important; 
+  justify-content: center !important; 
+}
+.projects-page .ghost-action-btn { 
+  appearance: none !important; 
+  border: 1px solid var(--border-color) !important; 
+  background: transparent !important; 
+  color: var(--text-primary) !important; 
+  border-radius: 24px !important; 
+  padding: 0 24px !important;
+  height: 44px !important;
+  display: inline-flex !important; 
+  align-items: center !important; 
   justify-content: center !important;
-  align-items: center !important;
-  backdrop-filter: blur(8px) !important;
-  z-index: 10000 !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
+  line-height: 1 !important;
+  font-weight: var(--font-weight-medium) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast) !important;
+}
+.projects-page .ghost-action-btn:hover { 
+  background: color-mix(in srgb, var(--bg-primary), #fff 5%) !important; 
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+.projects-page .ghost-action-btn:focus { 
+  outline: 2px solid var(--border-color) !important; 
+  outline-offset: 2px !important; 
 }
 
-/* Show overlay when modal is active */
-.modal-overlay.active {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
+/***** Mobile FAB *****/
+.fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom) + var(--footer-height));
+  width: 56px; 
+  height: 56px; 
+  border-radius: 999px; 
+  border: none;
+  background: var(--accent-primary); 
+  color: #000;
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  z-index: 999;
+}
+.fab:active { transform: scale(0.98); }
+
+/* Hide FAB on desktop */
+@media (min-width: 1024px) {
+  .fab { display: none !important; }
 }
 
-/* Modal Box */
+.fab-backdrop { 
+  position: fixed; 
+  inset: 0; 
+  background: rgba(0,0,0,.12); 
+  border: none; 
+  z-index: 999;
+}
+
+.fab-menu {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom) + var(--footer-height) + 56px + 12px);
+  background: var(--bg-primary);
+  border:1px solid var(--border-color);
+  border-radius: 14px; box-shadow: var(--shadow-lg); padding: 8px;
+  display: flex; flex-direction: column; gap: 6px; min-width: 200px;
+  z-index: 999;
+}
+.fab-menu button { 
+  appearance:none; 
+  border:none; 
+  background: transparent; 
+  padding: 10px 12px; 
+  text-align:left; 
+  border-radius: 10px; 
+}
+.fab-menu button:hover { 
+  background: color-mix(in srgb, var(--bg-primary), #fff 6%); 
+}
+
+/* Responsive visibility helpers */
+.show-on-mobile { display: inline-flex; }
+.hide-on-mobile { display: none; }
+@media (min-width: 720px) { .show-on-mobile { display:none; } .hide-on-mobile { display:inline-flex; } }
+
+/* Projects toolbar alignment */
+.projects-page .projects-toolbar { 
+  display: flex !important; 
+  align-items: center !important; 
+  gap: 8px !important;
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+}
+
+/* Responsive toolbar adjustments */
+@media (max-width: 480px) {
+  .projects-page .projects-toolbar {
+    gap: 6px !important;
+  }
+  
+  .projects-page .primary-action-btn,
+  .projects-page .secondary-action-btn {
+    padding: 0 16px !important;
+    font-size: var(--font-size-sm) !important;
+  }
+  
+  .projects-page .btn-icon {
+    margin-right: 4px !important;
+  }
+}
+
+/***** Feedback *****/
+.loading { color: var(--text-secondary); }
+.error-banner { background: #fff3f3; color: #a40000; border: 1px solid #ffd9d9; border-radius: 12px; padding: 12px 14px; }
+
+/***** Accessibility / motion *****/
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+/***** Project Card Settings Button *****/
+.project-card { 
+  position: relative; 
+  padding: 16px 18px; 
+  overflow: hidden; 
+}
+
+.card-settings-btn {
+  position: absolute; 
+  right: 10px; 
+  bottom: 10px;
+  width: 44px; 
+  height: 44px; 
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 10px rgba(0,0,0,.25);
+  transition: all 0.2s ease;
+}
+
+.card-settings-btn .icon { 
+  width: 20px; 
+  height: 20px; 
+}
+
+.card-settings-btn:hover { 
+  background: var(--bg-primary); 
+  color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0,0,0,.3);
+}
+
+.card-settings-btn:focus-visible { 
+  outline: 2px solid var(--accent-primary); 
+  outline-offset: 2px; 
+}
+
+/* Touch-friendly sizing now applied to all screen sizes */
+
+/***** FAB Centering Fix *****/
+.fab {
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center;
+}
+
+.fab__icon { 
+  font-size: 28px; 
+  line-height: 1; 
+  display: block; 
+}
+
+/* iOS Safari quirks */
+.fab, .fab__icon { 
+  -webkit-font-smoothing: antialiased; 
+  -webkit-text-size-adjust: 100%; 
+}
+
+/***** Modal Styles *****/
 .modal {
-  background: var(--bg-primary) !important;
-  padding: var(--space-5) !important;
-  width: 400px !important;
-  border-radius: var(--border-radius) !important;
-  text-align: center !important;
-  box-shadow: var(--shadow-lg) !important;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
 }
 
-/* Modal Title */
-.modal h3 {
-  margin-bottom: var(--space-4) !important;
-  font-size: var(--font-size-xl) !important;
-  color: var(--text-primary) !important;
+.modal.is-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Modal Text */
-.modal p {
-  font-size: var(--font-size-base) !important;
-  color: var (--text-secondary) !important;
-  margin-bottom: var(--space-5) !important;
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
 }
 
-/* Modal Buttons */
-.confirm-btn, .cancel-btn {
-  font-size: var(--font-size-xl) !important;
-  border: none !important;
-  cursor: pointer !important;
-  width: 50px !important;
-  height: 50px !important;
-  background: none !important;
-  transition: transform var(--transition-fast) ease, color var(--transition-normal) ease !important;
+.modal__card {
+  position: relative;
+  background: var(--bg-primary);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
-.confirm-btn { 
-  color: var(--success) !important; /* Using global success color */
+.modal__card h3 {
+  margin: 0 0 20px;
+  font-size: 20px;
+  font-weight: var(--font-weight-bold);
 }
 
-.confirm-btn:hover { 
-  transform: scale(1.2) !important; 
-  color: var(--dark-success) !important; /* Using global dark success color */
+.form-group {
+  margin-bottom: 16px;
 }
 
-.cancel-btn { 
-  color: var(--error) !important; /* Using global error color */
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: var(--font-weight-medium);
 }
 
-.cancel-btn:hover { 
-  transform: scale(1.2) !important; 
-  color: var(--dark-error) !important; /* Using global dark error color */
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
 }
 
-/* FontAwesome icons - Ensuring visibility */
-.project-card .fa,
-.project-card .fas,
-.project-card .far,
-.modal .fa,
-.modal .fas,
-.modal .far {
-  display: inline-block !important;
-  visibility: visible !important;
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 
-/* Additional mobile optimizations */
-@media (max-width: 400px) {
-  .projects-page {
-    padding: var(--space-2) !important;
-    padding-bottom: calc(var(--space-5) + 80px) !important;
-  }
-
-  .projects-page .projects-container {
-    padding-top: var(--space-2) !important;
-    padding-bottom: var(--space-4) !important;
-  }
-
-  .projects-page .header {
-    margin-bottom: var(--space-3) !important;
-  }
-
-  .projects-page .header h1 {
-    font-size: var(--font-size-lg) !important;
-  }
-
-  .projects-page .header p {
-    font-size: var(--font-size-base) !important;
-  }
-
-  .projects-page .projects-list {
-    gap: var(--space-3) !important;
-    margin-bottom: var(--space-2) !important;
-  }
-
-  .projects-page .actions {
-    gap: var(--space-2) !important;
-    margin-bottom: var(--space-4) !important;
-  }
-
-  .projects-page .action-btn {
-    height: 42px !important;
-    font-size: var(--font-size-xs) !important;
-    padding: var(--space-2) var(--space-3) !important;
-  }
+.projects-page .danger-action-btn {
+  appearance: none !important;
+  border: 1px solid #dc2626 !important;
+  background: #dc2626 !important;
+  color: white !important;
+  border-radius: 12px !important;
+  padding: 12px 24px !important;
+  font-weight: var(--font-weight-medium) !important;
+  transition: all 0.2s ease !important;
+  height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-/* Ensure footer doesn't overlap on all mobile devices */
-@media (max-width: 768px) {
-  .projects-page {
-    min-height: calc(100vh + 80px) !important; /* Add extra height to account for footer */
-  }
+.projects-page .danger-action-btn:hover {
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
 }
 
-/* Ensure background is visible on very small screens */
-@media (max-width: 400px) {
-  .projects-page {
-    padding: var(--space-2) !important;
-    padding-bottom: calc(var(--space-5) + 80px) !important;
-    /* Remove all the problematic positioning that was causing off-screen issues */
-    background: none !important; /* No background here - handled by wrapper */
-    position: relative !important;
-    z-index: 0 !important;
-    overflow: visible !important;
-    width: 100% !important; /* Use normal width */
-    margin: 0 !important; /* Reset margins */
-    padding: var(--space-2) !important; /* Consistent padding */
-    /* Remove all the left/right/margin positioning that was causing issues */
-  }
-  
-  /* Ensure the pseudo-element background is also visible */
-  .projects-page::before {
-    z-index: -1 !important; /* Place behind content but above page background */
-  }
-  
-  /* Position content below navbar on very small screens */
-  .projects-page .projects-container {
-    margin-top: calc(var(--navbar-height-mobile) + var(--space-2)) !important;
-  }
+.projects-page .danger-action-btn:focus {
+  outline: 2px solid #dc2626 !important;
+  outline-offset: 2px !important;
 }
 
-/* Additional fixes for navigation issues */
-.projects-page {
-  /* Ensure proper spacing when navbar is present */
-  padding-top: var(--space-2) !important;
+.projects-page .danger-action-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  background: #9ca3af !important;
+  border-color: #9ca3af !important;
 }
 
-/* Force navbar visibility on projects page */
-body:has(.projects-page) .navbar,
-body:has(.projects-page) .navbar-wrapper {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  z-index: 1000 !important;
+.projects-page .danger-action-btn:disabled:hover {
+  background: #9ca3af !important;
+  border-color: #9ca3af !important;
+  transform: none !important;
 }
 
-/* Remove the conflicting pseudo-element background - now handled by .background wrapper */
-/* .projects-page::before {
-  background: linear-gradient(to bottom right, var(--gold), var(--dark-gold)) !important;
-  z-index: -3 !important;
-} */
-
-/* Additional CSS to ensure full background coverage */
-html, body {
-  overflow-x: hidden !important; /* Prevent horizontal scrollbars */
-}
-
-/* Ensure content is properly contained within the full-width background */
-.projects-page .projects-container {
-  max-width: 1400px !important;
-  margin: 0 auto !important;
-  width: 90% !important;
-  position: relative !important;
-  z-index: 1 !important;
+/***** Dark mode (if your design tokens support it) *****/
+@media (prefers-color-scheme: dark) {
+  .projects-page .projects-header { background: color-mix(in srgb, var(--bg-secondary), #000 10%) !important; }
 }

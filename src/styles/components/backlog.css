@@ -4,17 +4,7 @@
     min-height: calc(100vh - 160px); /* Account for navbar and footer */
 }
 
-.backlog-header {
-    background: var(--comp-blue);
-    color: var(--neutral-100);
-    padding: 1.5rem 2rem;
-    border-radius: var(--border-radius);
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+/* .backlog-header styles moved to src/styles/backlog.css to match Projects page */
 
 .backlog-filters {
     background: var(--neutral-100);

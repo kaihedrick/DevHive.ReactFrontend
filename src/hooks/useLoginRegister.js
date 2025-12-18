@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { login, register, validateEmail } from "../services/authService";
+import { login, register } from "../services/authService";
+import { validateEmail } from "../services/userService";
 /**
  * useLoginRegister
  *
@@ -31,6 +32,7 @@ const useLoginRegister = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [successType, setSuccessType] = useState(null);
   const [loading, setLoading] = useState(false);
   const [emailValidationStatus, setEmailValidationStatus] = useState(null); // null, "success", "error"
   const [validatingEmail, setValidatingEmail] = useState(false); // Track email validation state
@@ -141,13 +143,25 @@ const useLoginRegister = () => {
           username: credentials.username,
           password: credentials.password,
         });
-          localStorage.setItem("authToken", response.token);
+          localStorage.setItem("token", response.token);
+          localStorage.setItem("userId", response.userId);
           setSuccess(true);
+          setSuccessType("login");
           setError("");
           navigate("/projects");
       } else {
-        await register(credentials);
+        // Convert to backend-compatible format
+        const registrationPayload = {
+          username: credentials.username,
+          email: credentials.email,
+          password: credentials.password,
+          firstName: credentials.firstName,
+          lastName: credentials.lastName
+        };
+        
+        await register(registrationPayload);
           setSuccess(true);
+          setSuccessType("registration");
           setError("");
           setAction("Login");
           setCredentials({
@@ -160,8 +174,17 @@ const useLoginRegister = () => {
           });
       }
     } catch (err) {
-        setError(err.response?.data || "❌ An error occurred. Please try again.");
+        // Extract error message from normalized error or response data
+        let errorMessage = "❌ An error occurred. Please try again.";
+        if (err.message) {
+          errorMessage = err.message; // Use normalized error message
+        } else if (err.response?.data) {
+          const data = err.response.data;
+          errorMessage = data.detail || data.title || data.message || JSON.stringify(data);
+        }
+        setError(errorMessage);
         setSuccess(false);
+        setSuccessType(null);
     } finally {
         setLoading(false);
     }
@@ -185,6 +208,7 @@ const useLoginRegister = () => {
     validationErrors,
     error,
     success,
+    successType,
     loading,
     handleChange,
     handleButtonClick,

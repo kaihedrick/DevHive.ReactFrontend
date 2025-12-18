@@ -5,7 +5,7 @@ import "../styles/forgot_password.css";
 import { ReactComponent as DevHiveLogo } from "./assets/hive-icon.svg";
 import { faEnvelope, faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { requestPasswordReset } from "../services/authService.ts"; // Remove .ts extension
+import { requestPasswordReset } from "../services/authService";
 /**
  * ForgotPassword Component
  * 

@@ -143,3 +143,17 @@ export const convertToUserModel = (form: RegistrationFormModel): UserModel => ({
   Active: true
 });
 
+/**
+ * @function convertToRegistrationPayload
+ * Converts form input data to the correct format for backend registration.
+ * @param {RegistrationFormModel} form - Form values from the registration UI.
+ * @returns {Object} - Backend-compatible registration payload
+ */
+export const convertToRegistrationPayload = (form: RegistrationFormModel) => ({
+  username: form.Username,
+  email: form.Email,
+  password: form.Password,
+  firstName: form.FirstName,
+  lastName: form.LastName
+});
+

@@ -1,12 +1,8 @@
 // MessageService.js
 // This module handles message-related API calls and WebSocket communication for real-time messaging in DevHive.
 
-import axios from "axios";
-// Import the centralized config
-import { API_BASE_URL } from '../config';
-
-// Use the imported base URL
-const MESSAGE_API_URL = `${API_BASE_URL}/Message`;
+import { api } from '../lib/api.ts';
+import { ENDPOINTS } from '../config';
 
 let socket = null;
 let reconnectAttempts = 0;
@@ -14,43 +10,33 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 let heartbeatInterval = null;
 
 /**
- * Sends a new message to the backend.
+ * Sends a new message to a project.
  *
- * @param {Object} message - The message object containing user and project data.
- * @param {string} message.message - The text content of the message.
- * @param {string} message.fromUserID - The sender's user ID.
- * @param {string} message.toUserID - The recipient's user ID.
- * @param {string} message.projectID - The project context for the message.
- * @returns {Promise<Object>} - The response object from the backend.
- * @throws {Error} - Throws an error if the request fails.
+ * @param {Object} messageData - The message data
+ * @param {string} messageData.projectId - The project ID
+ * @param {string} messageData.content - The message content
+ * @param {string} [messageData.messageType] - The message type (default: "text")
+ * @param {string} [messageData.parentMessageId] - Parent message ID for replies
+ * @returns {Promise<Object>} - The response object from the backend
+ * @throws {Error} - Throws an error if the request fails
  */
-// In src/services/messageService.js
-export const sendMessage = async (message) => {
+export const sendMessage = async (messageData) => {
     try {
-        const token = getAuthToken();
         const payload = {
-            Message: message.message,
-            FromUserID: message.fromUserID,
-            ToUserID: message.toUserID,
-            ProjectID: message.projectID,
+            content: messageData.content,
+            messageType: messageData.messageType || "text",
+            ...(messageData.parentMessageId && { parentMessageId: messageData.parentMessageId })
         };
 
         console.log("📤 Sending message:", payload);
 
-        const response = await axios.post(`${MESSAGE_API_URL}/Send`, payload, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
+        const response = await api.post(`${ENDPOINTS.PROJECTS}/${messageData.projectId}/messages`, payload);
 
         console.log("✅ Message sent successfully:", response.data);
         return response.data;
     } catch (error) {
-        // More detailed error logging
         console.error("❌ Error sending message:", error.response?.status, error.response?.data || error.message);
         
-        // More user-friendly error message based on status code
         if (error.response?.status === 500) {
             throw new Error("Server error - The messaging service is currently unavailable. Our team has been notified.");
         } else if (error.response?.status === 401 || error.response?.status === 403) {
@@ -62,65 +48,105 @@ export const sendMessage = async (message) => {
 };
 
 /**
- * Fetches messages exchanged between two users in a given project.
+ * Fetches messages for a specific project with pagination.
  *
- * @param {string} fromUserID - Sender user ID.
- * @param {string} toUserID - Receiver user ID.
- * @param {string} projectID - Project ID in which the messages exist.
- * @returns {Promise<Array>} - An array of processed message objects.
- * @throws {Error} - Throws an error if fetching messages fails.
+ * @param {string} projectId - The project ID
+ * @param {Object} [options] - Pagination options
+ * @param {number} [options.limit] - Number of messages to fetch (default: 20, max: 100)
+ * @param {number} [options.offset] - Number of messages to skip (default: 0)
+ * @returns {Promise<Object>} - Object containing messages array and pagination info
+ * @throws {Error} - Throws an error if fetching messages fails
  */
-
-export const fetchMessages = async (fromUserID, toUserID, projectID) => {
+export const fetchProjectMessages = async (projectId, options = {}) => {
     try {
-        const token = getAuthToken();
-        const apiUrl = `${MESSAGE_API_URL}/Retrieve/${encodeURIComponent(fromUserID)}/${encodeURIComponent(toUserID)}/${encodeURIComponent(projectID)}`;
+        const params = {
+            limit: options.limit || 20,
+            offset: options.offset || 0
+        };
 
-        const response = await axios.get(apiUrl, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        console.log(`📡 Fetching messages for project ${projectId}:`, params);
 
-        const processedMessages = response.data.map(msg => {
-            const tsObj = msg.dateSent ?? msg.DateSent;
-            return {
-                ...msg,
-                DateSent: convertFirestoreTimestamp(tsObj)
-            };
-        });
+        const response = await api.get(`${ENDPOINTS.PROJECTS}/${projectId}/messages`, { params });
 
-        return processedMessages;
+        console.log("✅ Messages fetched successfully:", response.data);
+        return response.data;
     } catch (error) {
         if (error.response?.status === 404) {
-            return [];
+            return { messages: [], limit: 0, offset: 0 };
         }
-        console.error("Error retrieving messages:", error.response?.data || error.message);
+        console.error("❌ Error fetching project messages:", error.response?.data || error.message);
         throw error;
     }
 };
 
 /**
- * Converts a Firestore timestamp or other common timestamp formats to a JavaScript Date object.
+ * Fetches messages with cursor-based pagination for real-time updates.
  *
- * @param {Object|string|Date} timestamp - The timestamp to convert.
- * @returns {Date} - A JavaScript Date object.
+ * @param {string} projectId - The project ID
+ * @param {Object} [options] - Pagination options
+ * @param {string} [options.afterId] - Get messages after this message ID
+ * @param {number} [options.limit] - Number of messages to fetch (default: 20, max: 100)
+ * @returns {Promise<Object>} - Object containing messages array and pagination info
+ * @throws {Error} - Throws an error if fetching messages fails
  */
+export const fetchMessages = async (projectId, options = {}) => {
+    try {
+        const params = {
+            projectId,
+            limit: options.limit || 20,
+            ...(options.afterId && { afterId: options.afterId })
+        };
 
-const convertFirestoreTimestamp = (timestamp) => {
-    if (!timestamp) return new Date();
+        console.log(`📡 Fetching messages with cursor pagination:`, params);
 
-    const secs = timestamp.seconds ?? timestamp.Seconds ?? timestamp._seconds ?? 0;
-    const nanos = timestamp.nanoseconds ?? timestamp.Nanoseconds ?? timestamp._nanoseconds ?? 0;
+        const response = await api.get(ENDPOINTS.MESSAGES, { params });
 
-    if (secs) return new Date(secs * 1000 + nanos / 1e6);
-    if (typeof timestamp === 'string') return new Date(timestamp);
-    if (timestamp instanceof Date) return timestamp;
-    return new Date();
+        console.log("✅ Messages fetched successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return { messages: [], limit: 0 };
+        }
+        console.error("❌ Error fetching messages:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
+ * Sends a reply to a specific message.
+ *
+ * @param {Object} replyData - The reply data
+ * @param {string} replyData.projectId - The project ID
+ * @param {string} replyData.parentMessageId - The parent message ID
+ * @param {string} replyData.content - The reply content
+ * @param {string} [replyData.messageType] - The message type (default: "text")
+ * @returns {Promise<Object>} - The response object from the backend
+ * @throws {Error} - Throws an error if the request fails
+ */
+export const sendReply = async (replyData) => {
+    try {
+        const payload = {
+            content: replyData.content,
+            messageType: replyData.messageType || "text",
+            parentMessageId: replyData.parentMessageId
+        };
+
+        console.log("📤 Sending reply:", payload);
+
+        const response = await api.post(`${ENDPOINTS.PROJECTS}/${replyData.projectId}/messages`, payload);
+
+        console.log("✅ Reply sent successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error sending reply:", error.response?.data || error.message);
+        throw error;
+    }
 };
 
 /**
  * Sends a heartbeat message to the server to keep the WebSocket connection alive.
  *
- * @param {WebSocket} ws - The WebSocket connection instance.
+ * @param {WebSocket} ws - The WebSocket connection instance
  */
 const sendHeartbeat = (ws) => {
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -133,34 +159,36 @@ const sendHeartbeat = (ws) => {
     }
 };
 
-// Helper function to build WebSocket URL
-const buildWebSocketUrl = (userId) => {
-    if (!userId) {
-        console.error("❌ Missing userId for WebSocket URL");
+/**
+ * Helper function to build WebSocket URL
+ *
+ * @param {string} projectId - The project ID
+ * @returns {string|null} - The WebSocket URL or null if invalid
+ */
+const buildWebSocketUrl = (projectId) => {
+    if (!projectId) {
+        console.error("❌ Missing projectId for WebSocket URL");
         return null;
     }
 
-    // Always use secure WebSocket (wss) for production
-    const host = process.env.REACT_APP_API_HOST || 'api.devhive.it.com';
-    
-    // Format URL in the required pattern: wss://your-domain/ws/messages?userId={userId}
-    const wsUrl = `wss://${host}/ws/messages?userId=${userId}`;
+    // Use the new Go backend WebSocket endpoint
+    const token = getAuthToken();
+    const wsUrl = `${ENDPOINTS.MESSAGES_WS}?token=${token}&projectId=${projectId}`;
     
     console.log(`🔌 Configured WebSocket URL: ${wsUrl}`);
     return wsUrl;
 };
 
 /**
- * Subscribes a user to a WebSocket message stream for real-time updates.
+ * Subscribes to real-time message updates for a project.
  *
- * @param {string} userId - The ID of the user subscribing to messages.
- * @param {string} projectID - The ID of the current project.
- * @param {Function} onMessageReceived - Callback to invoke when a new message is received.
- * @returns {WebSocket|null} - The WebSocket instance or null if connection fails.
+ * @param {string} projectId - The project ID
+ * @param {Function} onMessageReceived - Callback to invoke when a new message is received
+ * @returns {WebSocket|null} - The WebSocket instance or null if connection fails
  */
-export const subscribeToMessageStream = (userId, projectID, onMessageReceived) => {
-    if (!userId || !projectID) {
-        console.error("❌ Missing userId or projectID for WebSocket.");
+export const subscribeToMessageStream = (projectId, onMessageReceived) => {
+    if (!projectId) {
+        console.error("❌ Missing projectId for WebSocket");
         return null;
     }
 
@@ -178,13 +206,18 @@ export const subscribeToMessageStream = (userId, projectID, onMessageReceived) =
 
     try {
         console.log('🔄 Attempting to connect to WebSocket...');
-        const wsUrl = buildWebSocketUrl(userId);
+        const wsUrl = buildWebSocketUrl(projectId);
+        
+        if (!wsUrl) {
+            console.error("❌ Failed to build WebSocket URL");
+            return null;
+        }
         
         console.log(`🔌 Connecting to WebSocket at: ${wsUrl}`);
         socket = new WebSocket(wsUrl);
 
         socket.onopen = () => {
-            console.log(`✅ WebSocket connection established for user ${userId} in project ${projectID}`);
+            console.log(`✅ WebSocket connection established for project ${projectId}`);
             // Reset reconnect attempts on successful connection
             reconnectAttempts = 0;
             
@@ -192,8 +225,7 @@ export const subscribeToMessageStream = (userId, projectID, onMessageReceived) =
             try {
                 socket.send(JSON.stringify({ 
                     type: "init", 
-                    userId: userId, 
-                    projectId: projectID 
+                    projectId: projectId 
                 }));
                 console.log("📤 Sent initialization message to WebSocket server");
             } catch (error) {
@@ -215,14 +247,7 @@ export const subscribeToMessageStream = (userId, projectID, onMessageReceived) =
                     return;
                 }
                 
-                // Handle camel case / pascal case field names
-                const tsObj = message.dateSent ?? message.DateSent;
-                
-                // Convert Firestore timestamp to JS Date
-                if (tsObj) {
-                    message.DateSent = convertFirestoreTimestamp(tsObj);
-                }
-
+                // Process the message
                 console.log("📨 Processed WebSocket message:", message);
                 onMessageReceived(message);
             } catch (error) {
@@ -260,7 +285,7 @@ export const subscribeToMessageStream = (userId, projectID, onMessageReceived) =
                     // Only attempt reconnection if the page is visible
                     if (document.visibilityState !== 'hidden') {
                         console.log(`🔄 Attempting reconnection #${reconnectAttempts}...`);
-                        subscribeToMessageStream(userId, projectID, onMessageReceived);
+                        subscribeToMessageStream(projectId, onMessageReceived);
                     } else {
                         console.log("📱 Page not visible, delaying reconnection attempt");
                     }
@@ -278,23 +303,51 @@ export const subscribeToMessageStream = (userId, projectID, onMessageReceived) =
 };
 
 /**
+ * Closes the WebSocket connection
+ */
+export const closeMessageStream = () => {
+    if (socket && socket.readyState !== WebSocket.CLOSED) {
+        console.log("🔌 Closing WebSocket connection");
+        socket.close();
+    }
+    
+    if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+    }
+};
+
+/**
  * Retrieves the stored JWT token from localStorage.
  *
- * @returns {string|null} - The stored JWT token or null if not found.
+ * @returns {string|null} - The stored JWT token or null if not found
  */
 export const getAuthToken = () => {
-  return localStorage.getItem("token");
+    return localStorage.getItem("token");
 };
 
 /**
  * Retrieves the user ID from localStorage.
  *
- * @returns {string|null} - The current user's ID or null if not found.
+ * @returns {string|null} - The current user's ID or null if not found
  */
 export const getUserId = () => {
-  const userId = localStorage.getItem("userId");
-  if (!userId) {
-    console.warn("User ID not found in localStorage.");
-  }
-  return userId;
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+        console.warn("User ID not found in localStorage.");
+    }
+    return userId;
 };
+
+const messageService = {
+    sendMessage,
+    fetchProjectMessages,
+    fetchMessages,
+    sendReply,
+    subscribeToMessageStream,
+    closeMessageStream,
+    getAuthToken,
+    getUserId
+};
+
+export default messageService;

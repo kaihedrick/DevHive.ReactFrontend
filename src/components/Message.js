@@ -179,9 +179,9 @@ const Message = () => {
     // Create message object
     const messageData = {
       message: trimmedMessage,
-      fromUserID: loggedInUserId,
-      toUserID,
-      projectID,
+      fromUserId: loggedInUserId,
+      toUserId: toUserID,
+      projectId: projectID,
     };
 
     // Create temporary message for optimistic update
@@ -190,11 +190,10 @@ const Message = () => {
     const tempMessage = {
       id: tempId,
       message: trimmedMessage,
-      Message: trimmedMessage,
-      fromUserID: loggedInUserId,
-      toUserID,
-      projectID,
-      DateSent: now, // Use consistent date object format
+      fromUserId: loggedInUserId,
+      toUserId: toUserID,
+      projectId: projectID,
+      dateSent: now, // Use consistent date object format
       pending: true
     };
 
@@ -251,16 +250,11 @@ const Message = () => {
 
   return (
     <div className="message-page">
-      {/* Chat header positioned absolutely under navbar */}
-      <div className="chat-header-absolute">
-        <h2 className="chat-header-title">
+      <div className="chat-container">
+        <h2 className="chat-header">
           <FontAwesomeIcon icon={faComments} /> Chat with {user?.firstName} {user?.lastName}
         </h2>
-      </div>
 
-      {/* Main chat container */}
-      <div className="chat-container">
-        {/* Scrollable messages container */}
         <div className="messages-container">
           {error && <div className="error-message">{error}</div>}
           
@@ -302,7 +296,6 @@ const Message = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Message input - always above footer */}
         <div className="message-input">
           <input
             type="text"
@@ -313,9 +306,8 @@ const Message = () => {
             onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
             disabled={sending}
           />
-          {/* Send button - hidden on mobile */}
           <button 
-            className={`btn btn-primary send-button ${sending ? "sending" : ""}`} 
+            className={`btn btn-primary ${sending ? "sending" : ""}`} 
             onClick={handleSendMessage}
             disabled={sending || !newMessage.trim()}
           >

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchProjectMembers } from "../services/projectService";
 import { fetchUserById } from "../services/userService";
@@ -31,7 +31,12 @@ const Contacts = () => {
   const [error, setError] = useState(null);
   const loggedInUserId = localStorage.getItem("userId"); // Get logged-in user ID
 
+  const hasFetched = useRef(false);
+
   useEffect(() => {
+    if (hasFetched.current) return; // Prevent double fetch in React Strict Mode
+    hasFetched.current = true;
+
     const loadContacts = async () => {
       setLoading(true);
       try {
@@ -39,7 +44,8 @@ const Contacts = () => {
         if (!projectId) throw new Error("No project selected.");
 
         console.log(`Fetching members for project: ${projectId}`);
-        const members = await fetchProjectMembers(projectId);
+        const response = await fetchProjectMembers(projectId);
+        const members = response.members || response || [];
         console.log("Project Members Response:", members);
 
         // Ensure we only extract user IDs
@@ -89,7 +95,7 @@ const Contacts = () => {
         `}
       </style>
       
-      <div className="contacts-page">
+      <div className="contacts-page with-footer-pad scroll-pad-bottom">
         <div className="contact-container">
           <div className="contact-header">
             <h1>📇 Project Contacts</h1>

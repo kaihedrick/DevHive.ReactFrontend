@@ -1,6 +1,37 @@
 /* ======================= */
-/* Scoped Project Details Styling */
+/* Scoped Project Details Styling - Absolute Page-Level Scoping */
 /* ======================= */
+
+/* Override global main styles for Project Details page - Absolute Scoping */
+.project-details-page {
+  position: relative !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+}
+
+/* Override global main margin when sidebar navbar is present */
+/* Remove flexbox centering - let container handle its own centering */
+body.has-sidebar .project-details-page {
+  margin-left: 0 !important;
+  width: 100% !important;
+  display: block !important;
+  position: relative !important;
+}
+
+body.has-sidebar .navbar:hover ~ main .project-details-page {
+  margin-left: 0 !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+/* Ensure container is absolutely centered using margin auto */
+.project-details-page .create-sprint-container {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  display: block !important;
+}
 
 .project-details {
   position: relative !important;
@@ -381,4 +412,138 @@
     /* left: 0 !important; */
     /* transform: none !important; */
   }
+}
+
+/* ======================= */
+/* FAB and Action Sheet Styles */
+/* ======================= */
+
+/* Hide the FAB on desktop (match Projects page) */
+@media (min-width: 1024px) { 
+  .fab { display: none !important; } 
+}
+
+/* FAB — same as Projects */
+.fab {
+  position: fixed; 
+  right: 16px; 
+  bottom: 16px;
+  width: 56px; 
+  height: 56px; 
+  border-radius: 999px;
+  background: var(--accent-primary); 
+  color: #000; 
+  border: none;
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  z-index: 999;
+}
+.fab__icon { 
+  font-size: 28px; 
+  line-height: 1; 
+  display: block; 
+}
+
+/* Bottom action sheet */
+.action-sheet { 
+  position: fixed; 
+  inset: 0; 
+  z-index: 60; 
+}
+.action-sheet__scrim { 
+  position: absolute; 
+  inset: 0; 
+  background: rgba(0,0,0,.45); 
+}
+.action-sheet__panel {
+  position: absolute; 
+  left: 0; 
+  right: 0; 
+  bottom: 0;
+  padding: 10px 16px 16px;
+  background: var(--bg-primary);
+  border-top-left-radius: 16px; 
+  border-top-right-radius: 16px;
+  border-top: 1px solid var(--border-color);
+}
+.sheet-handle { 
+  width: 40px; 
+  height: 4px; 
+  border-radius: 99px; 
+  background: var(--border-color); 
+  margin: 6px auto 12px; 
+}
+.sheet-group { 
+  display: grid; 
+  gap: 10px; 
+  margin-bottom: 10px; 
+}
+
+/* Optional: hide inline danger actions on mobile, since they live in the sheet */
+@media (max-width: 1023px) {
+  .project-inline-secondary-actions { 
+    display: none; 
+  }
+}
+
+/* Members list styling */
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.member-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-name {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.crown {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent-primary);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+}
+
+.kick-member {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.kick-member:hover {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Character count styling */
+.char-count {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: right;
+  margin-top: 4px;
 }

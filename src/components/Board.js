@@ -249,7 +249,7 @@ const Board = () => {
                             {/* Dropdown to show full names */}
                             <select
                               className="task-assignee-dropdown"
-                              value={task.assigneeID || ""}
+                              value={task.assigneeId || ""}
                               onChange={(e) => handleAssigneeChange(task, e.target.value)}
                             >
                               <option value="">Unassigned</option>
@@ -262,7 +262,7 @@ const Board = () => {
                           </div>
                           <div className="task-date">
                             <FontAwesomeIcon icon={faCalendarAlt} />
-                            <span>{formatDate(task.dateCreated)}</span>
+                            <span>{formatDate(task.createdAt)}</span>
                           </div>
                         </div>
                       </div>
@@ -312,7 +312,7 @@ const Board = () => {
                             {/* Dropdown to show full names */}
                             <select
                               className="task-assignee-dropdown"
-                              value={task.assigneeID || ""}
+                              value={task.assigneeId || ""}
                               onChange={(e) => handleAssigneeChange(task, e.target.value)}
                             >
                               <option value="">Unassigned</option>
@@ -325,7 +325,7 @@ const Board = () => {
                           </div>
                           <div className="task-date">
                             <FontAwesomeIcon icon={faCalendarAlt} />
-                            <span>{formatDate(task.dateCreated)}</span>
+                            <span>{formatDate(task.createdAt)}</span>
                           </div>
                         </div>
                       </div>
@@ -375,7 +375,7 @@ const Board = () => {
                             {/* Dropdown to show full names */}
                             <select
                               className="task-assignee-dropdown"
-                              value={task.assigneeID || ""}
+                              value={task.assigneeId || ""}
                               onChange={(e) => handleAssigneeChange(task, e.target.value)}
                             >
                               <option value="">Unassigned</option>
@@ -388,7 +388,7 @@ const Board = () => {
                           </div>
                           <div className="task-date">
                             <FontAwesomeIcon icon={faCalendarAlt} />
-                            <span>{formatDate(task.dateCreated)}</span>
+                            <span>{formatDate(task.createdAt)}</span>
                           </div>
                         </div>
                       </div>

@@ -47,7 +47,6 @@ const CreateProject = () => {
       await createProject({
         name: projectName,
         description: projectDescription,
-        projectOwnerID: userId,
       });
 
       alert("Project created successfully!");

@@ -44,7 +44,7 @@ const cleanUserUpdatePayload = (current: UserModel, updates: Partial<UserModel>)
 
 export const fetchUserById = async (userId: string): Promise<UserModel> => {
   try {
-    const response = await api.get(`${ENDPOINTS.USER}/${userId}`);
+    const response = await api.get(ENDPOINTS.USER_BY_ID(userId));
     return response.data as UserModel;
   } catch (error) {
     throw handleApiError(error, 'fetching user');
@@ -98,10 +98,10 @@ export const updateUserProfile = async (
 
     // Log final payload for debugging
     console.log("✅ Final PUT Payload:", payload);
-    console.log("✅ PUT URL:", `${ENDPOINTS.USER}`);
+    console.log("✅ PUT URL:", `${ENDPOINTS.USERS}`);
 
     // Send the update to the backend
-    const response = await api.put(`${ENDPOINTS.USER}`, payload);
+    const response = await api.patch(`${ENDPOINTS.USERS}`, payload);
     console.log("Profile update response:", response.status);
 
     // Return the updated user data if provided
@@ -190,7 +190,7 @@ export const getCurrentUser = async (): Promise<UserModel | null> => {
  */
 export const deleteUserAccount = async (userId: string): Promise<boolean> => {
   try {
-    await api.delete(`${ENDPOINTS.USER}/${userId}`);
+    await api.delete(ENDPOINTS.USER_BY_ID(userId));
     return true;
   } catch (error) {
     throw handleApiError(error, 'deleting user account');

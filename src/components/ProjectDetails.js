@@ -56,7 +56,7 @@ const ProjectDetails = () => {
    */
   const { members, loading: membersLoading, error: membersError, isCurrentUserOwner, kickMember } = useProjectMembers(
     finalProjectId,
-    project?.projectOwnerID
+    project?.owner?.id
   );
 
   const [isEditing, setIsEditing] = useState(false);
@@ -99,7 +99,7 @@ const ProjectDetails = () => {
         id: project.id,
         name: editedName,
         description: editedDescription,
-        projectOwnerID: project.projectOwnerID,
+        ownerId: project.owner?.id,
       });
 
       await refreshProject();
@@ -148,7 +148,7 @@ const ProjectDetails = () => {
   return (
     <div className="project-details">
       <div className="edit-buttons">
-        {project?.projectOwnerID === loggedInUserId && isEditing ? (
+        {project?.owner?.id === loggedInUserId && isEditing ? (
           <>
             <button className="save-btn" onClick={handleSaveEdit}>
               <FontAwesomeIcon icon={faCheck} />
@@ -158,7 +158,7 @@ const ProjectDetails = () => {
             </button>
           </>
         ) : (
-          project?.projectOwnerID === loggedInUserId && (
+          project?.owner?.id === loggedInUserId && (
             <button className="edit-project-btn" onClick={handleEditProject}>
               <FontAwesomeIcon icon={faPenToSquare} />
             </button>

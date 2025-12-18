@@ -19,6 +19,7 @@ const LoginRegister = () => {
     validationErrors,
     error,
     success,
+    successType,
     loading,
     handleChange,
     handleButtonClick,
@@ -115,7 +116,7 @@ const LoginRegister = () => {
         )}
 
         {error && <p className="error">{error}</p>}
-        {success && <p className="success">{action} successful!</p>}
+        {success && <p className="success">{successType === "registration" ? "Registration successful!" : "Login successful!"}</p>}
 
         <div className="submit-container">
           <SubmitButton
