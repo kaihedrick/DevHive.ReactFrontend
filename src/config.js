@@ -48,6 +48,10 @@ export const ENDPOINTS = {
   PROJECT_MESSAGES: (id) => `${API_BASE_URL}/projects/${id}/messages`, // GET/POST
   PROJECT_MEMBERS: (id) => `${API_BASE_URL}/projects/${id}/members`, // GET
   PROJECT_MEMBER: (projectId, userId) => `${API_BASE_URL}/projects/${projectId}/members/${userId}`, // PUT/DELETE
+  PROJECT_INVITES: (id) => `${API_BASE_URL}/projects/${id}/invites`, // GET/POST
+  PROJECT_INVITE: (projectId, inviteId) => `${API_BASE_URL}/projects/${projectId}/invites/${inviteId}`, // DELETE
+  INVITE_BY_TOKEN: (token) => `${API_BASE_URL}/invites/${token}`, // GET (public)
+  ACCEPT_INVITE: (token) => `${API_BASE_URL}/invites/${token}/accept`, // POST
   
   // Task endpoints
   TASKS: `${API_BASE_URL}/tasks`,

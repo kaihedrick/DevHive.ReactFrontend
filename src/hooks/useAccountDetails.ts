@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { updateUserProfile } from "../services/userService.ts";
 import { getUserId, clearAuth, validateUsername } from "../services/authService.ts";
 import { getSelectedProject, clearSelectedProject } from "../services/storageService";
 import { leaveProject, isProjectOwner, updateProjectOwner } from "../services/projectService";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "./useUsers.ts";
+import { useUser, useUpdateUser } from "./useUsers.ts";
 import { User } from "../types/hooks";
 
 export interface LeaveProjectState {
@@ -37,6 +36,7 @@ const useAccountDetails = (): UseAccountDetailsReturn => {
   const navigate = useNavigate();
   const userId = getUserId();
   const { data: user, isLoading: loading, error: queryError } = useUser(userId);
+  const updateUserMutation = useUpdateUser();
   const [error, setError] = useState<string | null>(null);
   const [leaveProjectState, setLeaveProjectState] = useState<LeaveProjectState>({
     loading: false,
@@ -127,10 +127,14 @@ const useAccountDetails = (): UseAccountDetailsReturn => {
       
       console.log("📤 Sending update:", updateData);
       
-      const result = await updateUserProfile(updateData, user!);
+      const result = await updateUserMutation.mutateAsync({
+        userId,
+        userData: updateData,
+        originalUser: user!
+      });
       console.log("📥 Update successful:", result);
       
-      setUser(result);
+      // Cache is updated automatically by the mutation
       return result;
     } catch (err: any) {
       console.error("❌ Error updating username:", err);
@@ -158,13 +162,13 @@ const useAccountDetails = (): UseAccountDetailsReturn => {
         password: newPassword
       };
 
-      const result = await updateUserProfile(passwordData);
+      const result = await updateUserMutation.mutateAsync({
+        userId,
+        userData: passwordData
+      });
       console.log("✅ Password changed successfully");
       
-      if (result) {
-        setUser(result);
-      }
-      
+      // Cache is updated automatically by the mutation
       return true;
     } catch (err: any) {
       console.error("❌ Error changing password:", err);

@@ -271,6 +271,138 @@ export const joinProjectByCode = async (projectId) => {
 };
 
 /**
+ * Creates a new invite link for a project.
+ *
+ * @param {string} projectId - The ID of the project
+ * @param {Object} [options] - Invite options
+ * @param {number} [options.expiresInMinutes] - Expiration time in minutes (default: 30)
+ * @param {number} [options.maxUses] - Maximum number of uses (optional)
+ * @returns {Promise<Object>} - Invite object with token and URL
+ * @throws {Error} - Throws an error if creating invite fails
+ */
+export const createProjectInvite = async (projectId, options = {}) => {
+    try {
+        if (!projectId) {
+            throw new Error("Project ID is required");
+        }
+
+        console.log(`📤 Creating invite for project: ${projectId}`, options);
+
+        const response = await api.post(ENDPOINTS.PROJECT_INVITES(projectId), {
+            expiresInMinutes: options.expiresInMinutes || 30,
+            maxUses: options.maxUses
+        });
+
+        console.log("✅ Invite created successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error creating invite:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
+ * Fetches all invites for a project.
+ *
+ * @param {string} projectId - The ID of the project
+ * @returns {Promise<Object>} - Object containing invites array and count
+ * @throws {Error} - Throws an error if fetching invites fails
+ */
+export const fetchProjectInvites = async (projectId) => {
+    try {
+        if (!projectId) {
+            throw new Error("Project ID is required");
+        }
+
+        console.log(`📡 Fetching invites for project: ${projectId}`);
+
+        const response = await api.get(ENDPOINTS.PROJECT_INVITES(projectId));
+
+        console.log("✅ Project invites fetched successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error fetching project invites:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
+ * Revokes (deactivates) an invite.
+ *
+ * @param {string} projectId - The ID of the project
+ * @param {string} inviteId - The ID of the invite to revoke
+ * @returns {Promise<Object>} - Confirmation response
+ * @throws {Error} - Throws an error if revoking invite fails
+ */
+export const revokeProjectInvite = async (projectId, inviteId) => {
+    try {
+        if (!projectId || !inviteId) {
+            throw new Error("Project ID and Invite ID are required");
+        }
+
+        console.log(`📤 Revoking invite ${inviteId} for project: ${projectId}`);
+
+        const response = await api.delete(ENDPOINTS.PROJECT_INVITE(projectId, inviteId));
+
+        console.log("✅ Invite revoked successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error revoking invite:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
+ * Gets invite details by token (public endpoint).
+ *
+ * @param {string} inviteToken - The invite token
+ * @returns {Promise<Object>} - Invite details
+ * @throws {Error} - Throws an error if fetching invite fails
+ */
+export const getInviteByToken = async (inviteToken) => {
+    try {
+        if (!inviteToken) {
+            throw new Error("Invite token is required");
+        }
+
+        console.log(`📡 Fetching invite details for token: ${inviteToken}`);
+
+        const response = await api.get(ENDPOINTS.INVITE_BY_TOKEN(inviteToken));
+
+        console.log("✅ Invite details fetched successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error fetching invite details:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
+ * Accepts an invite by token.
+ *
+ * @param {string} inviteToken - The invite token
+ * @returns {Promise<Object>} - The joined project object
+ * @throws {Error} - Throws an error if accepting invite fails
+ */
+export const acceptInvite = async (inviteToken) => {
+    try {
+        if (!inviteToken) {
+            throw new Error("Invite token is required");
+        }
+
+        console.log(`📤 Accepting invite with token: ${inviteToken}`);
+
+        const response = await api.post(ENDPOINTS.ACCEPT_INVITE(inviteToken));
+
+        console.log("✅ Invite accepted successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error accepting invite:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
  * Checks whether the currently logged-in user is the owner of the specified project.
  *
  * @param {string} projectId - The ID of the project to check
@@ -418,6 +550,12 @@ const projectService = {
     clearSelectedProject,
     getAuthToken,
     getUserId,
+    // Invite functions
+    createProjectInvite,
+    fetchProjectInvites,
+    revokeProjectInvite,
+    getInviteByToken,
+    acceptInvite,
     // Legacy functions
     joinProject,
     leaveProject,

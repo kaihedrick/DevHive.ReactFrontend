@@ -339,6 +339,20 @@ body.has-sidebar .navbar:hover ~ main .project-details-page {
   color: hsl(0, 70%, 40%) !important; /* Darker red on hover */
 }
 
+/* Modal Actions - Use standard button styles */
+.project-details-page .modal-actions {
+  display: flex !important;
+  gap: var(--space-3) !important;
+  margin-top: var(--space-4) !important;
+}
+
+.project-details-page .modal-actions .primary-action-btn,
+.project-details-page .modal-actions .secondary-action-btn {
+  width: auto !important;
+  margin-top: 0 !important;
+  flex: 1 !important;
+}
+
 /* ======================= */
 /* Input Container */
 /* ======================= */
@@ -546,4 +560,193 @@ body.has-sidebar .navbar:hover ~ main .project-details-page {
   color: var(--text-secondary);
   text-align: right;
   margin-top: 4px;
+}
+
+/* ============================= */
+/* Button Styles - Scoped to Project Details Page */
+/* ============================= */
+
+/* Primary Action Button */
+.project-details-page .primary-action-btn,
+.project-details-page .create-sprint-container .primary-action-btn {
+  appearance: none !important;
+  border: none !important;
+  border-radius: 24px !important;
+  padding: 0 24px !important;
+  height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  font-family: var(--primary-font) !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  background: var(--accent-primary) !important;
+  color: var(--black) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast) !important;
+  width: 100% !important;
+  margin-top: var(--space-3) !important;
+}
+
+.project-details-page .primary-action-btn:hover,
+.project-details-page .create-sprint-container .primary-action-btn:hover {
+  background: var(--dark-gold) !important;
+  color: var(--white) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.project-details-page .primary-action-btn:focus,
+.project-details-page .create-sprint-container .primary-action-btn:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent-primary), #000 15%) !important;
+  outline-offset: 2px !important;
+}
+
+/* Secondary Action Button */
+.project-details-page .secondary-action-btn,
+.project-details-page .create-sprint-container .secondary-action-btn {
+  appearance: none !important;
+  border-radius: 24px !important;
+  padding: 0 24px !important;
+  height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  font-family: var(--primary-font) !important;
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--shadow-sm) !important;
+  width: 100% !important;
+  margin-top: var(--space-3) !important;
+}
+
+.project-details-page .secondary-action-btn:hover,
+.project-details-page .create-sprint-container .secondary-action-btn:hover {
+  background: color-mix(in srgb, var(--bg-primary), #fff 5%) !important;
+}
+
+.project-details-page .secondary-action-btn:focus,
+.project-details-page .create-sprint-container .secondary-action-btn:focus {
+  outline: 2px solid var(--border-color) !important;
+  outline-offset: 2px !important;
+}
+
+/* Danger Action Button */
+.project-details-page .danger-action-btn,
+.project-details-page .create-sprint-container .danger-action-btn {
+  appearance: none !important;
+  border: 1px solid #dc2626 !important;
+  background: #dc2626 !important;
+  color: white !important;
+  border-radius: 12px !important;
+  padding: 12px 24px !important;
+  font-weight: var(--font-weight-medium) !important;
+  transition: all 0.2s ease !important;
+  height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin-top: var(--space-3) !important;
+}
+
+.project-details-page .danger-action-btn:hover,
+.project-details-page .create-sprint-container .danger-action-btn:hover {
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
+}
+
+.project-details-page .danger-action-btn:focus,
+.project-details-page .create-sprint-container .danger-action-btn:focus {
+  outline: 2px solid #dc2626 !important;
+  outline-offset: 2px !important;
+}
+
+.project-details-page .danger-action-btn:disabled,
+.project-details-page .create-sprint-container .danger-action-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  background: #9ca3af !important;
+  border-color: #9ca3af !important;
+}
+
+.project-details-page .danger-action-btn:disabled:hover,
+.project-details-page .create-sprint-container .danger-action-btn:disabled:hover {
+  background: #9ca3af !important;
+  border-color: #9ca3af !important;
+  transform: none !important;
+}
+
+/* Form Actions Container */
+.project-details-page .form-actions,
+.project-details-page .create-sprint-container .form-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+  margin-top: var(--space-6) !important;
+}
+
+/* Add Member Button - Apple Minimalistic Style */
+.project-details-page .add-member-btn,
+.project-details-page .create-sprint-container .add-member-btn {
+  background: none !important;
+  border: none !important;
+  color: var(--accent-primary) !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-medium) !important;
+  cursor: pointer !important;
+  padding: var(--space-1) var(--space-2) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: var(--space-1) !important;
+  transition: opacity 0.2s ease, background 0.2s ease !important;
+  border-radius: 6px !important;
+}
+
+.project-details-page .add-member-btn:hover,
+.project-details-page .create-sprint-container .add-member-btn:hover {
+  opacity: 0.7 !important;
+  background: hsla(var(--gold-hue), var(--gold-saturation), 60%, 0.1) !important;
+}
+
+.project-details-page .add-member-btn:active,
+.project-details-page .create-sprint-container .add-member-btn:active {
+  opacity: 0.5 !important;
+}
+
+/* Kick Member Button - Apple Minimalistic Style */
+.project-details-page .kick-member-btn,
+.project-details-page .create-sprint-container .kick-member-btn {
+  background: none !important;
+  border: none !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer !important;
+  padding: var(--space-2) !important;
+  border-radius: 6px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  font-size: var(--font-size-base) !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+}
+
+.project-details-page .kick-member-btn:hover,
+.project-details-page .create-sprint-container .kick-member-btn:hover {
+  background: hsla(0, 70%, 50%, 0.1) !important;
+  color: hsl(0, 70%, 50%) !important;
+}
+
+.project-details-page .kick-member-btn:active,
+.project-details-page .create-sprint-container .kick-member-btn:active {
+  background: hsla(0, 70%, 50%, 0.2) !important;
+  transform: scale(0.95) !important;
 }

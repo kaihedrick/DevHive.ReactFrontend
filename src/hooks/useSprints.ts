@@ -86,9 +86,12 @@ export const useUpdateSprint = () => {
       // Response now includes Owner
       queryClient.setQueryData(sprintKeys.detail(variables.sprintId), data);
       
-      // Update sprints list for the project
+      // Update sprints list for the project - match all queries with this projectId
       queryClient.setQueriesData(
-        { queryKey: sprintKeys.list(data.projectId) },
+        { 
+          queryKey: ['sprints', 'list', data.projectId],
+          exact: false // Match any query that starts with this key (including those with options)
+        },
         (oldData: any) => {
           if (!oldData) return oldData;
           const isArray = Array.isArray(oldData);

@@ -77,7 +77,25 @@ export const useUpdateProject = () => {
     onSuccess: (data, variables) => {
       // Update the specific project in cache
       queryClient.setQueryData(projectKeys.detail(variables.projectId), data);
-      // Invalidate projects list
+      
+      // Update projects list cache directly (not just invalidate)
+      queryClient.setQueriesData(
+        { 
+          queryKey: ['projects', 'list'],
+          exact: false // Match any query that starts with this key (including those with options)
+        },
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          const isArray = Array.isArray(oldData);
+          const projects = isArray ? oldData : (oldData.projects || []);
+          const updatedProjects = projects.map((project: any) => 
+            project.id === variables.projectId ? data : project
+          );
+          return isArray ? updatedProjects : { ...oldData, projects: updatedProjects };
+        }
+      );
+      
+      // Also invalidate for consistency (WebSocket will also handle this)
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
     },
   });

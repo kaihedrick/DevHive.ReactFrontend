@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faCrown, faRightFromBracket, faTimes, faCheck } from "@fortawesome/free-solid-svg-icons";
-import { useProject } from "../hooks/useProjects.ts";
+import { faPenToSquare, faCrown, faRightFromBracket, faTimes, faCheck, faPlus, faCopy, faTrash, faSpinner, faLink } from "@fortawesome/free-solid-svg-icons";
+import { useProject, useUpdateProject } from "../hooks/useProjects.ts";
 import { useProjectMembers } from "../hooks/useProjectMembers.ts";
+import { useProjectInvites, useCreateInvite, useRevokeInvite } from "../hooks/useInvites.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { getSelectedProject, setSelectedProject } from "../services/storageService";
-import { updateProject, removeProjectMember, deleteProject, leaveProject } from "../services/projectService";
+import { removeProjectMember, deleteProject, leaveProject } from "../services/projectService";
 import { Project, ProjectMember } from "../types/hooks.ts";
 import ConfirmationModal from "./ConfirmationModal.tsx";
+import { useToast } from "../contexts/ToastContext.tsx";
 import "../styles/project_details.css";
 import "../styles/create_sprint.css"; // Reuse Sprint form look & width clamp
 
@@ -34,25 +36,92 @@ const ProjectDetails: React.FC = () => {
     };
   }, [finalProjectId]);
   
-  const { data: project, isLoading: projectLoading, error: projectError, refetch: refreshProject } = useProject(finalProjectId || '');
+  const { data: project, isLoading: projectLoading, error: projectError } = useProject(finalProjectId || '');
+  const updateProjectMutation = useUpdateProject();
+  const { showSuccess, showError } = useToast();
   const { members, loading: membersLoading, error: membersError, isCurrentUserOwner, kickMember } = useProjectMembers(
     finalProjectId || '',
     project?.ownerId || (project as any)?.projectOwnerID || ''
   );
+  const { data: invitesData, isLoading: invitesLoading } = useProjectInvites(finalProjectId || '');
+  const createInviteMutation = useCreateInvite();
+  const revokeInviteMutation = useRevokeInvite();
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedName, setEditedName] = useState<string>("");
   const [editedDescription, setEditedDescription] = useState<string>("");
   const [kickMemberId, setKickMemberId] = useState<string | null>(null);
   const [showKickModal, setShowKickModal] = useState<boolean>(false);
-  const [showActions, setShowActions] = useState<boolean>(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState<boolean>(false);
-
-  const loggedInUserId = localStorage.getItem("userId");
+  
+  // Invite management state
+  const [showInvites, setShowInvites] = useState<boolean>(false);
+  const [expiresInMinutes, setExpiresInMinutes] = useState<number>(30);
+  const [maxUses, setMaxUses] = useState<number | undefined>(undefined);
   
   // Progressive Disclosure + Affordance scroll indicators
-  const containerRef = useScrollIndicators([members?.length || 0, isEditing, showKickModal]);
+  const containerRef = useScrollIndicators([members?.length || 0, isEditing, showKickModal, showInvites]);
+  
+  // Handle creating an invite
+  const handleCreateInvite = async (): Promise<void> => {
+    if (!finalProjectId) return;
+    
+    try {
+      const invite = await createInviteMutation.mutateAsync({
+        projectId: finalProjectId,
+        expiresInMinutes,
+        maxUses: maxUses || undefined
+      });
+      showSuccess("Invite link created successfully!");
+      setExpiresInMinutes(30);
+      setMaxUses(undefined);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || err.message || "Failed to create invite";
+      showError(errorMsg);
+    }
+  };
+  
+  // Handle revoking an invite
+  const handleRevokeInvite = async (inviteId: string): Promise<void> => {
+    if (!finalProjectId) return;
+    
+    try {
+      await revokeInviteMutation.mutateAsync({
+        projectId: finalProjectId,
+        inviteId
+      });
+      showSuccess("Invite revoked successfully");
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || err.message || "Failed to revoke invite";
+      showError(errorMsg);
+    }
+  };
+  
+  // Copy invite link to clipboard
+  const handleCopyInviteLink = async (inviteUrl: string): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      showSuccess("Invite link copied to clipboard!");
+    } catch (err) {
+      showError("Failed to copy invite link");
+    }
+  };
+  
+  // Format expiration time
+  const formatExpiration = (expiresAt: string): string => {
+    const date = new Date(expiresAt);
+    const now = new Date();
+    const diffMs = date.getTime() - now.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 0) return "Expired";
+    if (diffMins < 60) return `${diffMins} min${diffMins !== 1 ? 's' : ''}`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+  };
 
   // Owner check (keep existing approach)
   const isOwner = useMemo(() => {
@@ -83,12 +152,15 @@ const ProjectDetails: React.FC = () => {
     if (!project) return;
 
     try {
-      await updateProject(project.id, {
-        name: editedName,
-        description: editedDescription
+      await updateProjectMutation.mutateAsync({
+        projectId: project.id,
+        projectData: {
+          name: editedName,
+          description: editedDescription
+        }
       });
       setIsEditing(false);
-      await refreshProject();
+      // Cache is updated automatically by the mutation
     } catch (error: any) {
       console.error("Error updating project:", error);
     }
@@ -175,7 +247,7 @@ const ProjectDetails: React.FC = () => {
       <div className="project-details">
         <div className="error-message">
           <p>Error: {projectError || membersError}</p>
-          <button onClick={() => navigate('/projects')} className="btn-primary">
+          <button onClick={() => navigate('/projects')} className="primary-action-btn">
             Back to Projects
           </button>
         </div>
@@ -189,7 +261,7 @@ const ProjectDetails: React.FC = () => {
         <div className="no-project-message">
           <h2>Project Not Found</h2>
           <p>The requested project could not be found.</p>
-          <button onClick={() => navigate('/projects')} className="btn-primary">
+          <button onClick={() => navigate('/projects')} className="primary-action-btn">
             Back to Projects
           </button>
         </div>
@@ -287,7 +359,159 @@ const ProjectDetails: React.FC = () => {
 
         {/* Members Section */}
         <div className="form-group">
-          <label className="form-label">Project Members</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
+            <label className="form-label" style={{ marginBottom: 0 }}>Project Members</label>
+            {isCurrentUserOwner && (
+              <button
+                type="button"
+                onClick={() => setShowInvites(!showInvites)}
+                className="add-member-btn"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--accent-primary)',
+                  fontSize: 'var(--font-size-base)',
+                  fontWeight: 'var(--font-weight-medium)',
+                  cursor: 'pointer',
+                  padding: 'var(--space-1) var(--space-2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-1)',
+                  transition: 'opacity 0.2s ease',
+                  borderRadius: '6px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '0.7';
+                  e.currentTarget.style.background = 'hsla(var(--gold-hue), var(--gold-saturation), 60%, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.background = 'none';
+                }}
+              >
+                <FontAwesomeIcon icon={faLink} style={{ fontSize: '14px' }} />
+                <span>Invites</span>
+              </button>
+            )}
+          </div>
+          
+          {/* Invite Management Section */}
+          {showInvites && isCurrentUserOwner && (
+            <div style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-4)', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              <h3 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-4)' }}>Create Invite Link</h3>
+              
+              <div style={{ marginBottom: 'var(--space-3)' }}>
+                <label className="form-label" style={{ marginBottom: 'var(--space-2)' }}>Expires In (minutes)</label>
+                <input
+                  type="number"
+                  value={expiresInMinutes}
+                  onChange={(e) => setExpiresInMinutes(parseInt(e.target.value) || 30)}
+                  min="1"
+                  className="form-input"
+                  placeholder="30"
+                />
+              </div>
+              
+              <div style={{ marginBottom: 'var(--space-3)' }}>
+                <label className="form-label" style={{ marginBottom: 'var(--space-2)' }}>Max Uses (optional)</label>
+                <input
+                  type="number"
+                  value={maxUses || ''}
+                  onChange={(e) => setMaxUses(e.target.value ? parseInt(e.target.value) : undefined)}
+                  min="1"
+                  className="form-input"
+                  placeholder="Unlimited"
+                />
+              </div>
+              
+              <div className="form-actions" style={{ marginTop: 'var(--space-3)' }}>
+                <button
+                  type="button"
+                  onClick={handleCreateInvite}
+                  className="primary-action-btn"
+                  disabled={createInviteMutation.isPending}
+                >
+                  {createInviteMutation.isPending ? (
+                    <>
+                      <FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: '8px' }} />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <FontAwesomeIcon icon={faPlus} style={{ marginRight: '8px' }} />
+                      Create Invite Link
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowInvites(false);
+                    setExpiresInMinutes(30);
+                    setMaxUses(undefined);
+                  }}
+                  className="secondary-action-btn"
+                >
+                  Cancel
+                </button>
+              </div>
+              
+              {/* Active Invites List */}
+              {invitesData && invitesData.invites && invitesData.invites.length > 0 && (
+                <div style={{ marginTop: 'var(--space-6)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--border-color)' }}>
+                  <h4 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-3)' }}>Active Invites</h4>
+                  {invitesData.invites.filter((invite: any) => invite.isActive && new Date(invite.expiresAt) > new Date()).map((invite: any) => (
+                    <div
+                      key={invite.id}
+                      style={{
+                        padding: 'var(--space-3)',
+                        marginBottom: 'var(--space-2)',
+                        background: 'var(--bg-primary)',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border-color)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 'var(--space-3)'
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-1)', wordBreak: 'break-all' }}>
+                          {invite.inviteUrl}
+                        </div>
+                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)' }}>
+                          Expires in {formatExpiration(invite.expiresAt)}
+                          {invite.maxUses && ` • ${invite.useCount}/${invite.maxUses} uses`}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyInviteLink(invite.inviteUrl)}
+                          className="secondary-action-btn"
+                          style={{ padding: 'var(--space-2)', minWidth: 'auto' }}
+                          title="Copy link"
+                        >
+                          <FontAwesomeIcon icon={faCopy} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRevokeInvite(invite.id)}
+                          className="danger-action-btn"
+                          style={{ padding: 'var(--space-2)', minWidth: 'auto' }}
+                          disabled={revokeInviteMutation.isPending}
+                          title="Revoke invite"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          
           {membersLoading ? (
             <div className="loading-message">
               <p>Loading members...</p>
@@ -301,11 +525,16 @@ const ProjectDetails: React.FC = () => {
               {(members || []).map((member: ProjectMember) => (
                 <div key={member.id} className="member-item">
                   <div className="member-info">
-                    <span className="member-name">{member.name}</span>
+                    <span className="member-name">{member.name || member.username || `${member.firstName} ${member.lastName}`}</span>
                     {member.isOwner && (
                       <span className="crown">
                         <FontAwesomeIcon icon={faCrown} />
                         Owner
+                      </span>
+                    )}
+                    {!member.isOwner && (member as any).role && (
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginLeft: 'var(--space-2)' }}>
+                        ({(member as any).role})
                       </span>
                     )}
                   </div>
@@ -313,7 +542,31 @@ const ProjectDetails: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleKickMember(member.id)}
-                      className="kick-member"
+                      className="kick-member-btn"
+                      title="Remove member"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        padding: 'var(--space-2)',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease',
+                        fontSize: 'var(--font-size-base)',
+                        minWidth: '32px',
+                        minHeight: '32px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'hsla(0, 70%, 50%, 0.1)';
+                        e.currentTarget.style.color = 'hsl(0, 70%, 50%)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'none';
+                        e.currentTarget.style.color = 'var(--text-secondary)';
+                      }}
                     >
                       <FontAwesomeIcon icon={faRightFromBracket} />
                     </button>
@@ -324,10 +577,10 @@ const ProjectDetails: React.FC = () => {
           )}
         </div>
 
-        {/* Invite Members Button */}
+        {/* Invite Members Button (Alternative method) */}
         <div className="form-actions">
           <button type="button" className="secondary-action-btn" onClick={() => navigate('/invite')}>
-            Invite Members
+            Share Invite Code
           </button>
         </div>
 
@@ -345,42 +598,6 @@ const ProjectDetails: React.FC = () => {
         </div>
       </form>
 
-      {/* Mobile-only Floating Action Button (⋯ for more actions) */}
-      <button
-        type="button"
-        className="fab"
-        aria-label="Project actions"
-        aria-haspopup="dialog"
-        aria-expanded={showActions}
-        onClick={() => setShowActions(true)}
-      >
-        <span className="fab__icon">⋯</span>
-      </button>
-
-      {/* Bottom action sheet (secondary actions) */}
-      {showActions && (
-        <div className="action-sheet" role="dialog" aria-modal="true" aria-label="Project actions">
-          <div className="action-sheet__scrim" onClick={() => setShowActions(false)} />
-          <div className="action-sheet__panel">
-            <div className="sheet-handle" aria-hidden />
-            <div className="sheet-group">
-              {isOwner ? (
-                <button type="button" className="danger-action-btn" onClick={() => { setShowActions(false); handleDeleteProject(); }}>
-                  Delete Project
-                </button>
-              ) : (
-                <button type="button" className="danger-action-btn" onClick={() => { setShowActions(false); handleLeaveProject(); }}>
-                  Leave Project
-                </button>
-              )}
-            </div>
-            <button type="button" className="secondary-action-btn" onClick={() => setShowActions(false)}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Kick Member Confirmation Modal */}
       {showKickModal && (
         <div className="modal-overlay active">
@@ -388,11 +605,13 @@ const ProjectDetails: React.FC = () => {
             <h3>Confirm Removal</h3>
             <p>Are you sure you want to remove this member from the project?</p>
             <div className="modal-actions">
-              <button onClick={confirmKickMember} className="confirm-btn">
+              <button onClick={confirmKickMember} className="primary-action-btn">
                 <FontAwesomeIcon icon={faRightFromBracket} />
+                Remove
               </button>
-              <button onClick={cancelKickMember} className="cancel-btn">
+              <button onClick={cancelKickMember} className="secondary-action-btn">
                 <FontAwesomeIcon icon={faTimes} />
+                Cancel
               </button>
             </div>
           </div>
