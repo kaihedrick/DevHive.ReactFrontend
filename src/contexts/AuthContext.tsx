@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { login as loginService, logout as logoutService, refreshToken as refreshTokenService, getUserId } from '../services/authService';
-import { LoginModel } from '../models/user';
-import { AuthToken } from '../services/authService';
+import { useQueryClient } from '@tanstack/react-query';
+import { login as loginService, logout as logoutService, refreshToken as refreshTokenService, getUserId, AuthToken } from '../services/authService.ts';
+import { LoginModel } from '../models/user.ts';
 
 interface AuthContextType {
   isAuthenticated: boolean;

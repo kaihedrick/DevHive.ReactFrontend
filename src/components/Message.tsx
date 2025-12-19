@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { fetchUserById } from "../services/userService";
 import { getUserId } from "../services/authService";
@@ -24,8 +24,6 @@ const Message: React.FC = () => {
    */
   const { userId: toUserID, projectId: projectID } = useParams<{ userId: string; projectId: string }>();
   const [user, setUser] = useState<User | null>(null);
-  const [sending, setSending] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const loggedInUserId = getUserId();
   
   // Use the new TypeScript hook
@@ -119,7 +117,7 @@ const Message: React.FC = () => {
    */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, messagesEndRef]);
 
 
   /**
@@ -192,11 +190,6 @@ const Message: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {error && (
-        <div className="error-message">
-          <p>{error}</p>
-        </div>
-      )}
 
       <div className="message-input">
         <textarea

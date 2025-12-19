@@ -1,9 +1,9 @@
 import { api, handleApiError, setAccessToken, clearAccessToken, refreshToken as refreshAccessToken } from '../lib/apiClient.ts';
-import { ENDPOINTS, JWT_CONFIG } from '../config';
+import { ENDPOINTS } from '../config';
 import { EmailRequest } from '../models/email.ts';
 import { ResetPasswordModel, ChangePasswordModel } from '../models/password.ts';
 import { LoginModel, UserModel } from '../models/user.ts';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 
 // Define interfaces for type safety
 export interface AuthToken {

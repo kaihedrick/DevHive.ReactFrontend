@@ -145,9 +145,11 @@ export const sendProjectInviteEmail = async (email, projectName, inviterName, pr
   return sendEmail(emailData);
 };
 
-export default {
+const mailService = {
   sendEmail,
   sendPasswordResetEmail,
   sendWelcomeEmail,
   sendProjectInviteEmail
 };
+
+export default mailService;
