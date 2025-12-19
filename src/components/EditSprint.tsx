@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { fetchSprintById, updateSprint, deleteSprint } from "../services/sprintService";
+import { useSprint, useUpdateSprint, useDeleteSprint } from "../hooks/useSprints.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { useToast } from "../contexts/ToastContext.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -24,39 +24,39 @@ const EditSprint: React.FC = () => {
   const [description, setDescription] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
 
+  // TanStack Query hooks
+  const { data: sprintData, isLoading: loading, error: sprintError } = useSprint(sprintId);
+  const updateSprintMutation = useUpdateSprint();
+  const deleteSprintMutation = useDeleteSprint();
+
   // Progressive Disclosure + Affordance scroll indicators
   const containerRef = useScrollIndicators([sprintName, startDate, endDate]);
 
+  // Load sprint data into form fields when data is available
   useEffect(() => {
-    const loadSprintDetails = async () => {
-      try {
-        setLoading(true);
-        const sprintData = await fetchSprintById(sprintId!);
-        setSprintName(sprintData.name || "");
-        setDescription(sprintData.description || "");
-        // Convert ISO date strings to YYYY-MM-DD format for date inputs
-        if (sprintData.startDate) {
-          setStartDate(sprintData.startDate.split("T")[0]);
-        }
-        if (sprintData.endDate) {
-          setEndDate(sprintData.endDate.split("T")[0]);
-        }
-      } catch (err: any) {
-        showError(err.message || "Failed to load sprint details.");
-      } finally {
-        setLoading(false);
+    if (sprintData) {
+      setSprintName(sprintData.name || "");
+      setDescription(sprintData.description || "");
+      // Convert ISO date strings to YYYY-MM-DD format for date inputs
+      if (sprintData.startDate) {
+        setStartDate(sprintData.startDate.split("T")[0]);
       }
-    };
-
-    if (sprintId) {
-      loadSprintDetails();
+      if (sprintData.endDate) {
+        setEndDate(sprintData.endDate.split("T")[0]);
+      }
     }
-  }, [sprintId]);
+  }, [sprintData]);
+
+  // Show error from TanStack Query
+  useEffect(() => {
+    if (sprintError) {
+      showError(String(sprintError) || "Failed to load sprint details.");
+    }
+  }, [sprintError, showError]);
 
   const handleUpdateSprint = async (): Promise<void> => {
     if (!sprintName.trim() || !startDate || !endDate) {
@@ -72,11 +72,14 @@ const EditSprint: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      await updateSprint(sprintId!, {
-        name: sprintName.trim(),
-        description: description.trim() || `Sprint: ${sprintName.trim()}`,
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString(),
+      await updateSprintMutation.mutateAsync({
+        sprintId: sprintId!,
+        sprintData: {
+          name: sprintName.trim(),
+          description: description.trim() || `Sprint: ${sprintName.trim()}`,
+          startDate: new Date(startDate).toISOString(),
+          endDate: new Date(endDate).toISOString(),
+        }
       });
 
       showSuccess("Sprint updated successfully");
@@ -97,7 +100,7 @@ const EditSprint: React.FC = () => {
     setIsDeleting(true);
 
     try {
-      await deleteSprint(sprintId!);
+      await deleteSprintMutation.mutateAsync(sprintId!);
       showSuccess("Sprint deleted successfully");
       navigate("/backlog");
     } catch (err: any) {

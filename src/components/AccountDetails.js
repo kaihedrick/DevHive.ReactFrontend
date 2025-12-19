@@ -4,7 +4,7 @@ import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import "../styles/account_details.css";
 import "../styles/create_sprint.css"; // Reuse Sprint page layout + fields
 import { getSelectedProject } from "../services/storageService";
-import { fetchProjectMembers } from "../services/projectService";
+import { useProjectMembers } from "../hooks/useProjects.ts";
 /**
  * AccountDetails Component
  *
@@ -69,12 +69,21 @@ const AccountDetails = () => {
   const [usernameSuccess, setUsernameSuccess] = useState("");
 
   const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
-  const [projectMembers, setProjectMembers] = useState([]);
   const [selectedNewOwner, setSelectedNewOwner] = useState("");
   const [reassignError, setReassignError] = useState("");
 
   const selectedProjectId = getSelectedProject();
   const hasSelectedProject = !!selectedProjectId;
+
+  // TanStack Query hook for project members
+  const { data: membersData } = useProjectMembers(selectedProjectId);
+  
+  // Extract and filter members (exclude current user)
+  const projectMembers = React.useMemo(() => {
+    if (!membersData) return [];
+    const members = membersData.members || membersData || [];
+    return members.filter((member) => member.id !== user?.id);
+  }, [membersData, user?.id]);
 
   // Use scroll indicators hook for Progressive Disclosure + Affordance
   // Only include dependencies that actually change DOM structure/height
@@ -93,22 +102,8 @@ const AccountDetails = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (showLeaveConfirmation && hasSelectedProject) {
-      fetchMembersForProject(); // Use a renamed function to avoid confusion
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showLeaveConfirmation, hasSelectedProject]);
-
-  const fetchMembersForProject = async () => {
-    try {
-      const response = await fetchProjectMembers(selectedProjectId); // Use the imported function
-      const members = response.members || response || [];
-      setProjectMembers(members.filter((member) => member.id !== user?.id)); // Exclude the current user
-    } catch (err) {
-      console.error("❌ Error fetching project members:", err);
-    }
-  };
+  // Members are now loaded via TanStack Query hook above
+  // No need for useEffect or fetchMembersForProject function
 
   const handlePasswordChangeClick = () => {
     setShowPasswordChange(true);

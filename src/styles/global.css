@@ -326,7 +326,7 @@ body.has-topbar main {
 
 body.has-topbar .content {
   padding-top: var(--navbar-height-mobile) !important; /* Push page content below fixed topbar */
-  margin-top: 0 !important;
+    margin-top: 0 !important;
 }
 
 /* Mobile-first responsive adjustments */

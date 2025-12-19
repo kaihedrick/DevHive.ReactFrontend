@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { fetchProjectMembers } from "../services/projectService";
-import { fetchProjectSprints } from "../services/sprintService";
-import { fetchProjectTasksWithAssignees, fetchTaskById, updateTask, assignTask } from "../services/taskService";
 import { getSelectedProject } from "../services/storageService";
+import { useSprints } from "../hooks/useSprints.ts";
+import { useProjectMembers } from "../hooks/useProjects.ts";
+import { useSprintTasks, useTask, useUpdateTask } from "../hooks/useTasks.ts";
 import useBacklogActions from "../hooks/useBacklogActions.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft, faCheck, faXmark, faPenToSquare, faPlus, faTimes, faExclamationTriangle, faExclamationCircle, faEllipsisVertical, faChevronLeft, faCog } from "@fortawesome/free-solid-svg-icons";
@@ -29,30 +29,57 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
   
   const { handleUpdateTaskStatus } = useBacklogActions();
 
-  const [sprints, setSprints] = useState<Sprint[]>([]);
+  // UI state only
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [members, setMembers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [isEditingTask, setIsEditingTask] = useState<string | null>(null);
   const [editedDescription, setEditedDescription] = useState<string>("");
   const [selectedTaskForEdit, setSelectedTaskForEdit] = useState<Task | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState<boolean>(false);
   const selectedProjectId = projectId || getSelectedProject();
 
-  const handleSprintClick = async (sprint: Sprint): Promise<void> => {
-    setSelectedSprint(sprint);
-    setLoading(true);
-    try {
-      const fetchedTasks = await fetchProjectTasksWithAssignees(selectedProjectId);
-      const tasksArray = Array.isArray(fetchedTasks) ? fetchedTasks : [];
-      const sprintTasks = tasksArray.filter((task: Task) => task.sprintId === sprint.id);
-      setTasks(sprintTasks);
-    } catch (err: any) {
-      showError("Failed to fetch sprint tasks.");
-    } finally {
-      setLoading(false);
+  // TanStack Query hooks for data fetching
+  const { data: sprintsData, isLoading: sprintsLoading, error: sprintsError } = useSprints(selectedProjectId);
+  const { data: membersData, isLoading: membersLoading, error: membersError } = useProjectMembers(selectedProjectId);
+  const { data: tasksData, isLoading: tasksLoading, error: tasksError } = useSprintTasks(selectedSprint?.id || null);
+  
+  // Mutation hooks
+  const updateTaskMutation = useUpdateTask();
+
+  // Extract data arrays from TanStack Query responses
+  const sprints: Sprint[] = useMemo(() => {
+    if (!sprintsData) return [];
+    return sprintsData.sprints || sprintsData || [];
+  }, [sprintsData]);
+
+  const members: User[] = useMemo(() => {
+    if (!membersData) return [];
+    return membersData.members || membersData || [];
+  }, [membersData]);
+
+  const tasks: Task[] = useMemo(() => {
+    if (!tasksData) return [];
+    return tasksData.tasks || tasksData || [];
+  }, [tasksData]);
+
+  // Combine loading states
+  const loading = sprintsLoading || membersLoading || tasksLoading;
+
+  // Show errors from TanStack Query hooks
+  useEffect(() => {
+    if (sprintsError) {
+      showError(`Failed to load sprints: ${sprintsError}`);
     }
+    if (membersError) {
+      showError(`Failed to load members: ${membersError}`);
+    }
+    if (tasksError) {
+      showError(`Failed to load tasks: ${tasksError}`);
+    }
+  }, [sprintsError, membersError, tasksError, showError]);
+
+  const handleSprintClick = (sprint: Sprint): void => {
+    setSelectedSprint(sprint);
+    // Tasks will automatically load via useSprintTasks hook when selectedSprint changes
   };
 
   // Status cycling function
@@ -91,59 +118,34 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
     setInspectorOpen(true);
   };
 
+  // Handle URL params for sprintId to restore sprint view
   useEffect(() => {
     if (!selectedProjectId) {
       showError("No Project ID found. Please select a project.");
-      setLoading(false);
       return;
     }
 
-    const loadSprintsAndMembers = async (): Promise<void> => {
-      try {
-        setLoading(true);
-        const sprintsResponse = await fetchProjectSprints(selectedProjectId);
-        const membersResponse = await fetchProjectMembers(selectedProjectId);
-        const sprintsArray = Array.isArray(sprintsResponse.sprints) ? sprintsResponse.sprints : 
-                            Array.isArray(sprintsResponse) ? sprintsResponse : [];
-        setSprints(sprintsArray);
-        setMembers(Array.isArray(membersResponse.members) ? membersResponse.members : 
-                  Array.isArray(membersResponse) ? membersResponse : []);
-        
-        // Check URL params for sprintId to restore sprint view
-        const queryParams = new URLSearchParams(location.search);
-        const sprintIdFromUrl = queryParams.get('sprintId');
-        if (sprintIdFromUrl && sprintsArray.length > 0) {
-          const sprintToSelect = sprintsArray.find((s: Sprint) => s.id === sprintIdFromUrl);
-          if (sprintToSelect) {
-            // Automatically select the sprint and load its tasks
-            await handleSprintClick(sprintToSelect);
-            // Clean up URL params after restoring state
-            navigate('/backlog', { replace: true });
-          }
-        }
-      } catch (err: any) {
-        showError(err.message || "An error occurred while fetching data.");
-      } finally {
-        setLoading(false);
+    // Check URL params for sprintId to restore sprint view
+    const queryParams = new URLSearchParams(location.search);
+    const sprintIdFromUrl = queryParams.get('sprintId');
+    if (sprintIdFromUrl && sprints.length > 0 && !selectedSprint) {
+      const sprintToSelect = sprints.find((s: Sprint) => s.id === sprintIdFromUrl);
+      if (sprintToSelect) {
+        // Automatically select the sprint (tasks will load via useSprintTasks)
+        setSelectedSprint(sprintToSelect);
+        // Clean up URL params after restoring state
+        navigate('/backlog', { replace: true });
       }
-    };
-
-    loadSprintsAndMembers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProjectId, location.search]);
+    }
+  }, [selectedProjectId, location.search, sprints, selectedSprint, navigate, showError]);
 
   const handleStatusChange = async (task: Task, newStatus: number): Promise<void> => {
     try {
       await handleUpdateTaskStatus(task, newStatus);
-      const updatedTask = { ...task, status: newStatus };
-      setTasks(prevTasks => 
-        prevTasks.map(t => 
-          t.id === task.id ? updatedTask : t
-        )
-      );
-      // Update selectedTaskForEdit if inspector is open for this task
+      // Cache invalidation handled automatically by mutation/WebSocket
+      // Update selectedTaskForEdit optimistically for immediate UI feedback
       if (selectedTaskForEdit?.id === task.id) {
-        setSelectedTaskForEdit(updatedTask);
+        setSelectedTaskForEdit({ ...task, status: newStatus });
       }
       showSuccess(`Task status updated to ${newStatus === 0 ? 'To Do' : newStatus === 1 ? 'In Progress' : 'Completed'}`);
     } catch (err: any) {
@@ -155,25 +157,18 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
     try {
       console.log("🔄 Updating assignee for task:", task.id, "to assignee:", newAssigneeId);
       
-      if (newAssigneeId === '' || newAssigneeId === null) {
-        // Handle unassignment - we might need to implement unassignTask or use updateTask
-        console.log("📤 Unassigning task:", task.id);
-        await updateTask(task.id, { assigneeId: null });
-      } else {
-        // Use assignTask for proper assignee assignment
-        console.log("📤 Assigning task:", task.id, "to user:", newAssigneeId);
-        await assignTask(task.id, newAssigneeId);
-      }
+      // Convert empty string to null for unassignment
+      const assigneeValue = newAssigneeId === '' || newAssigneeId === null ? null : newAssigneeId;
       
-      const updatedTask = { ...task, assigneeId: newAssigneeId || null };
-      setTasks(prevTasks => 
-        prevTasks.map(t => 
-          t.id === task.id ? updatedTask : t
-        )
-      );
-      // Update selectedTaskForEdit if inspector is open for this task
+      await updateTaskMutation.mutateAsync({ 
+        taskId: task.id, 
+        taskData: { assigneeId: assigneeValue } 
+      });
+      
+      // Cache invalidation handled automatically by mutation/WebSocket
+      // Update selectedTaskForEdit optimistically for immediate UI feedback
       if (selectedTaskForEdit?.id === task.id) {
-        setSelectedTaskForEdit(updatedTask);
+        setSelectedTaskForEdit({ ...task, assigneeId: assigneeValue });
       }
       showSuccess("Task assignee updated");
     } catch (err: any) {
@@ -185,9 +180,15 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
 
   const handleEditTask = async (taskId: string): Promise<void> => {
     try {
-      const task = await fetchTaskById(taskId);
-      setIsEditingTask(taskId);
-      setEditedDescription(task.description);
+      // Use useTask hook to get task data (will use cache if available)
+      // For now, find task from current tasks list
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        setIsEditingTask(taskId);
+        setEditedDescription(task.description);
+      } else {
+        showError("Task not found.");
+      }
     } catch (err: any) {
       showError("Failed to load task for editing.");
     }
@@ -195,12 +196,11 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
 
   const handleSaveEdit = async (taskId: string): Promise<void> => {
     try {
-      await updateTask(taskId, { description: editedDescription });
-      setTasks(prevTasks => 
-        prevTasks.map(t => 
-          t.id === taskId ? { ...t, description: editedDescription } : t
-        )
-      );
+      await updateTaskMutation.mutateAsync({ 
+        taskId, 
+        taskData: { description: editedDescription } 
+      });
+      // Cache invalidation handled automatically by mutation/WebSocket
       setIsEditingTask(null);
       setEditedDescription("");
       showSuccess("Task updated successfully");
@@ -226,14 +226,10 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
     navigate(`/edit-sprint/${sprint.id}`);
   };
 
+  // Refetch function for backward compatibility (TanStack Query handles this automatically)
   const refreshSprints = async (): Promise<void> => {
-    try {
-      const sprintsData = await fetchProjectSprints(selectedProjectId);
-      setSprints(sprintsData.sprints || sprintsData || []);
-    } catch (err: any) {
-      console.error("Error refreshing sprints:", err);
-      showError("Failed to refresh sprints");
-    }
+    // TanStack Query automatically refetches when query key changes
+    // This function exists for interface compatibility only
   };
 
 
@@ -516,17 +512,12 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
         onAssigneeChange={handleAssigneeChange}
         onDescriptionUpdate={async (taskId: string, description: string) => {
           try {
-            await updateTask(taskId, { description });
+            await updateTaskMutation.mutateAsync({ taskId, taskData: { description } });
+            // Cache invalidation handled automatically by mutation/WebSocket
+            // Update selectedTaskForEdit optimistically for immediate UI feedback
             const updatedTask = tasks.find(t => t.id === taskId);
-            if (updatedTask) {
-              const taskWithNewDescription = { ...updatedTask, description };
-              setTasks(prevTasks => 
-                prevTasks.map(t => t.id === taskId ? taskWithNewDescription : t)
-              );
-              // Update selectedTaskForEdit if inspector is open for this task
-              if (selectedTaskForEdit?.id === taskId) {
-                setSelectedTaskForEdit(taskWithNewDescription);
-              }
+            if (updatedTask && selectedTaskForEdit?.id === taskId) {
+              setSelectedTaskForEdit({ ...updatedTask, description });
             }
           } catch (err: any) {
             showError("Failed to update task description.");

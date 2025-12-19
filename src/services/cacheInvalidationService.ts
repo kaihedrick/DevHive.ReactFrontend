@@ -185,9 +185,10 @@ class CacheInvalidationService {
         }
         break;
       case 'reconnect':
-        // On reconnect, invalidate all caches and refetch
-        console.log('🔄 Cache invalidation reconnected, invalidating all caches');
-        queryClient.invalidateQueries();
+        // On reconnect, DON'T invalidate all caches - WebSocket reconnection doesn't mean data changed
+        // Only invalidate when backend explicitly sends cache_invalidate messages
+        console.log('🔄 Cache invalidation WebSocket reconnected - keeping existing cache');
+        // Cache remains valid until backend explicitly invalidates via cache_invalidate message
         break;
       case 'pong':
         // Heartbeat response - ignore

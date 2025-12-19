@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getSelectedProject } from "../services/projectService";
-import { fetchProjectMembers } from "../services/projectService";
-import { useSprintManagement } from "../hooks/useSprintManagement";
-import { useTaskManagement } from "../hooks/useTaskManagement";
+import { useProjectMembers } from "../hooks/useProjects.ts";
+import { useSprintManagement } from "../hooks/useSprintManagement.ts";
+import { useTaskManagement } from "../hooks/useTaskManagement.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft, faExclamationTriangle, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_task.css";
@@ -45,25 +45,30 @@ const CreateTask = () => {
   const [description, setDescription] = useState("");
   const [assigneeID, setAssigneeID] = useState("");
   const [sprintID, setSprintID] = useState(preselectedSprintId || "");
-  const [members, setMembers] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [membersLoading, setMembersLoading] = useState(false);
 
   // Get the selected project ID
   const selectedProjectId = getSelectedProject();
   
-  // Initialize hooks
+  // TanStack Query hooks
+  const { data: membersData, isLoading: membersLoading, error: membersError } = useProjectMembers(selectedProjectId);
   const { 
     sprints, 
     loading: sprintsLoading, 
     error: sprintError 
-  } = useSprintManagement(selectedProjectId);
+  } = useSprintManagement(selectedProjectId || '');
   
   const { 
     handleCreateTask, 
     error: taskError
-  } = useTaskManagement(selectedProjectId);
+  } = useTaskManagement(selectedProjectId || '');
+  
+  // Extract members array from response
+  const members = React.useMemo(() => {
+    if (!membersData) return [];
+    return membersData.members || membersData || [];
+  }, [membersData]);
   
   // Handle and display errors from hooks
   useEffect(() => {
@@ -79,33 +84,13 @@ const CreateTask = () => {
       setTimeout(() => setErrorMessage(""), 3000);
     }
   }, [taskError]);
-  
-  // Fetch project members
+
   useEffect(() => {
-    if (!selectedProjectId) {
-      setErrorMessage("No Project ID found. Please select a project.");
-      return;
+    if (membersError) {
+      setErrorMessage(`Members error: ${membersError}`);
+      setTimeout(() => setErrorMessage(""), 3000);
     }
-
-    const loadMembers = async () => {
-      try {
-        setMembersLoading(true);
-        console.log("🔄 Fetching project members...");
-        const projectMembers = await fetchProjectMembers(selectedProjectId);
-        console.log("✅ Members Loaded:", projectMembers);
-        
-        setMembers(projectMembers || []);
-        setErrorMessage("");
-      } catch (error) {
-        console.error("❌ Error loading project members:", error);
-        setErrorMessage(`Failed to load project members: ${error.message || "Unknown error"}`);
-      } finally {
-        setMembersLoading(false);
-      }
-    };
-
-    loadMembers();
-  }, [selectedProjectId]);
+  }, [membersError]);
 
   const handleCreateTaskSubmit = async () => {
     // Check if all required fields are filled

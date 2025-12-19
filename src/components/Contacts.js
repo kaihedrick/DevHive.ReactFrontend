@@ -1,83 +1,45 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchProjectMembers } from "../services/projectService";
-import { fetchUserById } from "../services/userService";
 import { getSelectedProject } from "../services/storageService";
+import { useProjectMembers } from "../hooks/useProjects.ts";
 import "../styles/contacts.css";
 /**
  * Contacts Component
  *
  * Displays a list of project members excluding the currently logged-in user.
  * Enables navigation to the messaging page when a contact is clicked.
+ * Now uses TanStack Query for caching.
  *
  * @returns {JSX.Element} A styled list of project contacts with avatars and basic info.
  *
- * @state contacts - Stores the filtered list of project members (excluding the current user)
- * @state loading - Indicates whether member data is still being fetched
- * @state error - Stores any error that occurs during fetch operations
- *
- * @hook useEffect - Loads contacts from the selected project on component mount
+ * @hook useProjectMembers - Fetches project members with caching
  * @hook useNavigate - Used to navigate to the messaging page with selected user and project IDs
  *
- * @function loadContacts - Fetches project members and their details, filters out invalid entries
  * @function handleContactClick - Redirects to the messaging route for a specific user
  *
  * @styleOverrides - Injects a style override to apply a consistent secondary background color
  */
 const Contacts = () => {
   const navigate = useNavigate();
-  const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const loggedInUserId = localStorage.getItem("userId"); // Get logged-in user ID
+  const projectId = getSelectedProject();
 
-  const hasFetched = useRef(false);
+  // TanStack Query hook for data fetching
+  const { data: membersData, isLoading: loading, error: queryError } = useProjectMembers(projectId);
 
-  useEffect(() => {
-    if (hasFetched.current) return; // Prevent double fetch in React Strict Mode
-    hasFetched.current = true;
+  // Extract members array from response
+  const members = useMemo(() => {
+    if (!membersData) return [];
+    return membersData.members || membersData || [];
+  }, [membersData]);
 
-    const loadContacts = async () => {
-      setLoading(true);
-      try {
-        const projectId = getSelectedProject();
-        if (!projectId) throw new Error("No project selected.");
+  // Filter out logged-in user
+  const contacts = useMemo(() => {
+    return members.filter((member) => member.id !== loggedInUserId);
+  }, [members, loggedInUserId]);
 
-        console.log(`Fetching members for project: ${projectId}`);
-        const response = await fetchProjectMembers(projectId);
-        const members = response.members || response || [];
-        console.log("Project Members Response:", members);
-
-        // Ensure we only extract user IDs
-        const memberIds = members.map(member => member.id);
-        console.log("Extracted Member IDs:", memberIds);
-
-        // Fetch user details based on IDs
-        const membersDetails = await Promise.all(
-          memberIds.map(async (userId) => {
-            try {
-              return await fetchUserById(userId);
-            } catch (error) {
-              console.error(`Error fetching user details for ${userId}:`, error);
-              return null;
-            }
-          })
-        );
-
-        // Filter out null responses and hide logged-in user
-        const filteredContacts = membersDetails
-          .filter((user) => user !== null && user.id !== loggedInUserId);
-
-        setContacts(filteredContacts);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadContacts();
-  }, [loggedInUserId]); // Depend on loggedInUserId to reload if it changes
+  // Convert error to string for display
+  const error = queryError ? String(queryError) : null;
 
   const handleContactClick = (contactId) => {
     const projectId = getSelectedProject(); // Ensure project ID is used

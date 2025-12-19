@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { fetchProjectSprints } from '../services/sprintService';
-import { fetchSprintTasks, updateTaskStatus, updateTask, assignTask } from '../services/taskService';
-import { fetchProjectMembers } from '../services/projectService';
+import { useState, useEffect, useMemo } from 'react';
+import { useSprints } from './useSprints.ts';
+import { useSprintTasks, useUpdateTask, useUpdateTaskStatus } from './useTasks.ts';
+import { useProjectMembers } from './useProjects.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
 import { UseBoardActionsReturn, Sprint, Task, User } from '../types/hooks.ts';
 
@@ -15,87 +15,76 @@ import { UseBoardActionsReturn, Sprint, Task, User } from '../types/hooks.ts';
  */
 const useBoardActions = (projectId: string): UseBoardActionsReturn => {
   const { showSuccess, showError } = useToast();
-  const [sprints, setSprints] = useState<Sprint[]>([]);
+  
+  // UI state only - TanStack Query manages data state
   const [selectedSprint, setSelectedSprint] = useState<string | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [members, setMembers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Fetch sprints and members on component mount
+  // TanStack Query hooks for data fetching
+  const { data: sprintsData, isLoading: sprintsLoading, error: sprintsError } = useSprints(projectId);
+  const { data: membersData, isLoading: membersLoading, error: membersError } = useProjectMembers(projectId);
+  const { data: tasksData, isLoading: tasksLoading, error: tasksError } = useSprintTasks(selectedSprint);
+  // Note: useSprintTasks already handles enabled internally (enabled: !!sprintId)
+
+  // Mutation hooks
+  const updateTaskMutation = useUpdateTask();
+  const updateTaskStatusMutation = useUpdateTaskStatus();
+
+  // Extract data arrays from TanStack Query responses
+  const sprints: Sprint[] = useMemo(() => {
+    if (!sprintsData) return [];
+    return sprintsData.sprints || sprintsData || [];
+  }, [sprintsData]);
+
+  const members: User[] = useMemo(() => {
+    if (!membersData) return [];
+    return membersData.members || membersData || [];
+  }, [membersData]);
+
+  const tasks: Task[] = useMemo(() => {
+    if (!tasksData) return [];
+    return tasksData.tasks || tasksData || [];
+  }, [tasksData]);
+
+  // Combine loading and error states
+  const loading = sprintsLoading || membersLoading || tasksLoading;
+  const error: string | null = sprintsError ? String(sprintsError) : membersError ? String(membersError) : tasksError ? String(tasksError) : null;
+  
+  // Show errors from TanStack Query hooks
   useEffect(() => {
-    if (!projectId) {
-      setError("No project selected. Please select a project first.");
-      setLoading(false);
-      setSprints([]);
-      setMembers([]);
-      return;
+    if (sprintsError) {
+      showError(`Failed to load sprints: ${sprintsError}`);
     }
-
-    const loadSprintsAndMembers = async (): Promise<void> => {
-      try {
-        setLoading(true);
-        const [sprintsResponse, membersResponse] = await Promise.all([
-          fetchProjectSprints(projectId),
-          fetchProjectMembers(projectId)
-        ]);
-        
-        // Extract sprints and members arrays from paginated responses
-        const sprintsData = sprintsResponse.sprints || sprintsResponse || [];
-        const membersData = membersResponse.members || membersResponse || [];
-        
-        console.log("🔍 Sprints response:", sprintsResponse);
-        console.log("🔍 Extracted sprints data:", sprintsData);
-        console.log("🔍 Is sprints data array?", Array.isArray(sprintsData));
-        
-        setSprints(Array.isArray(sprintsData) ? sprintsData : []);
-        setMembers(Array.isArray(membersData) ? membersData : []);
-        
-        // Set the first sprint as selected by default if available
-        if (sprintsData && sprintsData.length > 0) {
-          setSelectedSprint(sprintsData[0].id);
-          await loadTasks(sprintsData[0].id);
-        } else {
-          setLoading(false);
-        }
-      } catch (err: any) {
-        const errorMsg = "Failed to load data: " + err.message;
-        setError(errorMsg);
-        showError(errorMsg);
-        setLoading(false);
-      }
-    };
-
-    loadSprintsAndMembers();
-  }, [projectId]);
-
-  // Load tasks when selected sprint changes
-  const loadTasks = async (sprintId: string): Promise<void> => {
-    if (!sprintId) return;
-    
-    try {
-      setLoading(true);
-      const response = await fetchSprintTasks(sprintId);
-      
-      // Extract tasks array from the paginated response
-      const tasksData = response.tasks || response || [];
-      setTasks(Array.isArray(tasksData) ? tasksData : []);
-      setLoading(false);
-    } catch (err: any) {
-      const errorMsg = "Failed to load tasks: " + err.message;
-      setError(errorMsg);
+    if (membersError) {
+      showError(`Failed to load members: ${membersError}`);
+    }
+    if (tasksError) {
+      showError(`Failed to load tasks: ${tasksError}`);
+    }
+  }, [sprintsError, membersError, tasksError, showError]);
+  
+  // setError function for backward compatibility (though errors come from TanStack Query now)
+  const setError = (errorMsg: string | null): void => {
+    // Errors are now managed by TanStack Query hooks
+    // This function exists for interface compatibility only
+    if (errorMsg) {
       showError(errorMsg);
-      setLoading(false);
     }
   };
 
+  // Set initial selectedSprint when sprints first load
+  useEffect(() => {
+    if (sprints && sprints.length > 0 && !selectedSprint) {
+      setSelectedSprint(sprints[0].id);
+    }
+  }, [sprints, selectedSprint]);
+
   // Handle sprint selection change
-  const handleSprintChange = async (e: React.ChangeEvent<HTMLSelectElement>): Promise<void> => {
+  const handleSprintChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     const sprintId = e.target.value;
     setSelectedSprint(sprintId);
-    await loadTasks(sprintId);
+    // Tasks will automatically refetch when selectedSprint changes (query key changes)
   };
 
   // Handle assignee change
@@ -107,22 +96,11 @@ const useBoardActions = (projectId: string): UseBoardActionsReturn => {
       // Convert empty string to null for unassigned
       const assigneeValue = newAssigneeId === "" ? null : newAssigneeId;
       
-      if (assigneeValue === null) {
-        // Handle unassignment - use updateTask to set assigneeId to null
-        await updateTask(task.id, { assigneeId: null });
-      } else {
-        // Use assignTask for proper assignee assignment
-        await assignTask(task.id, assigneeValue);
-      }
-      
-      // Update the task in the state
-      setTasks(prevTasks => 
-        prevTasks.map(t => 
-          t.id === task.id 
-            ? { ...t, assigneeId: assigneeValue } // Use assigneeId to match API response
-            : t
-        )
-      );
+      // Use mutation hook - WebSocket will invalidate cache automatically
+      await updateTaskMutation.mutateAsync({
+        taskId: task.id,
+        taskData: { assigneeId: assigneeValue }
+      });
       
       // Show success message
       const successMsg = assigneeValue ? "Task assigned" : "Task unassigned";
@@ -131,7 +109,6 @@ const useBoardActions = (projectId: string): UseBoardActionsReturn => {
     } catch (err: any) {
       console.error("❌ Error updating task assignee:", err);
       const errorMsg = `Failed to update task assignee: ${err.message}`;
-      setError(errorMsg);
       showError(errorMsg);
     }
   };
@@ -147,17 +124,11 @@ const useBoardActions = (projectId: string): UseBoardActionsReturn => {
         throw new Error(`Invalid status value: ${newStatus}. Must be 0, 1, or 2`);
       }
       
-      // Update task status in the backend
-      await updateTaskStatus(taskId, numericStatus);
-      
-      // Update task status in the state
-      setTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === taskId 
-            ? { ...task, status: numericStatus } 
-            : task
-        )
-      );
+      // Use mutation hook - WebSocket will invalidate cache automatically
+      await updateTaskStatusMutation.mutateAsync({
+        taskId,
+        status: numericStatus
+      });
       
       // Show success message
       const statusText = numericStatus === 0 ? 'To Do' : numericStatus === 1 ? 'In Progress' : 'Completed';
@@ -168,7 +139,6 @@ const useBoardActions = (projectId: string): UseBoardActionsReturn => {
       return true;
     } catch (err: any) {
       const errorMsg = `Failed to update task status: ${err.message}`;
-      setError(errorMsg);
       showError(errorMsg);
       return false;
     }

@@ -1,13 +1,15 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { 
-  fetchProjectSprints,
-  createSprint,
-  updateSprint,
-  startSprint,
-  completeSprint,
   checkSprintDateOverlap,
   getDisabledDates
 } from '../services/sprintService';
+import { 
+  useSprints,
+  useCreateSprint,
+  useUpdateSprint,
+  useStartSprint,
+  useCompleteSprint
+} from './useSprints.ts';
 import { 
   UseSprintManagementReturn, 
   Sprint, 
@@ -19,60 +21,62 @@ import {
  * useSprintManagement
  *
  * Custom hook for managing sprints in a given project.
+ * Now uses TanStack Query for caching and data management.
  *
  * @param {string} projectId - The ID of the project whose sprints are being managed
  * @returns {UseSprintManagementReturn} Sprint state and handler functions
  */
 export const useSprintManagement = (projectId: string): UseSprintManagementReturn => {
-  const [sprints, setSprints] = useState<Sprint[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  // UI state only - TanStack Query manages data state
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
 
+  // TanStack Query hooks for data fetching
+  const { data: sprintsData, isLoading, error: queryError } = useSprints(projectId, { limit: 100, offset: 0 });
+  
+  // Mutation hooks
+  const createSprintMutation = useCreateSprint();
+  const updateSprintMutation = useUpdateSprint();
+  const startSprintMutation = useStartSprint();
+  const completeSprintMutation = useCompleteSprint();
+
+  // Extract sprints array from response
+  const sprints: Sprint[] = useMemo(() => {
+    if (!sprintsData) return [];
+    return sprintsData.sprints || sprintsData || [];
+  }, [sprintsData]);
+
+  // Convert error to string for compatibility
+  const error: string | null = queryError ? String(queryError) : null;
+
   // Sort sprints by start date (earliest first)
-  const sortedSprints = sprints.length > 0 
-    ? [...sprints].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-    : [];
+  const sortedSprints = useMemo(() => {
+    return sprints.length > 0 
+      ? [...sprints].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+      : [];
+  }, [sprints]);
 
   // Find next sprint to start (not started and earliest date)
-  const nextSprintToStart = sortedSprints.find(sprint => 
-    !sprint.isStarted && new Date(sprint.startDate) >= new Date()
-  ) || null;
+  const nextSprintToStart = useMemo(() => {
+    return sortedSprints.find(sprint => 
+      !sprint.isStarted && new Date(sprint.startDate) >= new Date()
+    ) || null;
+  }, [sortedSprints]);
 
   // Active sprint (started but not completed)
-  const activeSprint = sortedSprints.find(sprint => 
-    sprint.isStarted && !sprint.isCompleted
-  ) || null;
+  const activeSprint = useMemo(() => {
+    return sortedSprints.find(sprint => 
+      sprint.isStarted && !sprint.isCompleted
+    ) || null;
+  }, [sortedSprints]);
 
-  const fetchSprints = useCallback(async (): Promise<void> => {
-    if (!projectId) {
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      setLoading(true);
-      const response = await fetchProjectSprints(projectId, { limit: 100, offset: 0 });
-      setSprints(response.sprints || []);
-      setError(null);
-    } catch (err: any) {
-      // Check if this is an auth error (401)
-      if (err.response && err.response.status === 401) {
-        console.error("Authentication error when fetching sprints:", err);
-        setError("Your session has expired. Please log in again.");
-      } else {
-        setError(err.message || "Failed to load sprints");
-        console.error("Error fetching sprints:", err);
-      }
-      setSprints([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId]);
+  // Refetch function for backward compatibility (TanStack Query handles this automatically)
+  const fetchSprints = async (): Promise<void> => {
+    // TanStack Query automatically refetches when query key changes
+    // This function exists for interface compatibility only
+  };
 
   const handleCreateSprint = async (sprintData: CreateSprintData): Promise<{ success: boolean; error?: string }> => {
     try {
-      setLoading(true);
       // Transform data for Go/PostgreSQL API
       const payload = {
         name: sprintData.name,
@@ -81,26 +85,17 @@ export const useSprintManagement = (projectId: string): UseSprintManagementRetur
         endDate: sprintData.endDate
       };
       
-      await createSprint(projectId, payload);
-      await fetchSprints(); // Refresh sprints after creation
+      await createSprintMutation.mutateAsync({ projectId, sprintData: payload });
+      // Cache invalidation handled automatically by mutation
       return { success: true };
     } catch (err: any) {
-      // Check if this is an auth error
-      if (err.response && err.response.status === 401) {
-        setError("Your session has expired. Please log in again.");
-      } else {
-        setError(err.message || "Failed to create sprint");
-      }
       console.error("Error creating sprint:", err);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
+      return { success: false, error: err.message || "Failed to create sprint" };
     }
   };
 
   const handleUpdateSprint = async (sprintData: UpdateSprintData): Promise<{ success: boolean; error?: string }> => {
     try {
-      setLoading(true);
       // Transform data for Go/PostgreSQL API
       const payload = {
         name: sprintData.name,
@@ -109,45 +104,34 @@ export const useSprintManagement = (projectId: string): UseSprintManagementRetur
         endDate: sprintData.endDate
       };
       
-      await updateSprint(sprintData.id, payload);
-      await fetchSprints(); // Refresh sprints after update
+      await updateSprintMutation.mutateAsync({ sprintId: sprintData.id, sprintData: payload });
+      // Cache invalidation handled automatically by mutation
       return { success: true };
     } catch (err: any) {
-      setError(err.message || "Failed to update sprint");
       console.error("Error updating sprint:", err);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
+      return { success: false, error: err.message || "Failed to update sprint" };
     }
   };
 
   const handleStartSprint = async (sprintId: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      setLoading(true);
-      await startSprint(sprintId);
-      await fetchSprints(); // Refresh sprints after starting
+      await startSprintMutation.mutateAsync(sprintId);
+      // Cache invalidation handled automatically by mutation
       return { success: true };
     } catch (err: any) {
-      setError(err.message || "Failed to start sprint");
       console.error("Error starting sprint:", err);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
+      return { success: false, error: err.message || "Failed to start sprint" };
     }
   };
 
   const handleCompleteSprint = async (sprintId: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      setLoading(true);
-      await completeSprint(sprintId);
-      await fetchSprints(); // Refresh sprints after completing
+      await completeSprintMutation.mutateAsync(sprintId);
+      // Cache invalidation handled automatically by mutation
       return { success: true };
     } catch (err: any) {
-      setError(err.message || "Failed to complete sprint");
       console.error("Error completing sprint:", err);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
+      return { success: false, error: err.message || "Failed to complete sprint" };
     }
   };
 
@@ -170,10 +154,6 @@ export const useSprintManagement = (projectId: string): UseSprintManagementRetur
   const getSprintDisabledDates = (currentSprintId?: string): Array<{ start: Date; end: Date }> => {
     return getDisabledDates(sprints, currentSprintId);
   };
-
-  useEffect(() => {
-    fetchSprints();
-  }, [fetchSprints]);
 
   return {
     sprints,

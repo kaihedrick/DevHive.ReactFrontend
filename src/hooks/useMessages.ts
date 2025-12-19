@@ -22,8 +22,8 @@ export const useMessages = (projectId: string | null | undefined, options?: { li
     queryKey: messageKeys.project(projectId || ''),
     queryFn: () => fetchProjectMessages(projectId!, options),
     enabled: !!projectId, // Only run query if projectId is provided
-    staleTime: 30 * 1000, // 30 seconds - messages are more real-time
-    refetchInterval: 60 * 1000, // Refetch every minute for real-time feel
+    staleTime: Infinity, // Messages are updated via WebSocket, no need to refetch automatically
+    // Removed refetchInterval - WebSocket handles real-time updates via cache invalidation
   });
 };
 
