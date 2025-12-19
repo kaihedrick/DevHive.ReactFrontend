@@ -1,7 +1,7 @@
 // TaskService.js
 // This module handles task-related API calls for DevHive task management.
 
-import { api } from '../lib/apiClient';
+import { api } from '../lib/apiClient.ts';
 import { ENDPOINTS } from '../config';
 
 /**

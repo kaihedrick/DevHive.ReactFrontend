@@ -1,7 +1,7 @@
 // ProjectService.js
 // This module handles project-related API calls for DevHive project management.
 
-import { api } from '../lib/apiClient';
+import { api } from '../lib/apiClient.ts';
 import { ENDPOINTS } from '../config';
 import { normalizeProjects } from '../utils/normalize.js';
 

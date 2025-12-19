@@ -1,5 +1,5 @@
 // src/services/mailService.js
-import { api } from '../lib/apiClient';
+import { api } from '../lib/apiClient.ts';
 import { ENDPOINTS } from '../config';
 
 /**

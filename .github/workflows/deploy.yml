@@ -20,12 +20,12 @@ jobs:
 
       # If your React app is in a subfolder, set working-directory: frontend
       - name: Set up Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '20.x'
 
       - name: Install deps
-        run: npm ci || npm install --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       - name: Build
         run: CI=false npm run build
