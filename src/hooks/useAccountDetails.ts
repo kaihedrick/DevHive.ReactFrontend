@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { fetchUserById, updateUserProfile } from "../services/userService.ts";
+import { updateUserProfile } from "../services/userService.ts";
 import { getUserId, clearAuth, validateUsername } from "../services/authService.ts";
 import { getSelectedProject, clearSelectedProject } from "../services/storageService";
-import { leaveProject, isProjectOwner, updateProjectOwner, fetchProjectMembers } from "../services/projectService";
+import { leaveProject, isProjectOwner, updateProjectOwner } from "../services/projectService";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "./useUsers.ts";
 import { User } from "../types/hooks";
 
 export interface LeaveProjectState {
@@ -34,8 +35,8 @@ export interface UseAccountDetailsReturn {
  */
 const useAccountDetails = (): UseAccountDetailsReturn => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const userId = getUserId();
+  const { data: user, isLoading: loading, error: queryError } = useUser(userId);
   const [error, setError] = useState<string | null>(null);
   const [leaveProjectState, setLeaveProjectState] = useState<LeaveProjectState>({
     loading: false,
@@ -44,36 +45,18 @@ const useAccountDetails = (): UseAccountDetailsReturn => {
   });
 
   useEffect(() => {
-    const fetchUserData = async (): Promise<void> => {
-      const userId = getUserId();
+    if (!userId) {
+      console.error("No user ID found, redirecting to login...");
+      navigate("/");
+      return;
+    }
 
-      if (!userId) {
-        console.error("No user ID found, redirecting to login...");
-        navigate("/");
-        return;
-      }
-
-      try {
-        console.log("🔍 Fetching account details...");
-        const userData = await fetchUserById(userId);
-        console.log("User data loaded:", userData);
-        
-        if (userData && typeof userData === 'object') {
-          setUser(userData);
-        } else {
-          console.error("❌ Invalid user data format:", userData);
-          setError("Invalid user data format received.");
-        }
-      } catch (err: any) {
-        console.error("❌ Error fetching user details:", err.message);
-        setError("Failed to load account details.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [navigate]);
+    if (queryError) {
+      setError("Failed to load account details.");
+    } else {
+      setError(null);
+    }
+  }, [userId, queryError, navigate]);
 
   const handleGoBack = (): void => {
     console.log("🔙 Returning to the previous page...");

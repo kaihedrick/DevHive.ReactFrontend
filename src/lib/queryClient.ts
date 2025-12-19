@@ -6,10 +6,10 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh
+      staleTime: Infinity, // Cache never goes stale - invalidate only via WebSocket
       gcTime: 24 * 60 * 60 * 1000, // 24 hours - cache retention (formerly cacheTime)
       refetchOnWindowFocus: false, // Prevent refetch on tab focus
-      refetchOnReconnect: false, // Prevent refetch on network reconnect
+      refetchOnReconnect: false, // Prevent refetch on network reconnect (WebSocket handles this)
       refetchOnMount: false, // Prevent refetch on component mount if data exists
       retry: 1, // Retry failed requests once
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff

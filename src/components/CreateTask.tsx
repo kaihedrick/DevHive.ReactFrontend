@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getSelectedProject } from "../services/storageService";
-import { fetchProjectMembers } from "../services/projectService";
+import { useProjectMembers } from "../hooks/useProjects.ts";
 import { useSprintManagement } from "../hooks/useSprintManagement.ts";
 import { useTaskManagement } from "../hooks/useTaskManagement.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -33,9 +33,7 @@ const CreateTask: React.FC = () => {
   const [description, setDescription] = useState<string>("");
   const [assigneeID, setAssigneeID] = useState<string>("");
   const [sprintID, setSprintID] = useState<string>(preselectedSprintId || "");
-  const [members, setMembers] = useState<User[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [membersLoading, setMembersLoading] = useState<boolean>(false);
 
   // Progressive Disclosure + Affordance scroll indicators
   const containerRef = useScrollIndicators([description, sprintID, assigneeID]);
@@ -55,6 +53,15 @@ const CreateTask: React.FC = () => {
     error: taskError
   } = useTaskManagement(selectedProjectId || '');
   
+  // Use TanStack Query hook for project members
+  const { data: membersData, isLoading: membersLoading, error: membersError } = useProjectMembers(selectedProjectId);
+  
+  // Extract members array from response
+  const members: User[] = useMemo(() => {
+    if (!membersData) return [];
+    return membersData.members || membersData || [];
+  }, [membersData]);
+  
   // Handle and display errors from hooks
   useEffect(() => {
     if (sprintError) {
@@ -68,32 +75,11 @@ const CreateTask: React.FC = () => {
     }
   }, [taskError, showError]);
   
-  // Fetch project members
   useEffect(() => {
-    if (!selectedProjectId) {
-      showError("No Project ID found. Please select a project.");
-      return;
+    if (membersError) {
+      showError(`Failed to load members: ${membersError.message}`);
     }
-
-    const loadMembers = async (): Promise<void> => {
-      try {
-        setMembersLoading(true);
-        console.log("🔄 Fetching project members...");
-        const response = await fetchProjectMembers(selectedProjectId);
-        const projectMembers = response.members || response || [];
-        console.log("✅ Members Loaded:", projectMembers);
-        
-        setMembers(projectMembers);
-      } catch (error: any) {
-        console.error("❌ Error fetching members:", error);
-        showError(`Failed to load members: ${error.message}`);
-      } finally {
-        setMembersLoading(false);
-      }
-    };
-
-    loadMembers();
-  }, [selectedProjectId, showError]);
+  }, [membersError, showError]);
 
   // Guard against no project selected (after all hooks)
   if (!selectedProjectId) {

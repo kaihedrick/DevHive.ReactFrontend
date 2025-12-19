@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth.ts';
 import useRoutePermission from '../hooks/useRoutePermission';
+import LoadingFallback from './LoadingFallback.tsx';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -17,15 +18,22 @@ interface ProtectedRouteProps {
  */
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const { isRouteAllowed } = useRoutePermission();
   
   // Debug logging
   useEffect(() => {
     console.log("ProtectedRoute - Current path:", location.pathname);
     console.log("ProtectedRoute - isAuthenticated:", isAuthenticated);
+    console.log("ProtectedRoute - isLoading:", isLoading);
     console.log("ProtectedRoute - isRouteAllowed:", isRouteAllowed);
-  }, [location.pathname, isAuthenticated, isRouteAllowed]);
+  }, [location.pathname, isAuthenticated, isLoading, isRouteAllowed]);
+
+  // Wait for auth initialization to complete before making decisions
+  if (isLoading) {
+    console.log("⏳ Auth state loading, waiting...");
+    return <LoadingFallback />;
+  }
 
   // If not authenticated, redirect to login
   if (!isAuthenticated) {

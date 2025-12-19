@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { fetchUserById, updateUserProfile } from "../services/userService.ts";
+import { updateUserProfile } from "../services/userService.ts";
 import { getUserId, clearAuth, validateUsername } from "../services/authService.ts";
 import { getSelectedProject, clearSelectedProject } from "../services/storageService";
-import { leaveProject, isProjectOwner, updateProjectOwner, fetchProjectMembers } from "../services/projectService";
+import { leaveProject, isProjectOwner, updateProjectOwner } from "../services/projectService";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "./useUsers.ts";
 /**
  * useAccountDetails
  *
@@ -23,8 +24,8 @@ import { useNavigate } from "react-router-dom";
 */
 const useAccountDetails = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const userId = getUserId();
+  const { data: user, isLoading: loading, error: queryError } = useUser(userId);
   const [error, setError] = useState(null);
   const [leaveProjectState, setLeaveProjectState] = useState({
     loading: false,
@@ -33,30 +34,18 @@ const useAccountDetails = () => {
   });
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const userId = getUserId();
+    if (!userId) {
+      console.error("No user ID found, redirecting to login...");
+      navigate("/");
+      return;
+    }
 
-      if (!userId) {
-        console.error("No user ID found, redirecting to login...");
-        navigate("/");
-        return;
-      }
-
-      try {
-        console.log("🔍 Fetching account details...");
-        const userData = await fetchUserById(userId);
-        console.log("User data loaded:", userData);
-        setUser(userData);
-      } catch (err) {
-        console.error("❌ Error fetching user details:", err.message);
-        setError("Failed to load account details.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [navigate]);
+    if (queryError) {
+      setError("Failed to load account details.");
+    } else {
+      setError(null);
+    }
+  }, [userId, queryError, navigate]);
 
   const handleGoBack = () => {
     console.log("🔙 Returning to the previous page...");

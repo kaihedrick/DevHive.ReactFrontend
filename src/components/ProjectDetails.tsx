@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faCrown, faRightFromBracket, faTimes, faCheck } from "@fortawesome/free-solid-svg-icons";
-import { useProject } from "../hooks/useProject.ts";
+import { useProject } from "../hooks/useProjects.ts";
 import { useProjectMembers } from "../hooks/useProjectMembers.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { getSelectedProject, setSelectedProject } from "../services/storageService";
@@ -34,10 +34,10 @@ const ProjectDetails: React.FC = () => {
     };
   }, [finalProjectId]);
   
-  const { project, loading: projectLoading, error: projectError, refreshProject } = useProject(finalProjectId || '');
+  const { data: project, isLoading: projectLoading, error: projectError, refetch: refreshProject } = useProject(finalProjectId || '');
   const { members, loading: membersLoading, error: membersError, isCurrentUserOwner, kickMember } = useProjectMembers(
     finalProjectId || '',
-    project?.ownerId || (project as any)?.projectOwnerID
+    project?.ownerId || (project as any)?.projectOwnerID || ''
   );
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -52,7 +52,7 @@ const ProjectDetails: React.FC = () => {
   const loggedInUserId = localStorage.getItem("userId");
   
   // Progressive Disclosure + Affordance scroll indicators
-  const containerRef = useScrollIndicators([members.length, isEditing, showKickModal]);
+  const containerRef = useScrollIndicators([members?.length || 0, isEditing, showKickModal]);
 
   // Owner check (keep existing approach)
   const isOwner = useMemo(() => {
@@ -298,7 +298,7 @@ const ProjectDetails: React.FC = () => {
             </div>
           ) : (
             <div className="members-list">
-              {members.map((member: ProjectMember) => (
+              {(members || []).map((member: ProjectMember) => (
                 <div key={member.id} className="member-item">
                   <div className="member-info">
                     <span className="member-name">{member.name}</span>

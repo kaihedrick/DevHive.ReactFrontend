@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { fetchTaskById, updateTask } from "../services/taskService";
-import { fetchProjectMembers, fetchProjectSprints } from "../services/projectService";
 import { getSelectedProject } from "../services/storageService";
-import { fetchProjectSprints as fetchSprints } from "../services/sprintService";
+import { useTask } from "../hooks/useTasks.ts";
+import { useProjectMembers } from "../hooks/useProjects.ts";
+import { useSprints } from "../hooks/useSprints.ts";
+import { useUpdateTask } from "../hooks/useTasks.ts";
 import "../styles/create_task.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
-import { Task, User, Sprint } from "../types/hooks.ts";
+import { User, Sprint } from "../types/hooks.ts";
 
 /**
  * EditTask Component
@@ -21,49 +22,54 @@ const EditTask: React.FC = () => {
   const location = useLocation();
   
   const previousPage = location.state?.from || "/backlog";
-  const sprint = location.state?.sprint || null;
 
   const [description, setDescription] = useState<string>("");
   const [assigneeID, setAssigneeID] = useState<string>("");
   const [sprintID, setSprintID] = useState<string>("");
-  const [members, setMembers] = useState<User[]>([]);
-  const [sprints, setSprints] = useState<Sprint[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
 
   const selectedProjectId = getSelectedProject();
 
+  // Use TanStack Query hooks
+  const { data: task, isLoading: taskLoading, error: taskError } = useTask(taskId);
+  const { data: membersData, isLoading: membersLoading, error: membersError } = useProjectMembers(selectedProjectId);
+  const { data: sprintsData, isLoading: sprintsLoading, error: sprintsError } = useSprints(selectedProjectId);
+  const updateTaskMutation = useUpdateTask();
+
+  // Extract data from responses
+  const members: User[] = useMemo(() => {
+    if (!membersData) return [];
+    return membersData.members || membersData || [];
+  }, [membersData]);
+
+  const sprints: Sprint[] = useMemo(() => {
+    if (!sprintsData) return [];
+    return sprintsData.sprints || sprintsData || [];
+  }, [sprintsData]);
+
+  const loading = taskLoading || membersLoading || sprintsLoading;
+
+  // Initialize form fields when task data loads
   useEffect(() => {
-    const loadTaskData = async (): Promise<void> => {
-      if (!taskId || !selectedProjectId) {
-        setErrorMessage("Missing task ID or project ID");
-        setLoading(false);
-        return;
-      }
+    if (task) {
+      setDescription(task.description || "");
+      setAssigneeID(task.assigneeId || "");
+      setSprintID(task.sprintId || "");
+    }
+  }, [task]);
 
-      try {
-        setLoading(true);
-        
-        const [task, membersResponse, sprintsResponse] = await Promise.all([
-          fetchTaskById(taskId),
-          fetchProjectMembers(selectedProjectId),
-          fetchSprints(selectedProjectId)
-        ]);
-
-        setDescription(task.description);
-        setAssigneeID(task.assigneeId || "");
-        setSprintID(task.sprintId || "");
-        setMembers(membersResponse.members || membersResponse || []);
-        setSprints(sprintsResponse.sprints || sprintsResponse || []);
-      } catch (error: any) {
-        setErrorMessage(error.message || "Failed to load task data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTaskData();
-  }, [taskId, selectedProjectId]);
+  // Handle errors
+  useEffect(() => {
+    if (taskError) {
+      setErrorMessage(taskError.message || "Failed to load task data");
+    } else if (membersError) {
+      setErrorMessage("Failed to load project members");
+    } else if (sprintsError) {
+      setErrorMessage("Failed to load sprints");
+    } else {
+      setErrorMessage("");
+    }
+  }, [taskError, membersError, sprintsError]);
 
   const handleUpdateTask = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -79,10 +85,13 @@ const EditTask: React.FC = () => {
     }
 
     try {
-      await updateTask(taskId, {
-        description: description.trim(),
-        assigneeId: assigneeID || null,
-        sprintId: sprintID || null
+      await updateTaskMutation.mutateAsync({
+        taskId,
+        taskData: {
+          description: description.trim(),
+          assigneeId: assigneeID || null,
+          sprintId: sprintID || null
+        }
       });
 
       navigate(previousPage);

@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRotateLeft, faCheck, faTimes, faExclamationCircle, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import useAccountDetails from "../hooks/useAccountDetails.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import "../styles/account_details.css";
@@ -46,7 +43,6 @@ import { fetchProjectMembers } from "../services/projectService";
  * @accessibility All input fields use proper labels or placeholders
  */
 const AccountDetails = () => {
-  const navigate = useNavigate();
   const {
     user,
     loading,
@@ -101,6 +97,7 @@ const AccountDetails = () => {
     if (showLeaveConfirmation && hasSelectedProject) {
       fetchMembersForProject(); // Use a renamed function to avoid confusion
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showLeaveConfirmation, hasSelectedProject]);
 
   const fetchMembersForProject = async () => {

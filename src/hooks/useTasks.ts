@@ -30,7 +30,7 @@ export const useProjectTasks = (projectId: string | null | undefined, options?: 
     queryKey: taskKeys.project(projectId || ''),
     queryFn: () => fetchProjectTasks(projectId!, options),
     enabled: !!projectId, // Only run query if projectId is provided
-    staleTime: 1 * 60 * 1000, // 1 minute - tasks change more frequently
+    // No staleTime - uses Infinity from queryClient
   });
 };
 
@@ -45,7 +45,7 @@ export const useSprintTasks = (sprintId: string | null | undefined, options?: { 
     queryKey: taskKeys.sprint(sprintId || ''),
     queryFn: () => fetchSprintTasks(sprintId!, options),
     enabled: !!sprintId, // Only run query if sprintId is provided
-    staleTime: 1 * 60 * 1000, // 1 minute
+    // No staleTime - uses Infinity from queryClient
   });
 };
 
@@ -59,7 +59,7 @@ export const useTask = (taskId: string | null | undefined) => {
     queryKey: taskKeys.detail(taskId || ''),
     queryFn: () => fetchTaskById(taskId!),
     enabled: !!taskId, // Only run query if taskId is provided
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    // No staleTime - uses Infinity from queryClient
   });
 };
 

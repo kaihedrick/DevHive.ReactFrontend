@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
-import { fetchUserProjects } from "../services/projectService";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { setSelectedProject, clearSelectedProject } from "../services/storageService";
+import { useProjects } from "../hooks/useProjects.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCog, faBars } from "@fortawesome/free-solid-svg-icons";
 import ProjectInspector from "./ProjectInspector.tsx";
@@ -16,53 +16,24 @@ interface Project {
 }
 
 const Projects: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Project | null>(null);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
   const navigate = useNavigate();
+  const { data: projectsData, isLoading: loading, error: queryError, refetch: refreshProjects } = useProjects();
 
-  const hasFetched = useRef(false);
+  // Extract projects array from response
+  const projects: Project[] = Array.isArray(projectsData) ? projectsData : (projectsData?.projects || []);
+  const error = queryError ? "We couldn't load your projects. Please try again." : null;
 
   useEffect(() => {
     // Clear selected project when entering projects list
     clearSelectedProject();
   }, []);
 
-  useEffect(() => {
-    if (hasFetched.current) return; // Prevent double fetch in React Strict Mode
-    hasFetched.current = true;
-
-    const loadProjects = async () => {
-      try {
-        const data = await fetchUserProjects();
-        setProjects(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error(err);
-        setError("We couldn't load your projects. Please try again.");
-        setProjects([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProjects();
-  }, []);
-
   const handleCreateProject = () => navigate("/create-project");
   const handleJoinProject = () => navigate("/join-group");
   const handleAccountDetails = () => navigate("/account-details");
-
-  const refreshProjects = async () => {
-    try {
-      const data = await fetchUserProjects();
-      setProjects(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Error refreshing projects:", err);
-    }
-  };
 
   const handleProjectClick = (project: Project) => {
     setSelectedProject(project.id);

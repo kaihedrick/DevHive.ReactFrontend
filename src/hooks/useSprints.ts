@@ -29,7 +29,7 @@ export const useSprints = (projectId: string | null | undefined, options?: { lim
     queryKey: sprintKeys.list(projectId || '', options),
     queryFn: () => fetchProjectSprints(projectId!, options),
     enabled: !!projectId, // Only run query if projectId is provided
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    // No staleTime - uses Infinity from queryClient
   });
 };
 
@@ -43,7 +43,7 @@ export const useSprint = (sprintId: string | null | undefined) => {
     queryKey: sprintKeys.detail(sprintId || ''),
     queryFn: () => fetchSprintById(sprintId!),
     enabled: !!sprintId, // Only run query if sprintId is provided
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    // No staleTime - uses Infinity from queryClient
   });
 };
 

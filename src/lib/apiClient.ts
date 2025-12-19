@@ -1,6 +1,10 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL, ENDPOINTS } from '../config';
 
+// Token expiration tracking
+const TOKEN_EXPIRATION_KEY = 'tokenExpiration';
+const TOKEN_VALIDITY_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 // In-memory storage for access token (not localStorage for security)
 let accessToken: string | null = null;
 let isRefreshing = false;
@@ -33,14 +37,48 @@ export const api = axios.create({
 // Get access token from memory
 export const getAccessToken = (): string | null => accessToken;
 
+// Check if token is expired
+export const isTokenExpired = (): boolean => {
+  const expirationTimestamp = localStorage.getItem(TOKEN_EXPIRATION_KEY);
+  if (!expirationTimestamp) {
+    // No expiration timestamp - consider expired if token exists (legacy token)
+    return !!localStorage.getItem('token');
+  }
+  
+  const expirationTime = parseInt(expirationTimestamp, 10);
+  const now = Date.now();
+  
+  // Token is expired if current time is past expiration time
+  return now > expirationTime;
+};
+
+// Check if token is expired beyond 24-hour window
+export const isTokenExpiredBeyondWindow = (): boolean => {
+  const expirationTimestamp = localStorage.getItem(TOKEN_EXPIRATION_KEY);
+  if (!expirationTimestamp) {
+    return true; // No expiration timestamp means token is invalid
+  }
+  
+  const expirationTime = parseInt(expirationTimestamp, 10);
+  const now = Date.now();
+  const windowEnd = expirationTime + TOKEN_VALIDITY_DURATION;
+  
+  // Token is expired beyond 24-hour window if current time is past window end
+  return now > windowEnd;
+};
+
 // Set access token in memory
 export const setAccessToken = (token: string | null): void => {
   accessToken = token;
   // Also update localStorage for backward compatibility during migration
   if (token) {
     localStorage.setItem('token', token);
+    // Store expiration timestamp (24 hours from now)
+    const expirationTime = Date.now() + TOKEN_VALIDITY_DURATION;
+    localStorage.setItem(TOKEN_EXPIRATION_KEY, expirationTime.toString());
   } else {
     localStorage.removeItem('token');
+    localStorage.removeItem(TOKEN_EXPIRATION_KEY);
   }
 };
 
@@ -49,6 +87,7 @@ export const clearAccessToken = (): void => {
   accessToken = null;
   localStorage.removeItem('token');
   localStorage.removeItem('userId');
+  localStorage.removeItem(TOKEN_EXPIRATION_KEY);
 };
 
 // Refresh token function
@@ -85,8 +124,25 @@ api.interceptors.request.use(
       (config.method === 'post' && config.url?.endsWith('/users') && !config.url?.includes('/users/'));
     
     if (!isPublicAuthEndpoint) {
+      // Check if token is expired beyond 24-hour window
+      if (isTokenExpiredBeyondWindow()) {
+        console.warn('⚠️ Token expired beyond 24-hour window, clearing auth state');
+        clearAccessToken();
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
+        }
+        return Promise.reject(new Error('Token expired'));
+      }
+      
       const token = getAccessToken() || localStorage.getItem('token');
       if (token) {
+        // Check if token is expired (but within 24-hour window - allow refresh)
+        if (isTokenExpired() && !isRefreshing) {
+          // Token expired but within window - attempt refresh in background
+          // Don't block the request, let the response interceptor handle it
+          console.log('⚠️ Token expired, will attempt refresh on 401');
+        }
+        
         config.headers.Authorization = `Bearer ${token}`;
         // Initialize in-memory token if it exists in localStorage
         if (!accessToken) {

@@ -6,6 +6,7 @@ import {
   updateProject,
   deleteProject,
   joinProjectByCode,
+  fetchProjectMembers,
 } from '../services/projectService';
 
 // Query keys
@@ -26,7 +27,7 @@ export const useProjects = (options?: { limit?: number; offset?: number }) => {
   return useQuery({
     queryKey: projectKeys.list(options),
     queryFn: () => fetchUserProjects(options),
-    staleTime: 2 * 60 * 1000, // 2 minutes - projects list changes less frequently
+    // No staleTime - uses Infinity from queryClient
   });
 };
 
@@ -40,7 +41,7 @@ export const useProject = (projectId: string | null | undefined) => {
     queryKey: projectKeys.detail(projectId || ''),
     queryFn: () => fetchProjectById(projectId!),
     enabled: !!projectId, // Only run query if projectId is provided
-    staleTime: 5 * 60 * 1000, // 5 minutes - project details change less frequently
+    // No staleTime - uses Infinity from queryClient
   });
 };
 
@@ -113,5 +114,19 @@ export const useJoinProject = () => {
         queryClient.setQueryData(projectKeys.detail(data.id), data);
       }
     },
+  });
+};
+
+/**
+ * Hook to fetch project members for a project
+ * @param projectId The project ID
+ * @returns Query result with project members data
+ */
+export const useProjectMembers = (projectId: string | null | undefined) => {
+  return useQuery({
+    queryKey: ['projectMembers', projectId],
+    queryFn: () => fetchProjectMembers(projectId!),
+    enabled: !!projectId, // Only run query if projectId is provided
+    // No staleTime - uses Infinity from queryClient
   });
 };
