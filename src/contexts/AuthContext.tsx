@@ -70,9 +70,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = useCallback(async (credentials: LoginModel | any): Promise<AuthToken> => {
     try {
       const result = await loginService(credentials);
+      // Ensure we have userId from the result
+      const userId = result.userId || result.user_id || localStorage.getItem('userId');
       setIsAuthenticated(true);
-      setUserId(result.userId);
-      return result;
+      setUserId(userId);
+      // Return in AuthToken format
+      return { Token: result.token || result.Token, userId };
     } catch (error) {
       setIsAuthenticated(false);
       setUserId(null);

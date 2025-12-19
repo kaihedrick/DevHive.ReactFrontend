@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login, register, validateEmail } from '../services/authService';
+import { useAuthContext } from '../contexts/AuthContext.tsx';
+import { register, validateEmail } from '../services/authService';
 import { 
   LoginModel, 
   RegistrationFormModel,
@@ -39,6 +40,7 @@ interface LoginRegisterState {
  * @property {string | null} emailValidationStatus - Email validation result: "success", "error", or null.
  */
 const useLoginRegisterNew = () => {
+  const { login: loginFromContext } = useAuthContext();
   const [state, setState] = useState<LoginRegisterState>({
     action: 'Login',
     credentials: createEmptyRegistrationForm(),
@@ -159,7 +161,8 @@ const useLoginRegisterNew = () => {
           password: state.credentials.Password
         };
         
-        await login(loginCredentials as LoginModel);
+        // Use AuthContext login to update auth state
+        await loginFromContext(loginCredentials as LoginModel);
         updateState({ success: true, successType: 'login', error: '' });
         navigate('/projects');
       } else {

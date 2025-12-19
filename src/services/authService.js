@@ -1,5 +1,5 @@
 //authService.js
-import { api, handleApiError } from '../lib/apiClient.ts';
+import { api, handleApiError, setAccessToken } from '../lib/apiClient.ts';
 import { ENDPOINTS } from '../config';
 import { sendPasswordResetEmail } from './mailService';
 
@@ -79,12 +79,15 @@ export const login = async (credentials) => {
 
     const authToken = token || Token;
     if (authToken && userId) {
+      // Store in localStorage (for backward compatibility)
       storeAuthData(authToken, userId);
-      console.log('✅ Login successful');
+      // Also update in-memory token in apiClient
+      setAccessToken(authToken);
+      console.log('✅ Login successful - token stored in localStorage and memory');
     } else {
       console.warn('⚠️ Login response missing token or userId:', response.data);
     }
-    return response.data;
+    return { token: authToken, userId, Token: authToken };
   } catch (error) {
     const errorDetails = {
       message: error.message,
