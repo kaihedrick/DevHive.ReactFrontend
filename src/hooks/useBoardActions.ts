@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSprints } from './useSprints.ts';
-import { useSprintTasks, useUpdateTask, useUpdateTaskStatus } from './useTasks.ts';
+import { useSprintTasks, useUpdateTask, useUpdateTaskStatus, taskKeys } from './useTasks.ts';
 import { useProjectMembers } from './useProjects.ts';
 import { useToast } from '../contexts/ToastContext.tsx';
 import { UseBoardActionsReturn, Sprint, Task, User } from '../types/hooks.ts';
@@ -15,6 +16,7 @@ import { UseBoardActionsReturn, Sprint, Task, User } from '../types/hooks.ts';
  */
 const useBoardActions = (projectId: string): UseBoardActionsReturn => {
   const { showSuccess, showError } = useToast();
+  const queryClient = useQueryClient();
   
   // UI state only - TanStack Query manages data state
   const [selectedSprint, setSelectedSprint] = useState<string | null>(null);
@@ -96,7 +98,22 @@ const useBoardActions = (projectId: string): UseBoardActionsReturn => {
       // Convert empty string to null for unassigned
       const assigneeValue = newAssigneeId === "" ? null : newAssigneeId;
       
-      // Use mutation hook - WebSocket will invalidate cache automatically
+      // Optimistically update the task in the current sprint tasks cache immediately
+      if (selectedSprint) {
+        queryClient.setQueryData(
+          taskKeys.sprint(selectedSprint),
+          (oldData: any) => {
+            if (!oldData) return oldData;
+            const tasks = oldData.tasks || oldData || [];
+            const updatedTasks = tasks.map((t: Task) => 
+              t.id === task.id ? { ...t, assigneeId: assigneeValue } : t
+            );
+            return { ...oldData, tasks: updatedTasks };
+          }
+        );
+      }
+      
+      // Use mutation hook - will update cache and WebSocket will also invalidate
       await updateTaskMutation.mutateAsync({
         taskId: task.id,
         taskData: { assigneeId: assigneeValue }
@@ -110,6 +127,10 @@ const useBoardActions = (projectId: string): UseBoardActionsReturn => {
       console.error("❌ Error updating task assignee:", err);
       const errorMsg = `Failed to update task assignee: ${err.message}`;
       showError(errorMsg);
+      // Revert optimistic update on error
+      if (selectedSprint) {
+        queryClient.invalidateQueries({ queryKey: taskKeys.sprint(selectedSprint) });
+      }
     }
   };
 
@@ -124,7 +145,25 @@ const useBoardActions = (projectId: string): UseBoardActionsReturn => {
         throw new Error(`Invalid status value: ${newStatus}. Must be 0, 1, or 2`);
       }
       
-      // Use mutation hook - WebSocket will invalidate cache automatically
+      // Find the task in current tasks to get its current data
+      const currentTask = tasks.find(t => t.id === taskId);
+      
+      // Optimistically update the task in the current sprint tasks cache immediately
+      if (selectedSprint && currentTask) {
+        queryClient.setQueryData(
+          taskKeys.sprint(selectedSprint),
+          (oldData: any) => {
+            if (!oldData) return oldData;
+            const tasksList = oldData.tasks || oldData || [];
+            const updatedTasks = tasksList.map((t: Task) => 
+              t.id === taskId ? { ...t, status: numericStatus } : t
+            );
+            return { ...oldData, tasks: updatedTasks };
+          }
+        );
+      }
+      
+      // Use mutation hook - will update cache and WebSocket will also invalidate
       await updateTaskStatusMutation.mutateAsync({
         taskId,
         status: numericStatus
@@ -140,6 +179,10 @@ const useBoardActions = (projectId: string): UseBoardActionsReturn => {
     } catch (err: any) {
       const errorMsg = `Failed to update task status: ${err.message}`;
       showError(errorMsg);
+      // Revert optimistic update on error
+      if (selectedSprint) {
+        queryClient.invalidateQueries({ queryKey: taskKeys.sprint(selectedSprint) });
+      }
       return false;
     }
   };

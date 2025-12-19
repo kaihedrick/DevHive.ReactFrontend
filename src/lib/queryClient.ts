@@ -34,6 +34,12 @@ persistQueryClient({
   persister: localStoragePersister,
   maxAge: 24 * 60 * 60 * 1000, // 24 hours
   buster: '', // Cache version - increment to bust cache
+  dehydrateOptions: {
+    // Only persist queries that have data
+    shouldDehydrateQuery: (query) => {
+      return query.state.data !== undefined;
+    },
+  },
 });
 
 export default queryClient;

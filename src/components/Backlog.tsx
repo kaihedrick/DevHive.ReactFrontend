@@ -162,7 +162,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
       
       await updateTaskMutation.mutateAsync({ 
         taskId: task.id, 
-        taskData: { assigneeId: assigneeValue } 
+        taskData: { assigneeId: assigneeValue }
       });
       
       // Cache invalidation handled automatically by mutation/WebSocket

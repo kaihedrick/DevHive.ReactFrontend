@@ -52,7 +52,7 @@ const useBacklogActions = () => {
       console.log(`🔄 Updating assignee for Task ID: ${task.id} to User ID: ${newAssigneeId}`);
       await updateTaskMutation.mutateAsync({ 
         taskId: task.id, 
-        taskData: { assigneeId: newAssigneeId } 
+        taskData: { assigneeId: newAssigneeId }
       });
       console.log(`✅ Task ${task.id} assignee updated successfully`);
       // Cache invalidation handled automatically by mutation

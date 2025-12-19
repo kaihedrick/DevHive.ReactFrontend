@@ -74,12 +74,38 @@ export const useCreateTask = () => {
     mutationFn: ({ projectId, taskData }: { projectId: string; taskData: any }) =>
       createTask(projectId, taskData),
     onSuccess: (data, variables) => {
-      // Invalidate project tasks list
-      queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
-      // If task has sprintId, invalidate sprint tasks too
-      if (variables.taskData.sprintId) {
-        queryClient.invalidateQueries({ queryKey: taskKeys.sprint(variables.taskData.sprintId) });
+      // Response now includes complete Assignee object
+      const sprintId = data.sprintId;
+      const projectId = data.projectId;
+      
+      // Add to sprint tasks list if sprintId exists
+      if (sprintId) {
+        queryClient.setQueriesData(
+          { queryKey: taskKeys.sprint(sprintId) },
+          (oldData: any) => {
+            if (!oldData) return [data];
+            const isArray = Array.isArray(oldData);
+            const tasks = isArray ? oldData : (oldData.tasks || []);
+            return isArray ? [...tasks, data] : { ...oldData, tasks: [...tasks, data] };
+          }
+        );
       }
+      
+      // Add to project tasks list
+      if (projectId) {
+        queryClient.setQueriesData(
+          { queryKey: taskKeys.project(projectId) },
+          (oldData: any) => {
+            if (!oldData) return [data];
+            const isArray = Array.isArray(oldData);
+            const tasks = isArray ? oldData : (oldData.tasks || []);
+            return isArray ? [...tasks, data] : { ...oldData, tasks: [...tasks, data] };
+          }
+        );
+      }
+      
+      // Invalidate lists for consistency
+      queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
     },
   });
 };
@@ -95,9 +121,46 @@ export const useUpdateTask = () => {
     mutationFn: ({ taskId, taskData }: { taskId: string; taskData: any }) =>
       updateTask(taskId, taskData),
     onSuccess: (data, variables) => {
-      // Update the specific task in cache
+      // Update task detail cache with complete response
       queryClient.setQueryData(taskKeys.detail(variables.taskId), data);
-      // Invalidate all task lists (we don't know projectId/sprintId here)
+      
+      // SprintID is now always in response - use directly
+      const sprintId = data.sprintId;
+      const projectId = data.projectId;
+      
+      // Update sprint tasks list if sprintId exists
+      if (sprintId) {
+        queryClient.setQueriesData(
+          { queryKey: taskKeys.sprint(sprintId) },
+          (oldData: any) => {
+            if (!oldData) return oldData;
+            const isArray = Array.isArray(oldData);
+            const tasks = isArray ? oldData : (oldData.tasks || []);
+            const updatedTasks = tasks.map((task: any) => 
+              task.id === variables.taskId ? data : task
+            );
+            return isArray ? updatedTasks : { ...oldData, tasks: updatedTasks };
+          }
+        );
+      }
+      
+      // Update project tasks list if projectId exists
+      if (projectId) {
+        queryClient.setQueriesData(
+          { queryKey: taskKeys.project(projectId) },
+          (oldData: any) => {
+            if (!oldData) return oldData;
+            const isArray = Array.isArray(oldData);
+            const tasks = isArray ? oldData : (oldData.tasks || []);
+            const updatedTasks = tasks.map((task: any) => 
+              task.id === variables.taskId ? data : task
+            );
+            return isArray ? updatedTasks : { ...oldData, tasks: updatedTasks };
+          }
+        );
+      }
+      
+      // Invalidate all task lists for consistency (WebSocket will also handle this)
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
     },
   });
@@ -114,9 +177,46 @@ export const useUpdateTaskStatus = () => {
     mutationFn: ({ taskId, status }: { taskId: string; status: number }) =>
       updateTaskStatus(taskId, status),
     onSuccess: (data, variables) => {
-      // Update the specific task in cache
+      // Update task detail cache with complete response
       queryClient.setQueryData(taskKeys.detail(variables.taskId), data);
-      // Invalidate all task lists
+      
+      // Use SprintID directly from response
+      const sprintId = data.sprintId;
+      const projectId = data.projectId;
+      
+      // Update sprint tasks list if sprintId exists
+      if (sprintId) {
+        queryClient.setQueriesData(
+          { queryKey: taskKeys.sprint(sprintId) },
+          (oldData: any) => {
+            if (!oldData) return oldData;
+            const isArray = Array.isArray(oldData);
+            const tasks = isArray ? oldData : (oldData.tasks || []);
+            const updatedTasks = tasks.map((task: any) => 
+              task.id === variables.taskId ? data : task
+            );
+            return isArray ? updatedTasks : { ...oldData, tasks: updatedTasks };
+          }
+        );
+      }
+      
+      // Update project tasks list if projectId exists
+      if (projectId) {
+        queryClient.setQueriesData(
+          { queryKey: taskKeys.project(projectId) },
+          (oldData: any) => {
+            if (!oldData) return oldData;
+            const isArray = Array.isArray(oldData);
+            const tasks = isArray ? oldData : (oldData.tasks || []);
+            const updatedTasks = tasks.map((task: any) => 
+              task.id === variables.taskId ? data : task
+            );
+            return isArray ? updatedTasks : { ...oldData, tasks: updatedTasks };
+          }
+        );
+      }
+      
+      // Invalidate all task lists for consistency
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
     },
   });

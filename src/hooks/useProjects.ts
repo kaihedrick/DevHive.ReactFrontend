@@ -8,6 +8,8 @@ import {
   joinProjectByCode,
   fetchProjectMembers,
 } from '../services/projectService';
+import { api } from '../lib/apiClient.ts';
+import { ENDPOINTS } from '../config';
 
 // Query keys
 export const projectKeys = {
@@ -128,5 +130,50 @@ export const useProjectMembers = (projectId: string | null | undefined) => {
     queryFn: () => fetchProjectMembers(projectId!),
     enabled: !!projectId, // Only run query if projectId is provided
     // No staleTime - uses Infinity from queryClient
+  });
+};
+
+/**
+ * Hook to add a member to a project
+ * @returns Mutation hook for adding project members
+ */
+export const useAddProjectMember = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      userId, 
+      role 
+    }: { 
+      projectId: string; 
+      userId: string; 
+      role: string 
+    }) => {
+      // Backend now validates role and rejects "owner"
+      const response = await api.put(
+        `${ENDPOINTS.PROJECT_BY_ID(projectId)}/members/${userId}`,
+        {},
+        { params: { role } }
+      );
+      return response.data;
+    },
+    onError: (error: any) => {
+      // Handle role validation error
+      if (error.response?.status === 400) {
+        const message = error.response?.data?.message || error.message;
+        if (message.includes("Cannot set role to 'owner'") || message.includes("owner")) {
+          console.error("Owner role cannot be assigned via member management");
+          // Error will be handled by component using toast/notification
+        } else if (message.includes("Invalid role")) {
+          console.error("Invalid role. Allowed roles: member, admin, viewer");
+        }
+      }
+      throw error; // Re-throw to allow component handling
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate project members list
+      queryClient.invalidateQueries({ queryKey: ['projectMembers', variables.projectId] });
+    },
   });
 };

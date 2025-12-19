@@ -58,8 +58,16 @@ export const useCreateSprint = () => {
     mutationFn: ({ projectId, sprintData }: { projectId: string; sprintData: any }) =>
       createSprint(projectId, sprintData),
     onSuccess: (data, variables) => {
-      // Invalidate sprints list for the project
-      queryClient.invalidateQueries({ queryKey: sprintKeys.list(variables.projectId) });
+      // Response now includes Owner
+      queryClient.setQueriesData(
+        { queryKey: sprintKeys.list(variables.projectId) },
+        (oldData: any) => {
+          if (!oldData) return [data];
+          const isArray = Array.isArray(oldData);
+          const sprints = isArray ? oldData : (oldData.sprints || []);
+          return isArray ? [...sprints, data] : { ...oldData, sprints: [...sprints, data] };
+        }
+      );
     },
   });
 };
@@ -75,10 +83,22 @@ export const useUpdateSprint = () => {
     mutationFn: ({ sprintId, sprintData }: { sprintId: string; sprintData: any }) =>
       updateSprint(sprintId, sprintData),
     onSuccess: (data, variables) => {
-      // Update the specific sprint in cache
+      // Response now includes Owner
       queryClient.setQueryData(sprintKeys.detail(variables.sprintId), data);
-      // Invalidate sprints lists (we don't know projectId here, so invalidate all)
-      queryClient.invalidateQueries({ queryKey: sprintKeys.lists() });
+      
+      // Update sprints list for the project
+      queryClient.setQueriesData(
+        { queryKey: sprintKeys.list(data.projectId) },
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          const isArray = Array.isArray(oldData);
+          const sprints = isArray ? oldData : (oldData.sprints || []);
+          const updatedSprints = sprints.map((sprint: any) => 
+            sprint.id === variables.sprintId ? data : sprint
+          );
+          return isArray ? updatedSprints : { ...oldData, sprints: updatedSprints };
+        }
+      );
     },
   });
 };
