@@ -7,6 +7,7 @@ import {
   deleteProject,
   joinProjectByCode,
   fetchProjectMembers,
+  removeProjectMember,
 } from '../services/projectService';
 import { api } from '../lib/apiClient.ts';
 import { ENDPOINTS } from '../config';
@@ -191,6 +192,28 @@ export const useAddProjectMember = () => {
     },
     onSuccess: (data, variables) => {
       // Invalidate project members list
+      queryClient.invalidateQueries({ queryKey: ['projectMembers', variables.projectId] });
+    },
+  });
+};
+
+/**
+ * Hook to remove a member from a project
+ * @returns Mutation hook for removing project members
+ */
+export const useRemoveProjectMember = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ 
+      projectId, 
+      userId 
+    }: { 
+      projectId: string; 
+      userId: string; 
+    }) => removeProjectMember(projectId, userId),
+    onSuccess: (data, variables) => {
+      // Invalidate project members list to refetch updated list
       queryClient.invalidateQueries({ queryKey: ['projectMembers', variables.projectId] });
     },
   });

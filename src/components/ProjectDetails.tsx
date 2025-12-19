@@ -2,12 +2,11 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faCrown, faRightFromBracket, faTimes, faCheck, faPlus, faCopy, faTrash, faSpinner, faLink } from "@fortawesome/free-solid-svg-icons";
-import { useProject, useUpdateProject } from "../hooks/useProjects.ts";
-import { useProjectMembers } from "../hooks/useProjectMembers.ts";
+import { useProject, useUpdateProject, useProjectMembers, useRemoveProjectMember } from "../hooks/useProjects.ts";
 import { useProjectInvites, useCreateInvite, useRevokeInvite } from "../hooks/useInvites.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { getSelectedProject, setSelectedProject } from "../services/storageService";
-import { removeProjectMember, deleteProject, leaveProject } from "../services/projectService";
+import { deleteProject, leaveProject } from "../services/projectService";
 import { Project, ProjectMember } from "../types/hooks.ts";
 import ConfirmationModal from "./ConfirmationModal.tsx";
 import { useToast } from "../contexts/ToastContext.tsx";
@@ -39,13 +38,54 @@ const ProjectDetails: React.FC = () => {
   const { data: project, isLoading: projectLoading, error: projectError } = useProject(finalProjectId || '');
   const updateProjectMutation = useUpdateProject();
   const { showSuccess, showError } = useToast();
-  const { members, loading: membersLoading, error: membersError, isCurrentUserOwner, kickMember } = useProjectMembers(
-    finalProjectId || '',
-    project?.ownerId || (project as any)?.projectOwnerID || ''
-  );
+  const { data: membersData, isLoading: membersLoading, error: membersError } = useProjectMembers(finalProjectId || '');
+  const removeMemberMutation = useRemoveProjectMember();
   const { data: invitesData, isLoading: invitesLoading } = useProjectInvites(finalProjectId || '');
   const createInviteMutation = useCreateInvite();
   const revokeInviteMutation = useRevokeInvite();
+  
+  // Get logged-in user ID
+  const loggedInUserId = localStorage.getItem("userId");
+  
+  // Transform members data and calculate ownership
+  const members = useMemo(() => {
+    if (!membersData) return [];
+    
+    // Handle both {members: []} and [] response structures
+    const membersArray = Array.isArray(membersData) ? membersData : (membersData.members || []);
+    const projectOwnerId = project?.ownerId || (project as any)?.projectOwnerID || '';
+    
+    // Format member data with full names
+    const formattedMembers = membersArray.map((member: any): ProjectMember => {
+      // Backend should return full user objects, but handle both cases
+      const firstName = member.firstName || member.FirstName || '';
+      const lastName = member.lastName || member.LastName || '';
+      const name = firstName && lastName ? `${firstName} ${lastName}` : (member.name || member.username || member.Username || 'Unknown');
+      
+      return {
+        id: member.id,
+        name,
+        firstName: firstName,
+        lastName: lastName,
+        username: member.username || member.Username,
+        isOwner: member.id === projectOwnerId,
+      };
+    });
+    
+    // Sort members to ensure the owner is always at the top
+    return formattedMembers.sort((a, b) => {
+      if (a.isOwner) return -1; // Owner comes first
+      if (b.isOwner) return 1;
+      return a.name.localeCompare(b.name); // Sort others alphabetically
+    });
+  }, [membersData, project]);
+  
+  // Calculate if current user is owner
+  const isCurrentUserOwner = useMemo(() => {
+    if (!project || !loggedInUserId) return false;
+    const projectOwnerId = project.ownerId || (project as any)?.projectOwnerID || '';
+    return loggedInUserId === projectOwnerId;
+  }, [project, loggedInUserId]);
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedName, setEditedName] = useState<string>("");
@@ -61,7 +101,7 @@ const ProjectDetails: React.FC = () => {
   const [maxUses, setMaxUses] = useState<number | undefined>(undefined);
   
   // Progressive Disclosure + Affordance scroll indicators
-  const containerRef = useScrollIndicators([members?.length || 0, isEditing, showKickModal, showInvites]);
+  const containerRef = useScrollIndicators([members.length || 0, isEditing, showKickModal, showInvites]);
   
   // Handle creating an invite
   const handleCreateInvite = async (): Promise<void> => {
@@ -172,13 +212,19 @@ const ProjectDetails: React.FC = () => {
   };
 
   const confirmKickMember = async (): Promise<void> => {
-    if (!kickMemberId) return;
+    if (!kickMemberId || !finalProjectId) return;
 
     try {
-      await kickMember(kickMemberId);
+      await removeMemberMutation.mutateAsync({
+        projectId: finalProjectId,
+        userId: kickMemberId
+      });
+      showSuccess("Member removed successfully");
       setShowKickModal(false);
       setKickMemberId(null);
     } catch (error: any) {
+      const errorMsg = error.response?.data?.message || error.message || "Failed to remove member";
+      showError(errorMsg);
       console.error("Error kicking member:", error);
     }
   };
@@ -518,11 +564,11 @@ const ProjectDetails: React.FC = () => {
             </div>
           ) : membersError ? (
             <div className="error-message">
-              <p>Error loading members: {membersError}</p>
+              <p>Error loading members: {membersError.message || 'Failed to load members'}</p>
             </div>
           ) : (
             <div className="members-list">
-              {(members || []).map((member: ProjectMember) => (
+              {members.map((member: ProjectMember) => (
                 <div key={member.id} className="member-item">
                   <div className="member-info">
                     <span className="member-name">{member.name || member.username || `${member.firstName} ${member.lastName}`}</span>
@@ -577,12 +623,6 @@ const ProjectDetails: React.FC = () => {
           )}
         </div>
 
-        {/* Invite Members Button (Alternative method) */}
-        <div className="form-actions">
-          <button type="button" className="secondary-action-btn" onClick={() => navigate('/invite')}>
-            Share Invite Code
-          </button>
-        </div>
 
         {/* Inline danger actions (desktop). We'll hide these on mobile if using the FAB sheet. */}
         <div className="form-actions project-inline-secondary-actions">
