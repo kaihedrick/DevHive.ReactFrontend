@@ -204,6 +204,35 @@ export const startSprint = async (sprintId) => {
 };
 
 /**
+ * Updates sprint status (sets isStarted to true/false).
+ * Uses the new PATCH /sprints/{id}/status endpoint.
+ *
+ * @param {string} sprintId - The ID of the sprint to update
+ * @param {boolean} isStarted - Whether the sprint should be started
+ * @returns {Promise<Object>} - The updated sprint object
+ * @throws {Error} - Throws an error if updating sprint status fails
+ */
+export const updateSprintStatus = async (sprintId, isStarted) => {
+    try {
+        if (!sprintId) {
+            throw new Error("Sprint ID is required");
+        }
+
+        console.log(`📤 Updating sprint status: ${sprintId}, isStarted: ${isStarted}`);
+
+        const response = await api.patch(ENDPOINTS.SPRINT_STATUS(sprintId), {
+            isStarted: isStarted
+        });
+
+        console.log("✅ Sprint status updated successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error updating sprint status:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+/**
  * Completes a sprint (sets isCompleted to true).
  * NOTE: This endpoint (/sprints/{id}/complete) is not in the new API spec.
  * It may need to be replaced with PATCH /sprints/{id} with status update.
@@ -402,6 +431,7 @@ const sprintService = {
     fetchSprintById,
     createSprint,
     updateSprint,
+    updateSprintStatus,
     deleteSprint,
     startSprint,
     completeSprint,

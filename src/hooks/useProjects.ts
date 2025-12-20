@@ -11,6 +11,7 @@ import {
 } from '../services/projectService';
 import { api } from '../lib/apiClient.ts';
 import { ENDPOINTS } from '../config';
+import { getUserId } from '../services/authService.ts';
 
 // Query keys
 export const projectKeys = {
@@ -40,11 +41,42 @@ export const useProjects = (options?: { limit?: number; offset?: number }) => {
  * @returns Query result with project data
  */
 export const useProject = (projectId: string | null | undefined) => {
+  const queryClient = useQueryClient();
+  
   return useQuery({
     queryKey: projectKeys.detail(projectId || ''),
     queryFn: () => fetchProjectById(projectId!),
     enabled: !!projectId, // Only run query if projectId is provided
     // No staleTime - uses Infinity from queryClient
+    retry: (failureCount, error: any) => {
+      // Don't retry on 403 (forbidden) - user was removed from project
+      if (error?.status === 403 || error?.response?.status === 403) {
+        // Remove project from projects list cache
+        const currentUserId = getUserId();
+        if (currentUserId && projectId) {
+          queryClient.setQueriesData(
+            { 
+              queryKey: ['projects', 'list'],
+              exact: false
+            },
+            (oldData: any) => {
+              if (!oldData) return oldData;
+              const isArray = Array.isArray(oldData);
+              const projects = isArray ? oldData : (oldData.projects || []);
+              const filteredProjects = projects.filter((project: any) => project.id !== projectId);
+              return isArray ? filteredProjects : { ...oldData, projects: filteredProjects };
+            }
+          );
+          // Clear selected project if it's the one being accessed
+          const selectedProject = localStorage.getItem('selectedProjectId');
+          if (selectedProject === projectId) {
+            localStorage.removeItem('selectedProjectId');
+          }
+        }
+        return false; // Don't retry
+      }
+      return failureCount < 3; // Retry up to 3 times for other errors
+    },
   });
 };
 
@@ -57,10 +89,32 @@ export const useCreateProject = () => {
 
   return useMutation({
     mutationFn: (projectData: { name: string; description?: string }) =>
-      createProject(projectData),
-    onSuccess: () => {
-      // Invalidate projects list to refetch with new project
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      createProject({
+        name: projectData.name,
+        description: projectData.description || "",
+      }),
+    onSuccess: (data) => {
+      // Directly add the new project to the projects list cache
+      // Use projectKeys.lists() to match all list queries (with or without options)
+      queryClient.setQueriesData(
+        { 
+          queryKey: projectKeys.lists(),
+          exact: false // Match any query that starts with ['projects', 'list']
+        },
+        (oldData: any) => {
+          if (!oldData) return [data];
+          const isArray = Array.isArray(oldData);
+          const projects = isArray ? oldData : (oldData.projects || []);
+          // Add new project to the beginning of the list
+          const updatedProjects = [data, ...projects];
+          return isArray ? updatedProjects : { ...oldData, projects: updatedProjects };
+        }
+      );
+      
+      // Also set the project detail cache
+      if (data?.id) {
+        queryClient.setQueryData(projectKeys.detail(data.id), data);
+      }
     },
   });
 };
@@ -79,11 +133,11 @@ export const useUpdateProject = () => {
       // Update the specific project in cache
       queryClient.setQueryData(projectKeys.detail(variables.projectId), data);
       
-      // Update projects list cache directly (not just invalidate)
+      // Update projects list cache directly
       queryClient.setQueriesData(
         { 
           queryKey: ['projects', 'list'],
-          exact: false // Match any query that starts with this key (including those with options)
+          exact: false
         },
         (oldData: any) => {
           if (!oldData) return oldData;
@@ -95,9 +149,6 @@ export const useUpdateProject = () => {
           return isArray ? updatedProjects : { ...oldData, projects: updatedProjects };
         }
       );
-      
-      // Also invalidate for consistency (WebSocket will also handle this)
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
     },
   });
 };
@@ -111,9 +162,24 @@ export const useDeleteProject = () => {
 
   return useMutation({
     mutationFn: (projectId: string) => deleteProject(projectId),
-    onSuccess: () => {
-      // Invalidate projects list to remove deleted project
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    onSuccess: (_, projectId) => {
+      // Directly remove the project from the projects list cache
+      queryClient.setQueriesData(
+        { 
+          queryKey: projectKeys.lists(),
+          exact: false // Match any query that starts with ['projects', 'list']
+        },
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          const isArray = Array.isArray(oldData);
+          const projects = isArray ? oldData : (oldData.projects || []);
+          const filteredProjects = projects.filter((project: any) => project.id !== projectId);
+          return isArray ? filteredProjects : { ...oldData, projects: filteredProjects };
+        }
+      );
+      
+      // Remove the project detail cache
+      queryClient.removeQueries({ queryKey: projectKeys.detail(projectId) });
     },
   });
 };
@@ -128,12 +194,59 @@ export const useJoinProject = () => {
   return useMutation({
     mutationFn: (projectId: string) => joinProjectByCode(projectId),
     onSuccess: (data) => {
-      // Invalidate projects list to include newly joined project
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
-      // Also update the specific project cache if ID is available
+      // Update the specific project cache
       if (data?.id) {
         queryClient.setQueryData(projectKeys.detail(data.id), data);
       }
+      // Backend WebSocket will handle invalidating projects list
+    },
+  });
+};
+
+/**
+ * Hook to leave a project (remove current user from project)
+ * @returns Mutation hook for leaving projects
+ */
+export const useLeaveProject = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (projectId: string) => {
+      const currentUserId = getUserId();
+      if (!currentUserId) {
+        throw new Error('User ID not found');
+      }
+      return removeProjectMember(projectId, currentUserId);
+    },
+    onSuccess: (_, projectId) => {
+      // Backend WebSocket will send cache invalidation message for project members
+      // No need to invalidate here - backend handles it
+      
+      // Optimistically remove the project from the current user's projects list
+      queryClient.setQueriesData(
+        { 
+          queryKey: ['projects', 'list'],
+          exact: false
+        },
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          const isArray = Array.isArray(oldData);
+          const projects = isArray ? oldData : (oldData.projects || []);
+          const filteredProjects = projects.filter((project: any) => project.id !== projectId);
+          return isArray ? filteredProjects : { ...oldData, projects: filteredProjects };
+        }
+      );
+      
+      // Remove the project detail cache (user can't access it anymore)
+      queryClient.removeQueries({ queryKey: projectKeys.detail(projectId) });
+      
+      // Clear selected project if it's the one being left
+      const selectedProject = localStorage.getItem('selectedProjectId');
+      if (selectedProject === projectId) {
+        localStorage.removeItem('selectedProjectId');
+      }
+      
+      // Backend WebSocket will handle invalidating projects list
     },
   });
 };
@@ -148,7 +261,11 @@ export const useProjectMembers = (projectId: string | null | undefined) => {
     queryKey: ['projectMembers', projectId],
     queryFn: () => fetchProjectMembers(projectId!),
     enabled: !!projectId, // Only run query if projectId is provided
-    // No staleTime - uses Infinity from queryClient
+    staleTime: Infinity, // Explicitly set to Infinity - cache never goes stale
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours - cache retention
+    refetchOnMount: false, // Don't refetch on mount if data exists
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnReconnect: false, // Don't refetch on reconnect (WebSocket handles this)
   });
 };
 
@@ -157,8 +274,6 @@ export const useProjectMembers = (projectId: string | null | undefined) => {
  * @returns Mutation hook for adding project members
  */
 export const useAddProjectMember = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({ 
       projectId, 
@@ -191,8 +306,8 @@ export const useAddProjectMember = () => {
       throw error; // Re-throw to allow component handling
     },
     onSuccess: (data, variables) => {
-      // Invalidate project members list
-      queryClient.invalidateQueries({ queryKey: ['projectMembers', variables.projectId] });
+      // Backend WebSocket will send cache invalidation message
+      // No need to invalidate here - backend handles it
     },
   });
 };
@@ -213,8 +328,35 @@ export const useRemoveProjectMember = () => {
       userId: string; 
     }) => removeProjectMember(projectId, userId),
     onSuccess: (data, variables) => {
-      // Invalidate project members list to refetch updated list
-      queryClient.invalidateQueries({ queryKey: ['projectMembers', variables.projectId] });
+      const currentUserId = getUserId();
+      
+      // Backend WebSocket will send cache invalidation message for project members
+      // No need to invalidate here - backend handles it
+      
+      // If the removed user is the current user, optimistically update projects list
+      if (currentUserId && currentUserId === variables.userId) {
+        queryClient.setQueriesData(
+          { 
+            queryKey: ['projects', 'list'],
+            exact: false
+          },
+          (oldData: any) => {
+            if (!oldData) return oldData;
+            const isArray = Array.isArray(oldData);
+            const projects = isArray ? oldData : (oldData.projects || []);
+            const filteredProjects = projects.filter((project: any) => project.id !== variables.projectId);
+            return isArray ? filteredProjects : { ...oldData, projects: filteredProjects };
+          }
+        );
+        
+        // Clear selected project if it's the one being removed from
+        const selectedProject = localStorage.getItem('selectedProjectId');
+        if (selectedProject === variables.projectId) {
+          localStorage.removeItem('selectedProjectId');
+        }
+        
+        // Backend WebSocket will handle invalidating projects list
+      }
     },
   });
 };

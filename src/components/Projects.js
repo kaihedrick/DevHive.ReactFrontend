@@ -69,9 +69,28 @@ const Projects = () => {
    * confirmDeleteProject
    * 
    * Confirms and deletes the selected project. Refreshes list on success
+   * Only allows deletion if user is the project owner
    */
   const confirmDeleteProject = async () => {
     if (!deleteProjectId) return;
+
+    // Verify user is the owner before allowing delete
+    const projectToDelete = projects?.find(p => p.id === deleteProjectId);
+    if (!projectToDelete) {
+      console.error('❌ Project not found');
+      setShowDeleteModal(false);
+      setDeleteProjectId(null);
+      return;
+    }
+
+    const projectOwnerId = projectToDelete.owner?.id || projectToDelete.ownerId;
+    if (userId !== projectOwnerId) {
+      console.error('❌ Only project owners can delete projects');
+      alert('Only project owners can delete projects.');
+      setShowDeleteModal(false);
+      setDeleteProjectId(null);
+      return;
+    }
 
     try {
       console.log(`🗑️ Confirming deletion of project: ${deleteProjectId}`);
@@ -133,9 +152,6 @@ const Projects = () => {
         <div className="actions">
           <button className="action-btn create-btn" onClick={() => navigate("/create-project")}>
             Create a Project
-          </button>
-          <button className="action-btn join-btn" onClick={() => navigate("/join-group")}>
-            Join a Group
           </button>
           <button className="action-btn account-btn" onClick={() => navigate("/account-details")}>
             Account Details

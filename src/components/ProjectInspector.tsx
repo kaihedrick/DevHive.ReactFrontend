@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
-import { updateProject, deleteProject } from '../services/projectService';
+import { updateProject } from '../services/projectService';
+import { useDeleteProject } from '../hooks/useProjects.ts';
 import ConfirmationModal from './ConfirmationModal.tsx';
 import '../styles/project_inspector.css';
 
@@ -12,6 +13,10 @@ interface Project {
   description?: string;
   created_at?: string;
   updated_at?: string;
+  ownerId?: string;
+  owner?: {
+    id: string;
+  };
 }
 
 interface ProjectInspectorProps {
@@ -39,6 +44,12 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
   const [description, setDescription] = useState<string>('');
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const deleteProjectMutation = useDeleteProject();
+  
+  // Get logged-in user ID and check if user is project owner
+  const loggedInUserId = localStorage.getItem("userId");
+  const projectOwnerId = project?.ownerId || project?.owner?.id;
+  const isOwner = loggedInUserId && projectOwnerId && loggedInUserId === projectOwnerId;
 
   // Update local state when project changes
   useEffect(() => {
@@ -111,10 +122,19 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
   const handleDeleteConfirm = async (): Promise<void> => {
     if (!project) return;
 
+    // Safety check: Only allow deletion if user is the project owner
+    const projectOwnerId = project.ownerId || project.owner?.id;
+    if (!isOwner) {
+      console.error('❌ Only project owners can delete projects');
+      alert('Only project owners can delete projects.');
+      setShowDeleteConfirm(false);
+      return;
+    }
+
     setShowDeleteConfirm(false);
     setIsSaving(true);
     try {
-      await deleteProject(project.id);
+      await deleteProjectMutation.mutateAsync(project.id);
       onDelete();
       
       // Small delay to ensure state updates propagate
@@ -198,39 +218,43 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
             {/* Separator */}
             <div className="project-inspector-separator" />
 
-            {/* Delete Section */}
-            <div className="project-inspector-delete-section">
-              <button
-                className="project-inspector-delete-btn"
-                onClick={handleDeleteClick}
-                disabled={isSaving}
-                type="button"
-              >
-                Delete Project
-              </button>
-            </div>
+            {/* Delete Section - Only visible to project owners */}
+            {isOwner && (
+              <div className="project-inspector-delete-section">
+                <button
+                  className="project-inspector-delete-btn"
+                  onClick={handleDeleteClick}
+                  disabled={isSaving || deleteProjectMutation.isPending}
+                  type="button"
+                >
+                  {deleteProjectMutation.isPending ? 'Deleting...' : 'Delete Project'}
+                </button>
+              </div>
+            )}
 
             {/* Separator */}
             <div className="project-inspector-separator" />
           </div>
 
-          {/* Footer */}
-          <footer className="project-inspector-footer">
-            <button
-              className="inspector-btn inspector-btn--secondary"
-              onClick={onClose}
-              disabled={isSaving}
-            >
-              Cancel
-            </button>
-            <button
-              className="inspector-btn inspector-btn--primary"
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              {isSaving ? 'Saving...' : 'Save'}
-            </button>
-          </footer>
+          {/* Footer - Hide when delete confirmation is shown */}
+          {!showDeleteConfirm && (
+            <footer className="project-inspector-footer">
+              <button
+                className="inspector-btn inspector-btn--secondary"
+                onClick={onClose}
+                disabled={isSaving}
+              >
+                Cancel
+              </button>
+              <button
+                className="inspector-btn inspector-btn--primary"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Saving...' : 'Save'}
+              </button>
+            </footer>
+          )}
         </div>
       </div>
 
@@ -252,5 +276,6 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
 };
 
 export default ProjectInspector;
+
 
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getSelectedProject } from "../services/storageService";
-import { useSprints } from "../hooks/useSprints.ts";
+import { useSprints, useUpdateSprint } from "../hooks/useSprints.ts";
 import { useProjectMembers } from "../hooks/useProjects.ts";
 import { useSprintTasks, useTask, useUpdateTask } from "../hooks/useTasks.ts";
 import useBacklogActions from "../hooks/useBacklogActions.ts";
@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft, faCheck, faXmark, faPenToSquare, faPlus, faTimes, faExclamationTriangle, faExclamationCircle, faEllipsisVertical, faChevronLeft, faCog } from "@fortawesome/free-solid-svg-icons";
 import { Sprint, Task, User } from "../types/hooks.ts";
 import TaskInspector from "./TaskInspector.tsx";
+import SprintInspector from "./SprintInspector.tsx";
 import { useToast } from "../contexts/ToastContext.tsx";
 import "../styles/backlog.css";
 
@@ -35,6 +36,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
   const [editedDescription, setEditedDescription] = useState<string>("");
   const [selectedTaskForEdit, setSelectedTaskForEdit] = useState<Task | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState<boolean>(false);
+  const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
   const selectedProjectId = projectId || getSelectedProject();
 
   // TanStack Query hooks for data fetching
@@ -48,17 +50,38 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
   // Extract data arrays from TanStack Query responses
   const sprints: Sprint[] = useMemo(() => {
     if (!sprintsData) return [];
-    return sprintsData.sprints || sprintsData || [];
+    // Handle both array and object with sprints property
+    if (Array.isArray(sprintsData)) {
+      return sprintsData;
+    }
+    if (sprintsData && typeof sprintsData === 'object' && 'sprints' in sprintsData) {
+      return Array.isArray(sprintsData.sprints) ? sprintsData.sprints : [];
+    }
+    return [];
   }, [sprintsData]);
 
   const members: User[] = useMemo(() => {
     if (!membersData) return [];
-    return membersData.members || membersData || [];
+    // Handle both array and object with members property
+    if (Array.isArray(membersData)) {
+      return membersData;
+    }
+    if (membersData && typeof membersData === 'object' && 'members' in membersData) {
+      return Array.isArray(membersData.members) ? membersData.members : [];
+    }
+    return [];
   }, [membersData]);
 
   const tasks: Task[] = useMemo(() => {
     if (!tasksData) return [];
-    return tasksData.tasks || tasksData || [];
+    // Handle both array and object with tasks property
+    if (Array.isArray(tasksData)) {
+      return tasksData;
+    }
+    if (tasksData && typeof tasksData === 'object' && 'tasks' in tasksData) {
+      return Array.isArray(tasksData.tasks) ? tasksData.tasks : [];
+    }
+    return [];
   }, [tasksData]);
 
   // Combine loading states
@@ -222,8 +245,8 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
       showError("No project selected. Cannot edit sprint.");
       return;
     }
-    // Navigate to edit sprint page
-    navigate(`/edit-sprint/${sprint.id}`);
+    // Open SprintInspector panel instead of navigating
+    setEditingSprint(sprint);
   };
 
   // Refetch function for backward compatibility (TanStack Query handles this automatically)
@@ -406,8 +429,8 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
                     <p className="sprint-metadata">
                       {new Date(sprint.startDate).toLocaleDateString()} - {new Date(sprint.endDate).toLocaleDateString()}
                     </p>
-                    <span className={`status-badge ${sprint.isActive ? 'active' : 'inactive'}`}>
-                      {sprint.isActive ? 'Active' : 'Inactive'}
+                    <span className={`status-badge ${sprint.isStarted ? 'active' : 'inactive'}`}>
+                      {sprint.isStarted ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                   
@@ -500,11 +523,8 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
           setSelectedTaskForEdit(null);
         }}
         onUpdate={(updatedTask: Task) => {
-          // This callback ensures the task state is synced after all updates
-          setTasks(prevTasks => 
-            prevTasks.map(t => t.id === updatedTask.id ? updatedTask : t)
-          );
-          // Also update selectedTaskForEdit to reflect changes if inspector is still open
+          // Cache invalidation handled automatically by mutation/WebSocket
+          // Update selectedTaskForEdit to reflect changes if inspector is still open
           setSelectedTaskForEdit(updatedTask);
         }}
         members={members}
@@ -524,6 +544,25 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
           }
           }}
         />
+
+      {/* Sprint Inspector Panel */}
+      <SprintInspector
+        sprint={editingSprint}
+        isOpen={!!editingSprint}
+        onClose={() => setEditingSprint(null)}
+        onUpdate={() => {
+          // Cache invalidation handled automatically by mutation/WebSocket
+          setEditingSprint(null);
+        }}
+        onDelete={() => {
+          // Cache invalidation handled automatically by mutation/WebSocket
+          setEditingSprint(null);
+          // If deleted sprint was selected, clear selection
+          if (selectedSprint?.id === editingSprint?.id) {
+            setSelectedSprint(null);
+          }
+        }}
+      />
         </div>
       </div>
     );

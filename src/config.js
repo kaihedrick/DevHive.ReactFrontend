@@ -60,6 +60,7 @@ export const ENDPOINTS = {
   
   // Sprint endpoints
   SPRINTS: `${API_BASE_URL}/sprints`,
+  SPRINT_STATUS: (id) => `${API_BASE_URL}/sprints/${id}/status`, // PATCH - update sprint status
   SPRINT_BY_ID: (id) => `${API_BASE_URL}/sprints/${id}`, // GET/PATCH/DELETE
   SPRINT_TASKS: (id) => `${API_BASE_URL}/sprints/${id}/tasks`, // GET
   

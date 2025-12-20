@@ -162,7 +162,7 @@ export const useSprintManagement = (projectId: string): UseSprintManagementRetur
     setSelectedSprint,
     nextSprintToStart,
     activeSprint,
-    loading,
+    loading: isLoading,
     error,
     fetchSprints,
     handleCreateSprint,

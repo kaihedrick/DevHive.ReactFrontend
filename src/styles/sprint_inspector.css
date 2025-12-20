@@ -1,9 +1,9 @@
 /* ==========================
-   Project Inspector Panel
+   Sprint Inspector Panel
    Apple-style right-side panel
 ========================== */
 
-.project-inspector-backdrop {
+.sprint-inspector-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.3);
@@ -15,12 +15,12 @@
   transition: opacity 0.2s ease;
 }
 
-.project-inspector-backdrop.is-open {
+.sprint-inspector-backdrop.is-open {
   opacity: 1;
   pointer-events: auto;
 }
 
-.project-inspector {
+.sprint-inspector {
   position: fixed !important;
   top: 0 !important;
   right: 0 !important;
@@ -39,13 +39,13 @@
   opacity: 1 !important;
 }
 
-.project-inspector.is-open {
+.sprint-inspector.is-open {
   transform: translateX(0) !important;
   visibility: visible !important;
   opacity: 1 !important;
 }
 
-.project-inspector-content {
+.sprint-inspector-content {
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
@@ -54,7 +54,7 @@
 }
 
 /* Header */
-.project-inspector-header {
+.sprint-inspector-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -63,7 +63,7 @@
   flex-shrink: 0;
 }
 
-.project-inspector-title {
+.sprint-inspector-title {
   font-size: 20px;
   font-weight: 700;
   color: var(--text-primary, #000);
@@ -73,7 +73,7 @@
   text-align: center;
 }
 
-.project-inspector-back {
+.sprint-inspector-back {
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -88,13 +88,13 @@
   flex-shrink: 0;
 }
 
-.project-inspector-back:hover {
+.sprint-inspector-back:hover {
   background: var(--bg-secondary, #f5f5f5);
   color: var(--text-primary, #000);
 }
 
 /* Body */
-.project-inspector-body {
+.sprint-inspector-body {
   flex: 1 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
@@ -156,20 +156,92 @@
 }
 
 /* Separator */
-.project-inspector-separator {
+.sprint-inspector-separator {
   height: 1px;
   background: var(--border-color, #e0e0e0);
   margin: 24px 0;
   flex-shrink: 0;
 }
 
+/* Toggle Switch - Apple Minimalistic Style */
+.toggle-switch-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toggle-switch-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toggle-label-active {
+  color: var(--accent-primary, #007aff);
+  font-weight: 600;
+}
+
+.toggle-label-inactive {
+  color: var(--text-secondary, #666);
+}
+
+.toggle-switch {
+  position: relative;
+  width: 51px;
+  height: 31px;
+  border-radius: 31px;
+  background: var(--bg-tertiary, #e5e5e5);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.toggle-switch:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.toggle-switch:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.toggle-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-switch--active {
+  background: var(--accent-primary, #007aff);
+}
+
+.toggle-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(0);
+}
+
+.toggle-switch--active .toggle-switch-thumb {
+  transform: translateX(20px);
+}
+
 /* Delete Section */
-.project-inspector-delete-section {
+.sprint-inspector-delete-section {
   margin: 0;
   padding: 0;
 }
 
-.project-inspector-delete-btn {
+.sprint-inspector-delete-btn {
   width: 100%;
   padding: 12px 20px;
   border: none;
@@ -184,17 +256,17 @@
   font-family: inherit;
 }
 
-.project-inspector-delete-btn:hover:not(:disabled) {
+.sprint-inspector-delete-btn:hover:not(:disabled) {
   background: rgba(255, 59, 48, 0.1);
 }
 
-.project-inspector-delete-btn:disabled {
+.sprint-inspector-delete-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
 /* Footer */
-.project-inspector-footer {
+.sprint-inspector-footer {
   display: flex !important;
   gap: 12px !important;
   padding: 16px 24px !important;
@@ -249,7 +321,7 @@
 
 /* Mobile: Bottom Sheet */
 @media (max-width: 768px) {
-  .project-inspector {
+  .sprint-inspector {
     width: 100%;
     height: auto;
     max-height: 90vh;
@@ -259,16 +331,14 @@
     transform: translateY(100%);
   }
 
-  .project-inspector.is-open {
+  .sprint-inspector.is-open {
     transform: translateY(0);
   }
 
-  .project-inspector-backdrop {
+  .sprint-inspector-backdrop {
     background: rgba(0, 0, 0, 0.5);
   }
 }
-
-
 
 
 

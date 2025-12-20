@@ -205,6 +205,47 @@ api.interceptors.response.use(
       }
     }
 
+    // Handle 403 errors for project access (user was removed from project)
+    if (error.response?.status === 403) {
+      const url = originalRequest?.url || '';
+      const projectIdMatch = url.match(/\/projects\/([^\/]+)/);
+      
+      if (projectIdMatch && projectIdMatch[1]) {
+        const projectId = projectIdMatch[1];
+        const currentUserId = localStorage.getItem('userId');
+        
+        // Only handle if we have a userId (user is logged in)
+        if (currentUserId) {
+          // Import queryClient dynamically to avoid circular dependencies
+          const { queryClient } = await import('../lib/queryClient.ts');
+          
+          // Remove project from projects list cache
+          queryClient.setQueriesData(
+            { 
+              queryKey: ['projects', 'list'],
+              exact: false
+            },
+            (oldData: any) => {
+              if (!oldData) return oldData;
+              const isArray = Array.isArray(oldData);
+              const projects = isArray ? oldData : (oldData.projects || []);
+              const filteredProjects = projects.filter((project: any) => project.id !== projectId);
+              return isArray ? filteredProjects : { ...oldData, projects: filteredProjects };
+            }
+          );
+          
+          // Clear selected project if it's the one being accessed
+          const selectedProject = localStorage.getItem('selectedProjectId');
+          if (selectedProject === projectId) {
+            localStorage.removeItem('selectedProjectId');
+          }
+          
+          // Invalidate project detail cache
+          queryClient.removeQueries({ queryKey: ['projects', 'detail', projectId] });
+        }
+      }
+    }
+
     // Normalize error messages
     const data = error.response?.data as any;
     const status = error.response?.status;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getSelectedProject } from "../services/storageService";
-import { createSprint } from "../services/sprintService";
+import { useCreateSprint } from "../hooks/useSprints.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { useToast } from "../contexts/ToastContext.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -50,10 +50,12 @@ const CreateSprint: React.FC = () => {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [startImmediately, setStartImmediately] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
   
   // Progressive Disclosure + Affordance scroll indicators
   const containerRef = useScrollIndicators([sprintName, startDate, endDate]);
+  
+  // Mutation hook for creating sprints
+  const createSprintMutation = useCreateSprint();
   
   const handleCreateSprintSubmit = async (): Promise<void> => {
     if (!sprintName || !startDate || !endDate) {
@@ -85,25 +87,21 @@ const CreateSprint: React.FC = () => {
       return;
     }
     
-    setLoading(true);
-    
     try {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CreateSprint.tsx:75',message:'Calling createSprint',data:{projectId,projectIdType:typeof projectId,projectIdValue:String(projectId),isNull:projectId===null,isUndefined:projectId===undefined,projectIdLength:projectId?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-      // #endregion
-      await createSprint(projectId, {
-        name: sprintName,
-        description: `Sprint: ${sprintName}`,
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString()
+      await createSprintMutation.mutateAsync({
+        projectId,
+        sprintData: {
+          name: sprintName,
+          description: `Sprint: ${sprintName}`,
+          startDate: new Date(startDate).toISOString(),
+          endDate: new Date(endDate).toISOString()
+        }
       });
       
       showSuccess("Sprint created successfully");
       navigate("/backlog");
     } catch (err: any) {
       showError(err.message || "Failed to create sprint.");
-    } finally {
-      setLoading(false);
     }
   };
   
@@ -195,10 +193,10 @@ const CreateSprint: React.FC = () => {
         <div className="form-actions">
           <button 
             onClick={handleCreateSprintSubmit} 
-            disabled={loading}
+            disabled={createSprintMutation.isPending}
             className="create-sprint-btn"
           >
-            {loading ? "Creating..." : "Create Sprint"}
+            {createSprintMutation.isPending ? "Creating..." : "Create Sprint"}
           </button>
           <button 
             onClick={() => navigate("/backlog")} 

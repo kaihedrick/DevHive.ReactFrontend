@@ -13,6 +13,10 @@ interface Project {
   description?: string;
   created_at?: string;
   updated_at?: string;
+  ownerId?: string;
+  owner?: {
+    id: string;
+  };
 }
 
 const Projects: React.FC = () => {
@@ -21,6 +25,9 @@ const Projects: React.FC = () => {
 
   const navigate = useNavigate();
   const { data: projectsData, isLoading: loading, error: queryError, refetch: refreshProjects } = useProjects();
+  
+  // Get logged-in user ID
+  const loggedInUserId = localStorage.getItem("userId");
 
   // Extract projects array from response
   const projects: Project[] = Array.isArray(projectsData) ? projectsData : (projectsData?.projects || []);
@@ -32,7 +39,6 @@ const Projects: React.FC = () => {
   }, []);
 
   const handleCreateProject = () => navigate("/create-project");
-  const handleJoinProject = () => navigate("/join-group");
   const handleAccountDetails = () => navigate("/account-details");
 
   const handleProjectClick = (project: Project) => {
@@ -97,9 +103,6 @@ const Projects: React.FC = () => {
               <span className="btn-icon" aria-hidden>＋</span>
               New Project
             </button>
-            <button className="secondary-action-btn" onClick={handleJoinProject}>
-              Join Project
-            </button>
             <button className="icon-btn" onClick={handleAccountDetails} aria-label="Account details" title="Account details">
               <FontAwesomeIcon icon={faCog} className="icon" aria-hidden="true" />
             </button>
@@ -137,16 +140,6 @@ const Projects: React.FC = () => {
                 role="menuitem"
                 onClick={() => {
                   setMenuOpen(false);
-                  handleJoinProject();
-                }}
-              >
-                Join Project
-              </button>
-              <button 
-                className="projects-menu-item" 
-                role="menuitem"
-                onClick={() => {
-                  setMenuOpen(false);
                   handleAccountDetails();
                 }}
               >
@@ -167,10 +160,9 @@ const Projects: React.FC = () => {
           <div className="empty-state">
             <div className="empty-illustration" aria-hidden>📁</div>
             <h2 className="empty-title">No Projects Yet</h2>
-            <p className="empty-subtitle">Start a project or join an existing one.</p>
+            <p className="empty-subtitle">Start a project to get started.</p>
             <div className="empty-actions">
               <button className="empty-action-btn" onClick={handleCreateProject}>New Project</button>
-              <button className="ghost-action-btn" onClick={handleJoinProject}>Join Project</button>
             </div>
           </div>
         ) : (
@@ -194,15 +186,24 @@ const Projects: React.FC = () => {
                   <p className="project-metadata">{project.updated_at ? "Updated recently" : "Created recently"}</p>
                 </div>
                 
-                {/* Card settings button (bottom-right overlay) */}
-                <button
-                  type="button"
-                  aria-label={`Project settings for ${project.name}`}
-                  className="card-settings-btn"
-                  onClick={(e) => handleSettingsClick(e, project)}
-                >
-                  <FontAwesomeIcon icon={faCog} className="icon" aria-hidden="true" />
-                </button>
+                {/* Card settings button (bottom-right overlay) - Only visible to project owners */}
+                {(() => {
+                  const projectOwnerId = project.ownerId || project.owner?.id;
+                  const isOwner = loggedInUserId && projectOwnerId && loggedInUserId === projectOwnerId;
+                  
+                  if (!isOwner) return null;
+                  
+                  return (
+                    <button
+                      type="button"
+                      aria-label={`Project settings for ${project.name}`}
+                      className="card-settings-btn"
+                      onClick={(e) => handleSettingsClick(e, project)}
+                    >
+                      <FontAwesomeIcon icon={faCog} className="icon" aria-hidden="true" />
+                    </button>
+                  );
+                })()}
               </article>
             ))}
           </div>

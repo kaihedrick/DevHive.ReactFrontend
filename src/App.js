@@ -25,7 +25,7 @@ const ProjectDetails = lazy(() => import('./components/ProjectDetails.tsx'));
 const CreateProject = lazy(() => import('./components/CreateProject.tsx'));
 const InviteMembers = lazy(() => import('./components/InviteMembers'));
 const AccountDetails = lazy(() => import('./components/AccountDetails'));
-const JoinProject = lazy(() => import('./components/JoinProject'));
+const InviteAcceptPage = lazy(() => import('./components/InviteAcceptPage.tsx'));
 const CreateSprint = lazy(() => import('./components/CreateSprint.tsx'));
 const CreateTask = lazy(() => import('./components/CreateTask.tsx'));
 const EditSprint = lazy(() => import('./components/EditSprint.tsx'));
@@ -103,7 +103,7 @@ function App() {
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/create-project" element={<CreateProject />} />
                     <Route path="/projects" element={<Projects />} />
-                    <Route path="/join-group" element={<JoinProject />} />
+                    <Route path="/invite/:token" element={<InviteAcceptPage />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/reset-password/:token" element={<ResetPassword />} />
 

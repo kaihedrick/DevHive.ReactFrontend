@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createProject } from "../services/projectService";
+import { useCreateProject } from "../hooks/useProjects.ts";
 import { getUserId } from "../services/authService";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import "../styles/create_project.css";
@@ -18,6 +18,7 @@ const CreateProject: React.FC = () => {
   const [error, setError] = useState<string>("");
   const navigate = useNavigate();
   const containerRef = useScrollIndicators([projectName, projectDescription, error]);
+  const createProjectMutation = useCreateProject();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -35,10 +36,9 @@ const CreateProject: React.FC = () => {
         return;
       }
 
-      await createProject({
+      await createProjectMutation.mutateAsync({
         name: projectName,
         description: projectDescription,
-        ownerId: userId,
       });
 
       navigate("/projects");
@@ -98,8 +98,12 @@ const CreateProject: React.FC = () => {
         )}
 
         <div className="form-actions">
-          <button type="submit" className="primary-action-btn">
-            Create Project
+          <button 
+            type="submit" 
+            className="primary-action-btn"
+            disabled={createProjectMutation.isPending}
+          >
+            {createProjectMutation.isPending ? "Creating..." : "Create Project"}
           </button>
           <button 
             type="button" 

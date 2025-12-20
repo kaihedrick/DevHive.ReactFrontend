@@ -4,6 +4,7 @@ import {
   fetchSprintById,
   createSprint,
   updateSprint,
+  updateSprintStatus,
   deleteSprint,
   startSprint,
   completeSprint,
@@ -59,15 +60,29 @@ export const useCreateSprint = () => {
       createSprint(projectId, sprintData),
     onSuccess: (data, variables) => {
       // Response now includes Owner
+      // Use sprintKeys.lists() with exact: false to match all list queries for this project
       queryClient.setQueriesData(
-        { queryKey: sprintKeys.list(variables.projectId) },
+        { 
+          queryKey: ['sprints', 'list', variables.projectId],
+          exact: false // Match any query that starts with this key (including those with options)
+        },
         (oldData: any) => {
           if (!oldData) return [data];
           const isArray = Array.isArray(oldData);
           const sprints = isArray ? oldData : (oldData.sprints || []);
-          return isArray ? [...sprints, data] : { ...oldData, sprints: [...sprints, data] };
+          // Add new sprint to the beginning of the list
+          const updatedSprints = [data, ...sprints];
+          return isArray ? updatedSprints : { ...oldData, sprints: updatedSprints };
         }
       );
+      
+      // Also set the sprint detail cache
+      if (data?.id) {
+        queryClient.setQueryData(sprintKeys.detail(data.id), data);
+      }
+      
+      // Also invalidate for consistency (WebSocket will also handle this)
+      queryClient.invalidateQueries({ queryKey: sprintKeys.lists() });
     },
   });
 };
@@ -102,6 +117,43 @@ export const useUpdateSprint = () => {
           return isArray ? updatedSprints : { ...oldData, sprints: updatedSprints };
         }
       );
+    },
+  });
+};
+
+/**
+ * Hook to update sprint status (isStarted)
+ * @returns Mutation hook for updating sprint status
+ */
+export const useUpdateSprintStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ sprintId, isStarted }: { sprintId: string; isStarted: boolean }) =>
+      updateSprintStatus(sprintId, isStarted),
+    onSuccess: (data, variables) => {
+      // Response includes complete sprint data
+      queryClient.setQueryData(sprintKeys.detail(variables.sprintId), data);
+      
+      // Update sprints list for the project - match all queries with this projectId
+      queryClient.setQueriesData(
+        { 
+          queryKey: ['sprints', 'list', data.projectId],
+          exact: false // Match any query that starts with this key (including those with options)
+        },
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          const isArray = Array.isArray(oldData);
+          const sprints = isArray ? oldData : (oldData.sprints || []);
+          const updatedSprints = sprints.map((sprint: any) => 
+            sprint.id === variables.sprintId ? data : sprint
+          );
+          return isArray ? updatedSprints : { ...oldData, sprints: updatedSprints };
+        }
+      );
+      
+      // Also invalidate for consistency (WebSocket will also handle this)
+      queryClient.invalidateQueries({ queryKey: sprintKeys.lists() });
     },
   });
 };

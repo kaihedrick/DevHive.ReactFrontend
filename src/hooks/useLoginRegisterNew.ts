@@ -164,7 +164,16 @@ const useLoginRegisterNew = () => {
         // Use AuthContext login to update auth state
         await loginFromContext(loginCredentials as LoginModel);
         updateState({ success: true, successType: 'login', error: '' });
-        navigate('/projects');
+        
+        // Check for redirect parameter
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirectTo = searchParams.get('redirect');
+        
+        if (redirectTo) {
+          navigate(redirectTo);
+        } else {
+          navigate('/projects');
+        }
       } else {
         const registrationPayload = convertToRegistrationPayload(state.credentials);
         

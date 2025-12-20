@@ -103,93 +103,78 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuthState();
   }, []);
 
-  // Connect cache invalidation WebSocket when authenticated with project selected
+  // SINGLE OWNER: Connect cache invalidation WebSocket when authenticated with project selected
+  // Only connects on: login (isAuthenticated change) or project change
+  // Disconnects on: logout or project cleared
+  // NOTE: Reconnection on network errors is handled by cacheInvalidationService internally
   useEffect(() => {
     if (!isAuthenticated || isInitializing) {
-      // Disconnect if not authenticated
-      cacheInvalidationService.disconnect();
+      // Disconnect on logout or during initialization
+      cacheInvalidationService.disconnect('User not authenticated');
       previousProjectIdRef.current = null;
       return;
     }
 
     const selectedProjectId = getSelectedProject();
-    const accessToken = getAccessToken() || localStorage.getItem('token');
-
-    if (!selectedProjectId || !accessToken) {
-      // No project selected or no token - disconnect
-      cacheInvalidationService.disconnect();
+    if (!selectedProjectId) {
+      // Disconnect if no project selected
+      cacheInvalidationService.disconnect('No project selected');
       previousProjectIdRef.current = null;
       return;
     }
 
-    // If project changed, disconnect old connection and connect new one
-    if (previousProjectIdRef.current !== selectedProjectId) {
-      if (previousProjectIdRef.current !== null) {
-        console.log('🔄 Project changed, reconnecting cache invalidation WebSocket');
-        cacheInvalidationService.disconnect();
+    // Only connect if project changed or not connected
+    // Don't reconnect if already connected to the same project (service handles this)
+    const connectWebSocket = async () => {
+      if (previousProjectIdRef.current !== selectedProjectId) {
+        // Project changed - disconnect old and connect to new
+        if (previousProjectIdRef.current !== null) {
+          console.log('🔄 Project changed, reconnecting cache invalidation WebSocket');
+          cacheInvalidationService.disconnect('Project changed');
+        }
+        previousProjectIdRef.current = selectedProjectId;
+        await cacheInvalidationService.connect(selectedProjectId);
+      } else if (!cacheInvalidationService.isConnected()) {
+        // Same project but not connected - connect (e.g., after page refresh)
+        await cacheInvalidationService.connect(selectedProjectId);
       }
-      previousProjectIdRef.current = selectedProjectId;
-      cacheInvalidationService.connect(selectedProjectId, accessToken);
-    } else if (!cacheInvalidationService.isConnected()) {
-      // Same project but not connected - connect
-      cacheInvalidationService.connect(selectedProjectId, accessToken);
-    }
-
-    // Cleanup on unmount
-    return () => {
-      // Don't disconnect on unmount - let it handle reconnection
-      // Only disconnect if auth state changes
     };
+
+    connectWebSocket().catch((error) => {
+      console.error('❌ Failed to connect WebSocket:', error);
+    });
   }, [isAuthenticated, isInitializing]);
 
-  // Listen for project selection changes
+  // Listen for project selection changes via storage events (cross-tab communication)
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const handleStorageChange = (e: StorageEvent) => {
+    const handleStorageChange = async (e: StorageEvent) => {
       if (e.key === 'selectedProjectId') {
         const newProjectId = e.newValue;
         const oldProjectId = previousProjectIdRef.current;
         
         if (newProjectId !== oldProjectId) {
-          const accessToken = getAccessToken() || localStorage.getItem('token');
-          if (accessToken) {
-            if (oldProjectId !== null) {
-              cacheInvalidationService.disconnect();
-            }
-            previousProjectIdRef.current = newProjectId;
-            if (newProjectId) {
-              cacheInvalidationService.connect(newProjectId, accessToken);
-            }
+          if (oldProjectId !== null) {
+            cacheInvalidationService.disconnect('Project changed via storage event');
+          }
+          previousProjectIdRef.current = newProjectId;
+          if (newProjectId) {
+            await cacheInvalidationService.connect(newProjectId);
           }
         }
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
-    
-    // Also check periodically for project changes (in case storage event doesn't fire)
-    const checkProjectInterval = setInterval(() => {
-      const currentProjectId = getSelectedProject();
-      if (currentProjectId !== previousProjectIdRef.current) {
-        const accessToken = getAccessToken() || localStorage.getItem('token');
-        if (accessToken) {
-          if (previousProjectIdRef.current !== null) {
-            cacheInvalidationService.disconnect();
-          }
-          previousProjectIdRef.current = currentProjectId;
-          if (currentProjectId) {
-            cacheInvalidationService.connect(currentProjectId, accessToken);
-          }
-        }
-      }
-    }, 1000); // Check every second
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(checkProjectInterval);
     };
   }, [isAuthenticated]);
+
+  // WebSocket maintains connection and handles cache invalidation
+  // No need to invalidate on visibility change
 
   const login = useCallback(async (credentials: LoginModel | any): Promise<AuthToken> => {
     try {
@@ -208,8 +193,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
-    // Disconnect cache invalidation WebSocket
-    cacheInvalidationService.disconnect();
+    // Disconnect cache invalidation WebSocket with explicit reason
+    // This ensures all timers are cleared and no reconnection attempts happen
+    cacheInvalidationService.disconnect('User logout');
     previousProjectIdRef.current = null;
     
     logoutService();

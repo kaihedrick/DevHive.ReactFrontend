@@ -10,12 +10,11 @@
 export const PROJECT_AGNOSTIC_ROUTES = new Set([
   '/',
   '/projects',
-  '/join-project',
-  '/join-group', // Alternative route name
   '/create-project',
   '/account-details',
   '/forgot-password',
-  '/reset-password'
+  '/reset-password',
+  '/invite' // Invite acceptance page (public route)
 ]);
 
 /**

@@ -1,122 +1,214 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  createProjectInvite,
-  fetchProjectInvites,
-  revokeProjectInvite,
-  getInviteByToken,
-  acceptInvite
-} from '../services/projectService';
-
-// Query keys
-export const inviteKeys = {
-  all: ['invites'] as const,
-  lists: () => [...inviteKeys.all, 'list'] as const,
-  list: (projectId: string) => [...inviteKeys.lists(), projectId] as const,
-  detail: (token: string) => [...inviteKeys.all, 'detail', token] as const,
-};
+import apiClient from '../lib/apiClient.ts';
+import { projectKeys } from './useProjects.ts';
+import { Project } from '../types/hooks.ts';
 
 // Types
-export interface ProjectInvite {
+export interface Invite {
   id: string;
-  inviteToken: string;
-  inviteUrl: string;
   projectId: string;
-  createdBy: string;
+  token: string;
   expiresAt: string;
   maxUses?: number;
-  useCount: number;
+  usedCount: number;
   isActive: boolean;
   createdAt: string;
 }
 
 export interface InviteDetails {
-  projectId: string;
-  projectName: string;
-  expiresAt: string;
-  isExpired: boolean;
-  isValid: boolean;
+  invite: Invite;
+  project: {
+    id: string;
+    name: string;
+    description: string;
+  };
+}
+
+export interface CreateInviteRequest {
+  expiresInMinutes?: number; // Optional, defaults to 30
+  maxUses?: number; // Optional, nil = unlimited
 }
 
 export interface InvitesResponse {
-  invites: ProjectInvite[];
+  invites: Invite[];
   count: number;
 }
 
+// Legacy type aliases for backward compatibility
+export type ProjectInvite = Invite;
+
 /**
- * Hook to fetch all invites for a project
+ * Query: Get invite details by token (public endpoint, no auth required)
  */
-export const useProjectInvites = (projectId: string) => {
-  return useQuery({
-    queryKey: inviteKeys.list(projectId),
-    queryFn: () => fetchProjectInvites(projectId),
-    enabled: !!projectId,
-    staleTime: Infinity,
+export const useInviteDetails = (inviteToken: string | null) => {
+  return useQuery<InviteDetails>({
+    queryKey: ['invites', inviteToken],
+    queryFn: async () => {
+      const response = await apiClient.get(`/invites/${inviteToken}`);
+      return response.data;
+    },
+    enabled: !!inviteToken,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
 /**
- * Hook to get invite details by token (public)
+ * Query: List project invites
+ * Conditionally fetches based on project permissions
+ * If permissions aren't loaded yet, will attempt to fetch (backend will handle permission check)
  */
-export const useInviteDetails = (token: string, enabled: boolean = true) => {
-  return useQuery({
-    queryKey: inviteKeys.detail(token),
-    queryFn: () => getInviteByToken(token),
-    enabled: enabled && !!token,
-    staleTime: Infinity,
-  });
-};
-
-/**
- * Hook to create a new invite
- */
-export const useCreateInvite = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      projectId,
-      expiresInMinutes,
-      maxUses
-    }: {
-      projectId: string;
-      expiresInMinutes?: number;
-      maxUses?: number;
-    }) => createProjectInvite(projectId, { expiresInMinutes, maxUses }),
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: inviteKeys.list(variables.projectId) });
+export const useProjectInvites = (projectId: string | null, project: Project | null | undefined) => {
+  // If permissions are explicitly set to false, don't fetch
+  // Otherwise, try to fetch (backend will return 403 if no permission)
+  const canViewInvites = project?.permissions?.canViewInvites;
+  const shouldFetch = canViewInvites === false ? false : true; // Only skip if explicitly false
+  
+  return useQuery<InvitesResponse>({
+    queryKey: ['projects', projectId, 'invites'],
+    queryFn: async () => {
+      const response = await apiClient.get(`/projects/${projectId}/invites`);
+      return response.data;
+    },
+    enabled: !!projectId && shouldFetch, // Fetch if projectId exists and permission isn't explicitly false
+    staleTime: Infinity, // Cache indefinitely - only invalidate when invites change
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours - cache retention
+    refetchOnMount: false, // Don't refetch on mount if data exists
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnReconnect: false, // Don't refetch on reconnect (WebSocket handles this)
+    retry: (failureCount, error: any) => {
+      // Don't retry on 403 (forbidden) - user doesn't have permission
+      if (error?.status === 403 || error?.response?.status === 403) {
+        // This is expected for members without permission
+        console.log('User does not have permission to view invites');
+        return false; // Don't retry
+      }
+      return failureCount < 3; // Retry up to 3 times for other errors
     },
   });
 };
 
 /**
- * Hook to revoke an invite
+ * Mutation: Create invite
+ */
+export const useCreateInvite = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      data
+    }: {
+      projectId: string;
+      data: CreateInviteRequest;
+    }) => {
+      const response = await apiClient.post(`/projects/${projectId}/invites`, data);
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate invites list for the project
+      queryClient.invalidateQueries({
+        queryKey: ['projects', variables.projectId, 'invites']
+      });
+    },
+  });
+};
+
+/**
+ * Mutation: Revoke invite
  */
 export const useRevokeInvite = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       projectId,
       inviteId
     }: {
       projectId: string;
       inviteId: string;
-    }) => revokeProjectInvite(projectId, inviteId),
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: inviteKeys.list(variables.projectId) });
+    }) => {
+      await apiClient.delete(`/projects/${projectId}/invites/${inviteId}`);
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate invites list for the project
+      queryClient.invalidateQueries({
+        queryKey: ['projects', variables.projectId, 'invites']
+      });
     },
   });
 };
 
 /**
- * Hook to accept an invite
+ * Mutation: Accept invite
  */
 export const useAcceptInvite = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (token: string) => acceptInvite(token),
-    onSuccess: () => {
-      // Invalidate project lists and member lists to reflect new membership
-      queryClient.invalidateQueries({ queryKey: ['projects', 'list'] });
-      queryClient.invalidateQueries({ queryKey: ['projectMembers'] });
+    mutationFn: async (inviteToken: string) => {
+      const response = await apiClient.post(`/invites/${inviteToken}/accept`);
+      return response.data;
+    },
+    onSuccess: (project) => {
+      // Directly update the projects list cache with the new project
+      queryClient.setQueriesData(
+        { 
+          queryKey: ['projects', 'list'],
+          exact: false // Match any query that starts with this key (including those with options)
+        },
+        (oldData: any) => {
+          if (!oldData) {
+            // If no existing data, return array with the new project
+            return [project];
+          }
+          
+          const isArray = Array.isArray(oldData);
+          const projects = isArray ? oldData : (oldData.projects || []);
+          
+          // Check if project already exists in the list
+          const projectExists = projects.some((p: any) => p.id === project.id);
+          
+          if (projectExists) {
+            // Update existing project
+            const updatedProjects = projects.map((p: any) => 
+              p.id === project.id ? project : p
+            );
+            return isArray ? updatedProjects : { ...oldData, projects: updatedProjects };
+          } else {
+            // Add new project to the list
+            const updatedProjects = [...projects, project];
+            return isArray ? updatedProjects : { ...oldData, projects: updatedProjects };
+          }
+        }
+      );
+      
+      // CRITICAL FIX: Set project detail cache optimistically first
+      // This ensures the project is available immediately when navigating to project-details
+      // Even though it may be incomplete (missing members), it's better than "project not found"
+      if (project?.id) {
+        // Set project detail cache optimistically (may be incomplete, but prevents "not found" error)
+        // Use the same query key structure as useProject hook to ensure consistency
+        queryClient.setQueryData(projectKeys.detail(project.id), project);
+        
+        // Refetch in the background WITHOUT invalidating first
+        // This ensures the optimistic data is shown immediately, and fresh data replaces it when ready
+        // Using a small delay to ensure the backend has processed the membership
+        setTimeout(() => {
+          queryClient.refetchQueries({ 
+            queryKey: projectKeys.detail(project.id),
+            type: 'active' // Only refetch if component is using it
+          });
+          
+          // Also refetch project members in the background
+          queryClient.refetchQueries({ 
+            queryKey: ['projectMembers', project.id],
+            type: 'active' // Only refetch if component is using it
+          });
+        }, 500); // Small delay to allow backend to fully process membership
+      }
+      
+      // Invalidate projects list
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Invalidate invite details
+      queryClient.invalidateQueries({ queryKey: ['invites'] });
     },
   });
 };

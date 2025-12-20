@@ -1,0 +1,210 @@
+/* ======================= */
+/* Scoped Invite Accept Page Styling */
+/* ======================= */
+
+.invite-accept-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  background: var(--bg-secondary);
+  position: relative;
+  width: 100%;
+}
+
+.invite-accept-page .invite-accept-container {
+  width: 100%;
+  max-width: 500px;
+}
+
+.invite-accept-page .invite-accept-card {
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.invite-accept-page .invite-accept-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  margin: 0 0 var(--space-5) 0;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.invite-accept-page .invite-accept-details {
+  margin-top: var(--space-4);
+}
+
+.invite-accept-page .invite-accept-subtitle {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  margin: 0 0 var(--space-3) 0;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.invite-accept-page .invite-accept-project-name {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  margin: 0 0 var(--space-5) 0;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.invite-accept-page .invite-accept-meta {
+  margin: var(--space-5) 0;
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.invite-accept-page .invite-accept-meta p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+}
+
+.invite-accept-page .invite-accept-status {
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.invite-accept-page .invite-accept-status--error {
+  background: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
+}
+
+.invite-accept-page .invite-accept-status p {
+  margin: 0;
+  font-weight: 500;
+  font-size: var(--font-size-base);
+}
+
+.invite-accept-page .invite-accept-auth-prompt {
+  margin: var(--space-5) 0;
+  padding: var(--space-4);
+  background: rgba(0, 122, 255, 0.1);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.invite-accept-page .invite-accept-auth-prompt p {
+  margin: 0 0 var(--space-4) 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+}
+
+.invite-accept-page .invite-accept-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  flex-direction: column;
+}
+
+.invite-accept-page .invite-accept-error-text {
+  color: #ff3b30;
+  margin: var(--space-4) 0;
+  text-align: center;
+  font-size: var(--font-size-base);
+}
+
+.invite-accept-page .invite-accept-loading {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: var(--space-5) 0;
+  font-size: var(--font-size-base);
+}
+
+/* Scoped button styles matching project patterns */
+.invite-accept-page .primary-action-btn {
+  background: var(--accent-primary);
+  color: var(--white);
+  border: none;
+  border-radius: var(--border-radius);
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal) ease;
+  width: 100%;
+  min-height: 44px;
+}
+
+.invite-accept-page .primary-action-btn:hover {
+  background: var(--dark-gold);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.invite-accept-page .primary-action-btn:focus {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.invite-accept-page .primary-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.invite-accept-page .secondary-action-btn {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal) ease;
+  width: 100%;
+  min-height: 44px;
+}
+
+.invite-accept-page .secondary-action-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--text-secondary);
+}
+
+.invite-accept-page .secondary-action-btn:focus {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .invite-accept-page .invite-accept-actions {
+    flex-direction: row;
+  }
+
+  .invite-accept-page .invite-accept-actions .primary-action-btn,
+  .invite-accept-page .invite-accept-actions .secondary-action-btn {
+    width: auto;
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .invite-accept-page {
+    padding: var(--space-3);
+  }
+
+  .invite-accept-page .invite-accept-card {
+    padding: var(--space-4);
+  }
+
+  .invite-accept-page .invite-accept-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .invite-accept-page .invite-accept-project-name {
+    font-size: var(--font-size-lg);
+  }
+}
+

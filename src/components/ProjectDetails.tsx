@@ -2,11 +2,11 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faCrown, faRightFromBracket, faTimes, faCheck, faPlus, faCopy, faTrash, faSpinner, faLink } from "@fortawesome/free-solid-svg-icons";
-import { useProject, useUpdateProject, useProjectMembers, useRemoveProjectMember } from "../hooks/useProjects.ts";
+import { useProject, useUpdateProject, useProjectMembers, useRemoveProjectMember, useDeleteProject, useLeaveProject } from "../hooks/useProjects.ts";
 import { useProjectInvites, useCreateInvite, useRevokeInvite } from "../hooks/useInvites.ts";
+import { useProjectWebSocket } from "../hooks/useProjectWebSocket.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { getSelectedProject, setSelectedProject } from "../services/storageService";
-import { deleteProject, leaveProject } from "../services/projectService";
 import { Project, ProjectMember } from "../types/hooks.ts";
 import ConfirmationModal from "./ConfirmationModal.tsx";
 import { useToast } from "../contexts/ToastContext.tsx";
@@ -35,12 +35,24 @@ const ProjectDetails: React.FC = () => {
     };
   }, [finalProjectId]);
   
+  // Ensure WebSocket is connected for this project to receive cache invalidation messages
+  useProjectWebSocket(finalProjectId);
+
   const { data: project, isLoading: projectLoading, error: projectError } = useProject(finalProjectId || '');
+  
+  // Handle 403 errors by redirecting (project already removed from cache by useProject hook)
+  useEffect(() => {
+    if (projectError && (projectError as any)?.status === 403) {
+      navigate('/projects');
+    }
+  }, [projectError, navigate]);
   const updateProjectMutation = useUpdateProject();
   const { showSuccess, showError } = useToast();
   const { data: membersData, isLoading: membersLoading, error: membersError } = useProjectMembers(finalProjectId || '');
   const removeMemberMutation = useRemoveProjectMember();
-  const { data: invitesData, isLoading: invitesLoading } = useProjectInvites(finalProjectId || '');
+  const deleteProjectMutation = useDeleteProject();
+  const leaveProjectMutation = useLeaveProject();
+  const { data: invitesData, isLoading: invitesLoading, error: invitesError } = useProjectInvites(finalProjectId || '', project || undefined);
   const createInviteMutation = useCreateInvite();
   const revokeInviteMutation = useRevokeInvite();
   
@@ -110,15 +122,22 @@ const ProjectDetails: React.FC = () => {
     try {
       const invite = await createInviteMutation.mutateAsync({
         projectId: finalProjectId,
-        expiresInMinutes,
-        maxUses: maxUses || undefined
+        data: {
+          expiresInMinutes,
+          maxUses: maxUses || undefined
+        }
       });
       showSuccess("Invite link created successfully!");
       setExpiresInMinutes(30);
       setMaxUses(undefined);
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || err.message || "Failed to create invite";
-      showError(errorMsg);
+      // Handle 403 errors gracefully (user doesn't have permission)
+      if (err?.status === 403 || err?.response?.status === 403) {
+        showError("You don't have permission to create invites.");
+      } else {
+        const errorMsg = err.response?.data?.message || err.message || "Failed to create invite";
+        showError(errorMsg);
+      }
     }
   };
   
@@ -133,8 +152,13 @@ const ProjectDetails: React.FC = () => {
       });
       showSuccess("Invite revoked successfully");
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || err.message || "Failed to revoke invite";
-      showError(errorMsg);
+      // Handle 403 errors gracefully (user doesn't have permission)
+      if (err?.status === 403 || err?.response?.status === 403) {
+        showError("You don't have permission to revoke invites.");
+      } else {
+        const errorMsg = err.response?.data?.message || err.message || "Failed to revoke invite";
+        showError(errorMsg);
+      }
     }
   };
   
@@ -244,11 +268,11 @@ const ProjectDetails: React.FC = () => {
     if (!project) return;
     setShowDeleteConfirm(false);
     try {
-      await deleteProject(project.id);
+      await deleteProjectMutation.mutateAsync(project.id);
       navigate('/projects');
     } catch (error: any) {
       console.error("Error deleting project:", error);
-      alert("Failed to delete project. Please try again.");
+      showError(error.response?.data?.message || error.message || "Failed to delete project. Please try again.");
     }
   };
 
@@ -266,11 +290,11 @@ const ProjectDetails: React.FC = () => {
     if (!project) return;
     setShowLeaveConfirm(false);
     try {
-      await leaveProject(project.id);
+      await leaveProjectMutation.mutateAsync(project.id);
       navigate('/projects');
     } catch (error: any) {
       console.error("Error leaving project:", error);
-      alert("Failed to leave project. Please try again.");
+      showError(error.response?.data?.message || error.message || "Failed to leave project. Please try again.");
     }
   };
 
@@ -288,11 +312,58 @@ const ProjectDetails: React.FC = () => {
     );
   }
 
+  // Helper function to extract error message from various error object structures
+  const getErrorMessage = (error: any): string => {
+    if (!error) return 'Unknown error';
+    if (typeof error === 'string') return error;
+    if (error instanceof Error) return error.message;
+    
+    // Check responseData first (TanStack Query normalized errors)
+    if (error?.responseData) {
+      const data = error.responseData;
+      if (data?.detail) return data.detail;
+      if (data?.title) return data.title;
+      if (data?.message) return data.message;
+      if (typeof data === 'string') return data;
+    }
+    
+    // Check response.data (Axios errors)
+    if (error?.response?.data) {
+      const data = error.response.data;
+      if (data?.detail) return data.detail;
+      if (data?.title) return data.title;
+      if (data?.message) return data.message;
+      if (typeof data === 'string') return data;
+    }
+    
+    // Check top-level message
+    if (error?.message) return error.message;
+    
+    // Check originalError (nested error)
+    if (error?.originalError) {
+      const originalMsg = getErrorMessage(error.originalError);
+      if (originalMsg !== 'Unknown error' && originalMsg !== 'An error occurred') {
+        return originalMsg;
+      }
+    }
+    
+    // For 403 errors, provide a user-friendly message
+    if (error?.status === 403 || error?.response?.status === 403) {
+      return 'Access denied. You may have been removed from this project.';
+    }
+    
+    // Last resort: return generic message
+    return 'An error occurred';
+  };
+
   if (projectError || membersError) {
+    const errorMessage = getErrorMessage(projectError || membersError);
+    const isForbidden = (projectError as any)?.status === 403 || (membersError as any)?.status === 403;
+    
     return (
       <div className="project-details">
         <div className="error-message">
-          <p>Error: {projectError || membersError}</p>
+          <p>{isForbidden ? 'Access Denied' : 'Error'}: {errorMessage}</p>
           <button onClick={() => navigate('/projects')} className="primary-action-btn">
             Back to Projects
           </button>
@@ -407,7 +478,7 @@ const ProjectDetails: React.FC = () => {
         <div className="form-group">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
             <label className="form-label" style={{ marginBottom: 0 }}>Project Members</label>
-            {isCurrentUserOwner && (
+            {(project?.permissions?.canViewInvites ?? isCurrentUserOwner) && (
               <button
                 type="button"
                 onClick={() => setShowInvites(!showInvites)}
@@ -442,11 +513,23 @@ const ProjectDetails: React.FC = () => {
           </div>
           
           {/* Invite Management Section */}
-          {showInvites && isCurrentUserOwner && (
+          {showInvites && (project?.permissions?.canViewInvites ?? isCurrentUserOwner) && (
             <div style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-4)', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-              <h3 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-4)' }}>Create Invite Link</h3>
+              <h3 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-4)' }}>Invite Management</h3>
               
-              <div style={{ marginBottom: 'var(--space-3)' }}>
+              {/* Show error message if user doesn't have permission (403 error) */}
+              {invitesError && (invitesError as any)?.status === 403 && (
+                <div style={{ padding: 'var(--space-3)', marginBottom: 'var(--space-3)', background: 'var(--bg-warning)', borderRadius: '8px', color: 'var(--text-secondary)' }}>
+                  You don't have permission to view invites.
+                </div>
+              )}
+              
+              {/* Create Invite Section - Only show if user can create invites */}
+              {(project?.permissions?.canCreateInvites ?? isCurrentUserOwner) && (
+                <>
+                  <h4 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-3)' }}>Create Invite Link</h4>
+                  
+                  <div style={{ marginBottom: 'var(--space-3)' }}>
                 <label className="form-label" style={{ marginBottom: 'var(--space-2)' }}>Expires In (minutes)</label>
                 <input
                   type="number"
@@ -501,12 +584,21 @@ const ProjectDetails: React.FC = () => {
                   Cancel
                 </button>
               </div>
+                </>
+              )}
               
-              {/* Active Invites List */}
-              {invitesData && invitesData.invites && invitesData.invites.length > 0 && (
-                <div style={{ marginTop: 'var(--space-6)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--border-color)' }}>
-                  <h4 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-3)' }}>Active Invites</h4>
-                  {invitesData.invites.filter((invite: any) => invite.isActive && new Date(invite.expiresAt) > new Date()).map((invite: any) => (
+              {/* Active Invites List - Only show if user can view invites */}
+              {(project?.permissions?.canViewInvites ?? isCurrentUserOwner) && (
+                <>
+                  {invitesLoading && (
+                    <div style={{ padding: 'var(--space-3)', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                      Loading invites...
+                    </div>
+                  )}
+                  {!invitesLoading && invitesData && invitesData.invites && invitesData.invites.length > 0 && (
+                    <div style={{ marginTop: 'var(--space-6)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--border-color)' }}>
+                      <h4 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-3)' }}>Active Invites</h4>
+                      {invitesData.invites.filter((invite: any) => invite.isActive && new Date(invite.expiresAt) > new Date()).map((invite: any) => (
                     <div
                       key={invite.id}
                       style={{
@@ -523,37 +615,51 @@ const ProjectDetails: React.FC = () => {
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-1)', wordBreak: 'break-all' }}>
-                          {invite.inviteUrl}
+                          {invite.inviteUrl || (invite.token ? `${window.location.origin}/invite/${invite.token}` : 'N/A')}
                         </div>
                         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)' }}>
                           Expires in {formatExpiration(invite.expiresAt)}
-                          {invite.maxUses && ` • ${invite.useCount}/${invite.maxUses} uses`}
+                          {invite.maxUses && ` • ${invite.usedCount || invite.useCount || 0}/${invite.maxUses} uses`}
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                         <button
                           type="button"
-                          onClick={() => handleCopyInviteLink(invite.inviteUrl)}
+                          onClick={() => handleCopyInviteLink(invite.inviteUrl || (invite.token ? `${window.location.origin}/invite/${invite.token}` : ''))}
                           className="secondary-action-btn"
                           style={{ padding: 'var(--space-2)', minWidth: 'auto' }}
                           title="Copy link"
                         >
                           <FontAwesomeIcon icon={faCopy} />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRevokeInvite(invite.id)}
-                          className="danger-action-btn"
-                          style={{ padding: 'var(--space-2)', minWidth: 'auto' }}
-                          disabled={revokeInviteMutation.isPending}
-                          title="Revoke invite"
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                        </button>
+                        {project?.permissions?.canRevokeInvites && (
+                          <button
+                            type="button"
+                            onClick={() => handleRevokeInvite(invite.id)}
+                            className="danger-action-btn"
+                            style={{ padding: 'var(--space-2)', minWidth: 'auto' }}
+                            disabled={revokeInviteMutation.isPending}
+                            title="Revoke invite"
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
-                </div>
+                    </div>
+                  )}
+                  {!invitesLoading && invitesData && invitesData.invites && invitesData.invites.length === 0 && (
+                    <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-3)', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                      No active invites. Create one above to get started.
+                    </div>
+                  )}
+                  {!invitesLoading && invitesData && invitesData.invites && invitesData.invites.length > 0 && invitesData.invites.filter((invite: any) => invite.isActive && new Date(invite.expiresAt) > new Date()).length === 0 && (
+                    <div style={{ marginTop: 'var(--space-4)', padding: 'var(--space-3)', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                      No active invites (all invites are expired or inactive).
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -564,7 +670,7 @@ const ProjectDetails: React.FC = () => {
             </div>
           ) : membersError ? (
             <div className="error-message">
-              <p>Error loading members: {membersError.message || 'Failed to load members'}</p>
+              <p>Error loading members: {getErrorMessage(membersError)}</p>
             </div>
           ) : (
             <div className="members-list">

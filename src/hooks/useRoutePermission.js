@@ -25,10 +25,10 @@ const useRoutePermission = () => {
     "/projects", 
     "/account",
     "/account-details",
-    "/join-project",
     "/create-project",
     "/forgot-password",
-    "/reset-password"
+    "/reset-password",
+    "/invite" // Invite acceptance page (public route)
   ];
 
   // Get selected project and calculate if the route is allowed

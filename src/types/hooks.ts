@@ -53,6 +53,31 @@ export interface SprintResponse {
   };
 }
 
+// Project type - matches complete backend response
+export interface Project {
+  id: string;
+  ownerId: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  owner: {
+    id: string;
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+  };
+  // NEW FIELDS:
+  userRole?: string; // "owner" | "admin" | "member" | "viewer"
+  permissions?: {
+    canViewInvites: boolean;
+    canCreateInvites: boolean;
+    canRevokeInvites: boolean;
+    canManageMembers: boolean;
+  };
+}
+
 // Legacy types for backward compatibility (aliases)
 export type Task = TaskResponse;
 export type Sprint = SprintResponse;
