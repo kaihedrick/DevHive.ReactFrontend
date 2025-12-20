@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getSelectedProject } from "../services/storageService";
 import { useCreateSprint } from "../hooks/useSprints.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { useToast } from "../contexts/ToastContext.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronLeft, faCalendarAlt, faPlay } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_sprint.css";
 
 /**
@@ -22,10 +22,7 @@ const CreateSprint: React.FC = () => {
   const queryParams = new URLSearchParams(location.search);
   const urlProjectId = queryParams.get('projectId');
   
-  // #region agent log
   const storedProjectIdRaw = getSelectedProject();
-  fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CreateSprint.tsx:21',message:'Getting project ID sources',data:{urlProjectId,urlProjectIdType:typeof urlProjectId,urlProjectIdValue:String(urlProjectId),storedProjectIdRaw,storedProjectIdType:typeof storedProjectIdRaw,storedProjectIdValue:String(storedProjectIdRaw),locationSearch:location.search,queryParamsAll:Object.fromEntries(queryParams)},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
-  // #endregion
   
   // Validate URL parameter - treat "undefined", "null", and empty string as invalid
   const isValidUrlProjectId = urlProjectId && 
@@ -36,15 +33,7 @@ const CreateSprint: React.FC = () => {
   // Prioritize valid URL parameter over stored project
   const projectId = isValidUrlProjectId ? urlProjectId : storedProjectIdRaw;
   
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CreateSprint.tsx:24',message:'projectId computed',data:{projectId,projectIdType:typeof projectId,projectIdValue:String(projectId),isNull:projectId===null,isUndefined:projectId===undefined,isFalsy:!projectId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
   
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CreateSprint.tsx:27',message:'CreateSprint component mounted',data:{projectId,projectIdType:typeof projectId,projectIdValue:String(projectId)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-  }, [projectId]);
-  // #endregion
   
   const [sprintName, setSprintName] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
@@ -68,16 +57,8 @@ const CreateSprint: React.FC = () => {
       return;
     }
     
-    // #region agent log
-    const currentProjectId = isValidUrlProjectId ? urlProjectId : getSelectedProject();
-    fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CreateSprint.tsx:55',message:'Before projectId check',data:{projectId,projectIdType:typeof projectId,projectIdValue:String(projectId),currentProjectId,currentProjectIdType:typeof currentProjectId,currentProjectIdValue:String(currentProjectId),isNull:projectId===null,isUndefined:projectId===undefined,isFalsy:!projectId,isInvalidString:projectId==='undefined'||projectId==='null',urlProjectId,storedProjectId:getSelectedProject()},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
-    
     // Validate projectId - check for null, undefined, empty string, or invalid string values
     if (!projectId || projectId === 'undefined' || projectId === 'null' || projectId.trim() === '') {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CreateSprint.tsx:59',message:'projectId check failed - early return',data:{projectId,projectIdType:typeof projectId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
       showError("No project selected. Please select a project first.");
       return;
     }

@@ -112,20 +112,13 @@ const useAccountDetails = (): UseAccountDetailsReturn => {
       
       console.log("✅ Username is available, proceeding with update");
       
+      // Only send the changed field (username) in camelCase
+      // cleanUserUpdatePayload will handle comparison and only include changed fields
       const updateData = {
-        id: userId,
-        ID: userId,
-        username: newUsername,
-        Username: newUsername,
-        email: getUserProp('email'),
-        Email: getUserProp('email'),
-        firstName: getUserProp('firstName'),
-        FirstName: getUserProp('firstName'),
-        lastName: getUserProp('lastName'),
-        LastName: getUserProp('lastName')
+        username: newUsername
       };
       
-      console.log("📤 Sending update:", updateData);
+      console.log("📤 Sending update (camelCase, changed field only):", updateData);
       
       const result = await updateUserMutation.mutateAsync({
         userId,
@@ -153,18 +146,16 @@ const useAccountDetails = (): UseAccountDetailsReturn => {
     try {
       console.log("🔑 Changing password...");
 
+      // Only send the password field in camelCase
+      // cleanUserUpdatePayload will handle comparison and only include changed fields
       const passwordData = {
-        id: userId,
-        username: getUserProp('username'),
-        email: getUserProp('email'),
-        firstName: getUserProp('firstName'),
-        lastName: getUserProp('lastName'),
         password: newPassword
       };
 
       const result = await updateUserMutation.mutateAsync({
         userId,
-        userData: passwordData
+        userData: passwordData,
+        originalUser: user!
       });
       console.log("✅ Password changed successfully");
       

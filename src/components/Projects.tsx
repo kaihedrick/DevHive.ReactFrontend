@@ -69,26 +69,6 @@ const Projects: React.FC = () => {
 
   return (
     <main className="projects-page with-footer-pad scroll-pad-bottom" role="main">
-      {/* #region agent log */}
-      {(() => {
-        const logHeaderStyles = () => {
-          setTimeout(() => {
-            const header = document.querySelector('.projects-page .projects-header') as HTMLElement;
-            const backlogHeader = document.querySelector('.backlog-page .backlog-header') as HTMLElement;
-            if (header) {
-              const computed = window.getComputedStyle(header);
-              fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Projects.tsx:80',message:'Projects header computed styles',data:{background:computed.background,backgroundColor:computed.backgroundColor,backgroundImage:computed.backgroundImage,backdropFilter:computed.backdropFilter,getPropertyValue_bgSecondary:computed.getPropertyValue('--bg-secondary'),allRules:Array.from(document.styleSheets).flatMap(sheet=>{try{return Array.from(sheet.cssRules||[]).filter(r=>r.selectorText?.includes('projects-header')).map(r=>({selector:r.selectorText,style:(r as CSSStyleRule).style.cssText})).slice(0,5)}catch{return[]}})},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
-            }
-            if (backlogHeader) {
-              const computed = window.getComputedStyle(backlogHeader);
-              fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Projects.tsx:80',message:'Backlog header computed styles (from Projects page)',data:{background:computed.background,backgroundColor:computed.backgroundColor,backgroundImage:computed.backgroundImage,backdropFilter:computed.backdropFilter,getPropertyValue_bgSecondary:computed.getPropertyValue('--bg-secondary'),allRules:Array.from(document.styleSheets).flatMap(sheet=>{try{return Array.from(sheet.cssRules||[]).filter(r=>r.selectorText?.includes('backlog-header')).map(r=>({selector:r.selectorText,style:(r as CSSStyleRule).style.cssText})).slice(0,5)}catch{return[]}})},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
-            }
-          }, 100);
-        };
-        logHeaderStyles();
-        return null;
-      })()}
-      {/* #endregion */}
       <header className="projects-header" aria-label="Projects header">
         <div className="header-left">
           <h1 className="page-title">Projects</h1>

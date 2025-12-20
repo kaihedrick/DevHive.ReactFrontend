@@ -311,26 +311,6 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
 
   return (
       <div className="backlog-page with-footer-pad scroll-pad-bottom">
-        {/* #region agent log */}
-        {(() => {
-          const logHeaderStyles = () => {
-            setTimeout(() => {
-              const header = document.querySelector('.backlog-page .backlog-header') as HTMLElement;
-              const projectsHeader = document.querySelector('.projects-page .projects-header') as HTMLElement;
-              if (header) {
-                const computed = window.getComputedStyle(header);
-                fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Backlog.tsx:258',message:'Backlog header computed styles',data:{background:computed.background,backgroundColor:computed.backgroundColor,backgroundImage:computed.backgroundImage,backdropFilter:computed.backdropFilter,getPropertyValue_bgSecondary:computed.getPropertyValue('--bg-secondary'),allRules:Array.from(document.styleSheets).flatMap(sheet=>{try{return Array.from(sheet.cssRules||[]).filter(r=>r.selectorText?.includes('backlog-header')).map(r=>({selector:r.selectorText,style:(r as CSSStyleRule).style.cssText})).slice(0,5)}catch{return[]}})},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
-              }
-              if (projectsHeader) {
-                const computed = window.getComputedStyle(projectsHeader);
-                fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Backlog.tsx:258',message:'Projects header computed styles',data:{background:computed.background,backgroundColor:computed.backgroundColor,backgroundImage:computed.backgroundImage,backdropFilter:computed.backdropFilter,getPropertyValue_bgSecondary:computed.getPropertyValue('--bg-secondary'),allRules:Array.from(document.styleSheets).flatMap(sheet=>{try{return Array.from(sheet.cssRules||[]).filter(r=>r.selectorText?.includes('projects-header')).map(r=>({selector:r.selectorText,style:(r as CSSStyleRule).style.cssText})).slice(0,5)}catch{return[]}})},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
-              }
-            }, 100);
-          };
-          logHeaderStyles();
-          return null;
-        })()}
-        {/* #endregion */}
         <header className="backlog-header" aria-label="Backlog header">
           <div className="header-left">
             <h1 className="page-title">
@@ -346,9 +326,6 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
             <button 
               className="primary-action-btn"
               onClick={() => {
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Backlog.tsx:290',message:'Create Sprint/Task button clicked',data:{selectedProjectId,projectId,selectedSprint:selectedSprint?.id,hasSelectedSprint:!!selectedSprint},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'D'})}).catch(()=>{});
-                // #endregion
                 if (!selectedProjectId) {
                   console.error('Cannot create sprint/task: No project selected');
                   return;
@@ -356,9 +333,6 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
                 if (selectedSprint) {
                   navigate(`/create-task?projectId=${selectedProjectId}&sprintId=${selectedSprint.id}`);
                 } else {
-                  // #region agent log
-                  fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Backlog.tsx:300',message:'Navigating to create-sprint',data:{selectedProjectId,navigateUrl:`/create-sprint?projectId=${selectedProjectId}`},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'D'})}).catch(()=>{});
-                  // #endregion
                   // Only add projectId query param if it's valid (not undefined/null)
                   const navigateUrl = selectedProjectId ? `/create-sprint?projectId=${selectedProjectId}` : '/create-sprint';
                   navigate(navigateUrl);

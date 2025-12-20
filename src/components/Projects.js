@@ -50,7 +50,18 @@ const Projects = () => {
    */
   const handleProjectSelection = (e, projectId) => {
     if (editingProjectId) return;
-    if (e.target.closest(".project-actions")) return;
+    // Check if target is an Element before calling closest()
+    // e.target might be a Text node or other non-Element node, which doesn't have closest()
+    if (e.target) {
+      // If target is not an Element, try to get the parent Element
+      const targetElement = e.target.nodeType === Node.ELEMENT_NODE 
+        ? e.target 
+        : e.target.parentElement;
+      
+      if (targetElement && typeof targetElement.closest === 'function' && targetElement.closest(".project-actions")) {
+        return;
+      }
+    }
 
     setSelectedProject(projectId);
     navigate(`/project-details`);

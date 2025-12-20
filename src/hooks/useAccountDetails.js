@@ -111,21 +111,13 @@ const useAccountDetails = () => {
       
       console.log("✅ Username is available, proceeding with update");
       
-      // Build update data - use camelCase for consistency
+      // Only send the changed field (username) in camelCase
+      // cleanUserUpdatePayload will handle comparison and only include changed fields
       const updateData = {
-        id: userId,
-        // Include both forms of each field
-        username: newUsername,
-        Username: newUsername,
-        email: getUserProp('email'),
-        Email: getUserProp('email'),
-        firstName: getUserProp('firstName'),
-        FirstName: getUserProp('firstName'),
-        lastName: getUserProp('lastName'),
-        LastName: getUserProp('lastName')
+        username: newUsername
       };
       
-      console.log("📤 Sending update:", updateData);
+      console.log("📤 Sending update (camelCase, changed field only):", updateData);
       
       // Perform the update
       const result = await updateUserProfile(updateData, user);
@@ -151,18 +143,14 @@ const useAccountDetails = () => {
     try {
       console.log("🔑 Changing password...");
 
-      // Prepare update data maintaining the original casing from the API
+      // Only send the password field in camelCase
+      // cleanUserUpdatePayload will handle comparison and only include changed fields
       const passwordData = {
-        id: userId,
-        username: getUserProp('username'),
-        email: getUserProp('email'),
-        firstName: getUserProp('firstName'),
-        lastName: getUserProp('lastName'),
         password: newPassword
       };
 
       // Send the update request
-      const result = await updateUserProfile(passwordData);
+      const result = await updateUserProfile(passwordData, user);
       console.log("✅ Password changed successfully");
       
       // Update local state if API returned new data

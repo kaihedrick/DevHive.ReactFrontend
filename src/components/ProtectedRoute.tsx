@@ -30,6 +30,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }, [location.pathname, isAuthenticated, isLoading, isRouteAllowed]);
 
   // Wait for auth initialization to complete before making decisions
+  // Don't redirect during loading - wait for auth state to be determined
   if (isLoading) {
     console.log("⏳ Auth state loading, waiting...");
     return <LoadingFallback />;
@@ -41,10 +42,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/" state={{ from: location.pathname }} replace />;
   }
 
-  // If authenticated but route not allowed (project required), redirect to projects
+  // If authenticated but route not allowed (project required)
+  // IMPORTANT: Don't treat "403/unauthorized for this project" as "unauthenticated"
+  // Only redirect if there's truly no project selected (not just loading)
+  // The route permission hook should handle this, but we add extra safety here
   if (!isRouteAllowed) {
-    console.log("🔒 Route not allowed, redirecting to projects from:", location.pathname);
-    return <Navigate to="/projects" replace />;
+    // Check if this is a project-scoped route that requires a project
+    const projectScopedRoutes = ['/project-details', '/backlog', '/board', '/sprint', '/contacts', '/messages'];
+    const basePath = '/' + location.pathname.split('/')[1];
+    const requiresProject = projectScopedRoutes.includes(basePath);
+    
+    if (requiresProject) {
+      console.log("🔒 Route requires project, redirecting to projects from:", location.pathname);
+      return <Navigate to="/projects" replace />;
+    }
   }
 
   // If authenticated and route allowed, render children

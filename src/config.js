@@ -1,12 +1,18 @@
 //config.js
-// Get environment variable with fallback
+// Centralized API configuration
+// Supports both Vite (import.meta.env) and Create React App (process.env) environments
+
+/**
+ * Get API base URL from environment variables with fallback
+ * Priority: VITE_API_BASE_URL > REACT_APP_API_BASE_URL > default
+ */
 const getApiBaseUrl = () => {
   try {
     // Check if we're in a Vite environment
     if (typeof import.meta !== 'undefined' && import.meta.env) {
       return import.meta.env.VITE_API_BASE_URL ?? 'https://devhive-go-backend.fly.dev/api/v1';
     }
-    // Fallback for development
+    // Fallback for Create React App
     return process.env.REACT_APP_API_BASE_URL ?? 'https://devhive-go-backend.fly.dev/api/v1';
   } catch (error) {
     // Fallback if environment variables are not available
@@ -14,8 +20,53 @@ const getApiBaseUrl = () => {
   }
 };
 
+/**
+ * Get WebSocket base URL from environment variables with fallback
+ * Converts http/https to ws/wss automatically
+ */
+const getWsBaseUrl = () => {
+  try {
+    let wsUrl;
+    // Check if we're in a Vite environment
+    if (typeof import.meta !== 'undefined' && import.meta.env) {
+      wsUrl = import.meta.env.VITE_WS_BASE_URL ?? import.meta.env.VITE_API_BASE_URL;
+    } else {
+      // Fallback for Create React App
+      wsUrl = process.env.REACT_APP_WS_BASE_URL ?? process.env.REACT_APP_API_BASE_URL;
+    }
+    
+    // If no WS URL specified, derive from API_BASE_URL
+    if (!wsUrl) {
+      const apiUrl = getApiBaseUrl();
+      // Convert https:// to wss:// and http:// to ws://
+      wsUrl = apiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+      // Remove /api/v1 suffix for WebSocket (WebSocket endpoint is at root level)
+      wsUrl = wsUrl.replace('/api/v1', '');
+    } else {
+      // Ensure ws:// or wss:// protocol
+      if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
+        wsUrl = wsUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+      }
+    }
+    
+    return wsUrl;
+  } catch (error) {
+    // Fallback
+    return 'wss://devhive-go-backend.fly.dev';
+  }
+};
+
 export const API_BASE_URL = getApiBaseUrl(); // New Go backend with v1 API
-//export const API_BASE_URL = "https://api.devhive.it.com/api"; // Legacy .NET backend (for gradual migration)
+export const WS_BASE_URL = getWsBaseUrl(); // WebSocket base URL (wss://devhive-go-backend.fly.dev)
+
+// Log configuration at startup (only in development)
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔧 API Configuration:', {
+    API_BASE_URL,
+    WS_BASE_URL,
+    NODE_ENV: process.env.NODE_ENV
+  });
+}
 
 // Add JWT config
 export const JWT_CONFIG = {

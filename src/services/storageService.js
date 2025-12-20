@@ -50,25 +50,69 @@ export const storage = {
 /**
  * Project-specific localStorage operations.
  * Encapsulates logic for handling the selected project ID.
+ * Scoped per user to avoid cross-account leakage.
  * @namespace
  */
 export const projectStorage = {
   /**
-   * Stores the selected project ID in localStorage.
-   * @param {string} projectId - The ID of the selected project.
+   * Gets the storage key for selected project, scoped by userId
+   * @param {string|null} userId - The current user ID (optional, will fetch from localStorage if not provided)
+   * @returns {string} The storage key
    */
-  setSelectedProject: (projectId) => storage.set(StorageKeys.SELECTED_PROJECT, projectId),
+  getStorageKey: (userId = null) => {
+    const currentUserId = userId || storage.get(StorageKeys.USER_ID);
+    if (!currentUserId) {
+      // Fallback to unscoped key for backward compatibility
+      return StorageKeys.SELECTED_PROJECT;
+    }
+    return `${StorageKeys.SELECTED_PROJECT}:${currentUserId}`;
+  },
 
   /**
-   * Retrieves the selected project ID from localStorage.
+   * Stores the selected project ID in localStorage, scoped by userId.
+   * @param {string} projectId - The ID of the selected project.
+   * @param {string|null} userId - The current user ID (optional)
+   */
+  setSelectedProject: (projectId, userId = null) => {
+    const key = projectStorage.getStorageKey(userId);
+    storage.set(key, projectId);
+  },
+
+  /**
+   * Retrieves the selected project ID from localStorage, scoped by userId.
+   * @param {string|null} userId - The current user ID (optional)
    * @returns {string|null} - The selected project ID, or null if not set.
    */
-  getSelectedProject: () => storage.get(StorageKeys.SELECTED_PROJECT),
+  getSelectedProject: (userId = null) => {
+    const key = projectStorage.getStorageKey(userId);
+    return storage.get(key);
+  },
 
   /**
-   * Removes the selected project ID from localStorage.
+   * Removes the selected project ID from localStorage, scoped by userId.
+   * @param {string|null} userId - The current user ID (optional)
    */
-  clearSelectedProject: () => storage.remove(StorageKeys.SELECTED_PROJECT),
+  clearSelectedProject: (userId = null) => {
+    const key = projectStorage.getStorageKey(userId);
+    storage.remove(key);
+    // Also clear legacy unscoped key for backward compatibility
+    storage.remove(StorageKeys.SELECTED_PROJECT);
+  },
+
+  /**
+   * Clears selected project for all users (cleanup utility)
+   */
+  clearAllSelectedProjects: () => {
+    // Clear all keys that start with selectedProjectId:
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(StorageKeys.SELECTED_PROJECT)) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+  },
 };
 
 // Named exports for convenience in components or services

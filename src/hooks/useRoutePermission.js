@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { getSelectedProject } from '../services/storageService';
+import { getUserId } from '../services/authService.ts';
 
 /**
  * useRoutePermission
@@ -32,8 +33,10 @@ const useRoutePermission = () => {
   ];
 
   // Get selected project and calculate if the route is allowed
+  // Use userId-scoped storage to avoid cross-account leakage
   const { selectedProject, isRouteAllowed } = useMemo(() => {
-    const selectedProject = getSelectedProject();
+    const currentUserId = getUserId();
+    const selectedProject = getSelectedProject(currentUserId);
     const basePath = '/' + location.pathname.split('/')[1];
     
     const pathIsAllowed = allowedWithoutProject.includes(basePath);

@@ -166,9 +166,16 @@ export const useScrollIndicators = (dependencies: any[] = []) => {
         
         // Skip if the resized element is an input or textarea (or inside one)
         const target = entry.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || 
-            target.closest('input, textarea')) {
+        // Check if target is an Element before calling closest()
+        // entry.target might not be an Element in some edge cases
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
           return;
+        }
+        // Check if target is an Element and has closest method before calling it
+        if (target.nodeType === Node.ELEMENT_NODE && typeof target.closest === 'function') {
+          if (target.closest('input, textarea')) {
+            return;
+          }
         }
         
         // Only process if the container itself changed size

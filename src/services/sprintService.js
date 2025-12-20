@@ -94,14 +94,7 @@ export const createSprint = async (projectId, sprintData) => {
             endDate: sprintData.endDate
         };
 
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sprintService.js:97',message:'createSprint called',data:{projectId,projectIdType:typeof projectId,projectIdValue:String(projectId),isNull:projectId===null,isUndefined:projectId===undefined,payload},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-        // #endregion
-        
-        // #region agent log
         const apiUrl = `${ENDPOINTS.PROJECTS}/${projectId}/sprints`;
-        fetch('http://127.0.0.1:7242/ingest/3b72928f-107f-4672-aa90-6d4285c21018',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'sprintService.js:101',message:'API URL constructed',data:{apiUrl,projectId,ENDPOINTS_PROJECTS:ENDPOINTS.PROJECTS},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-        // #endregion
         
         console.log(`📤 Creating sprint for project ${projectId}:`, payload);
 

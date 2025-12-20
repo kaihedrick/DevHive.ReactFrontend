@@ -1,5 +1,6 @@
 import { queryClient } from '../lib/queryClient.ts';
 import { getAccessToken, isTokenExpired, refreshToken } from '../lib/apiClient.ts';
+import { WS_BASE_URL } from '../config.js';
 
 interface CacheInvalidationPayload {
   resource: 'project' | 'projects' | 'sprint' | 'task' | 'project_members'; // Backend sends 'project_members' (plural) from PostgreSQL table name
@@ -27,12 +28,18 @@ class CacheInvalidationService {
   private currentProjectId: string | null = null;
   private authFailureDetected = false; // Track auth failures to stop reconnecting
   private sessionGeneration = 0; // Increment on each connect/disconnect to invalidate stale callbacks
+  private onForbiddenCallback: ((projectId: string) => void) | null = null; // Callback for 403 Forbidden errors
 
   /**
    * Decodes JWT and checks if it's expired by examining the 'exp' claim.
-   * This is a sanity check to verify token expiration before connecting.
+   * This allows proactive token refresh before actual expiration.
+   * 
+   * @param token - The JWT token to check
+   * @param bufferSeconds - Number of seconds before expiration to consider token expired (default: 30)
+   *                        This allows proactive refresh before actual expiration
+   * @returns true if token is expired or expires within bufferSeconds
    */
-  private isJWTExpired(token: string): boolean {
+  private isJWTExpired(token: string, bufferSeconds: number = 30): boolean {
     try {
       // JWT format: header.payload.signature
       const parts = token.split('.');
@@ -53,13 +60,19 @@ class CacheInvalidationService {
       if (decoded.exp) {
         const expTime = decoded.exp;
         const now = Math.floor(Date.now() / 1000); // Current time in seconds
-        const isExpired = now >= expTime;
+        // Proactive check: token expires within bufferSeconds
+        const expiresWithinBuffer = expTime < (now + bufferSeconds);
         
-        if (isExpired) {
-          console.log(`⚠️ JWT expired: exp=${expTime}, now=${now}, diff=${now - expTime}s`);
+        if (expiresWithinBuffer) {
+          const timeUntilExpiry = expTime - now;
+          if (timeUntilExpiry > 0) {
+            console.log(`⚠️ JWT expires within ${bufferSeconds}s (expires in ${timeUntilExpiry}s), refreshing proactively...`);
+          } else {
+            console.log(`⚠️ JWT expired: exp=${expTime}, now=${now}, diff=${now - expTime}s`);
+          }
         }
         
-        return isExpired;
+        return expiresWithinBuffer;
       }
       
       // No exp claim - consider expired for safety
@@ -74,11 +87,11 @@ class CacheInvalidationService {
   /**
    * Ensures we have a fresh, valid access token before connecting.
    * Always fetches the latest token at connect-time (never uses cached value).
-   * Refreshes token if expired.
+   * Proactively refreshes token if it expires within 30 seconds.
    * 
    * Performs two checks:
    * 1. Uses isTokenExpired() for quick check (checks stored expiration timestamp)
-   * 2. Decodes JWT and checks 'exp' claim directly as sanity check
+   * 2. Decodes JWT and checks 'exp' claim directly with 30-second buffer for proactive refresh
    */
   private async ensureFreshToken(): Promise<string> {
     // Always fetch fresh token - never use cached value
@@ -90,9 +103,10 @@ class CacheInvalidationService {
       throw new Error('No access token available - user may need to login');
     }
 
-    // Sanity check: Decode JWT and check exp claim directly
-    if (this.isJWTExpired(token)) {
-      console.log('⚠️ JWT expired (from exp claim), refreshing before WebSocket connection...');
+    // Proactive check: Decode JWT and check exp claim with 30-second buffer
+    // This refreshes tokens before they actually expire, preventing connection failures
+    if (this.isJWTExpired(token, 30)) {
+      console.log('⚠️ Token expires within 30 seconds or is expired, refreshing proactively before WebSocket connection...');
       try {
         token = await refreshToken();
         if (!token) {
@@ -181,22 +195,16 @@ class CacheInvalidationService {
     try {
       // Always fetch fresh token at connect-time - never use cached accessToken parameter
       // This ensures we get the latest token even after logout/login
+      // ensureFreshToken() will proactively refresh if token expires within 30 seconds
       const freshToken = await this.ensureFreshToken();
 
       // Build WebSocket URL - use project_id (snake_case) to match backend
       // IMPORTANT: Browsers cannot send custom headers in WebSocket constructor
       // The token MUST be sent in the query parameter for browser compatibility
-      const wsBaseUrl = process.env.REACT_APP_WS_URL || 'wss://devhive-go-backend.fly.dev';
+      // Use centralized WS_BASE_URL from config
+      const wsUrl = `${WS_BASE_URL}/api/v1/messages/ws?project_id=${encodeURIComponent(projectId)}&token=${encodeURIComponent(freshToken)}`;
       
-      // Ensure URL starts with wss:// or ws://
-      const baseUrl = wsBaseUrl.startsWith('wss://') || wsBaseUrl.startsWith('ws://') 
-        ? wsBaseUrl 
-        : `wss://${wsBaseUrl}`;
-      
-      // Token MUST be in query parameter - browsers don't support headers in WebSocket
-      const wsUrl = `${baseUrl}/api/v1/messages/ws?project_id=${encodeURIComponent(projectId)}&token=${encodeURIComponent(freshToken)}`;
-      
-      console.log(`🔌 Connecting to WebSocket: ${baseUrl}/api/v1/messages/ws?project_id=${projectId}&token=***`);
+      console.log(`🔌 Connecting to WebSocket with fresh token: ${WS_BASE_URL}/api/v1/messages/ws?project_id=${projectId}&token=***`);
 
       // Browser WebSocket constructor does NOT support headers option
       // Token is sent via query parameter as required for browser compatibility
@@ -251,7 +259,7 @@ class CacheInvalidationService {
       // Capture generation at connection time to detect stale close events
       const connectionGeneration = this.sessionGeneration;
       
-      this.ws.onclose = (event) => {
+      this.ws.onclose = async (event) => {
         // CRITICAL: Check if this close event is from a stale connection
         // (e.g., connection was closed/disconnected, then a new one started)
         if (connectionGeneration !== this.sessionGeneration) {
@@ -269,24 +277,67 @@ class CacheInvalidationService {
         this.ws = null;
         
         // Handle close codes: don't reconnect on normal close (code 1000)
-        // Code 1006 (abnormal close) often indicates 401/auth failure - don't reconnect
+        // Code 1006 (abnormal close) often indicates 401/auth failure
         // Code 1001 (going away) - page navigation, don't reconnect
         // Code 1005 (no status) - abnormal closure, don't retry
-        const isAuthFailure = 
+        // Code 1008 (policy violation) - might be expired token, attempt refresh
+        // Code 1002 (protocol error) - might be expired token, attempt refresh
+        
+        const isPotentialTokenExpiry = 
+          event.code === 1008 || // Policy violation (might be expired token or 403)
+          event.code === 1002;   // Protocol error (might be expired token)
+        
+        const isUnauthorized = 
           event.code === 1006 || // Abnormal close (often from 401)
-          event.code === 4001 || // Custom: Unauthorized
-          event.code === 4003;   // Custom: Forbidden
+          event.code === 4001;   // Custom: Unauthorized
+        
+        const isForbidden = 
+          event.code === 4003;   // Custom: Forbidden (403)
         
         const isNormalClose = 
           event.code === 1000 || // Normal closure
           event.code === 1001;   // Going away (page navigation)
         
-        if (isAuthFailure) {
-          console.error('❌ WebSocket closed due to authentication failure (code:', event.code, '). Stopping reconnection attempts.');
+        // Check close reason for more specific error information
+        const reason = event.reason || '';
+        const isNotAuthorizedForProject = reason.includes('not a member') || 
+                                         reason.includes('not authorized') ||
+                                         reason.includes('Forbidden');
+        
+        // Handle 403 Forbidden - user is authenticated but not authorized for this project
+        if (isForbidden || (isPotentialTokenExpiry && isNotAuthorizedForProject)) {
+          console.error(`❌ WebSocket closed: Not authorized for project (code: ${event.code}, reason: ${reason})`);
+          console.warn('⚠️ User is authenticated but not authorized for this project. Clearing selectedProjectId.');
           this.authFailureDetected = true;
           this.reconnectAttempts = 0;
           this.reconnectDelay = 1000;
-          // Don't reconnect - user needs to login
+          
+          // Clear invalid projectId from localStorage
+          if (this.currentProjectId === projectId) {
+            this.currentProjectId = null;
+          }
+          
+          // Notify callback if registered (e.g., AuthContext can clear selectedProjectId)
+          if (this.onForbiddenCallback) {
+            this.onForbiddenCallback(projectId);
+          }
+          
+          // Don't reconnect - user needs to select a different project
+          return;
+        }
+        
+        // Handle potential token expiry - attempt refresh and reconnect
+        if (isPotentialTokenExpiry && !isNotAuthorizedForProject) {
+          console.log(`🔄 WebSocket closed with code ${event.code} (potential token expiry), attempting token refresh and reconnect...`);
+          await this.handleTokenRefreshAndReconnect(projectId);
+          return;
+        }
+        
+        // Handle 401 Unauthorized - token expired or invalid
+        if (isUnauthorized) {
+          console.error(`❌ WebSocket closed due to authentication failure (code: ${event.code}). Attempting token refresh and reconnect...`);
+          await this.handleTokenRefreshAndReconnect(projectId);
+          // If refresh failed, authFailureDetected will be set and we won't reconnect
           return;
         }
         
@@ -309,9 +360,20 @@ class CacheInvalidationService {
     } catch (error) {
       console.error('❌ Failed to create WebSocket connection:', error);
       this.isConnecting = false;
+      
+      // Check if error is related to token refresh failure
+      if (error instanceof Error && error.message.includes('token')) {
+        console.error('❌ Token-related error during WebSocket connection. Auth failure detected.');
+        this.authFailureDetected = true;
+        return;
+      }
+      
       // Only schedule reconnect if we still have a current project and no auth failure
       if (this.currentProjectId === projectId && !this.authFailureDetected) {
+        console.log('🔄 Scheduling reconnect after connection error...');
         this.scheduleReconnect(projectId);
+      } else {
+        console.log('ℹ️ Not scheduling reconnect - project changed or auth failure detected');
       }
     }
   }
@@ -333,6 +395,55 @@ class CacheInvalidationService {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
+    }
+  }
+
+  /**
+   * Handles token refresh and reconnection when auth-related close codes occur.
+   * Attempts to refresh the token and reconnect the WebSocket.
+   * 
+   * @param projectId - The project ID to reconnect to
+   */
+  private async handleTokenRefreshAndReconnect(projectId: string): Promise<void> {
+    // Don't attempt if auth failure already detected
+    if (this.authFailureDetected) {
+      console.warn('⚠️ Auth failure already detected, skipping token refresh attempt');
+      return;
+    }
+
+    // Don't attempt if project changed
+    if (this.currentProjectId !== projectId) {
+      console.log('ℹ️ Project changed during token refresh, cancelling reconnect');
+      return;
+    }
+
+    try {
+      console.log('🔄 WebSocket closed with potential token expiry, attempting token refresh and reconnect...');
+      
+      // Attempt to refresh token
+      const freshToken = await this.ensureFreshToken();
+      
+      if (!freshToken) {
+        console.error('❌ Token refresh failed - no token returned');
+        this.authFailureDetected = true;
+        return;
+      }
+
+      console.log('✅ Token refresh successful, reconnecting WebSocket...');
+      
+      // Reset reconnect attempts to allow reconnection
+      this.reconnectAttempts = 0;
+      this.reconnectDelay = 1000;
+      
+      // Attempt to reconnect with fresh token
+      // Small delay to ensure token is properly set
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await this.connect(projectId);
+      
+    } catch (error) {
+      console.error('❌ Failed to refresh token and reconnect:', error);
+      this.authFailureDetected = true;
+      // Don't schedule automatic reconnect - user needs to login
     }
   }
 
@@ -394,7 +505,8 @@ class CacheInvalidationService {
       // - Not already connected
       // - No auth failure
       if (this.currentProjectId === projectId && !this.isConnected() && !this.authFailureDetected) {
-        // connect() will always fetch fresh token at connect-time
+        // connect() will always fetch fresh token at connect-time (with proactive 30s buffer)
+        console.log(`🔄 Attempting reconnection (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
         await this.connect(projectId);
       } else if (this.currentProjectId !== projectId) {
         console.log('ℹ️ Project changed during reconnect delay, cancelling reconnect');
@@ -545,6 +657,15 @@ class CacheInvalidationService {
         3: 'CLOSED'
       }[this.ws.readyState] : 'NO_SOCKET'
     };
+  }
+
+  /**
+   * Register a callback to be called when a 403 Forbidden error occurs
+   * This allows components (e.g., AuthContext) to clear invalid projectId
+   * @param callback - Function to call with projectId when 403 occurs
+   */
+  setOnForbiddenCallback(callback: ((projectId: string) => void) | null): void {
+    this.onForbiddenCallback = callback;
   }
 }
 
