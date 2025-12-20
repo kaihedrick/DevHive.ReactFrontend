@@ -156,34 +156,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
 
-    // Check if projects array is available and not empty
-    if (projects.length === 0) {
-      console.log('⏳ Projects array is empty, deferring WebSocket connection');
-      return;
-    }
-
-    // CRITICAL: Validate projectId before connecting
-    // This prevents connecting to projects the user doesn't have access to
-    // Only validate when projects are loaded (not loading and not empty)
-    if (!validateProjectId(selectedProjectId)) {
-      // Projects are loaded and projectId is truly invalid
-      console.warn('⚠️ Selected projectId is not accessible, clearing selection:', {
+    // CRITICAL: Connection strategy - make it deterministic based on selectedProjectId
+    // 
+    // Strategy:
+    // 1. If projects are loaded (not loading) and we have selectedProjectId:
+    //    - If projects array has data → validate, connect if valid, clear if invalid
+    //    - If projects array is empty → connect anyway (trust stored selection, ignore transient empty state)
+    // 2. This ensures connection happens deterministically when projects are loaded,
+    //    regardless of transient array state during refetches
+    if (projects.length > 0) {
+      // Projects are available - validate before connecting
+      const isValid = validateProjectId(selectedProjectId);
+      if (!isValid) {
+        // Projects are loaded and not empty, but projectId not found → truly invalid
+        console.warn('⚠️ Selected projectId is not accessible, clearing selection:', {
+          projectId: selectedProjectId,
+          availableProjects: projects.map((p: any) => ({ id: p.id, name: p.name, userRole: p.userRole }))
+        });
+        clearSelectedProject(currentUserId);
+        cacheInvalidationService.disconnect('Project not accessible');
+        previousProjectIdRef.current = null;
+        return;
+      }
+      
+      // Validation passed - log for debugging
+      const validatedProject = projects.find((p: any) => p.id === selectedProjectId);
+      console.log('✅ ProjectId validated, proceeding with WebSocket connection:', {
         projectId: selectedProjectId,
-        availableProjects: projects.map((p: any) => ({ id: p.id, name: p.name, userRole: p.userRole }))
+        projectName: validatedProject?.name,
+        userRole: validatedProject?.userRole,
+        projectsCount: projects.length
       });
-      clearSelectedProject(currentUserId);
-      cacheInvalidationService.disconnect('Project not accessible');
-      previousProjectIdRef.current = null;
-      return;
+    } else {
+      // Projects array is empty but projects are loaded (not loading)
+      // This could be transient refetch state - trust the stored selectedProjectId and connect
+      // This makes connection deterministic and prevents constant deferrals
+      console.log('✅ Projects loaded but array is empty (likely transient refetch), connecting with stored projectId:', selectedProjectId);
     }
-    
-    // Validation passed - log for debugging
-    const validatedProject = projects.find((p: any) => p.id === selectedProjectId);
-    console.log('✅ ProjectId validated, proceeding with WebSocket connection:', {
-      projectId: selectedProjectId,
-      projectName: validatedProject?.name,
-      userRole: validatedProject?.userRole
-    });
 
     // Only connect if project changed or not connected
     // Don't reconnect if already connected to the same project (service handles this)

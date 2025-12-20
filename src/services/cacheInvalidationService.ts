@@ -2,12 +2,26 @@ import { queryClient } from '../lib/queryClient.ts';
 import { getAccessToken, isTokenExpired, refreshToken } from '../lib/apiClient.ts';
 import { WS_BASE_URL } from '../config.js';
 
+/**
+ * Cache invalidation payload structure from backend
+ * 
+ * Backend normalizes database table names to singular resource names:
+ * - `projects` table → `'project'` resource
+ * - `sprints` table → `'sprint'` resource
+ * - `tasks` table → `'task'` resource
+ * - `project_members` table → `'project_members'` resource (kept plural)
+ * 
+ * Migration `007_ensure_notify_triggers.sql` ensures this normalization.
+ * 
+ * NOTE: For backward compatibility, we also handle plural forms ('tasks', 'sprints', 'projects')
+ * in case some backend instances haven't been migrated yet.
+ */
 interface CacheInvalidationPayload {
-  resource: 'project' | 'projects' | 'sprint' | 'task' | 'project_members'; // Backend sends 'project_members' (plural) from PostgreSQL table name
-  id?: string;
+  resource: 'project' | 'projects' | 'sprint' | 'sprints' | 'task' | 'tasks' | 'project_members';
+  id: string; // UUID for projects/sprints/tasks, "project_id:user_id" for project_members
   action: 'INSERT' | 'UPDATE' | 'DELETE';
-  project_id: string;
-  timestamp: string;
+  project_id: string; // Always present
+  timestamp: string; // ISO 8601 format
 }
 
 interface WebSocketMessage {
@@ -542,56 +556,79 @@ class CacheInvalidationService {
 
   /**
    * Handles cache invalidation based on WebSocket messages from the backend.
-   * Backend sends cache invalidation messages when data changes.
+   * 
+   * Backend sends singular resource names (migration `007_ensure_notify_triggers.sql`):
+   * - `'project'` (not `'projects'`)
+   * - `'sprint'` (not `'sprints'`)
+   * - `'task'` (not `'tasks'`)
+   * - `'project_members'` (unchanged, stays plural)
+   * 
+   * For backward compatibility, we also handle plural forms in case some backend
+   * instances haven't been migrated yet.
    */
   private handleCacheInvalidation(payload: CacheInvalidationPayload) {
     const { resource, id, action, project_id } = payload;
 
-    switch (resource) {
+    console.log(`🔄 Cache invalidation: ${resource} ${action}`, { id, project_id });
+
+    // Normalize resource name (handle both singular and plural for backward compatibility)
+    const normalizedResource = resource === 'projects' ? 'project' 
+      : resource === 'sprints' ? 'sprint'
+      : resource === 'tasks' ? 'task'
+      : resource;
+
+    switch (normalizedResource) {
       case 'project':
-      case 'projects': // Handle both for backward compatibility
+        // Handle project changes
         if (id) {
-          // Invalidate specific project
-          queryClient.invalidateQueries({ queryKey: ['projects', 'detail', id] });
+          queryClient.invalidateQueries({ queryKey: ['projects', id] });
+          queryClient.invalidateQueries({ queryKey: ['projects', 'detail', id] }); // Also support detailed key pattern
         }
-        // Always invalidate project list (matches any options)
         queryClient.invalidateQueries({ queryKey: ['projects', 'list'] });
         
         // For project deletion, also remove from cache
         if (action === 'DELETE' && id) {
+          queryClient.removeQueries({ queryKey: ['projects', id] });
           queryClient.removeQueries({ queryKey: ['projects', 'detail', id] });
           queryClient.removeQueries({ queryKey: ['projects', 'bundle', id] });
         }
         break;
 
       case 'sprint':
+        // Handle sprint changes
         if (id) {
-          // Invalidate specific sprint
-          queryClient.invalidateQueries({ queryKey: ['sprints', 'detail', id] });
+          queryClient.invalidateQueries({ queryKey: ['sprints', id] });
+          queryClient.invalidateQueries({ queryKey: ['sprints', 'detail', id] }); // Also support detailed key pattern
         }
-        // Invalidate sprints for the project (matches any options)
         queryClient.invalidateQueries({ queryKey: ['sprints', 'list', project_id] });
-        // Also invalidate project bundle (which includes sprints)
         queryClient.invalidateQueries({ queryKey: ['projects', 'bundle', project_id] });
         break;
 
       case 'task':
+        // Handle task changes
         if (id) {
-          // Invalidate specific task
-          queryClient.invalidateQueries({ queryKey: ['tasks', 'detail', id] });
+          queryClient.invalidateQueries({ queryKey: ['tasks', id] });
+          queryClient.invalidateQueries({ queryKey: ['tasks', 'detail', id] }); // Also support detailed key pattern
         }
-        // Invalidate tasks for the project
+        // Invalidate tasks list for the project (matches ['tasks', 'list', 'project', project_id])
         queryClient.invalidateQueries({ queryKey: ['tasks', 'list', 'project', project_id] });
-        // Invalidate sprint tasks if task belongs to a sprint
+        // Invalidate all sprint tasks (matches ['tasks', 'list', 'sprint', sprintId] for any sprint)
         queryClient.invalidateQueries({ queryKey: ['tasks', 'list', 'sprint'] });
+        console.log(`✅ Task cache invalidated for project ${project_id}`);
         break;
 
       case 'project_members':
-        // Backend-driven cache invalidation: Only invalidate what's directly affected
-        queryClient.invalidateQueries({ 
+        // Handle member changes (immediately refetch for real-time updates)
+        queryClient.refetchQueries({ 
           queryKey: ['projectMembers', project_id],
-          refetchType: 'active'
+          exact: false 
         });
+        queryClient.refetchQueries({ 
+          queryKey: ['projects', 'bundle', project_id],
+          exact: false 
+        });
+        queryClient.invalidateQueries({ queryKey: ['projects', 'list'] });
+        console.log(`✅ Refetched project members for project ${project_id}`);
         break;
 
       default:
