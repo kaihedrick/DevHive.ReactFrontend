@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSelectedProject } from '../services/storageService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -19,7 +19,11 @@ import '../styles/board.css';
  */
 const Board: React.FC = () => {
   const navigate = useNavigate();
-  const projectId = getSelectedProject();
+  
+  // Stabilize projectId to prevent remounts during navigation
+  // Read once and memoize - don't re-read on every render
+  // This prevents hooks from seeing null/value/null flips that cause remounts
+  const projectId = useMemo(() => getSelectedProject(), []); // Only read once on mount
   
   // Always call hooks first, before any conditional returns
   const {

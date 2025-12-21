@@ -41,6 +41,9 @@ const CreateTask: React.FC = () => {
   // Progressive Disclosure + Affordance scroll indicators
   const containerRef = useScrollIndicators([description, sprintID, assigneeID]);
 
+  // Auto-resize textarea for description
+  const descriptionTextareaRef = useAutoResizeTextarea(description, 4);
+
   // Get the selected project ID (prioritize URL parameter over stored project)
   const selectedProjectId = urlProjectId || getSelectedProject();
   

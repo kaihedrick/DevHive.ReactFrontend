@@ -1,0 +1,183 @@
+# CodeRabbit configuration for DevHive
+# https://docs.coderabbit.ai
+
+version: 1
+
+reviews:
+  # Automatically review PRs
+  auto_review:
+    enabled: true
+
+  # High-signal review focus
+  review_status: true
+
+  # Tone & depth
+  instructions: |
+    You are reviewing a full-stack application with:
+    - Go (backend, REST + WebSockets)
+    - PostgreSQL (NOTIFY/LISTEN, triggers)
+    - React + TypeScript (frontend)
+    - Token-based authentication with refresh flow
+
+    Prioritize:
+    - Authentication & authorization correctness
+    - Frontend lifecycle bugs (effects firing while unauthenticated)
+    - Cache invalidation correctness
+    - WebSocket connection stability
+    - Permission mismatches between backend handlers and frontend UI
+    - Query invalidation / refetch correctness
+    - Race conditions and edge cases
+
+    Avoid nitpicks unless they impact correctness, security, or maintainability.
+
+  # What to look for
+  checks:
+    security: true
+    performance: true
+    correctness: true
+    best_practices: true
+    maintainability: true
+
+  # Comment verbosity
+  comment_level: concise
+
+  # Files to include
+  include:
+    - "**/*.go"
+    - "**/*.ts"
+    - "**/*.tsx"
+    - "**/*.js"
+    - "**/*.jsx"
+    - "**/*.css"
+    - "**/*.sql"
+    - "**/*.yaml"
+    - "**/*.yml"
+    - "**/*.json"  # package.json, tsconfig.json, etc.
+    - "**/*.cjs"   # orval.config.cjs
+
+  # Files to ignore
+  exclude:
+    - "**/node_modules/**"
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/vendor/**"
+    - "**/.cache/**"
+    - "**/coverage/**"
+    - "**/.pnp/**"
+    - "**/*.lock"
+    - "**/*.min.js"
+    - "**/*.min.css"
+    - "**/*.bundle.js"
+    - "**/*.chunk.js"
+    - "**/public/**"  # Static assets
+    - "**/.env*"  # Environment files
+    - "**/.DS_Store"
+
+# Language-specific guidance
+languages:
+  go:
+    review:
+      focus:
+        - HTTP handlers and middleware
+        - Context propagation
+        - Authorization checks
+        - SQL query correctness
+        - Error handling (no swallowed errors)
+        - WebSocket lifecycle management
+        - LISTEN/NOTIFY reliability
+
+  typescript:
+    review:
+      focus:
+        - React hooks lifecycle correctness
+        - Effects firing only when authenticated
+        - Token refresh logic
+        - Avoiding requests after logout
+        - Cache invalidation consistency
+        - WebSocket connect/disconnect ownership
+        - Role/permission-based UI rendering
+        - React Query query key consistency
+        - Proper dependency arrays in hooks
+        - Memory leaks (missing cleanup in useEffect)
+        - Type safety (avoid 'any' types)
+        - Error boundary usage
+        - Form validation consistency
+
+  javascript:
+    review:
+      focus:
+        - Same as TypeScript (migrating to TS)
+        - Legacy code patterns that should be migrated
+
+  css:
+    review:
+      focus:
+        - Responsive design patterns
+        - CSS specificity issues
+        - Accessibility (color contrast, focus states)
+        - Performance (avoid expensive selectors)
+
+# PR behavior
+pull_requests:
+  require_summary: true
+  summary_instructions: |
+    Provide a short summary of:
+    - What changed
+    - Risk areas (auth, permissions, cache, websocket)
+    - Any potential regressions
+
+# Optional: block low-quality PRs
+quality_gate:
+  enabled: true
+  fail_on:
+    - security_issues
+    - auth_logic_regressions
+
+# Path-specific instructions for critical files
+path_filters:
+  # Critical authentication files
+  - path: "src/lib/apiClient.ts"
+    instructions: |
+      Pay special attention to:
+      - Token refresh logic correctness
+      - Interceptor ordering
+      - Error handling and error object preservation
+      - Auth route bypass logic
+      - Request/response interceptor side effects
+
+  - path: "src/contexts/AuthContext.tsx"
+    instructions: |
+      Critical checks:
+      - Circular dependency prevention
+      - Proper cleanup on logout
+      - Auth state initialization
+      - Event listener management
+
+  # WebSocket and cache invalidation
+  - path: "src/services/cacheInvalidationService.ts"
+    instructions: |
+      Focus on:
+      - WebSocket connection lifecycle
+      - Cache invalidation query key matching
+      - Resource name handling (singular vs plural)
+      - Error recovery and reconnection logic
+
+  # React Query hooks
+  - path: "src/hooks/use*.ts"
+    instructions: |
+      Verify:
+      - enabled conditions (auth state checks)
+      - Query key consistency
+      - Stale time and cache settings
+      - Proper retry logic for 401/403 errors
+      - Dependency arrays in hooks
+
+  # Components
+  - path: "src/components/**"
+    instructions: |
+      Check for:
+      - Proper prop types/interfaces
+      - Error boundaries where needed
+      - Loading and error states
+      - Accessibility attributes
+      - Form validation consistency

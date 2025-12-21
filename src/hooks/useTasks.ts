@@ -8,8 +8,7 @@ import {
   deleteTask,
   updateTaskStatus,
 } from '../services/taskService';
-import { getAccessToken } from '../lib/apiClient.ts';
-import { getUserId } from '../services/authService.ts';
+import { useAuthContext } from '../contexts/AuthContext.tsx';
 
 // Query keys
 export const taskKeys = {
@@ -28,12 +27,12 @@ export const taskKeys = {
  * @returns Query result with tasks data
  */
 export const useProjectTasks = (projectId: string | null | undefined, options?: { limit?: number; offset?: number }) => {
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   
   return useQuery({
     queryKey: taskKeys.project(projectId || ''),
     queryFn: () => fetchProjectTasks(projectId!, options),
-    enabled: !!projectId && isAuthenticated, // ✅ Only fetch when authenticated
+    enabled: !!projectId && isAuthenticated && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: (failureCount, error: any) => {
       // Don't retry on 401 - token refresh should handle it
@@ -52,14 +51,20 @@ export const useProjectTasks = (projectId: string | null | undefined, options?: 
  * @returns Query result with tasks data
  */
 export const useSprintTasks = (sprintId: string | null | undefined, options?: { limit?: number; offset?: number }) => {
-  const accessToken = getAccessToken() || localStorage.getItem('token');
-  const userId = getUserId();
+  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   
   return useQuery({
     queryKey: taskKeys.sprint(sprintId || ''),
     queryFn: () => fetchSprintTasks(sprintId!, options),
-    enabled: !!sprintId && !!accessToken && !!userId, // Only run if sprintId is provided and user is authenticated
-    // No staleTime - uses Infinity from queryClient
+    enabled: !!sprintId && isAuthenticated && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 - token refresh should handle it
+      if (error?.status === 401 || error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 };
 
@@ -69,12 +74,12 @@ export const useSprintTasks = (sprintId: string | null | undefined, options?: { 
  * @returns Query result with task data
  */
 export const useTask = (taskId: string | null | undefined) => {
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   
   return useQuery({
     queryKey: taskKeys.detail(taskId || ''),
     queryFn: () => fetchTaskById(taskId!),
-    enabled: !!taskId && isAuthenticated, // ✅ Only fetch when authenticated
+    enabled: !!taskId && isAuthenticated && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: (failureCount, error: any) => {
       // Don't retry on 401 - token refresh should handle it

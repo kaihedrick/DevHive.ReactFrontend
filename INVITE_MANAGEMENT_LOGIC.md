@@ -499,3 +499,4 @@ refetchOnReconnect: false,     // WebSocket handles updates
 - **Manual Revocation**: DELETE endpoint sets `isActive = false`
 - **Active Filter**: `isActive === true && expiresAt > now`
 - **Cache**: Invalidated on create/revoke/accept operations
+

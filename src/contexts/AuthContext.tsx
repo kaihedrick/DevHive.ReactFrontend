@@ -4,8 +4,7 @@ import { login as loginService, logout as logoutService, refreshToken as refresh
 import { LoginModel } from '../models/user.ts';
 import { cacheInvalidationService } from '../services/cacheInvalidationService.ts';
 import { getSelectedProject, clearSelectedProject } from '../services/storageService';
-import { getAccessToken, isTokenExpired } from '../lib/apiClient.ts';
-import { useValidateProjectAccess } from '../hooks/useValidateProjectAccess.ts';
+import { isTokenExpired } from '../lib/apiClient.ts';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -33,12 +32,26 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const queryClient = useQueryClient();
   const previousProjectIdRef = useRef<string | null>(null);
-  const { validateProjectId, isLoading: projectsLoading, projects: projectsData } = useValidateProjectAccess();
+  const isConnectingRef = useRef<boolean>(false); // Track if we're currently connecting
+  const validatedProjectIdRef = useRef<string | null>(null); // Track last validated projectId
+  const selectedProjectIdRef = useRef<string | null>(null); // Track stable selectedProjectId across navigations
+  const explicitLogoutRef = useRef<boolean>(false); // Track if logout was explicitly called
+  const authInitializedRef = useRef<boolean>(false); // Track if auth has been initialized
   
-  // Extract projects array from response
-  const projects = Array.isArray(projectsData) 
-    ? projectsData 
-    : (projectsData?.projects || []);
+  // Direct validation without triggering queries - reads from cache only
+  const validateProjectIdFromCache = useCallback((projectId: string): boolean => {
+    // Read from cache - don't trigger refetch
+    const cached = queryClient.getQueryData(['projects', 'list']);
+    const projects = Array.isArray(cached) ? cached : (cached?.projects || []);
+    
+    if (projects.length === 0) {
+      // No projects cached - assume valid (don't clear on empty cache)
+      // The backend will reject unauthorized WS connections anyway
+      return true;
+    }
+    
+    return projects.some((p: any) => p.id === projectId);
+  }, [queryClient]);
 
   // Register callback for 403 Forbidden errors from WebSocket
   useEffect(() => {
@@ -63,8 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
 
   // Check for existing auth state on mount
-  // CRITICAL: Do NOT check token expiration here - let the backend tell us via 401 responses
-  // The 24-hour check was causing auth loops on public routes (login/register)
+  // CRITICAL: This only runs ONCE on mount - auth state is stable after initialization
   useEffect(() => {
     const checkAuthState = async () => {
       try {
@@ -112,6 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserId(null);
       } finally {
         setIsInitializing(false);
+        authInitializedRef.current = true; // Mark as initialized
       }
     };
 
@@ -119,11 +132,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Listen for auth state changes from API client (e.g., when refresh fails)
     const handleAuthStateChange = () => {
-      // Re-check auth state when API client clears tokens
+      // Only respond to explicit auth-state-changed events (from logout or token expiration)
+      // NOT from transient state changes during navigation
       const storedUserId = getUserId();
       const hasToken = !!localStorage.getItem('token');
       
       if (!hasToken || !storedUserId) {
+        console.log('🔓 Auth state changed: tokens cleared, setting authenticated=false');
+        explicitLogoutRef.current = true; // Mark as explicit logout
         setIsAuthenticated(false);
         setUserId(null);
       }
@@ -134,74 +150,92 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => {
       window.removeEventListener('auth-state-changed', handleAuthStateChange);
     };
-  }, []);
+  }, []); // Empty deps - only runs once on mount
 
   // SINGLE OWNER: Connect cache invalidation WebSocket when authenticated with project selected
   // Only connects on: login (isAuthenticated change) or project change
-  // Disconnects on: logout or project cleared
+  // Disconnects on: EXPLICIT logout or project cleared
+  // CRITICAL: NEVER disconnect on transient isAuthenticated=false during navigation
   // NOTE: Reconnection on network errors is handled by cacheInvalidationService internally
+  // STABILITY: Dependencies only include stable auth state, not route-dependent values
   useEffect(() => {
-    if (!isAuthenticated || isInitializing) {
-      // Disconnect on logout or during initialization
-      cacheInvalidationService.disconnect('User not authenticated');
-      previousProjectIdRef.current = null;
+    // CRITICAL: Ignore transient auth false states during navigation
+    // Only respond to actual logout (explicitLogoutRef.current === true)
+    if (!authInitializedRef.current) {
+      // Auth not initialized yet - wait
       return;
     }
 
-    // Get selectedProjectId scoped to current user
+    if (!isAuthenticated && explicitLogoutRef.current) {
+      // Explicit logout - disconnect WebSocket
+      console.log('🔓 Explicit logout detected, disconnecting WebSocket');
+      cacheInvalidationService.disconnect('User logout');
+      previousProjectIdRef.current = null;
+      validatedProjectIdRef.current = null;
+      isConnectingRef.current = false;
+      selectedProjectIdRef.current = null;
+      explicitLogoutRef.current = false; // Reset flag
+      return;
+    }
+
+    if (!isAuthenticated && !explicitLogoutRef.current) {
+      // Transient false during navigation or initialization - IGNORE
+      console.log('⏭️ Ignoring transient auth false state (no explicit logout)');
+      return;
+    }
+
+    if (isInitializing) {
+      // Still initializing - wait
+      return;
+    }
+
+    // Get selectedProjectId scoped to current user and stabilize with ref
     const currentUserId = getUserId();
     const selectedProjectId = getSelectedProject(currentUserId);
+    
+    // Update stable ref only if projectId actually changed
+    if (selectedProjectIdRef.current !== selectedProjectId) {
+      selectedProjectIdRef.current = selectedProjectId;
+    }
+    
     if (!selectedProjectId) {
       // Disconnect if no project selected
       cacheInvalidationService.disconnect('No project selected');
       previousProjectIdRef.current = null;
+      validatedProjectIdRef.current = null;
+      isConnectingRef.current = false;
       return;
     }
 
-    // CRITICAL: Only validate if projects are fully loaded
-    // If projects are still loading, defer validation and connection
-    // This prevents false negatives that would clear valid project selections
-    if (projectsLoading) {
-      console.log('⏳ Projects still loading, deferring WebSocket connection for:', selectedProjectId);
+    // CRITICAL: Prevent clearing projectId while WebSocket is connecting
+    // If we're in the middle of connecting, don't re-validate or clear
+    if (isConnectingRef.current && validatedProjectIdRef.current === selectedProjectId) {
+      console.log('⏳ WebSocket connection in progress, skipping re-validation for:', selectedProjectId);
       return;
     }
 
-    // CRITICAL: Connection strategy - make it deterministic based on selectedProjectId
-    // 
-    // Strategy:
-    // 1. If projects are loaded (not loading) and we have selectedProjectId:
-    //    - If projects array has data → validate, connect if valid, clear if invalid
-    //    - If projects array is empty → connect anyway (trust stored selection, ignore transient empty state)
-    // 2. This ensures connection happens deterministically when projects are loaded,
-    //    regardless of transient array state during refetches
-    if (projects.length > 0) {
-      // Projects are available - validate before connecting
-      const isValid = validateProjectId(selectedProjectId);
-      if (!isValid) {
-        // Projects are loaded and not empty, but projectId not found → truly invalid
-        console.warn('⚠️ Selected projectId is not accessible, clearing selection:', {
-          projectId: selectedProjectId,
-          availableProjects: projects.map((p: any) => ({ id: p.id, name: p.name, userRole: p.userRole }))
-        });
-        clearSelectedProject(currentUserId);
-        cacheInvalidationService.disconnect('Project not accessible');
-        previousProjectIdRef.current = null;
-        return;
-      }
+    // Validate using cache-only check (doesn't trigger refetch)
+    const isValid = validateProjectIdFromCache(selectedProjectId);
+    if (!isValid && !isConnectingRef.current) {
+      // Projects are in cache and projectId not found → invalid
+      // Read cache to get available projects for logging
+      const cached = queryClient.getQueryData(['projects', 'list']);
+      const projects = Array.isArray(cached) ? cached : (cached?.projects || []);
       
-      // Validation passed - log for debugging
-      const validatedProject = projects.find((p: any) => p.id === selectedProjectId);
-      console.log('✅ ProjectId validated, proceeding with WebSocket connection:', {
+      console.warn('⚠️ Selected projectId not in cache, clearing selection:', {
         projectId: selectedProjectId,
-        projectName: validatedProject?.name,
-        userRole: validatedProject?.userRole,
-        projectsCount: projects.length
+        cachedProjectsCount: projects.length
       });
-    } else {
-      // Projects array is empty but projects are loaded (not loading)
-      // This could be transient refetch state - trust the stored selectedProjectId and connect
-      // This makes connection deterministic and prevents constant deferrals
-      console.log('✅ Projects loaded but array is empty (likely transient refetch), connecting with stored projectId:', selectedProjectId);
+      clearSelectedProject(currentUserId);
+      cacheInvalidationService.disconnect('Project not accessible');
+      previousProjectIdRef.current = null;
+      validatedProjectIdRef.current = null;
+      return;
+    }
+    
+    // Mark as validated
+    if (isValid) {
+      validatedProjectIdRef.current = selectedProjectId;
     }
 
     // Only connect if project changed or not connected
@@ -214,29 +248,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           cacheInvalidationService.disconnect('Project changed');
         }
         previousProjectIdRef.current = selectedProjectId;
+        isConnectingRef.current = true;
         try {
           await cacheInvalidationService.connect(selectedProjectId);
+          console.log('✅ WebSocket connected for project:', selectedProjectId);
+          isConnectingRef.current = false;
         } catch (error: any) {
+          isConnectingRef.current = false;
           // Handle 403 Forbidden - clear invalid projectId
           if (error?.message?.includes('not authorized') || error?.message?.includes('Forbidden')) {
             console.error('❌ Not authorized for project, clearing selection');
-            const currentUserId = getUserId();
             clearSelectedProject(currentUserId);
             previousProjectIdRef.current = null;
+            validatedProjectIdRef.current = null;
           }
           console.error('❌ Failed to connect WebSocket:', error);
         }
       } else if (!cacheInvalidationService.isConnected()) {
         // Same project but not connected - connect (e.g., after page refresh)
+        console.log('🔌 Connecting WebSocket for project:', selectedProjectId);
+        isConnectingRef.current = true;
         try {
           await cacheInvalidationService.connect(selectedProjectId);
+          console.log('✅ WebSocket connected for project:', selectedProjectId);
+          isConnectingRef.current = false;
         } catch (error: any) {
+          isConnectingRef.current = false;
           // Handle 403 Forbidden - clear invalid projectId
           if (error?.message?.includes('not authorized') || error?.message?.includes('Forbidden')) {
             console.error('❌ Not authorized for project, clearing selection');
-            const currentUserId = getUserId();
             clearSelectedProject(currentUserId);
             previousProjectIdRef.current = null;
+            validatedProjectIdRef.current = null;
           }
           console.error('❌ Failed to connect WebSocket:', error);
         }
@@ -244,11 +287,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     connectWebSocket();
-  }, [isAuthenticated, isInitializing, projectsLoading, validateProjectId, projects]);
+  }, [isAuthenticated, isInitializing, validateProjectIdFromCache, queryClient]); // Stable dependencies only - no route-dependent values
 
   // Listen for project selection changes via storage events (cross-tab communication)
   useEffect(() => {
-    if (!isAuthenticated || projectsLoading) return;
+    if (!isAuthenticated) return;
 
     const handleStorageChange = async (e: StorageEvent) => {
       if (e.key === 'selectedProjectId') {
@@ -260,9 +303,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             cacheInvalidationService.disconnect('Project changed via storage event');
           }
           
-          // Validate new projectId before connecting
+          // Validate new projectId before connecting (cache-only check)
           const currentUserId = getUserId();
-          if (newProjectId && validateProjectId(newProjectId)) {
+          if (newProjectId && validateProjectIdFromCache(newProjectId)) {
             previousProjectIdRef.current = newProjectId;
             try {
               await cacheInvalidationService.connect(newProjectId);
@@ -276,11 +319,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               console.error('❌ Failed to connect WebSocket:', error);
             }
           } else if (newProjectId) {
-            // Invalid projectId - clear it (only if projects are loaded)
-            if (!projectsLoading) {
-              console.warn('⚠️ Invalid projectId from storage event, clearing:', newProjectId);
-              clearSelectedProject(currentUserId);
-            }
+            // Invalid projectId - clear it
+            console.warn('⚠️ Invalid projectId from storage event, clearing:', newProjectId);
+            clearSelectedProject(currentUserId);
             previousProjectIdRef.current = null;
           } else {
             previousProjectIdRef.current = null;
@@ -294,7 +335,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [isAuthenticated, projectsLoading, validateProjectId]);
+  }, [isAuthenticated, validateProjectIdFromCache]);
 
   // WebSocket maintains connection and handles cache invalidation
   // No need to invalidate on visibility change
@@ -316,7 +357,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
-    // 1. CRITICAL: Clear auth state FIRST to immediately disable all queries
+    // CRITICAL: Set explicit logout flag FIRST
+    // This tells the WebSocket effect that this is a real logout, not a transient state
+    explicitLogoutRef.current = true;
+    
+    // 1. CRITICAL: Clear auth state to immediately disable all queries
     // This prevents any new queries from starting
     setIsAuthenticated(false);
     setUserId(null);
@@ -325,6 +370,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     queryClient.cancelQueries();
     
     // 3. Disconnect cache invalidation WebSocket with explicit reason
+    // The effect will handle this via explicitLogoutRef
     // This ensures all timers are cleared and no reconnection attempts happen
     cacheInvalidationService.disconnect('User logout');
     previousProjectIdRef.current = null;

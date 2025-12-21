@@ -22,7 +22,11 @@ import "../styles/contacts.css";
 const Contacts = () => {
   const navigate = useNavigate();
   const loggedInUserId = localStorage.getItem("userId"); // Get logged-in user ID
-  const projectId = getSelectedProject();
+  
+  // Stabilize projectId to prevent remounts during navigation
+  // Read once and memoize - don't re-read on every render
+  // This prevents hooks from seeing null/value/null flips that cause remounts
+  const projectId = useMemo(() => getSelectedProject(), []); // Only read once on mount
 
   // TanStack Query hook for data fetching
   const { data: membersData, isLoading: loading, error: queryError } = useProjectMembers(projectId);

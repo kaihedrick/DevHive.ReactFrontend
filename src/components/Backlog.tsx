@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getSelectedProject } from "../services/storageService";
-import { useSprints, useUpdateSprint } from "../hooks/useSprints.ts";
+import { useSprints } from "../hooks/useSprints.ts";
 import { useProjectMembers } from "../hooks/useProjects.ts";
-import { useSprintTasks, useTask, useUpdateTask } from "../hooks/useTasks.ts";
+import { useSprintTasks, useUpdateTask } from "../hooks/useTasks.ts";
 import useBacklogActions from "../hooks/useBacklogActions.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRotateLeft, faCheck, faXmark, faPenToSquare, faPlus, faTimes, faExclamationTriangle, faExclamationCircle, faEllipsisVertical, faChevronLeft, faCog } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faExclamationCircle, faCog } from "@fortawesome/free-solid-svg-icons";
 import { Sprint, Task, User } from "../types/hooks.ts";
 import TaskInspector from "./TaskInspector.tsx";
 import SprintInspector from "./SprintInspector.tsx";
@@ -32,12 +32,15 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
 
   // UI state only
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
-  const [isEditingTask, setIsEditingTask] = useState<string | null>(null);
-  const [editedDescription, setEditedDescription] = useState<string>("");
   const [selectedTaskForEdit, setSelectedTaskForEdit] = useState<Task | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState<boolean>(false);
   const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
-  const selectedProjectId = projectId || getSelectedProject();
+  
+  // Stabilize projectId to prevent remounts during navigation
+  // Read once and memoize - don't re-read on every render
+  // This prevents hooks from seeing null/value/null flips that cause remounts
+  const storedProjectId = useMemo(() => getSelectedProject(), []); // Only read once on mount
+  const selectedProjectId = projectId || storedProjectId;
 
   // TanStack Query hooks for data fetching
   const { data: sprintsData, isLoading: sprintsLoading, error: sprintsError } = useSprints(selectedProjectId);
@@ -162,6 +165,13 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
     }
   }, [selectedProjectId, location.search, sprints, selectedSprint, navigate, showError]);
 
+  // Helper function to get status text
+  const getStatusText = (status: number): string => {
+    if (status === 0) return 'To Do';
+    if (status === 1) return 'In Progress';
+    return 'Completed';
+  };
+
   const handleStatusChange = async (task: Task, newStatus: number): Promise<void> => {
     try {
       await handleUpdateTaskStatus(task, newStatus);
@@ -170,8 +180,9 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
       if (selectedTaskForEdit?.id === task.id) {
         setSelectedTaskForEdit({ ...task, status: newStatus });
       }
-      showSuccess(`Task status updated to ${newStatus === 0 ? 'To Do' : newStatus === 1 ? 'In Progress' : 'Completed'}`);
+      showSuccess(`Task status updated to ${getStatusText(newStatus)}`);
     } catch (err: any) {
+      console.error("Failed to update task status:", err);
       showError("Failed to update task status.");
     }
   };
@@ -191,7 +202,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
       // Cache invalidation handled automatically by mutation/WebSocket
       // Update selectedTaskForEdit optimistically for immediate UI feedback
       if (selectedTaskForEdit?.id === task.id) {
-        setSelectedTaskForEdit({ ...task, assigneeId: assigneeValue });
+        setSelectedTaskForEdit({ ...task, assigneeId: assigneeValue ?? undefined });
       }
       showSuccess("Task assignee updated");
     } catch (err: any) {
@@ -199,42 +210,6 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
       console.error("❌ Error details:", err.response?.data || err.message);
       showError(`Failed to update task assignee: ${err.message}`);
     }
-  };
-
-  const handleEditTask = async (taskId: string): Promise<void> => {
-    try {
-      // Use useTask hook to get task data (will use cache if available)
-      // For now, find task from current tasks list
-      const task = tasks.find(t => t.id === taskId);
-      if (task) {
-        setIsEditingTask(taskId);
-        setEditedDescription(task.description);
-      } else {
-        showError("Task not found.");
-      }
-    } catch (err: any) {
-      showError("Failed to load task for editing.");
-    }
-  };
-
-  const handleSaveEdit = async (taskId: string): Promise<void> => {
-    try {
-      await updateTaskMutation.mutateAsync({ 
-        taskId, 
-        taskData: { description: editedDescription } 
-      });
-      // Cache invalidation handled automatically by mutation/WebSocket
-      setIsEditingTask(null);
-      setEditedDescription("");
-      showSuccess("Task updated successfully");
-    } catch (err: any) {
-      showError("Failed to update task.");
-    }
-  };
-
-  const handleCancelEdit = (): void => {
-    setIsEditingTask(null);
-    setEditedDescription("");
   };
 
   const handleSprintSettingsClick = (e: React.MouseEvent, sprint: Sprint): void => {
@@ -249,25 +224,41 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
     setEditingSprint(sprint);
   };
 
-  // Refetch function for backward compatibility (TanStack Query handles this automatically)
-  const refreshSprints = async (): Promise<void> => {
-    // TanStack Query automatically refetches when query key changes
-    // This function exists for interface compatibility only
+
+  // Helper function to handle create navigation
+  const handleCreateNavigation = (): void => {
+    if (!selectedProjectId) {
+      console.error('Cannot create sprint/task: No project selected');
+      return;
+    }
+    if (selectedSprint) {
+      navigate(`/create-task?projectId=${selectedProjectId}&sprintId=${selectedSprint.id}`);
+    } else {
+      const navigateUrl = selectedProjectId ? `/create-sprint?projectId=${selectedProjectId}` : '/create-sprint';
+      navigate(navigateUrl);
+    }
   };
 
-
-  const getStatusName = (status: number): string => {
-    const statusMap = { 0: "To Do", 1: "In Progress", 2: "Completed" };
-    return statusMap[status] || "Unknown";
+  // Helper function to handle create sprint navigation
+  const handleCreateSprintNavigation = (): void => {
+    if (!selectedProjectId) {
+      console.error('Cannot create sprint: No project selected');
+      return;
+    }
+    const navigateUrl = selectedProjectId ? `/create-sprint?projectId=${selectedProjectId}` : '/create-sprint';
+    navigate(navigateUrl);
   };
 
-  const getStatusColor = (status: number): string => {
-    const colorMap = { 
-      0: "status-todo", 
-      1: "status-in-progress", 
-      2: "status-completed" 
-    };
-    return colorMap[status] || "status-unknown";
+  // Helper function to get status aria label
+  const getStatusAriaLabel = (status: number): string => {
+    const statusText = getStatusText(status);
+    return `Status: ${statusText}. Click to cycle.`;
+  };
+
+  // Helper function to get assignee display name
+  const getAssigneeDisplayName = (assigneeId: string): string => {
+    const member = members.find(m => m.id === assigneeId);
+    return member ? `${member.firstName} ${member.lastName}` : '';
   };
 
   if (loading) {
@@ -325,19 +316,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
           <div className="backlog-toolbar">
             <button 
               className="primary-action-btn"
-              onClick={() => {
-                if (!selectedProjectId) {
-                  console.error('Cannot create sprint/task: No project selected');
-                  return;
-                }
-                if (selectedSprint) {
-                  navigate(`/create-task?projectId=${selectedProjectId}&sprintId=${selectedSprint.id}`);
-                } else {
-                  // Only add projectId query param if it's valid (not undefined/null)
-                  const navigateUrl = selectedProjectId ? `/create-sprint?projectId=${selectedProjectId}` : '/create-sprint';
-                  navigate(navigateUrl);
-                }
-              }}
+              onClick={handleCreateNavigation}
             >
               <span className="btn-icon" aria-hidden>＋</span>
               {selectedSprint ? 'Task' : 'Sprint'}
@@ -366,15 +345,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
               <p className="empty-subtitle">Create a sprint to get started with your project backlog.</p>
               <div className="empty-actions">
                 <button 
-                  onClick={() => {
-                    if (!selectedProjectId) {
-                      console.error('Cannot create sprint: No project selected');
-                      return;
-                    }
-                    // Only add projectId query param if it's valid (not undefined/null)
-                    const navigateUrl = selectedProjectId ? `/create-sprint?projectId=${selectedProjectId}` : '/create-sprint';
-                    navigate(navigateUrl);
-                  }} 
+                  onClick={handleCreateSprintNavigation} 
                   className="empty-action-btn"
                 >
                   <FontAwesomeIcon icon={faPlus} />
@@ -455,7 +426,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
                       <button 
                         className="task-status-pill"
                         onClick={(e) => { e.stopPropagation(); handleStatusCycle(task); }}
-                        aria-label={`Status: ${task.status === 0 ? 'To Do' : task.status === 1 ? 'In Progress' : 'Completed'}. Click to cycle.`}
+                        aria-label={getStatusAriaLabel(task.status)}
                       >
                         {getStatusIcon(task.status)}
                       </button>
@@ -466,7 +437,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
                       {/* Assignee avatar */}
                       <div className="task-assignee-avatar">
                         {task.assigneeId ? (
-                          <div className="assignee-avatar-initials" title={members.find(m => m.id === task.assigneeId)?.firstName + ' ' + members.find(m => m.id === task.assigneeId)?.lastName}>
+                          <div className="assignee-avatar-initials" title={getAssigneeDisplayName(task.assigneeId)}>
                             {getAssigneeInitials(task.assigneeId)}
                           </div>
                         ) : (
@@ -507,16 +478,15 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
         onDescriptionUpdate={async (taskId: string, description: string) => {
           try {
             await updateTaskMutation.mutateAsync({ taskId, taskData: { description } });
-            // Cache invalidation handled automatically by mutation/WebSocket
-            // Update selectedTaskForEdit optimistically for immediate UI feedback
             const updatedTask = tasks.find(t => t.id === taskId);
             if (updatedTask && selectedTaskForEdit?.id === taskId) {
               setSelectedTaskForEdit({ ...updatedTask, description });
             }
           } catch (err: any) {
+            console.error("Failed to update task description:", err);
             showError("Failed to update task description.");
           }
-          }}
+        }}
         />
 
       {/* Sprint Inspector Panel */}
@@ -529,9 +499,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
           setEditingSprint(null);
         }}
         onDelete={() => {
-          // Cache invalidation handled automatically by mutation/WebSocket
           setEditingSprint(null);
-          // If deleted sprint was selected, clear selection
           if (selectedSprint?.id === editingSprint?.id) {
             setSelectedSprint(null);
           }

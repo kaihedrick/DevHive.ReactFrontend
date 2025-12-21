@@ -9,12 +9,12 @@ import { useAuthContext } from '../contexts/AuthContext.tsx';
  * @returns Query result with user data
  */
 export const useUser = (userId: string | null | undefined) => {
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   
   return useQuery({
     queryKey: ['user', userId],
     queryFn: () => fetchUserById(userId!),
-    enabled: !!userId && isAuthenticated, // ✅ Only fetch when authenticated
+    enabled: !!userId && isAuthenticated && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: (failureCount, error: any) => {
       // Don't retry on 401 - token refresh should handle it

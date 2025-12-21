@@ -19,12 +19,12 @@ export const messageKeys = {
  * @returns Query result with messages data
  */
 export const useMessages = (projectId: string | null | undefined, options?: { limit?: number; offset?: number }) => {
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   
   return useQuery({
     queryKey: messageKeys.project(projectId || ''),
     queryFn: () => fetchProjectMessages(projectId!, options),
-    enabled: !!projectId && isAuthenticated, // ✅ Only fetch when authenticated
+    enabled: !!projectId && isAuthenticated && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
     staleTime: Infinity, // Messages are updated via WebSocket, no need to refetch automatically
     // Removed refetchInterval - WebSocket handles real-time updates via cache invalidation
     retry: (failureCount, error: any) => {

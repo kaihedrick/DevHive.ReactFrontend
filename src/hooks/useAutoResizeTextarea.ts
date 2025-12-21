@@ -36,3 +36,4 @@ export function useAutoResizeTextarea(
 
   return textareaRef;
 }
+
