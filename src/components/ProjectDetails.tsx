@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faCrown, faRightFromBracket, faTimes, faCheck, faPlus, faCopy, faTrash, faSpinner, faLink } from "@fortawesome/free-solid-svg-icons";
@@ -92,12 +92,36 @@ const ProjectDetails: React.FC = () => {
     });
   }, [membersData, project]);
   
+  // Stable ownership check using ref to persist during refetches
+  // This prevents UI flicker when project data is temporarily unavailable during refetches
+  const ownershipRef = useRef<boolean>(false);
+  
   // Calculate if current user is owner
+  // IMPORTANT: This must be stable during refetches to prevent UI flicker
+  // Update ref when project is loaded, but don't clear it during refetches
   const isCurrentUserOwner = useMemo(() => {
-    if (!project || !loggedInUserId) return false;
-    const projectOwnerId = project.ownerId || (project as any)?.projectOwnerID || '';
-    return loggedInUserId === projectOwnerId;
-  }, [project, loggedInUserId]);
+    if (!finalProjectId || !loggedInUserId) {
+      ownershipRef.current = false;
+      return false;
+    }
+    
+    // If project is loaded, check ownership from project data and update ref
+    if (project) {
+      const projectOwnerId = project.ownerId || (project as any)?.projectOwnerID || '';
+      const userRole = project.userRole || (project as any)?.UserRole || '';
+      // Check if user is owner by ID match or role
+      const isOwner = loggedInUserId === projectOwnerId || userRole === 'owner';
+      ownershipRef.current = isOwner;
+      return isOwner;
+    }
+    
+    // If project is not loaded yet (during refetch), use cached ownership from ref
+    // This prevents UI from flickering when project data is temporarily unavailable
+    return ownershipRef.current;
+  }, [project, loggedInUserId, finalProjectId]);
+  
+  // Stable flag: we have a selected project (regardless of loading state)
+  const hasSelectedProject = !!finalProjectId;
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedName, setEditedName] = useState<string>("");
@@ -478,7 +502,8 @@ const ProjectDetails: React.FC = () => {
         <div className="form-group">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
             <label className="form-label" style={{ marginBottom: 0 }}>Project Members</label>
-            {(project?.permissions?.canViewInvites ?? isCurrentUserOwner) && (
+            {/* Gate on hasSelectedProject to prevent hiding during refetches */}
+            {hasSelectedProject && (project?.permissions?.canViewInvites || isCurrentUserOwner) && (
               <button
                 type="button"
                 onClick={() => setShowInvites(!showInvites)}
@@ -513,7 +538,8 @@ const ProjectDetails: React.FC = () => {
           </div>
           
           {/* Invite Management Section */}
-          {showInvites && (project?.permissions?.canViewInvites ?? isCurrentUserOwner) && (
+          {/* Gate on hasSelectedProject to prevent hiding during refetches */}
+          {hasSelectedProject && showInvites && (project?.permissions?.canViewInvites || isCurrentUserOwner) && (
             <div style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-4)', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
               <h3 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-4)' }}>Invite Management</h3>
               
@@ -525,7 +551,8 @@ const ProjectDetails: React.FC = () => {
               )}
               
               {/* Create Invite Section - Only show if user can create invites */}
-              {(project?.permissions?.canCreateInvites ?? isCurrentUserOwner) && (
+              {/* Gate on hasSelectedProject to prevent hiding during refetches */}
+              {hasSelectedProject && (project?.permissions?.canCreateInvites || isCurrentUserOwner) && (
                 <>
                   <h4 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-3)' }}>Create Invite Link</h4>
                   
@@ -588,7 +615,8 @@ const ProjectDetails: React.FC = () => {
               )}
               
               {/* Active Invites List - Only show if user can view invites */}
-              {(project?.permissions?.canViewInvites ?? isCurrentUserOwner) && (
+              {/* Gate on hasSelectedProject to prevent hiding during refetches */}
+              {hasSelectedProject && (project?.permissions?.canViewInvites || isCurrentUserOwner) && (
                 <>
                   {invitesLoading && (
                     <div style={{ padding: 'var(--space-3)', textAlign: 'center', color: 'var(--text-secondary)' }}>

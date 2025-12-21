@@ -58,10 +58,23 @@ export const useInviteDetails = (inviteToken: string | null) => {
  * If permissions aren't loaded yet, will attempt to fetch (backend will handle permission check)
  */
 export const useProjectInvites = (projectId: string | null, project: Project | null | undefined) => {
-  // If permissions are explicitly set to false, don't fetch
-  // Otherwise, try to fetch (backend will return 403 if no permission)
+  // Determine if user can view invites:
+  // 1. If permissions are explicitly set, use that
+  // 2. If permissions aren't set yet (new project), check if user is owner
+  // 3. Otherwise, try to fetch (backend will return 403 if no permission)
   const canViewInvites = project?.permissions?.canViewInvites;
-  const shouldFetch = canViewInvites === false ? false : true; // Only skip if explicitly false
+  const isOwner = project?.userRole === 'owner' || 
+                  (project?.ownerId && typeof window !== 'undefined' && 
+                   localStorage.getItem('userId') === project.ownerId);
+  
+  // Fetch if:
+  // - projectId exists
+  // - AND (permissions explicitly allow OR permissions not set but user is owner OR permissions not explicitly false)
+  const shouldFetch = !!projectId && (
+    canViewInvites === true || 
+    (canViewInvites === undefined && isOwner) || 
+    (canViewInvites !== false) // Default to true if not explicitly false
+  );
   
   return useQuery<InvitesResponse>({
     queryKey: ['projects', projectId, 'invites'],
@@ -69,7 +82,7 @@ export const useProjectInvites = (projectId: string | null, project: Project | n
       const response = await apiClient.get(`/projects/${projectId}/invites`);
       return response.data;
     },
-    enabled: !!projectId && shouldFetch, // Fetch if projectId exists and permission isn't explicitly false
+    enabled: shouldFetch, // Fetch based on permission check above
     staleTime: Infinity, // Cache indefinitely - only invalidate when invites change
     gcTime: 24 * 60 * 60 * 1000, // 24 hours - cache retention
     refetchOnMount: false, // Don't refetch on mount if data exists
