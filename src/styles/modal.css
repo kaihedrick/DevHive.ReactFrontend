@@ -121,7 +121,7 @@
   position: sticky;
   bottom: 0;
   padding: 12px 16px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important; /* Increased padding + safe area for Safari bottom bar */
   border-top: 1px solid var(--border-color, #e0e0e0);
   background: var(--bg-primary, #fff);
   flex-shrink: 0;

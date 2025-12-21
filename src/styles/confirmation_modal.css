@@ -36,6 +36,7 @@
   border-radius: 20px !important;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(0, 0, 0, 0.1) !important;
   padding: 24px !important;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important; /* Account for Safari bottom bar */
   max-width: 400px !important;
   width: calc(100% - 32px) !important;
   margin: 16px !important;
@@ -98,6 +99,7 @@
   pointer-events: auto !important;
   z-index: 10 !important;
   position: relative !important;
+  padding-bottom: env(safe-area-inset-bottom) !important; /* Account for Safari bottom bar */
 }
 
 .confirmation-modal-btn {
