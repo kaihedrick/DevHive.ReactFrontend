@@ -392,6 +392,11 @@
   .sprint-inspector-backdrop {
     background: rgba(0, 0, 0, 0.5);
   }
+
+  /* Footer padding: container already accounts for safe-area with bottom positioning */
+  .sprint-inspector-footer {
+    padding-bottom: 12px !important;
+  }
 }
 
 
