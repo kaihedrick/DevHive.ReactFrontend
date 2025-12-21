@@ -26,18 +26,78 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   display: block !important;
 }
 
+/* Fix double scrollbar on mobile - mimic ProjectDetails approach */
+@media (max-width: 768px) {
+  /* Fix page wrapper to prevent page scrolling */
+  .board-page {
+    position: fixed !important; /* Lock viewport to prevent any page scrolling */
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important; /* No scrolling on page */
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Prevent body scroll when board-page is fixed */
+  body:has(.board-page) {
+    overflow: hidden !important;
+    height: 100vh !important;
+  }
+  
+  /* Container acts as the entire page - scrolling happens here */
+  .board-page .board-container {
+    width: 100% !important;
+    overflow-y: auto !important; /* Scrolling happens here */
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    position: absolute !important; /* Absolute positioning within fixed parent */
+    top: var(--navbar-height-mobile) !important; /* Position below navbar */
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important; /* Stretch to bottom - calculates height automatically */
+    box-sizing: border-box !important;
+    padding: var(--space-5) !important;
+    margin: 0 !important;
+    height: auto !important; /* Let bottom: 0 calculate height */
+    min-height: auto !important; /* Remove min-height constraint */
+    
+    /* Use the same styled scrollbar as ProjectDetails (from global.css) */
+    scrollbar-width: thin !important; /* Firefox - thin scrollbar */
+    scrollbar-color: var(--gray) var(--bg-secondary) !important; /* Firefox - thumb and track colors */
+  }
+  
+  /* WebKit scrollbar styling - matches global.css */
+  .board-page .board-container::-webkit-scrollbar {
+    width: 0.4rem !important;
+    height: 0.4rem !important;
+  }
+  
+  .board-page .board-container::-webkit-scrollbar-track {
+    background: var(--bg-secondary) !important;
+    border-radius: var(--border-radius) !important;
+  }
+  
+  .board-page .board-container::-webkit-scrollbar-thumb {
+    background-color: var(--gray) !important;
+    border-radius: var(--border-radius) !important;
+  }
+  
+  .board-page .board-container::-webkit-scrollbar-thumb:hover {
+    background-color: var(--dark-gray) !important;
+  }
+}
+
 /* Account for topbar height on mobile - High specificity to override global rules */
 @media (max-width: 600px) {
   /* Target page when topbar is present - ensure it accounts for fixed navbar */
   body.has-topbar main .board-page,
   body.has-topbar .board-page,
   body.has-topbar .content main .board-page {
-    padding-top: var(--space-5) !important; /* Match base top padding; global .content handles navbar clearance */
-    padding-right: var(--space-5) !important; /* Keep existing side padding */
-    padding-bottom: var(--space-5) !important; /* Keep existing bottom padding */
-    padding-left: var(--space-5) !important; /* Keep existing side padding */
-    margin-top: 0 !important; /* Override any margin-top from global rules */
-    position: relative !important; /* Ensure proper stacking context */
+    /* Already handled by mobile fix above */
   }
   
   /* Ensure the first element in the page also has proper spacing */
