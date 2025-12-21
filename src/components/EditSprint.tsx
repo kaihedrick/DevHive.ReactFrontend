@@ -34,6 +34,9 @@ const EditSprint: React.FC = () => {
   const updateSprintMutation = useUpdateSprint();
   const deleteSprintMutation = useDeleteSprint();
 
+  // Auto-resize textarea hook
+  const descriptionTextareaRef = useAutoResizeTextarea(description, 3);
+
   // Progressive Disclosure + Affordance scroll indicators
   const containerRef = useScrollIndicators([sprintName, startDate, endDate]);
 

@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
-import { useUpdateSprint, useDeleteSprint } from '../hooks/useSprints.ts';
+import { useUpdateSprint, useUpdateSprintStatus, useDeleteSprint } from '../hooks/useSprints.ts';
 import { Sprint } from '../types/hooks.ts';
 import ConfirmationModal from './ConfirmationModal.tsx';
 import { useToast } from '../contexts/ToastContext.tsx';
 import { isValidText, isValidDateRange, isEndDateAfterStartDate } from '../utils/validation.ts';
 import { useAutoResizeTextarea } from '../hooks/useAutoResizeTextarea.ts';
+import { getSprintStatus, getSprintStatusLabel, SprintStatus } from '../utils/sprintUtils.ts';
 import '../styles/sprint_inspector.css';
 import '../styles/project_details.css'; // For char-count styling
 
@@ -37,12 +38,21 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [isStarted, setIsStarted] = useState<boolean>(false);
+  const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const { showSuccess, showError } = useToast();
 
   const updateSprintMutation = useUpdateSprint();
+  const updateSprintStatusMutation = useUpdateSprintStatus();
   const deleteSprintMutation = useDeleteSprint();
+  
+  // Track original status to detect changes
+  const originalIsStarted = useRef<boolean>(false);
+  const originalIsCompleted = useRef<boolean>(false);
+  
+  // Auto-resize textarea hook
+  const descriptionTextareaRef = useAutoResizeTextarea(description, 4);
   
   // Calculate max date (1 year from today)
   const maxDate = useMemo(() => {
@@ -67,7 +77,13 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
       if (sprint.endDate) {
         setEndDate(sprint.endDate.split('T')[0]);
       }
-      setIsStarted(sprint.isStarted || false);
+      const newIsStarted = sprint.isStarted || false;
+      const newIsCompleted = sprint.isCompleted || false;
+      setIsStarted(newIsStarted);
+      setIsCompleted(newIsCompleted);
+      // Store original values for comparison
+      originalIsStarted.current = newIsStarted;
+      originalIsCompleted.current = newIsCompleted;
     } else {
       // Reset form when sprint is cleared
       setName('');
@@ -75,8 +91,11 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
       setStartDate('');
       setEndDate('');
       setIsStarted(false);
+      setIsCompleted(false);
+      originalIsStarted.current = false;
+      originalIsCompleted.current = false;
     }
-  }, [sprint?.id, sprint?.name, sprint?.description, sprint?.startDate, sprint?.endDate, sprint?.isStarted]);
+  }, [sprint?.id, sprint?.name, sprint?.description, sprint?.startDate, sprint?.endDate, sprint?.isStarted, sprint?.isCompleted]);
 
   // Lock scroll while inspector is open
   useEffect(() => {
@@ -110,6 +129,12 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
     // Validate name is not empty
     if (!name.trim()) {
       showError('Sprint name is required');
+      return;
+    }
+    
+    // Validate name length
+    if (name.length > 50) {
+      showError('Sprint name cannot exceed 50 characters.');
       return;
     }
     
@@ -176,6 +201,7 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
       const isoStartDate = startDate ? new Date(startDate).toISOString() : '';
       const isoEndDate = endDate ? new Date(endDate).toISOString() : '';
       
+      // Update sprint data (name, description, dates) - NO status fields
       await updateSprintMutation.mutateAsync({
         sprintId: sprint.id,
         sprintData: {
@@ -183,9 +209,23 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
           description: description.trim(),
           startDate: isoStartDate,
           endDate: isoEndDate,
-          isStarted,
+          // Note: isStarted and isCompleted are NOT included here
+          // They must be updated via the separate status endpoint
         },
       });
+      
+      // Check if status changed and update separately if needed
+      const statusChanged = 
+        isStarted !== originalIsStarted.current || 
+        isCompleted !== originalIsCompleted.current;
+      
+      if (statusChanged) {
+        await updateSprintStatusMutation.mutateAsync({
+          sprintId: sprint.id,
+          isStarted,
+          isCompleted,
+        });
+      }
       
       showSuccess('Sprint updated successfully');
       onUpdate();
@@ -203,10 +243,38 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
     }
   };
 
-  const handleToggleStatus = (): void => {
+  /**
+   * Handle status change based on current sprint state
+   * Transitions:
+   * - Planned -> Active: set isStarted=true, isCompleted=false
+   * - Active -> Completed: set isCompleted=true (isStarted stays true)
+   * - Completed -> Active: set isCompleted=false (isStarted stays true)
+   * - Active -> Planned: set isStarted=false, isCompleted=false
+   */
+  const handleStatusChange = (newStatus: SprintStatus): void => {
     // Only update local state - save will happen when user clicks Save button
-    setIsStarted(!isStarted);
+    switch (newStatus) {
+      case 'planned':
+        setIsStarted(false);
+        setIsCompleted(false);
+        break;
+      case 'active':
+        setIsStarted(true);
+        setIsCompleted(false);
+        break;
+      case 'completed':
+        setIsStarted(true); // Keep started when completing
+        setIsCompleted(true);
+        break;
+    }
   };
+  
+  // Get current status for UI
+  const currentStatus = useMemo(() => {
+    if (isCompleted) return 'completed';
+    if (isStarted) return 'active';
+    return 'planned';
+  }, [isStarted, isCompleted]);
 
   const handleDeleteClick = (): void => {
     setShowDeleteConfirm(true);
@@ -283,7 +351,9 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter sprint name..."
                 disabled={isSaving}
+                maxLength={50}
               />
+              <div className="char-count">{name.length}/50</div>
             </div>
 
             {/* Description */}
@@ -343,27 +413,42 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
             {/* Separator */}
             <div className="sprint-inspector-separator" />
 
-            {/* Status Toggle */}
+            {/* Status Selector */}
             <div className="inspector-field">
               <label className="inspector-label">Status</label>
-              <div className="toggle-switch-container">
-                <div className="toggle-switch-label">
-                  <span className={!isStarted ? 'toggle-label-active' : 'toggle-label-inactive'}>
-                    Inactive
-                  </span>
-                  <span className={isStarted ? 'toggle-label-active' : 'toggle-label-inactive'}>
-                    Active
-                  </span>
-                </div>
+              <div className="status-selector">
                 <button
                   type="button"
-                  className={`toggle-switch ${isStarted ? 'toggle-switch--active' : ''}`}
-                  onClick={handleToggleStatus}
-                  disabled={isSaving || updateSprintMutation.isPending}
-                  aria-label={isStarted ? 'Deactivate sprint' : 'Activate sprint'}
+                  className={`status-option ${currentStatus === 'planned' ? 'status-option--active' : ''}`}
+                  onClick={() => handleStatusChange('planned')}
+                  disabled={isSaving || updateSprintMutation.isPending || updateSprintStatusMutation.isPending}
+                  aria-label="Set sprint to planned"
                 >
-                  <span className="toggle-switch-thumb" />
+                  <span className="status-option-label">Planned</span>
                 </button>
+                <button
+                  type="button"
+                  className={`status-option ${currentStatus === 'active' ? 'status-option--active' : ''}`}
+                  onClick={() => handleStatusChange('active')}
+                  disabled={isSaving || updateSprintMutation.isPending || updateSprintStatusMutation.isPending}
+                  aria-label="Set sprint to active"
+                >
+                  <span className="status-option-label">Active</span>
+                </button>
+                <button
+                  type="button"
+                  className={`status-option ${currentStatus === 'completed' ? 'status-option--active' : ''}`}
+                  onClick={() => handleStatusChange('completed')}
+                  disabled={isSaving || updateSprintMutation.isPending || updateSprintStatusMutation.isPending}
+                  aria-label="Set sprint to completed"
+                >
+                  <span className="status-option-label">Completed</span>
+                </button>
+              </div>
+              <div className="status-indicator">
+                <span className={`status-badge status-${currentStatus}`}>
+                  {getSprintStatusLabel({ isStarted, isCompleted } as Sprint)}
+                </span>
               </div>
             </div>
 
@@ -398,9 +483,9 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
             <button
               className="inspector-btn inspector-btn--primary"
               onClick={handleSave}
-              disabled={isSaving || updateSprintMutation.isPending}
+              disabled={isSaving || updateSprintMutation.isPending || updateSprintStatusMutation.isPending}
             >
-              {isSaving || updateSprintMutation.isPending ? 'Saving...' : 'Save'}
+              {isSaving || updateSprintMutation.isPending || updateSprintStatusMutation.isPending ? 'Saving...' : 'Save'}
             </button>
           </footer>
         </div>

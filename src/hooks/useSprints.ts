@@ -141,15 +141,15 @@ export const useUpdateSprint = () => {
 };
 
 /**
- * Hook to update sprint status (isStarted)
+ * Hook to update sprint status (isStarted and/or isCompleted)
  * @returns Mutation hook for updating sprint status
  */
 export const useUpdateSprintStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ sprintId, isStarted }: { sprintId: string; isStarted: boolean }) =>
-      updateSprintStatus(sprintId, isStarted),
+    mutationFn: ({ sprintId, isStarted, isCompleted }: { sprintId: string; isStarted?: boolean; isCompleted?: boolean }) =>
+      updateSprintStatus(sprintId, { isStarted, isCompleted }),
     onSuccess: (data, variables) => {
       // Response includes complete sprint data
       queryClient.setQueryData(sprintKeys.detail(variables.sprintId), data);

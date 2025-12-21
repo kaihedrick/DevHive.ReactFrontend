@@ -90,9 +90,10 @@
   max-width: 500px !important;
   margin: 0 auto !important;
   position: relative !important;
-  max-height: none !important; /* Let the main content scroll container handle vertical scrolling */
-  overflow-y: visible !important;
+  max-height: 100vh !important; /* Allow container to be scrollable */
+  overflow-y: auto !important; /* Enable scrolling on the container itself */
   overflow-x: hidden !important;
+  scroll-behavior: smooth !important;
 }
 
 /* Ensure container is centered when sidebar navbar is present */
@@ -559,7 +560,6 @@ body {
   padding-bottom: var(--space-8) !important; /* Extra padding at bottom for scroll affordance */
   max-width: 500px !important;
   margin: 0 auto !important;
-  scroll-behavior: smooth !important;
   min-height: fit-content !important;
 }
 

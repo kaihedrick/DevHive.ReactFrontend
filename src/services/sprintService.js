@@ -131,6 +131,8 @@ export const updateSprint = async (sprintId, sprintData) => {
         if (sprintData.description !== undefined) payload.description = sprintData.description;
         if (sprintData.startDate !== undefined) payload.startDate = sprintData.startDate;
         if (sprintData.endDate !== undefined) payload.endDate = sprintData.endDate;
+        // Note: isStarted and isCompleted are NOT included here
+        // They must be updated via the separate /sprints/:id/status endpoint
 
         console.log(`📤 Updating sprint ${sprintId}:`, payload);
 
@@ -197,25 +199,34 @@ export const startSprint = async (sprintId) => {
 };
 
 /**
- * Updates sprint status (sets isStarted to true/false).
- * Uses the new PATCH /sprints/{id}/status endpoint.
+ * Updates sprint status (isStarted and/or isCompleted).
+ * Uses the PATCH /sprints/{id}/status endpoint.
  *
  * @param {string} sprintId - The ID of the sprint to update
- * @param {boolean} isStarted - Whether the sprint should be started
+ * @param {Object} statusData - Status update data
+ * @param {boolean} [statusData.isStarted] - Whether the sprint should be started
+ * @param {boolean} [statusData.isCompleted] - Whether the sprint should be completed
  * @returns {Promise<Object>} - The updated sprint object
  * @throws {Error} - Throws an error if updating sprint status fails
  */
-export const updateSprintStatus = async (sprintId, isStarted) => {
+export const updateSprintStatus = async (sprintId, statusData) => {
     try {
         if (!sprintId) {
             throw new Error("Sprint ID is required");
         }
 
-        console.log(`📤 Updating sprint status: ${sprintId}, isStarted: ${isStarted}`);
+        // Build payload with only provided status fields
+        const payload = {};
+        if (statusData.isStarted !== undefined) payload.isStarted = statusData.isStarted;
+        if (statusData.isCompleted !== undefined) payload.isCompleted = statusData.isCompleted;
 
-        const response = await api.patch(ENDPOINTS.SPRINT_STATUS(sprintId), {
-            isStarted: isStarted
-        });
+        if (Object.keys(payload).length === 0) {
+            throw new Error("At least one status field (isStarted or isCompleted) must be provided");
+        }
+
+        console.log(`📤 Updating sprint status: ${sprintId}`, payload);
+
+        const response = await api.patch(ENDPOINTS.SPRINT_STATUS(sprintId), payload);
 
         console.log("✅ Sprint status updated successfully:", response.data);
         return response.data;

@@ -37,10 +37,12 @@ export const useScrollIndicators = (dependencies: any[] = []) => {
         clearTimeout(typingTimeoutRef.current);
       }
       
-      // Reset typing flag after user stops typing for 1000ms (longer cooldown)
+      // Reset typing flag after user stops typing for 1500ms (longer cooldown)
       typingTimeoutRef.current = setTimeout(() => {
         isTypingRef.current = false;
-      }, 1000); // Increased from 500ms to 1000ms
+        // Trigger a scroll update after typing stops
+        handleScroll(true);
+      }, 1500); // Increased to 1500ms for more stability
     };
     
     // Attach input listeners to all input/textarea elements
@@ -66,8 +68,8 @@ export const useScrollIndicators = (dependencies: any[] = []) => {
     container.addEventListener('keydown', handleContainerKeyDown, { passive: true, capture: true });
 
     const handleScroll = (forceUpdate: boolean = false) => {
-      // Skip recalculation if user is actively typing
-      if (!forceUpdate && isTypingRef.current) {
+      // Skip ALL recalculation if user is actively typing
+      if (isTypingRef.current) {
         return;
       }
       
@@ -78,28 +80,12 @@ export const useScrollIndicators = (dependencies: any[] = []) => {
 
       // Use requestAnimationFrame to ensure accurate measurements
       requestAnimationFrame(() => {
-        const { scrollTop, scrollHeight, clientHeight } = container;
-        
-        // Only recalculate if scrollHeight changed significantly (more than 20px)
-        // This prevents recalculation on tiny layout shifts from error messages
-        const heightChange = Math.abs(scrollHeight - lastScrollHeightRef.current);
-        if (!forceUpdate && heightChange < 20 && lastScrollHeightRef.current > 0) {
-          // Height hasn't changed significantly, only update scroll position classes
-          const isScrolledToBottom = scrollHeight - scrollTop - clientHeight < 10;
-          const isScrolledToTop = scrollTop < 10;
-          
-          container.classList.remove('scrolled-to-top', 'scrolled-to-bottom');
-          if (isScrolledToBottom) {
-            container.classList.add('scrolled-to-bottom');
-          }
-          if (isScrolledToTop) {
-            container.classList.add('scrolled-to-top');
-          }
+        // Double-check typing flag inside requestAnimationFrame
+        if (isTypingRef.current) {
           return;
         }
         
-        // Significant height change or forced update - full recalculation
-        lastScrollHeightRef.current = scrollHeight;
+        const { scrollTop, scrollHeight, clientHeight } = container;
         
         const isScrollable = scrollHeight > clientHeight + 5;
         const isScrolledToBottom = scrollHeight - scrollTop - clientHeight < 10;
@@ -124,6 +110,9 @@ export const useScrollIndicators = (dependencies: any[] = []) => {
             container.classList.add('scrolled-to-top');
           }
         }
+        
+        // Update tracked height
+        lastScrollHeightRef.current = scrollHeight;
       });
     };
 
@@ -148,69 +137,41 @@ export const useScrollIndicators = (dependencies: any[] = []) => {
     container.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll);
 
-    // Use ResizeObserver to detect when container size changes
-    // CRITICAL: Only observe the container itself, NOT its children
-    // This prevents firing when input elements resize during typing
+    // Disable ResizeObserver during typing to prevent flashing
+    // ResizeObserver can trigger on layout shifts from typing
     if (window.ResizeObserver) {
-      let resizeDebounceTimeout: NodeJS.Timeout | null = null;
-      
       resizeObserver = new ResizeObserver((entries) => {
         // ALWAYS skip if user is actively typing
         if (isTypingRef.current) {
           return;
         }
         
-        // Check if the resize is from an input/textarea element
         const entry = entries[0];
         if (!entry) return;
         
-        // Skip if the resized element is an input or textarea (or inside one)
         const target = entry.target as HTMLElement;
-        // Check if target is an Element before calling closest()
-        // entry.target might not be an Element in some edge cases
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-          return;
-        }
-        // Check if target is an Element and has closest method before calling it
-        if (target.nodeType === Node.ELEMENT_NODE && typeof target.closest === 'function') {
-          if (target.closest('input, textarea')) {
-            return;
-          }
-        }
         
         // Only process if the container itself changed size
         if (target !== container) {
           return;
         }
         
-        const newHeight = entry.contentRect.height;
-        const heightChange = Math.abs(newHeight - lastScrollHeightRef.current);
-        
-        // Only trigger on significant height changes (>50px to be extra safe)
-        if (heightChange > 50) {
-          // Clear any pending resize debounce
-          if (resizeDebounceTimeout) {
-            clearTimeout(resizeDebounceTimeout);
-          }
-          
-          // Debounce resize with longer delay
-          resizeDebounceTimeout = setTimeout(() => {
-            // Double-check typing flag before executing
-            if (!isTypingRef.current) {
-              handleScroll(false);
-            }
-            resizeDebounceTimeout = null;
-          }, 500); // Longer debounce for resize
+        // Debounce and check typing flag again
+        if (timeoutId) {
+          clearTimeout(timeoutId);
         }
+        
+        timeoutId = setTimeout(() => {
+          if (!isTypingRef.current) {
+            handleScroll(false);
+          }
+        }, 300);
       });
       
-      // CRITICAL: Only observe the container, NOT its children
       resizeObserver.observe(container, { box: 'border-box' });
     }
 
-    // Also check when content might have changed
-    // Debounce mutation observer to avoid excessive recalculations
-    // Only watch for structural changes (elements added/removed), not attribute changes
+    // MutationObserver - watch for structural changes only
     const mutationObserver = new MutationObserver((mutations) => {
       // Skip if user is typing
       if (isTypingRef.current) {
@@ -224,13 +185,17 @@ export const useScrollIndicators = (dependencies: any[] = []) => {
       
       if (hasStructuralChanges) {
         if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => handleScroll(false), 300); // Debounce DOM mutations
+        timeoutId = setTimeout(() => {
+          if (!isTypingRef.current) {
+            handleScroll(false);
+          }
+        }, 300);
       }
     });
     mutationObserver.observe(container, {
-      childList: true,      // Watch for added/removed elements
-      subtree: true,        // Watch all descendants
-      attributes: false,     // Don't watch attribute changes at all (they don't affect scroll height)
+      childList: true,
+      subtree: true,
+      attributes: false,
     });
 
     return () => {

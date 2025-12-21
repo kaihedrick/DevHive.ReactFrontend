@@ -838,24 +838,47 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 }
 
 .backlog-page .status-badge {
-  padding: var(--space-1) var(--space-3) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
   border-radius: 12px !important;
-  font-size: var(--font-size-xs) !important;
-  font-weight: var(--font-weight-semibold) !important;
+  font-size: var(--font-size-xs, 12px) !important;
+  font-weight: var(--font-weight-medium, 600) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
+  letter-spacing: 0.3px !important;
+  font-family: var(--primary-font, 'Montserrat', sans-serif) !important;
 }
 
+/* Sprint Status Badges - Three States (matching Sprint Inspector) */
+.backlog-page .status-badge.status-planned {
+  background: hsla(var(--blue-hue, 217), var(--blue-saturation, 100%), 58%, 0.12) !important;
+  color: hsl(var(--blue-hue, 217), var(--blue-saturation, 100%), 45%) !important;
+  border: none !important;
+}
+
+.backlog-page .status-badge.status-active {
+  background: hsla(var(--gold-hue, 45), var(--gold-saturation, 100%), 58%, 0.15) !important;
+  color: hsl(var(--gold-hue, 45), var(--gold-saturation, 100%), 45%) !important;
+  border: none !important;
+}
+
+.backlog-page .status-badge.status-completed {
+  background: hsla(142, 70%, 58%, 0.15) !important;
+  color: hsl(142, 70%, 45%) !important;
+  border: none !important;
+}
+
+/* Legacy support for active/inactive (backward compatibility) */
 .backlog-page .status-badge.active {
-  background: hsl(120, 60%, 45%) !important;
-  color: white !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  background: hsla(var(--gold-hue, 45), var(--gold-saturation, 100%), 58%, 0.15) !important;
+  color: hsl(var(--gold-hue, 45), var(--gold-saturation, 100%), 45%) !important;
+  border: none !important;
 }
 
 .backlog-page .status-badge.inactive {
-  background: var(--bg-tertiary) !important;
-  color: var(--text-tertiary) !important;
-  border: 1px solid var(--border-color) !important;
+  background: hsla(var(--blue-hue, 217), var(--blue-saturation, 100%), 58%, 0.12) !important;
+  color: hsl(var(--blue-hue, 217), var(--blue-saturation, 100%), 45%) !important;
+  border: none !important;
 }
 
 .backlog-page .sprint-card {
@@ -1801,16 +1824,21 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   gap: var(--space-2) !important;
 }
 
+/* Base status badge styling - matches Sprint Inspector */
 .backlog-page .status-badge {
-  padding: var(--space-1) var(--space-2) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
   border-radius: 12px !important;
-  font-size: var(--font-size-xs) !important;
-  font-weight: var(--font-weight-bold) !important;
+  font-size: var(--font-size-xs, 12px) !important;
+  font-weight: var(--font-weight-medium, 600) !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.5px !important;
+  letter-spacing: 0.3px !important;
+  font-family: var(--primary-font, 'Montserrat', sans-serif) !important;
   white-space: nowrap !important;
 }
 
+/* Task status badges (different from sprint status badges) */
 .backlog-page .status-badge.status-todo {
   background: #e3e3e3 !important;
   color: #666 !important;
@@ -1821,10 +1849,8 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   color: #000 !important;
 }
 
-.backlog-page .status-badge.status-completed {
-  background: #4caf50 !important;
-  color: #fff !important;
-}
+/* Note: .status-badge.status-completed is defined above for sprint status */
+/* Task completed status should use a different class if needed */
 
 .backlog-page .meta-label {
   font-size: var(--font-size-xs) !important;

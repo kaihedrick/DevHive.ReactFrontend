@@ -11,6 +11,7 @@ import { Sprint, Task, User } from "../types/hooks.ts";
 import TaskInspector from "./TaskInspector.tsx";
 import SprintInspector from "./SprintInspector.tsx";
 import { useToast } from "../contexts/ToastContext.tsx";
+import { getSprintStatusLabel, getSprintStatusColorClass } from "../utils/sprintUtils.ts";
 import "../styles/backlog.css";
 
 interface BacklogProps {
@@ -374,8 +375,8 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
                     <p className="sprint-metadata">
                       {new Date(sprint.startDate).toLocaleDateString()} - {new Date(sprint.endDate).toLocaleDateString()}
                     </p>
-                    <span className={`status-badge ${sprint.isStarted ? 'active' : 'inactive'}`}>
-                      {sprint.isStarted ? 'Active' : 'Inactive'}
+                    <span className={`status-badge ${getSprintStatusColorClass(sprint)}`}>
+                      {getSprintStatusLabel(sprint)}
                     </span>
                   </div>
                   

@@ -34,9 +34,12 @@ const useBoardActions = (projectId: string): UseBoardActionsReturn => {
   const updateTaskStatusMutation = useUpdateTaskStatus();
 
   // Extract data arrays from TanStack Query responses
+  // Filter out completed sprints - they should not appear on the Project Board
   const sprints: Sprint[] = useMemo(() => {
     if (!sprintsData) return [];
-    return sprintsData.sprints || sprintsData || [];
+    const allSprints = sprintsData.sprints || sprintsData || [];
+    // Filter out completed sprints
+    return allSprints.filter((sprint: Sprint) => !sprint.isCompleted);
   }, [sprintsData]);
 
   const members: User[] = useMemo(() => {
@@ -76,7 +79,17 @@ const useBoardActions = (projectId: string): UseBoardActionsReturn => {
   };
 
   // Set initial selectedSprint when sprints first load
+  // Also clear selected sprint if it becomes completed (filtered out)
   useEffect(() => {
+    // If selected sprint is completed (not in filtered list), clear it
+    if (selectedSprint && sprints.length > 0) {
+      const sprintExists = sprints.some((s: Sprint) => s.id === selectedSprint);
+      if (!sprintExists) {
+        setSelectedSprint(null);
+      }
+    }
+    
+    // Set initial sprint if none selected and sprints are available
     if (sprints && sprints.length > 0 && !selectedSprint) {
       setSelectedSprint(sprints[0].id);
     }

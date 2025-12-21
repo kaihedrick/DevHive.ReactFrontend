@@ -163,76 +163,127 @@
   flex-shrink: 0;
 }
 
-/* Toggle Switch - Apple Minimalistic Style */
-.toggle-switch-container {
+/* Status Selector - Apple Minimalistic Segmented Control */
+.status-selector {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.toggle-switch-label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.toggle-label-active {
-  color: var(--accent-primary, #007aff);
-  font-weight: 600;
-}
-
-.toggle-label-inactive {
-  color: var(--text-secondary, #666);
-}
-
-.toggle-switch {
+  flex-direction: row;
+  gap: 0;
+  margin-bottom: 16px;
+  background: var(--bg-secondary, #f5f5f5);
+  border-radius: var(--border-radius-lg, 12px);
+  padding: 3px;
   position: relative;
-  width: 51px;
-  height: 31px;
-  border-radius: 31px;
-  background: var(--bg-tertiary, #e5e5e5);
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.status-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
   border: none;
+  border-radius: calc(var(--border-radius-lg, 12px) - 3px);
+  background: transparent;
   cursor: pointer;
-  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 0;
-  outline: none;
-  flex-shrink: 0;
+  transition: background-color var(--transition-fast, 150ms) cubic-bezier(0.4, 0, 0.2, 1), 
+              color var(--transition-fast, 150ms) cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow var(--transition-fast, 150ms) cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  font-family: var(--primary-font, 'Montserrat', sans-serif);
+  position: relative;
+  z-index: 1;
+  min-height: 40px;
+  /* Prevent size changes */
+  box-sizing: border-box;
+  width: 100%;
 }
 
-.toggle-switch:hover:not(:disabled) {
-  opacity: 0.8;
+.status-option:hover:not(:disabled):not(.status-option--active) {
+  background: rgba(0, 0, 0, 0.03);
 }
 
-.toggle-switch:active:not(:disabled) {
-  transform: scale(0.95);
+.status-option:active:not(:disabled) {
+  /* Remove scale transform to prevent size changes */
+  opacity: 0.9;
 }
 
-.toggle-switch:disabled {
-  opacity: 0.5;
+.status-option:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-.toggle-switch--active {
-  background: var(--accent-primary, #007aff);
+.status-option--active {
+  background: var(--bg-primary, #fff);
+  color: var(--text-primary, #000);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 1px rgba(0, 0, 0, 0.06);
 }
 
-.toggle-switch-thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 27px;
-  height: 27px;
-  border-radius: 50%;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateX(0);
+.status-option-label {
+  font-size: var(--font-size-sm, 14px);
+  font-weight: var(--font-weight-medium, 600);
+  color: var(--text-secondary, #666);
+  transition: color var(--transition-fast, 150ms) ease;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  /* Prevent font-weight from causing size shifts */
+  display: inline-block;
+  width: 100%;
+  text-align: center;
 }
 
-.toggle-switch--active .toggle-switch-thumb {
-  transform: translateX(20px);
+.status-option--active .status-option-label {
+  color: var(--text-primary, #000);
+  /* Keep same font-weight to prevent size changes */
+  font-weight: var(--font-weight-medium, 600);
+}
+
+.status-option-description {
+  display: none; /* Hidden for minimalistic design */
+}
+
+.status-indicator {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  height: 18px;
+  border-radius: 12px;
+  font-size: var(--font-size-xs, 12px);
+  font-weight: var(--font-weight-medium, 600);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-family: var(--primary-font, 'Montserrat', sans-serif);
+  /* Ensure uniform sizing regardless of text length */
+  min-width: 90px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1;
+}
+
+.status-badge.status-planned {
+  background: hsla(var(--blue-hue, 217), var(--blue-saturation, 100%), 58%, 0.12);
+  color: hsl(var(--blue-hue, 217), var(--blue-saturation, 100%), 45%);
+}
+
+.status-badge.status-active {
+  background: hsla(var(--gold-hue, 45), var(--gold-saturation, 100%), 58%, 0.15);
+  color: hsl(var(--gold-hue, 45), var(--gold-saturation, 100%), 45%);
+}
+
+.status-badge.status-completed {
+  background: hsla(142, 70%, 58%, 0.15);
+  color: hsl(142, 70%, 45%);
 }
 
 /* Delete Section */

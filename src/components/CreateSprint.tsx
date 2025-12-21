@@ -59,7 +59,8 @@ const CreateSprint: React.FC = () => {
   }, []);
   
   // Progressive Disclosure + Affordance scroll indicators
-  const containerRef = useScrollIndicators([sprintName, description, startDate, endDate]);
+  // Don't pass text values as dependencies - they cause re-renders on every keystroke
+  const containerRef = useScrollIndicators([]);
   
   // Mutation hook for creating sprints
   const createSprintMutation = useCreateSprint();
@@ -74,6 +75,12 @@ const CreateSprint: React.FC = () => {
     // Validate projectId
     if (!projectId || projectId === 'undefined' || projectId === 'null' || projectId.trim() === '') {
       showError("No project selected. Please select a project first.");
+      return;
+    }
+    
+    // Validate name length
+    if (sprintName.length > 50) {
+      showError("Sprint name cannot exceed 50 characters.");
       return;
     }
     
@@ -186,9 +193,10 @@ const CreateSprint: React.FC = () => {
             onChange={(e) => setSprintName(e.target.value)}
             className="form-input"
             placeholder="Enter sprint name"
-            maxLength={100}
+            maxLength={50}
             autoFocus
           />
+          <div className="char-count">{sprintName.length}/50</div>
         </div>
         
         <div className="form-group">
