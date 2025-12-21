@@ -195,19 +195,21 @@ html, body {
     font-family: var(--primary-font) !important;
     font-size: var(--font-size-base) !important;
     line-height: var(--line-height-normal) !important;
-    min-height: 100vh !important;
-    min-height: 100dvh !important; /* iOS 16+ dynamic viewport */
+    height: 100% !important;
     width: 100% !important;
-    overflow-x: hidden !important; /* Prevent horizontal scroll */
+    overflow: hidden !important; /* Prevent pull-to-refresh - app shell should NOT scroll */
     /* Mobile viewport optimizations */
     -webkit-text-size-adjust: 100% !important;
     -ms-text-size-adjust: 100% !important;
     text-size-adjust: 100% !important;
     /* Prevent zoom on input focus for iOS */
     -webkit-tap-highlight-color: transparent !important;
-    /* Better mobile scrolling */
-    -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior: contain !important;
+}
+
+/* Root element should also not scroll */
+#root {
+    height: 100% !important;
+    overflow: hidden !important;
 }
 
 /* Responsive font sizing */

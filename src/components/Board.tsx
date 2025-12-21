@@ -77,6 +77,7 @@ const Board: React.FC = () => {
   const highlightedDropZoneRef = useRef<HTMLElement | null>(null);
   const pointerDragRef = useRef<DragState>({ mode: 'idle' });
   const longPressRef = useRef<number | null>(null);
+  const scrollLockRef = useRef<{ y: number } | null>(null);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -117,6 +118,8 @@ const Board: React.FC = () => {
       const handleDocumentPointerMove = (e: PointerEvent): void => {
         const current = pointerDragRef.current;
         if (current.mode === 'dragging') {
+          e.preventDefault(); // Critical: prevent iOS scroll gestures
+          
           current.ghost.style.left = `${e.clientX - current.offsetX}px`;
           current.ghost.style.top = `${e.clientY - current.offsetY}px`;
 
@@ -187,14 +190,22 @@ const Board: React.FC = () => {
         clearHighlightedDropZones();
       };
 
+      // Touch move blocker for iOS (sometimes more reliable than pointermove)
+      const onTouchMove = (e: TouchEvent) => {
+        if (e.touches.length > 1) return; // Allow pinch zoom
+        e.preventDefault();
+      };
+
       document.addEventListener('pointermove', handleDocumentPointerMove, { passive: false });
       document.addEventListener('pointerup', handleDocumentPointerUp);
       document.addEventListener('pointercancel', handleDocumentPointerCancel);
+      document.addEventListener('touchmove', onTouchMove, { passive: false });
 
       return () => {
         document.removeEventListener('pointermove', handleDocumentPointerMove);
         document.removeEventListener('pointerup', handleDocumentPointerUp);
         document.removeEventListener('pointercancel', handleDocumentPointerCancel);
+        document.removeEventListener('touchmove', onTouchMove);
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -203,11 +214,12 @@ const Board: React.FC = () => {
   // Cleanup pointer drag on unmount
   useEffect(() => {
     return () => {
-      setPointerDrag((current) => {
+        setPointerDrag((current) => {
         if (current.mode === 'dragging') {
           current.ghost.remove();
           current.sourceCard.classList.remove('drag-source');
           document.body.classList.remove('dragging-task');
+          unlockScroll();
           // Clear highlighted columns on unmount
           Object.values(columnRefs).forEach(ref => {
             if (ref.current) {
@@ -429,6 +441,32 @@ const Board: React.FC = () => {
     highlightedDropZoneRef.current = null;
   };
 
+  const lockScroll = (): void => {
+    if (scrollLockRef.current) return;
+    const y = window.scrollY;
+    scrollLockRef.current = { y };
+
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${y}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+  };
+
+  const unlockScroll = (): void => {
+    const state = scrollLockRef.current;
+    if (!state) return;
+
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    window.scrollTo(0, state.y);
+
+    scrollLockRef.current = null;
+  };
+
   const startDrag = (card: HTMLElement, task: Task, pointerId: number, startX: number, startY: number): void => {
     const rect = card.getBoundingClientRect();
     const ghost = card.cloneNode(true) as HTMLElement;
@@ -447,6 +485,9 @@ const Board: React.FC = () => {
     } catch (err) {
       console.warn('setPointerCapture failed:', err);
     }
+    
+    // Lock scroll and add dragging class
+    lockScroll();
     document.body.classList.add('dragging-task');
 
     const newDragState: DragState = {
@@ -480,6 +521,7 @@ const Board: React.FC = () => {
       state.ghost.remove();
       state.sourceCard.classList.remove('drag-source');
       document.body.classList.remove('dragging-task');
+      unlockScroll();
       clearHighlightedColumns();
       clearHighlightedDropZones();
     }
@@ -494,13 +536,10 @@ const Board: React.FC = () => {
     if (!usePointerDnD) return;
     
     e.stopPropagation();
-    e.preventDefault(); // Prevent default touch behaviors (scrolling, selection)
+    // Don't preventDefault here - only lock scroll when drag actually starts
     
     const card = (e.currentTarget as HTMLElement).closest('.task-card') as HTMLElement | null;
     if (!card) return;
-
-    // Disable scrolling immediately when starting long-press
-    document.body.classList.add('dragging-task');
 
     setPointerDrag({
       mode: 'pending',
@@ -522,10 +561,6 @@ const Board: React.FC = () => {
   const handlePointerMove = (e: React.PointerEvent): void => {
     const current = pointerDragRef.current;
     if (current.mode === 'pending') {
-      // Prevent scrolling during pending state
-      e.preventDefault();
-      e.stopPropagation();
-      
       const dx = e.clientX - current.startX;
       const dy = e.clientY - current.startY;
       const distance = Math.hypot(dx, dy);
@@ -536,8 +571,6 @@ const Board: React.FC = () => {
           window.clearTimeout(longPressRef.current);
           longPressRef.current = null;
         }
-        // Re-enable scrolling when cancelling
-        document.body.classList.remove('dragging-task');
         setPointerDrag({ mode: 'idle' });
       }
     }
@@ -554,8 +587,6 @@ const Board: React.FC = () => {
     // Only handle if still in pending mode (didn't start dragging)
     const current = pointerDragRef.current;
     if (current.mode === 'pending') {
-      // Re-enable scrolling when cancelling pending drag
-      document.body.classList.remove('dragging-task');
       setPointerDrag({ mode: 'idle' });
     }
     // Dragging mode is handled by document-level pointerup listener
