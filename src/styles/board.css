@@ -249,6 +249,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   height: auto !important; /* Allow height to adjust dynamically */
   min-height: auto !important; /* Remove fixed min-height */
   flex-shrink: 0 !important; /* Prevent shrinking */
+  touch-action: pan-y !important; /* Allow vertical scrolling on mobile */
 }
 
 .board-page .task-card:last-child {
@@ -269,12 +270,33 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   transition: none !important; /* Disable transition during drag */
 }
 
+/* Pointer-based drag states for mobile */
+.board-page .task-card.drag-source {
+  opacity: 0.35 !important;
+  transition: opacity 0.2s ease !important;
+}
+
+.board-page .drag-ghost {
+  transform: scale(1.03) !important;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25) !important;
+  opacity: 0.9 !important;
+  pointer-events: none !important;
+}
+
+/* Disable scrolling while dragging on mobile */
+.dragging-task .board-container,
+.dragging-task .board-column-content {
+  touch-action: none !important;
+  overflow: hidden !important;
+}
+
 .board-page .task-header {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
   gap: var(--space-2) !important;
   margin-bottom: 0 !important;
+  min-height: 28px !important;
 }
 
 .board-page .task-title-wrapper {
@@ -323,11 +345,20 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 /* Task Assignee Avatar */
 .board-page .task-assignee-avatar {
   flex-shrink: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .board-page .assignee-avatar-initials {
   width: 28px !important;
   height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  max-width: 28px !important;
+  max-height: 28px !important;
   border-radius: 50% !important;
   background: var(--accent-primary) !important;
   color: var(--black) !important;
@@ -338,6 +369,12 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   justify-content: center !important;
   cursor: pointer !important;
   transition: transform 0.2s ease !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  border: none !important;
+  line-height: 1 !important;
 }
 
 .board-page .assignee-avatar-initials:hover {
@@ -347,18 +384,30 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 .board-page .assignee-placeholder {
   width: 28px !important;
   height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  max-width: 28px !important;
+  max-height: 28px !important;
   border-radius: 50% !important;
-  border: 1.5px dashed var(--border-color) !important;
+  border: 1px dashed var(--border-color) !important;
   background: transparent !important;
   color: var(--text-tertiary) !important;
   font-size: 18px !important;
+  font-weight: 600 !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   transition: all 0.2s ease !important;
   padding: 0 !important;
+  margin: 0 !important;
   line-height: 1 !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  /* Reset button defaults */
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  outline: none !important;
 }
 
 .board-page .assignee-placeholder:hover {

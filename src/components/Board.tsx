@@ -56,22 +56,154 @@ const Board: React.FC = () => {
   const [selectedTaskForEdit, setSelectedTaskForEdit] = useState<Task | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState<boolean>(false);
 
+  // Layout and input device detection (separated)
+  const [isNarrow, setIsNarrow] = useState<boolean>(false);
+  const [usePointerDnD, setUsePointerDnD] = useState<boolean>(false);
+  
   // Mobile drag-and-drop state
-  const [isMobile, setIsMobile] = useState<boolean>(false);
   const [draggedTaskElement, setDraggedTaskElement] = useState<HTMLElement | null>(null);
   const [showMobileDropZones, setShowMobileDropZones] = useState<boolean>(false);
   const [dropZonePosition, setDropZonePosition] = useState<{ top: number; left: number } | null>(null);
   const draggedTaskRef = useRef<HTMLElement | null>(null);
 
-  // Detect mobile device
+  // Pointer-based drag state for touch devices
+  type DragState =
+    | { mode: 'idle' }
+    | { mode: 'pending'; task: Task; startX: number; startY: number; pointerId: number }
+    | { mode: 'dragging'; task: Task; pointerId: number; offsetX: number; offsetY: number; ghost: HTMLElement; sourceCard: HTMLElement };
+
+  const [pointerDrag, setPointerDrag] = useState<DragState>({ mode: 'idle' });
+  const highlightedColumnRef = useRef<HTMLElement | null>(null);
+  const pointerDragRef = useRef<DragState>({ mode: 'idle' });
+  const longPressRef = useRef<number | null>(null);
+
+  // Keep ref in sync with state
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+    pointerDragRef.current = pointerDrag;
+  }, [pointerDrag]);
+
+  // Detect pointer type (coarse = touch, fine = mouse)
+  useEffect(() => {
+    const mql = window.matchMedia('(pointer: coarse)');
+    const update = () => setUsePointerDnD(mql.matches);
+    update();
+    
+    // Modern browsers support addEventListener on MediaQueryList
+    if (mql.addEventListener) {
+      mql.addEventListener('change', update);
+      return () => mql.removeEventListener('change', update);
+    } else {
+      // Fallback for older browsers
+      mql.addListener(update);
+      return () => mql.removeListener(update);
+    }
+  }, []);
+
+  // Detect narrow layout (for styling purposes)
+  useEffect(() => {
+    const checkNarrow = () => {
+      setIsNarrow(window.innerWidth <= 768);
     };
     
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    checkNarrow();
+    window.addEventListener('resize', checkNarrow);
+    return () => window.removeEventListener('resize', checkNarrow);
+  }, []);
+
+  // Document-level pointer handlers for dragging
+  useEffect(() => {
+    if (pointerDrag.mode === 'dragging') {
+      const handleDocumentPointerMove = (e: PointerEvent): void => {
+        const current = pointerDragRef.current;
+        if (current.mode === 'dragging') {
+          current.ghost.style.left = `${e.clientX - current.offsetX}px`;
+          current.ghost.style.top = `${e.clientY - current.offsetY}px`;
+
+          // Highlight drop target
+          const el = document.elementFromPoint(e.clientX, e.clientY);
+          const col = el?.closest('[data-status]') as HTMLElement | null;
+          
+          if (col && col !== highlightedColumnRef.current) {
+            clearHighlightedColumns();
+            col.classList.add('drag-over');
+            highlightedColumnRef.current = col;
+          } else if (!col && highlightedColumnRef.current) {
+            clearHighlightedColumns();
+          }
+        }
+      };
+
+      const handleDocumentPointerUp = async (e: PointerEvent): Promise<void> => {
+        const current = pointerDragRef.current;
+        if (current.mode === 'dragging') {
+          const el = document.elementFromPoint(e.clientX, e.clientY);
+          const col = el?.closest('[data-status]') as HTMLElement | null;
+          const dropZone = el?.closest('.mobile-drop-zone') as HTMLElement | null;
+          
+          let newStatus: number | null = null;
+          
+          if (dropZone) {
+            // Clicked on mobile drop zone
+            const statusClass = dropZone.className;
+            if (statusClass.includes('todo')) newStatus = 0;
+            else if (statusClass.includes('in-progress')) newStatus = 1;
+            else if (statusClass.includes('completed')) newStatus = 2;
+          } else if (col) {
+            // Dropped on column
+            newStatus = Number(col.dataset.status);
+          }
+
+          cleanupPointerDrag(current);
+          setShowMobileDropZones(false);
+          setDropZonePosition(null);
+          setDraggedTask(null);
+
+          if (newStatus !== null && newStatus !== current.task.status) {
+            const success = await handleStatusUpdate(current.task.id, newStatus);
+            if (success) {
+              setSuccessMessage(`Task moved to ${newStatus === 0 ? 'To Do' : newStatus === 1 ? 'In Progress' : 'Completed'}`);
+            }
+          }
+        }
+      };
+
+      const handleDocumentPointerCancel = (): void => {
+        const current = pointerDragRef.current;
+        cleanupPointerDrag(current);
+      };
+
+      document.addEventListener('pointermove', handleDocumentPointerMove, { passive: false });
+      document.addEventListener('pointerup', handleDocumentPointerUp);
+      document.addEventListener('pointercancel', handleDocumentPointerCancel);
+
+      return () => {
+        document.removeEventListener('pointermove', handleDocumentPointerMove);
+        document.removeEventListener('pointerup', handleDocumentPointerUp);
+        document.removeEventListener('pointercancel', handleDocumentPointerCancel);
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pointerDrag.mode === 'dragging']);
+
+  // Cleanup pointer drag on unmount
+  useEffect(() => {
+    return () => {
+      setPointerDrag((current) => {
+        if (current.mode === 'dragging') {
+          current.ghost.remove();
+          current.sourceCard.classList.remove('drag-source');
+          document.body.classList.remove('dragging-task');
+          // Clear highlighted columns on unmount
+          Object.values(columnRefs).forEach(ref => {
+            if (ref.current) {
+              ref.current.classList.remove('drag-over');
+            }
+          });
+        }
+        return { mode: 'idle' };
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Assignee initials helper
@@ -113,7 +245,7 @@ const Board: React.FC = () => {
     await handleAssigneeChange(task, newAssigneeId);
     // Update selectedTaskForEdit if inspector is open for this task
     if (selectedTaskForEdit?.id === task.id) {
-      setSelectedTaskForEdit({ ...task, assigneeId: newAssigneeId || null });
+      setSelectedTaskForEdit({ ...task, assigneeId: newAssigneeId || undefined });
     }
   };
 
@@ -163,8 +295,8 @@ const Board: React.FC = () => {
     const cardElement = e.currentTarget as HTMLElement;
     cardElement.classList.add('dragging');
     
-    // Mobile-specific: Show drop zones under the task
-    if (isMobile) {
+    // Show drop zones for touch devices
+    if (usePointerDnD) {
       draggedTaskRef.current = cardElement;
       setDraggedTaskElement(cardElement);
       setShowMobileDropZones(true);
@@ -195,8 +327,8 @@ const Board: React.FC = () => {
       }
     });
     
-    // Mobile-specific: Hide drop zones
-    if (isMobile) {
+    // Hide drop zones for touch devices
+    if (usePointerDnD) {
       setShowMobileDropZones(false);
       setDraggedTaskElement(null);
       setDropZonePosition(null);
@@ -238,8 +370,8 @@ const Board: React.FC = () => {
     if (success) {
       setSuccessMessage(`Task moved to ${newStatus === 0 ? 'To Do' : newStatus === 1 ? 'In Progress' : 'Completed'}`);
       
-      // Mobile-specific: Hide drop zones after successful drop
-      if (isMobile) {
+      // Hide drop zones after successful drop
+      if (usePointerDnD) {
         setShowMobileDropZones(false);
         setDraggedTaskElement(null);
         setDropZonePosition(null);
@@ -260,6 +392,138 @@ const Board: React.FC = () => {
       setDropZonePosition(null);
       draggedTaskRef.current = null;
     }
+  };
+
+  // Pointer-based drag handlers for touch devices
+  const LONG_PRESS_MS = 150;
+  const MOVE_CANCEL_PX = 8;
+
+  const clearHighlightedColumns = (): void => {
+    Object.values(columnRefs).forEach(ref => {
+      if (ref.current) {
+        ref.current.classList.remove('drag-over');
+      }
+    });
+    highlightedColumnRef.current = null;
+  };
+
+  const startDrag = (card: HTMLElement, task: Task, pointerId: number, startX: number, startY: number): void => {
+    const rect = card.getBoundingClientRect();
+    const ghost = card.cloneNode(true) as HTMLElement;
+    ghost.style.position = 'fixed';
+    ghost.style.left = `${rect.left}px`;
+    ghost.style.top = `${rect.top}px`;
+    ghost.style.width = `${rect.width}px`;
+    ghost.style.pointerEvents = 'none';
+    ghost.style.zIndex = '9999';
+    ghost.classList.add('drag-ghost');
+    document.body.appendChild(ghost);
+
+    card.classList.add('drag-source');
+    try {
+      card.setPointerCapture(pointerId);
+    } catch (err) {
+      console.warn('setPointerCapture failed:', err);
+    }
+    document.body.classList.add('dragging-task');
+
+    const newDragState: DragState = {
+      mode: 'dragging',
+      task,
+      pointerId,
+      offsetX: startX - rect.left,
+      offsetY: startY - rect.top,
+      ghost,
+      sourceCard: card
+    };
+
+    setPointerDrag(newDragState);
+
+    // Show mobile drop zones
+    const dropZoneWidth = Math.min(400, window.innerWidth - 32);
+    const taskCenter = rect.left + (rect.width / 2);
+    const dropZoneLeft = Math.max(16, Math.min(taskCenter - (dropZoneWidth / 2), window.innerWidth - dropZoneWidth - 16));
+    
+    setDropZonePosition({
+      top: rect.bottom + 8,
+      left: dropZoneLeft
+    });
+    setShowMobileDropZones(true);
+    setDraggedTask(task);
+  };
+
+  const cleanupPointerDrag = (dragState?: DragState): void => {
+    const state = dragState || pointerDrag;
+    if (state.mode === 'dragging') {
+      state.ghost.remove();
+      state.sourceCard.classList.remove('drag-source');
+      document.body.classList.remove('dragging-task');
+      clearHighlightedColumns();
+    }
+    if (longPressRef.current) {
+      window.clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+    setPointerDrag({ mode: 'idle' });
+  };
+
+  const handlePointerDown = (e: React.PointerEvent, task: Task): void => {
+    if (!usePointerDnD) return;
+    
+    e.stopPropagation();
+    
+    const card = (e.currentTarget as HTMLElement).closest('.task-card') as HTMLElement | null;
+    if (!card) return;
+
+    setPointerDrag({
+      mode: 'pending',
+      task,
+      startX: e.clientX,
+      startY: e.clientY,
+      pointerId: e.pointerId
+    });
+
+    // Start long-press timer
+    longPressRef.current = window.setTimeout(() => {
+      const current = pointerDragRef.current;
+      if (current.mode === 'pending' && current.task.id === task.id) {
+        startDrag(card, task, current.pointerId, current.startX, current.startY);
+      }
+    }, LONG_PRESS_MS);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent): void => {
+    const current = pointerDragRef.current;
+    if (current.mode === 'pending') {
+      const dx = e.clientX - current.startX;
+      const dy = e.clientY - current.startY;
+      const distance = Math.hypot(dx, dy);
+
+      // If user moves too much, cancel the long-press (they're scrolling)
+      if (distance > MOVE_CANCEL_PX) {
+        if (longPressRef.current) {
+          window.clearTimeout(longPressRef.current);
+          longPressRef.current = null;
+        }
+        setPointerDrag({ mode: 'idle' });
+      }
+    }
+    // Note: dragging mode is handled by document-level listeners
+  };
+
+  const handlePointerUp = (e: React.PointerEvent): void => {
+    // Cancel long-press if still pending
+    if (longPressRef.current) {
+      window.clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+    
+    // Only handle if still in pending mode (didn't start dragging)
+    const current = pointerDragRef.current;
+    if (current.mode === 'pending') {
+      setPointerDrag({ mode: 'idle' });
+    }
+    // Dragging mode is handled by document-level pointerup listener
   };
 
   if (loading) {
@@ -311,7 +575,7 @@ const Board: React.FC = () => {
         <FontAwesomeIcon icon={faCalendarAlt} />
         <select 
           value={selectedSprint || ''} 
-          onChange={handleSprintChange}
+          onChange={(e) => handleSprintChange(e.target.value)}
           className="sprint-dropdown"
         >
           <option value="">Select a sprint...</option>
@@ -335,6 +599,7 @@ const Board: React.FC = () => {
           <div 
             ref={columnRefs.todo}
             className="board-column-content"
+            data-status="0"
             onDragOver={(e) => handleDragOver(e, 'todo')}
             onDragLeave={(e) => handleDragLeave(e, 'todo')}
             onDrop={(e) => handleDrop(e, 0)}
@@ -347,9 +612,13 @@ const Board: React.FC = () => {
                 <div 
                   key={task.id}
                   className="task-card"
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, task)}
-                  onDragEnd={handleDragEnd}
+                  draggable={!usePointerDnD}
+                  onDragStart={!usePointerDnD ? (e) => handleDragStart(e, task) : undefined}
+                  onDragEnd={!usePointerDnD ? handleDragEnd : undefined}
+                  onPointerDown={usePointerDnD ? (e) => handlePointerDown(e, task) : undefined}
+                  onPointerMove={usePointerDnD ? handlePointerMove : undefined}
+                  onPointerUp={usePointerDnD ? handlePointerUp : undefined}
+                  onPointerCancel={usePointerDnD ? () => cleanupPointerDrag() : undefined}
                 >
                   <div className="task-header">
                     <div className="task-title-wrapper">
@@ -402,6 +671,7 @@ const Board: React.FC = () => {
           <div 
             ref={columnRefs.inProgress}
             className="board-column-content"
+            data-status="1"
             onDragOver={(e) => handleDragOver(e, 'inProgress')}
             onDragLeave={(e) => handleDragLeave(e, 'inProgress')}
             onDrop={(e) => handleDrop(e, 1)}
@@ -414,9 +684,13 @@ const Board: React.FC = () => {
                 <div 
                   key={task.id}
                   className="task-card"
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, task)}
-                  onDragEnd={handleDragEnd}
+                  draggable={!usePointerDnD}
+                  onDragStart={!usePointerDnD ? (e) => handleDragStart(e, task) : undefined}
+                  onDragEnd={!usePointerDnD ? handleDragEnd : undefined}
+                  onPointerDown={usePointerDnD ? (e) => handlePointerDown(e, task) : undefined}
+                  onPointerMove={usePointerDnD ? handlePointerMove : undefined}
+                  onPointerUp={usePointerDnD ? handlePointerUp : undefined}
+                  onPointerCancel={usePointerDnD ? () => cleanupPointerDrag() : undefined}
                 >
                   <div className="task-header">
                     <div className="task-title-wrapper">
@@ -469,6 +743,7 @@ const Board: React.FC = () => {
           <div 
             ref={columnRefs.completed}
             className="board-column-content"
+            data-status="2"
             onDragOver={(e) => handleDragOver(e, 'completed')}
             onDragLeave={(e) => handleDragLeave(e, 'completed')}
             onDrop={(e) => handleDrop(e, 2)}
@@ -481,9 +756,13 @@ const Board: React.FC = () => {
                 <div 
                   key={task.id}
                   className="task-card"
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, task)}
-                  onDragEnd={handleDragEnd}
+                  draggable={!usePointerDnD}
+                  onDragStart={!usePointerDnD ? (e) => handleDragStart(e, task) : undefined}
+                  onDragEnd={!usePointerDnD ? handleDragEnd : undefined}
+                  onPointerDown={usePointerDnD ? (e) => handlePointerDown(e, task) : undefined}
+                  onPointerMove={usePointerDnD ? handlePointerMove : undefined}
+                  onPointerUp={usePointerDnD ? handlePointerUp : undefined}
+                  onPointerCancel={usePointerDnD ? () => cleanupPointerDrag() : undefined}
                 >
                   <div className="task-header">
                     <div className="task-title-wrapper">
@@ -528,8 +807,8 @@ const Board: React.FC = () => {
       </div>
       </div>
 
-      {/* Mobile Drop Zones - Appears when dragging on mobile */}
-      {isMobile && showMobileDropZones && dropZonePosition && (
+      {/* Mobile Drop Zones - Appears when dragging on touch devices */}
+      {usePointerDnD && showMobileDropZones && dropZonePosition && (
         <div 
           className="mobile-drop-zones"
           style={{
