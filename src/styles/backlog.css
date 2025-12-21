@@ -1741,6 +1741,10 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
+  .backlog-page .backlog-header { 
+    background: color-mix(in srgb, var(--bg-secondary), #000 10%) !important; 
+  }
+  
   .backlog-page .popover-content {
     background: rgba(28, 28, 30, 0.95) !important;
     border-color: rgba(255, 255, 255, 0.1) !important;

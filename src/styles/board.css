@@ -570,119 +570,208 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   }
 }
 
-/* Ensure proper centering on all screen sizes */
+/* =============================
+   Mobile: Apple-Style Transformation
+   Flat scroll surface, section-based columns, row-like tasks
+============================= */
 @media (max-width: 768px) {
+  /* 1. Remove outer card container - make board a flat scroll surface */
   .board-page {
-    padding: var(--space-3) !important;
-    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
+    padding: var(--space-4) !important;
+    padding-bottom: calc(var(--footer-h) + env(safe-area-inset-bottom) + var(--space-6)) !important;
+    background: var(--bg-secondary) !important;
+    overflow-y: auto !important;
+    position: relative !important;
   }
   
+  /* Remove card styling from container on mobile */
   .board-page .board-container {
-    padding: var(--space-3) !important;
-    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
-    margin: 0 var(--space-2) !important;
-    margin-bottom: var(--space-4) !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    min-height: auto !important;
   }
   
-  /* Stack columns vertically on mobile */
+  /* 2. Stack columns vertically - flat sections, not cards */
   .board-page .board-columns {
-    grid-template-columns: 1fr !important; /* Single column on mobile */
-    gap: var(--space-3) !important; /* Reduce gap for mobile */
-    max-height: none !important; /* Allow natural height on mobile */
-    min-height: auto !important; /* Remove fixed min-height on mobile */
+    grid-template-columns: 1fr !important;
+    gap: 0 !important; /* Remove gap between columns */
+    max-height: none !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
   
-  /* Adjust column headers for mobile */
+  /* 3. Columns as flat sections - no cards, shadows, borders */
+  .board-page .board-column {
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-bottom: 24px !important;
+    overflow: visible !important;
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+  }
+  
+  /* 4. Apple-style section headers */
   .board-page .board-column-header {
-    padding: var(--space-2) var(--space-3) !important; /* Reduce padding on mobile */
+    background: transparent !important;
+    padding: 12px 4px !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+    border-radius: 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 8px !important;
   }
   
   .board-page .board-column-header h3 {
-    font-size: var(--font-size-base) !important; /* Smaller font on mobile */
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    text-transform: uppercase !important;
+    color: var(--text-secondary) !important;
+    margin: 0 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
   }
   
-  /* Add extra bottom padding to column content on mobile to ensure all tasks are visible */
+  /* Quiet count pill */
+  .board-page .task-count {
+    background: rgba(0, 0, 0, 0.06) !important;
+    color: var(--text-secondary) !important;
+    border-radius: 10px !important;
+    height: 20px !important;
+    width: auto !important;
+    min-width: 20px !important;
+    padding: 0 6px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+  }
+  
+  /* 5. Column content - flat, no card styling */
   .board-page .board-column-content {
-    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
-    scroll-padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
+    padding: 0 !important;
+    padding-bottom: 0 !important;
+    scroll-padding-bottom: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
   }
   
-  /* Adjust task list for mobile */
-  .board-page .task-list {
-    padding: var(--space-2) !important; /* Reduce padding on mobile */
-    gap: var(--space-2) !important; /* Reduce gap between tasks on mobile */
-  }
-  
-  /* Adjust task cards for mobile */
+  /* 6. Tasks as rows, not cards - minimal styling, elevation on interaction */
   .board-page .task-card {
-    padding: var(--space-2) !important; /* Reduce padding on mobile */
-    margin-bottom: var(--space-2) !important; /* Reduce margin on mobile */
-    min-height: 60px !important; /* Reduce minimum height on mobile */
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-radius: 12px !important;
+    padding: 12px 14px !important;
+    margin-bottom: 8px !important;
+    box-shadow: none !important;
+    border: none !important;
+    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease !important;
+    cursor: grab !important;
+    min-height: auto !important;
+    height: auto !important;
   }
   
-  /* Adjust board header for mobile */
-  .board-page .board-header {
-    flex-direction: column !important; /* Stack header elements vertically on mobile */
-    gap: var(--space-3) !important;
-    align-items: flex-start !important;
+  .board-page .task-card:hover,
+  .board-page .task-card:active {
+    background: rgba(255, 255, 255, 0.08) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
   }
   
-  /* Adjust sprint selector for mobile */
+  .board-page .task-card.dragging {
+    opacity: 0.5 !important;
+    transform: scale(1.02) translateY(-4px) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  /* Empty column message styling */
+  .board-page .empty-column-message {
+    color: var(--text-tertiary) !important;
+    text-align: left !important;
+    padding: 12px 4px !important;
+    font-size: 13px !important;
+    font-style: normal !important;
+  }
+  
+  /* Sprint selector styling */
   .board-page .sprint-selector {
-    width: 100% !important; /* Full width on mobile */
+    width: 100% !important;
+    margin-bottom: var(--space-4) !important;
+    padding: 0 4px !important;
   }
   
   .board-page .sprint-selector select {
-    width: 100% !important; /* Full width on mobile */
-    min-width: auto !important; /* Remove min-width constraint on mobile */
+    width: 100% !important;
+    min-width: auto !important;
+    padding: 12px 14px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 10px !important;
+    background: var(--bg-primary) !important;
+    font-size: 15px !important;
+  }
+  
+  /* Scroll affordances - fade gradients */
+  .board-page::before {
+    content: '' !important;
+    position: sticky !important;
+    top: 0 !important;
+    height: 16px !important;
+    background: linear-gradient(to bottom, var(--bg-secondary), transparent) !important;
+    pointer-events: none !important;
+    z-index: 10 !important;
+  }
+  
+  .board-page::after {
+    content: '' !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    height: 16px !important;
+    background: linear-gradient(to top, var(--bg-secondary), transparent) !important;
+    pointer-events: none !important;
+    z-index: 10 !important;
   }
 }
 
 /* Additional mobile optimizations for very small screens */
 @media (max-width: 480px) {
   .board-page {
-    padding: var(--space-2) !important;
-    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
+    padding: var(--space-3) !important;
+    padding-bottom: calc(var(--footer-h) + env(safe-area-inset-bottom) + var(--space-6)) !important;
   }
   
-  .board-page .board-container {
-    padding: var(--space-2) !important;
-    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-6)) !important;
-    margin: 0 var(--space-1) !important;
-    margin-bottom: var(--space-4) !important;
-  }
-  
-  .board-page .board-columns {
-    gap: var(--space-2) !important; /* Even smaller gap for very small screens */
+  .board-page .board-column {
+    margin-bottom: 20px !important;
   }
   
   .board-page .board-column-header {
-    padding: var(--space-2) !important; /* Minimal padding on very small screens */
+    padding: 10px 4px !important;
   }
   
   .board-page .board-column-header h3 {
-    font-size: var(--font-size-sm) !important; /* Smaller font on very small screens */
-  }
-  
-  /* Ensure extra bottom padding on very small screens too */
-  .board-page .board-column-content {
-    padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
-    scroll-padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra) + var(--space-4)) !important;
-  }
-  
-  .board-page .task-list {
-    padding: var(--space-1) !important; /* Minimal padding on very small screens */
-    gap: var(--space-1) !important; /* Minimal gap on very small screens */
+    font-size: 12px !important;
   }
   
   .board-page .task-card {
-    padding: var(--space-2) !important; /* Keep readable padding */
-    margin-bottom: var(--space-1) !important; /* Minimal margin on very small screens */
-    min-height: 50px !important; /* Smaller minimum height on very small screens */
+    padding: 10px 12px !important;
+    margin-bottom: 6px !important;
   }
   
-  .board-page .board-header {
-    gap: var(--space-2) !important; /* Smaller gap on very small screens */
+  .board-page .sprint-selector {
+    margin-bottom: var(--space-3) !important;
   }
 }
 
@@ -777,5 +866,30 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 @media (min-width: 769px) {
   .board-page .mobile-drop-zones {
     display: none !important;
+  }
+}
+
+/* Dark mode support for mobile Apple-style board */
+@media (max-width: 768px) and (prefers-color-scheme: dark) {
+  .board-page .board-column-header {
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  }
+  
+  .board-page .task-card {
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
+  
+  .board-page .task-card:hover,
+  .board-page .task-card:active {
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+  
+  .board-page .task-count {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-secondary) !important;
+  }
+  
+  .board-page .sprint-selector select {
+    border-color: rgba(255, 255, 255, 0.1) !important;
   }
 }
