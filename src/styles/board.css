@@ -284,10 +284,20 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 }
 
 /* Disable scrolling while dragging on mobile */
+.dragging-task {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none !important;
+}
+
 .dragging-task .board-container,
-.dragging-task .board-column-content {
+.dragging-task .board-column-content,
+.dragging-task .board-page {
   touch-action: none !important;
   overflow: hidden !important;
+  -webkit-overflow-scrolling: none !important;
 }
 
 .board-page .task-header {

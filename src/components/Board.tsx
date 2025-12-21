@@ -74,6 +74,7 @@ const Board: React.FC = () => {
 
   const [pointerDrag, setPointerDrag] = useState<DragState>({ mode: 'idle' });
   const highlightedColumnRef = useRef<HTMLElement | null>(null);
+  const highlightedDropZoneRef = useRef<HTMLElement | null>(null);
   const pointerDragRef = useRef<DragState>({ mode: 'idle' });
   const longPressRef = useRef<number | null>(null);
 
@@ -119,16 +120,27 @@ const Board: React.FC = () => {
           current.ghost.style.left = `${e.clientX - current.offsetX}px`;
           current.ghost.style.top = `${e.clientY - current.offsetY}px`;
 
-          // Highlight drop target
+          // Highlight drop target (prioritize drop zones over columns)
           const el = document.elementFromPoint(e.clientX, e.clientY);
+          const dropZone = el?.closest('.mobile-drop-zone') as HTMLElement | null;
           const col = el?.closest('[data-status]') as HTMLElement | null;
           
-          if (col && col !== highlightedColumnRef.current) {
+          if (dropZone && dropZone !== highlightedDropZoneRef.current) {
+            // Highlight drop zone
+            clearHighlightedColumns();
+            clearHighlightedDropZones();
+            dropZone.classList.add('drag-over');
+            highlightedDropZoneRef.current = dropZone;
+          } else if (!dropZone && col && col !== highlightedColumnRef.current) {
+            // Highlight column if not over drop zone
+            clearHighlightedDropZones();
             clearHighlightedColumns();
             col.classList.add('drag-over');
             highlightedColumnRef.current = col;
-          } else if (!col && highlightedColumnRef.current) {
+          } else if (!dropZone && !col) {
+            // Clear all highlights if not over any target
             clearHighlightedColumns();
+            clearHighlightedDropZones();
           }
         }
       };
@@ -136,14 +148,15 @@ const Board: React.FC = () => {
       const handleDocumentPointerUp = async (e: PointerEvent): Promise<void> => {
         const current = pointerDragRef.current;
         if (current.mode === 'dragging') {
+          // Check what we're dropping on (prioritize drop zones)
           const el = document.elementFromPoint(e.clientX, e.clientY);
-          const col = el?.closest('[data-status]') as HTMLElement | null;
           const dropZone = el?.closest('.mobile-drop-zone') as HTMLElement | null;
+          const col = el?.closest('[data-status]') as HTMLElement | null;
           
           let newStatus: number | null = null;
           
           if (dropZone) {
-            // Clicked on mobile drop zone
+            // Dropped on mobile drop zone - automatically drop
             const statusClass = dropZone.className;
             if (statusClass.includes('todo')) newStatus = 0;
             else if (statusClass.includes('in-progress')) newStatus = 1;
@@ -154,6 +167,7 @@ const Board: React.FC = () => {
           }
 
           cleanupPointerDrag(current);
+          clearHighlightedDropZones();
           setShowMobileDropZones(false);
           setDropZonePosition(null);
           setDraggedTask(null);
@@ -170,6 +184,7 @@ const Board: React.FC = () => {
       const handleDocumentPointerCancel = (): void => {
         const current = pointerDragRef.current;
         cleanupPointerDrag(current);
+        clearHighlightedDropZones();
       };
 
       document.addEventListener('pointermove', handleDocumentPointerMove, { passive: false });
@@ -407,6 +422,13 @@ const Board: React.FC = () => {
     highlightedColumnRef.current = null;
   };
 
+  const clearHighlightedDropZones = (): void => {
+    document.querySelectorAll('.mobile-drop-zone').forEach(zone => {
+      zone.classList.remove('drag-over');
+    });
+    highlightedDropZoneRef.current = null;
+  };
+
   const startDrag = (card: HTMLElement, task: Task, pointerId: number, startX: number, startY: number): void => {
     const rect = card.getBoundingClientRect();
     const ghost = card.cloneNode(true) as HTMLElement;
@@ -459,6 +481,7 @@ const Board: React.FC = () => {
       state.sourceCard.classList.remove('drag-source');
       document.body.classList.remove('dragging-task');
       clearHighlightedColumns();
+      clearHighlightedDropZones();
     }
     if (longPressRef.current) {
       window.clearTimeout(longPressRef.current);
@@ -471,9 +494,13 @@ const Board: React.FC = () => {
     if (!usePointerDnD) return;
     
     e.stopPropagation();
+    e.preventDefault(); // Prevent default touch behaviors (scrolling, selection)
     
     const card = (e.currentTarget as HTMLElement).closest('.task-card') as HTMLElement | null;
     if (!card) return;
+
+    // Disable scrolling immediately when starting long-press
+    document.body.classList.add('dragging-task');
 
     setPointerDrag({
       mode: 'pending',
@@ -495,6 +522,10 @@ const Board: React.FC = () => {
   const handlePointerMove = (e: React.PointerEvent): void => {
     const current = pointerDragRef.current;
     if (current.mode === 'pending') {
+      // Prevent scrolling during pending state
+      e.preventDefault();
+      e.stopPropagation();
+      
       const dx = e.clientX - current.startX;
       const dy = e.clientY - current.startY;
       const distance = Math.hypot(dx, dy);
@@ -505,6 +536,8 @@ const Board: React.FC = () => {
           window.clearTimeout(longPressRef.current);
           longPressRef.current = null;
         }
+        // Re-enable scrolling when cancelling
+        document.body.classList.remove('dragging-task');
         setPointerDrag({ mode: 'idle' });
       }
     }
@@ -521,6 +554,8 @@ const Board: React.FC = () => {
     // Only handle if still in pending mode (didn't start dragging)
     const current = pointerDragRef.current;
     if (current.mode === 'pending') {
+      // Re-enable scrolling when cancelling pending drag
+      document.body.classList.remove('dragging-task');
       setPointerDrag({ mode: 'idle' });
     }
     // Dragging mode is handled by document-level pointerup listener
@@ -821,54 +856,21 @@ const Board: React.FC = () => {
           <button
             className="mobile-drop-zone mobile-drop-zone--todo"
             onClick={() => handleMobileDrop(0)}
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.currentTarget.classList.add('drag-over');
-            }}
-            onDragLeave={(e) => {
-              e.currentTarget.classList.remove('drag-over');
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              e.currentTarget.classList.remove('drag-over');
-              handleMobileDrop(0);
-            }}
+            data-status="0"
           >
             To Do
           </button>
           <button
             className="mobile-drop-zone mobile-drop-zone--in-progress"
             onClick={() => handleMobileDrop(1)}
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.currentTarget.classList.add('drag-over');
-            }}
-            onDragLeave={(e) => {
-              e.currentTarget.classList.remove('drag-over');
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              e.currentTarget.classList.remove('drag-over');
-              handleMobileDrop(1);
-            }}
+            data-status="1"
           >
             In Progress
           </button>
           <button
             className="mobile-drop-zone mobile-drop-zone--completed"
             onClick={() => handleMobileDrop(2)}
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.currentTarget.classList.add('drag-over');
-            }}
-            onDragLeave={(e) => {
-              e.currentTarget.classList.remove('drag-over');
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              e.currentTarget.classList.remove('drag-over');
-              handleMobileDrop(2);
-            }}
+            data-status="2"
           >
             Completed
           </button>
