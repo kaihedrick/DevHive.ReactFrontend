@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { updateSprint, deleteSprint } from '../services/sprintService';
+import { useAutoResizeTextarea } from '../hooks/useAutoResizeTextarea.ts';
 import '../styles/modal.css';
 
 interface Sprint {
@@ -30,6 +31,9 @@ export default function EditSprintModal({ sprint, projectId, onClose, onUpdated,
   const [start, setStart] = useState(sprint.startDate?.slice(0, 10) ?? '');
   const [end, setEnd] = useState(sprint.endDate?.slice(0, 10) ?? '');
   const [busy, setBusy] = useState(false);
+  
+  // Auto-resize textarea for description
+  const descriptionTextareaRef = useAutoResizeTextarea(desc, 3);
 
   // Lock scroll while modal is open (prevents background scroll on iOS)
   useEffect(() => {
@@ -122,12 +126,14 @@ export default function EditSprintModal({ sprint, projectId, onClose, onUpdated,
           <label htmlFor="edit-sprint-desc">
             <span>Description</span>
             <textarea 
+              ref={descriptionTextareaRef}
               id="edit-sprint-desc"
               value={desc} 
               onChange={(e) => setDesc(e.target.value)}
               disabled={busy}
               rows={3}
               className="form-input"
+              style={{ resize: 'none', overflow: 'hidden' }}
             />
           </label>
 

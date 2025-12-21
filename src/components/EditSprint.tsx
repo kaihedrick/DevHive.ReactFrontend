@@ -5,6 +5,7 @@ import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { useToast } from "../contexts/ToastContext.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft, faSpinner, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import ConfirmationModal from "./ConfirmationModal.tsx";
 import "../styles/create_sprint.css";
 import "../styles/account_details.css"; // For danger-action-btn styles
@@ -160,6 +161,7 @@ const EditSprint: React.FC = () => {
         <div className="form-group">
           <label htmlFor="description" className="form-label">Description</label>
           <textarea
+            ref={descriptionTextareaRef}
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -168,6 +170,7 @@ const EditSprint: React.FC = () => {
             rows={3}
             maxLength={500}
             disabled={isSubmitting || isDeleting}
+            style={{ resize: 'none', overflow: 'hidden' }}
           />
         </div>
 

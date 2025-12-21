@@ -2,8 +2,9 @@
 import React, { useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import "../styles/login_register.css";
+import "../styles/project_details.css"; // For char-count styling
 import { ReactComponent as DevHiveLogo } from "./assets/hive-icon.svg";
-import { faEnvelope, faLock, faUser, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faLock, faUser, faCheckCircle, faTimesCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import useLoginRegisterNew from "../hooks/useLoginRegisterNew.ts";
 import { useKeyboardNavigation } from "../hooks/useKeyboardNavigation.ts";
@@ -39,7 +40,9 @@ const LoginRegister: React.FC = () => {
     loading,
     handleChange,
     handleButtonClick,
-    emailValidationStatus
+    emailValidationStatus,
+    emailValidationError,
+    emailValidationAvailable
   } = useLoginRegisterNew();
   /**
    * useMemo - signupNavigationMap / loginNavigationMap
@@ -104,30 +107,82 @@ const LoginRegister: React.FC = () => {
     placeholder: string,
     type: string,
     validationIcon: boolean = false
-  ) => (
-    <div className="input-group">
-      <div className="inputs">
-        <FontAwesomeIcon icon={icon} className="input-icon" />
-        <input
-          type={type}
-          name={name}
-          placeholder={placeholder}
-          value={credentials[name] || ''}
-          onChange={handleChange}
-          onKeyDown={(e) => handleKeyNavigation(e, name)}
-        />
-        {validationIcon && memoizedEmailValidationStatus === 'success' && (
-          <FontAwesomeIcon icon={faCheckCircle} className="validation-icon success-icon" />
+  ) => {
+    const isPasswordField = type === 'password';
+    const isFirstName = name === 'FirstName';
+    const isLastName = name === 'LastName';
+    const isUsername = name === 'Username';
+    const isEmail = name === 'Email';
+    const isTextField = type === 'text' && (isFirstName || isLastName || isUsername);
+    const fieldValue = credentials[name] || '';
+    
+    // Determine maxLength based on field type
+    let maxLength: number | undefined;
+    let charLimit: number | undefined;
+    if (isPasswordField) {
+      maxLength = 32;
+      charLimit = 32;
+    } else if (isFirstName || isLastName) {
+      maxLength = 20;
+      charLimit = 20;
+    } else if (isUsername) {
+      maxLength = 30;
+      charLimit = 30;
+    } else if (isEmail) {
+      maxLength = 50;
+      charLimit = 50;
+    }
+    
+    return (
+      <div className="input-group">
+        <div className="inputs">
+          <FontAwesomeIcon icon={icon} className="input-icon" />
+          <input
+            type={type}
+            name={name}
+            placeholder={placeholder}
+            value={fieldValue}
+            onChange={handleChange}
+            onKeyDown={(e) => handleKeyNavigation(e, name)}
+            maxLength={maxLength}
+            className={charLimit !== undefined ? 'has-char-counter' : ''}
+          />
+          {validationIcon && memoizedEmailValidationStatus === 'validating' && (
+            <FontAwesomeIcon icon={faSpinner} className="validation-icon validating-icon" spin />
+          )}
+          {validationIcon && memoizedEmailValidationStatus === 'success' && (
+            <FontAwesomeIcon icon={faCheckCircle} className="validation-icon success-icon" />
+          )}
+          {validationIcon && memoizedEmailValidationStatus === 'error' && (
+            <FontAwesomeIcon icon={faTimesCircle} className="validation-icon error-icon" />
+          )}
+          {charLimit !== undefined && (
+            <div className="char-counter">
+              {fieldValue.length}/{charLimit}
+            </div>
+          )}
+        </div>
+        {validationErrors[name] && (
+          <p className="error-message">{validationErrors[name]}</p>
         )}
-        {validationIcon && memoizedEmailValidationStatus === 'error' && (
-          <FontAwesomeIcon icon={faTimesCircle} className="validation-icon error-icon" />
+        {name === 'Email' && action === 'Sign Up' && credentials.Email && !validationErrors[name] && (
+          <>
+            {emailValidationStatus === 'validating' && (
+              <p className="validation-message" style={{ color: 'var(--text-secondary)' }}>Checking email...</p>
+            )}
+            {emailValidationStatus === 'success' && emailValidationAvailable && (
+              <p className="validation-message" style={{ color: 'var(--success-color, #4caf50)' }}>✓ Email is available</p>
+            )}
+            {emailValidationStatus === 'error' && emailValidationError && (
+              <p className="validation-message" style={{ color: 'var(--error-color, #f44336)' }}>
+                {emailValidationError === 'Email is already taken' ? 'Email is already in use' : emailValidationError}
+              </p>
+            )}
+          </>
         )}
       </div>
-      {validationErrors[name] && (
-        <p className="error-message">{validationErrors[name]}</p>
-      )}
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="login-register-page">

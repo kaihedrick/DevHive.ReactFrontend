@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createProject } from "../services/projectService";
 import { getUserId } from "../services/authService";
+import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_project.css";
@@ -26,6 +27,9 @@ const CreateProject = () => {
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [error, setError] = useState("");
+  
+  // Auto-resize textarea for description
+  const descriptionTextareaRef = useAutoResizeTextarea(projectDescription, 4);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -85,11 +89,13 @@ const CreateProject = () => {
           {/* Project Description Input with Counter */}
           <div className="input-container">
             <textarea
+              ref={descriptionTextareaRef}
               placeholder="Enter Description"
               value={projectDescription}
               onChange={(e) => setProjectDescription(e.target.value)}
               maxLength={255}
               required
+              style={{ resize: 'none', overflow: 'hidden' }}
             ></textarea>
             <span className="char-counter">{projectDescription.length} / 255</span>
           </div>

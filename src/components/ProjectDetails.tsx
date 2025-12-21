@@ -6,6 +6,7 @@ import { useProject, useUpdateProject, useProjectMembers, useRemoveProjectMember
 import { useProjectInvites, useCreateInvite, useRevokeInvite } from "../hooks/useInvites.ts";
 import { useProjectWebSocket } from "../hooks/useProjectWebSocket.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
+import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import { getSelectedProject, setSelectedProject } from "../services/storageService";
 import { Project, ProjectMember } from "../types/hooks.ts";
 import ConfirmationModal from "./ConfirmationModal.tsx";
@@ -135,6 +136,9 @@ const ProjectDetails: React.FC = () => {
   const [showInvites, setShowInvites] = useState<boolean>(false);
   const [expiresInMinutes, setExpiresInMinutes] = useState<number>(30);
   const [maxUses, setMaxUses] = useState<number | undefined>(undefined);
+  
+  // Auto-resize textarea for description
+  const descriptionTextareaRef = useAutoResizeTextarea(editedDescription, 4);
   
   // Progressive Disclosure + Affordance scroll indicators
   const containerRef = useScrollIndicators([members.length || 0, isEditing, showKickModal, showInvites]);
@@ -454,6 +458,7 @@ const ProjectDetails: React.FC = () => {
           <label className="form-label" htmlFor="project-desc">Description</label>
           {isEditing ? (
             <textarea
+              ref={descriptionTextareaRef}
               id="project-desc"
               value={editedDescription}
               onChange={(e) => setEditedDescription(e.target.value)}
@@ -461,6 +466,7 @@ const ProjectDetails: React.FC = () => {
               rows={4}
               placeholder="Project description"
               maxLength={255}
+              style={{ resize: 'none', overflow: 'hidden' }}
             />
           ) : (
             <textarea

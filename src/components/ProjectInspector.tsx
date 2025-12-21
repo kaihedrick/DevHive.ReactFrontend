@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import { updateProject } from '../services/projectService';
 import { useDeleteProject } from '../hooks/useProjects.ts';
+import { useAutoResizeTextarea } from '../hooks/useAutoResizeTextarea.ts';
 import ConfirmationModal from './ConfirmationModal.tsx';
 import '../styles/project_inspector.css';
 
@@ -45,6 +46,9 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const deleteProjectMutation = useDeleteProject();
+  
+  // Auto-resize textarea for description
+  const descriptionTextareaRef = useAutoResizeTextarea(description, 4);
   
   // Get logged-in user ID and check if user is project owner
   const loggedInUserId = localStorage.getItem("userId");
@@ -205,6 +209,7 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                 Description
               </label>
               <textarea
+                ref={descriptionTextareaRef}
                 id="project-description"
                 className="inspector-textarea"
                 value={description}
@@ -212,6 +217,7 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                 rows={4}
                 placeholder="Enter project description..."
                 disabled={isSaving}
+                style={{ resize: 'none', overflow: 'hidden' }}
               />
             </div>
 

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import useAccountDetails from "../hooks/useAccountDetails.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
+import { isValidUsername } from "../utils/validation.ts";
 import "../styles/account_details.css";
 import "../styles/create_sprint.css"; // Reuse Sprint page layout + fields
+import "../styles/project_details.css"; // For char-count styling
 import { getSelectedProject } from "../services/storageService";
 import { useProjectMembers } from "../hooks/useProjects.ts";
 /**
@@ -176,6 +178,12 @@ const AccountDetails = () => {
         return;
       }
       
+      // Validate character restrictions
+      if (!isValidUsername(newUsername)) {
+        setUsernameError("Username contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
+        return;
+      }
+      
       // Skip validation if username hasn't changed
       if (newUsername === user?.Username) {
         setIsEditingUsername(false);
@@ -270,16 +278,21 @@ const AccountDetails = () => {
           <label className="form-label" htmlFor="username">Username</label>
           {isEditingUsername ? (
             <>
-              <input
-                id="username"
-                type="text"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-                onKeyDown={handleUsernameKeyDown}
-                placeholder="Enter new username"
-                autoFocus
-                className={`form-input ${usernameError ? "input-error" : ""}`}
-              />
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input
+                  id="username"
+                  type="text"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  onKeyDown={handleUsernameKeyDown}
+                  placeholder="Enter new username"
+                  autoFocus
+                  className={`form-input has-char-counter ${usernameError ? "input-error" : ""}`}
+                  maxLength={30}
+                  style={{ paddingRight: '4rem' }}
+                />
+                <div className="char-counter">{newUsername.length}/30</div>
+              </div>
               {usernameError && (
                 <div className="error-message">{usernameError}</div>
               )}
@@ -326,20 +339,30 @@ const AccountDetails = () => {
             </>
           ) : (
             <>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="New Password"
-                className={`form-input ${passwordError ? "input-error" : ""}`}
-              />
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm Password"
-                className={`form-input ${passwordError && newPassword === confirmPassword ? "" : (passwordError ? "input-error" : "")}`}
-              />
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="New Password"
+                  className={`form-input has-char-counter ${passwordError ? "input-error" : ""}`}
+                  maxLength={32}
+                  style={{ paddingRight: '4rem' }}
+                />
+                <div className="char-counter">{newPassword.length}/32</div>
+              </div>
+              <div style={{ position: 'relative', width: '100%', marginTop: '1rem' }}>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm Password"
+                  className={`form-input has-char-counter ${passwordError && newPassword === confirmPassword ? "" : (passwordError ? "input-error" : "")}`}
+                  maxLength={32}
+                  style={{ paddingRight: '4rem' }}
+                />
+                <div className="char-counter">{confirmPassword.length}/32</div>
+              </div>
               {passwordError && <div className="error-message">{passwordError}</div>}
               {passwordSuccess && <div className="success-message">{passwordSuccess}</div>}
 

@@ -3,7 +3,11 @@ import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { Task, User } from '../types/hooks.ts';
+import { useToast } from '../contexts/ToastContext.tsx';
+import { isValidText } from '../utils/validation.ts';
+import { useAutoResizeTextarea } from '../hooks/useAutoResizeTextarea.ts';
 import '../styles/task_inspector.css';
+import '../styles/project_details.css'; // For char-count styling
 
 interface TaskInspectorProps {
   task: Task | null;
@@ -36,6 +40,10 @@ const TaskInspector: React.FC<TaskInspectorProps> = ({
   const [status, setStatus] = useState<number>(0);
   const [assigneeId, setAssigneeId] = useState<string>('');
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const { showError } = useToast();
+  
+  // Auto-resize textarea for description
+  const descriptionTextareaRef = useAutoResizeTextarea(description, 4);
 
   // Update local state when task changes
   useEffect(() => {
@@ -159,13 +167,17 @@ const TaskInspector: React.FC<TaskInspectorProps> = ({
                 Description
               </label>
               <textarea
+                ref={descriptionTextareaRef}
                 id="task-description"
                 className="inspector-textarea"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 placeholder="Enter task description..."
+                maxLength={255}
+                style={{ resize: 'none', overflow: 'hidden' }}
               />
+              <div className="char-count">{description.length}/255</div>
             </div>
 
             {/* Status */}

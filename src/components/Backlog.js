@@ -5,6 +5,7 @@ import { fetchProjectSprints } from "../services/sprintService";
 import { fetchSprintTasks, fetchTaskById, editTask } from "../services/taskService";
 import { getSelectedProject } from "../services/storageService";
 import useBacklogActions from "../hooks/useBacklogActions";
+import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft, faCheck, faXmark, faPenToSquare, faPlus, faTimes, faExclamationTriangle, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import "../styles/backlog.css";
@@ -60,6 +61,9 @@ const Backlog = ({ projectId }) => {
   const [successMessage, setSuccessMessage] = useState(null);
   const [isEditingTask, setIsEditingTask] = useState(null); // Track which task is being edited
   const [editedDescription, setEditedDescription] = useState(""); // Track the edited description
+  
+  // Auto-resize textarea for task description editing
+  const descriptionTextareaRef = useAutoResizeTextarea(editedDescription, 1);
 
   const selectedProjectId = projectId || getSelectedProject();
 
@@ -261,11 +265,13 @@ const Backlog = ({ projectId }) => {
                         {/* Edit Mode */}
                         <div className="task-content">
                           <textarea
+                            ref={descriptionTextareaRef}
                             className="edit-description"
                             value={editedDescription}
                             onChange={(e) => setEditedDescription(e.target.value)}
                             maxLength={255}
                             placeholder="Edit task description"
+                            style={{ resize: 'none', overflow: 'hidden' }}
                           />
                           <span className="char-counter">{editedDescription.length} / 255</span>
                         </div>

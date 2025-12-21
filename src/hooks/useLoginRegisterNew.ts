@@ -1,7 +1,9 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext.tsx';
-import { register, validateEmail } from '../services/authService';
+import { register } from '../services/authService';
+import { useEmailValidation, isStrictEmailValid } from './useEmailValidation.ts';
+import { isValidText, isValidUsername } from '../utils/validation.ts';
 import { 
   LoginModel, 
   RegistrationFormModel,
@@ -19,8 +21,7 @@ interface LoginRegisterState {
   success: boolean;
   successType: 'login' | 'registration' | null;
   loading: boolean;
-  emailValidationStatus: 'success' | 'error' | null;
-  validatingEmail: boolean;
+  emailValidationStatus: 'success' | 'error' | 'validating' | null;
 }
 /**
  * useLoginRegisterNew
@@ -49,52 +50,47 @@ const useLoginRegisterNew = () => {
     success: false,
     successType: null,
     loading: false,
-    emailValidationStatus: null,
-    validatingEmail: false
+    emailValidationStatus: null
   });
   
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
 
   const updateState = (newState: Partial<LoginRegisterState>) => {
     setState(prev => ({ ...prev, ...newState }));
   };
 
-  const validateEmailField = useCallback(async (email: string) => {
-    if (!email || state.validatingEmail) {
-      return;
+  // Use the email validation hook for live validation
+  const emailValidation = useEmailValidation(
+    state.action === 'Sign Up' ? state.credentials.Email : '',
+    500 // 500ms debounce
+  );
+
+  // Calculate email validation status based on hook result
+  const getEmailValidationStatus = useCallback((): 'success' | 'error' | 'validating' | null => {
+    if (!state.credentials.Email || state.action !== 'Sign Up') {
+      return null;
     }
 
-    const isValidEmailFormat = email.includes('@');
-    
-    try {
-      updateState({ validatingEmail: true });
-      const result = await validateEmail(email);
-      console.log("Email validation result:", result);
-
-      if (result === false && isValidEmailFormat) {
-        console.log("Setting email validation status to success");
-        updateState({ 
-          emailValidationStatus: 'success',
-          validationErrors: { ...state.validationErrors, Email: '' }
-        });
-      } else {
-        console.log("Setting email validation status to error");
-        updateState({
-          emailValidationStatus: 'error',
-          validationErrors: { ...state.validationErrors, Email: 'Email is already in use.' }
-        });
-      }
-    } catch (err) {
-      console.error('❌ Error validating email:', err);
-      updateState({
-        error: 'Error validating email. Please try again.',
-        emailValidationStatus: 'error'
-      });
-    } finally {
-      updateState({ validatingEmail: false });
+    if (emailValidation.isValidating) {
+      return 'validating';
     }
-  }, [state.validatingEmail, state.validationErrors]);
+
+    if (emailValidation.error) {
+      return 'error';
+    }
+
+    if (emailValidation.isValid && emailValidation.available) {
+      return 'success';
+    }
+
+    if (emailValidation.isValid && !emailValidation.available) {
+      return 'error';
+    }
+
+    return null;
+  }, [emailValidation, state.credentials.Email, state.action]);
+
+  const emailValidationStatus = getEmailValidationStatus();
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -103,13 +99,9 @@ const useLoginRegisterNew = () => {
       validationErrors: { ...state.validationErrors, [name]: '' }
     });
 
-    if (name === 'Email' && state.action === 'Sign Up' && value) {
-      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-      debounceTimeout.current = setTimeout(() => {
-        validateEmailField(value);
-      }, 600);
-    }
-  }, [state.credentials, state.validationErrors, state.action, validateEmailField]);
+    // Email validation is handled automatically by useEmailValidation hook
+    // No need for manual debouncing or validation calls
+  }, [state.credentials, state.validationErrors]);
 
   const validateFields = useCallback(() => {
     const errors: Record<string, string> = {};
@@ -120,21 +112,63 @@ const useLoginRegisterNew = () => {
       if (!credentials.Username) errors.Username = 'Username is required';
       if (!credentials.Password) errors.Password = 'Password is required';
     } else {
-      if (!credentials.FirstName) errors.FirstName = 'First Name is required';
-      if (!credentials.LastName) errors.LastName = 'Last Name is required';
+      // First Name validation
+      if (!credentials.FirstName) {
+        errors.FirstName = 'First Name is required';
+      } else if (credentials.FirstName.length > 20) {
+        errors.FirstName = 'First Name cannot exceed 20 characters';
+      } else if (!isValidText(credentials.FirstName)) {
+        errors.FirstName = 'First Name contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.';
+      }
+      
+      // Last Name validation
+      if (!credentials.LastName) {
+        errors.LastName = 'Last Name is required';
+      } else if (credentials.LastName.length > 20) {
+        errors.LastName = 'Last Name cannot exceed 20 characters';
+      } else if (!isValidText(credentials.LastName)) {
+        errors.LastName = 'Last Name contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.';
+      }
+      
+      // Email validation
       if (!credentials.Email) {
         errors.Email = 'Email is required';
-      } else if (!credentials.Email.includes('@')) {
-        errors.Email = 'Email must contain "@"';
+      } else {
+        if (credentials.Email.length > 50) {
+          errors.Email = 'Email cannot exceed 50 characters';
+        } else if (!isStrictEmailValid(credentials.Email)) {
+          // Strict email validation for final submission
+          errors.Email = 'Please enter a valid email address (e.g., user@example.com)';
+        } else if (!emailValidation.available && emailValidation.isValid) {
+          // Email is taken (from live validation)
+          errors.Email = 'Email is already in use';
+        } else if (emailValidation.error) {
+          // Email format is invalid (from live validation)
+          errors.Email = emailValidation.error;
+        }
       }
-      if (!credentials.Username) errors.Username = 'Username is required';
+      
+      // Username validation
+      if (!credentials.Username) {
+        errors.Username = 'Username is required';
+      } else if (credentials.Username.length > 30) {
+        errors.Username = 'Username cannot exceed 30 characters';
+      } else if (!isValidUsername(credentials.Username)) {
+        errors.Username = 'Username contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.';
+      }
+      
+      // Password validation
       if (!credentials.Password) {
         errors.Password = 'Password is required';
       } else if (credentials.Password.length < 8) {
         errors.Password = 'Password must be at least 8 characters';
+      } else if (credentials.Password.length > 32) {
+        errors.Password = 'Password cannot exceed 32 characters';
       } else if (!specialCharacterRegex.test(credentials.Password)) {
         errors.Password = 'Password must include at least one special character';
       }
+      
+      // Confirm Password validation
       if (!credentials.ConfirmPassword) {
         errors.ConfirmPassword = 'Confirm Password is required';
       } else if (credentials.Password !== credentials.ConfirmPassword) {
@@ -143,7 +177,7 @@ const useLoginRegisterNew = () => {
     }
 
     return errors;
-  }, [state.credentials, state.action]);
+  }, [state.credentials, state.action, emailValidation]);
 
   const handleAction = useCallback(async () => {
     const errors = validateFields();
@@ -232,7 +266,9 @@ const useLoginRegisterNew = () => {
     loading: state.loading,
     handleChange,
     handleButtonClick,
-    emailValidationStatus: state.emailValidationStatus,
+    emailValidationStatus,
+    emailValidationError: emailValidation.error,
+    emailValidationAvailable: emailValidation.available,
   };
 };
 

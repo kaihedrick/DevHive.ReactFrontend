@@ -6,6 +6,7 @@ import { useProject } from "../hooks/useProject";
 import { useProjectMembers } from "../hooks/useProjectMembers";
 import { getSelectedProject, setSelectedProject } from "../services/storageService";
 import { editProject } from "../services/projectService";
+import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import "../styles/project_details.css";
 /**
  * ProjectDetails Component
@@ -186,11 +187,13 @@ const ProjectDetails = () => {
               {/* Project Description Input with Counter */}
               <div className="input-container">
                 <textarea
+                  ref={descriptionTextareaRef}
                   className="edit-description"
                   value={editedDescription}
                   onChange={(e) => setEditedDescription(e.target.value)}
                   maxLength={255}
                   placeholder="Enter project description"
+                  style={{ resize: 'none', overflow: 'hidden' }}
                 />
                 <span className="char-counter">{editedDescription.length} / 255</span>
               </div>

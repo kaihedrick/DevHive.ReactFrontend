@@ -601,6 +601,25 @@ body {
   font-weight: var(--font-weight-normal) !important;
 }
 
+/* Add extra right padding when char counter is present */
+.form-input.has-char-counter {
+  padding-right: 4rem !important; /* Extra space for char counter on the right */
+}
+
+/* Character counter inside input box - matches Project Details styling */
+.char-counter {
+  position: absolute !important;
+  bottom: 0.5rem !important; /* Position at the bottom inside the field */
+  right: 0.8rem !important; /* Add padding from the right */
+  font-size: var(--font-size-xs) !important; /* Smaller font size */
+  color: var(--text-tertiary) !important;
+  pointer-events: none !important; /* Prevent interaction */
+  z-index: 2 !important;
+  background: var(--bg-primary) !important; /* Match input background to overlay border */
+  padding: 2px 6px !important; /* Add padding to create background overlay */
+  border-radius: 4px !important; /* Slight rounding */
+}
+
 /* ============================= */
 /* 🍎 Apple-Style Toggle Switch */
 /* ============================= */

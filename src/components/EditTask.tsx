@@ -5,7 +5,10 @@ import { useTask } from "../hooks/useTasks.ts";
 import { useProjectMembers } from "../hooks/useProjects.ts";
 import { useSprints } from "../hooks/useSprints.ts";
 import { useUpdateTask } from "../hooks/useTasks.ts";
+import { isValidText } from "../utils/validation.ts";
+import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import "../styles/create_task.css";
+import "../styles/project_details.css"; // For char-count styling
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";
 import { User, Sprint } from "../types/hooks.ts";
@@ -78,6 +81,18 @@ const EditTask: React.FC = () => {
       setErrorMessage("Description is required");
       return;
     }
+    
+    // Validate description length
+    if (description.length > 255) {
+      setErrorMessage("Description cannot exceed 255 characters.");
+      return;
+    }
+    
+    // Validate character restrictions
+    if (!isValidText(description)) {
+      setErrorMessage("Description contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
+      return;
+    }
 
     if (!taskId) {
       setErrorMessage("Task ID is missing");
@@ -140,6 +155,7 @@ const EditTask: React.FC = () => {
         <div className="form-group">
           <label htmlFor="description">Task Description *</label>
           <textarea
+            ref={descriptionTextareaRef}
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -147,7 +163,10 @@ const EditTask: React.FC = () => {
             placeholder="Enter task description"
             rows={4}
             required
+            maxLength={255}
+            style={{ resize: 'none', overflow: 'hidden' }}
           />
+          <div className="char-count">{description.length}/255</div>
         </div>
 
         <div className="form-group">

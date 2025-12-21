@@ -600,8 +600,24 @@ class CacheInvalidationService {
           queryClient.invalidateQueries({ queryKey: ['sprints', id] });
           queryClient.invalidateQueries({ queryKey: ['sprints', 'detail', id] }); // Also support detailed key pattern
         }
-        queryClient.invalidateQueries({ queryKey: ['sprints', 'list', project_id] });
+        
+        // For INSERT actions (new sprints), immediately refetch to ensure visibility
+        // For UPDATE/DELETE, invalidate is sufficient (will refetch when query becomes active)
+        if (action === 'INSERT') {
+          console.log(`🔄 Refetching sprints list for project ${project_id} (new sprint created)`);
+          queryClient.refetchQueries({ 
+            queryKey: ['sprints', 'list', project_id],
+            exact: false // Match queries with options/filters (e.g., ['sprints', 'list', projectId, { limit: 100, offset: 0 }])
+          });
+        }
+        
+        // Always invalidate to ensure stale data is refreshed
+        queryClient.invalidateQueries({ 
+          queryKey: ['sprints', 'list', project_id],
+          exact: false // Match queries with options/filters
+        });
         queryClient.invalidateQueries({ queryKey: ['projects', 'bundle', project_id] });
+        console.log(`✅ Sprint cache invalidated for project ${project_id} (action: ${action})`);
         break;
 
       case 'task':

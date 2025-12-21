@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getSelectedProject } from "../services/storageService";
 import { useCreateSprint } from "../hooks/useSprints.ts";
@@ -6,7 +6,10 @@ import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { useToast } from "../contexts/ToastContext.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
+import { isValidText, isValidDateRange, isEndDateAfterStartDate } from "../utils/validation.ts";
+import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import "../styles/create_sprint.css";
+import "../styles/project_details.css"; // For char-count styling
 
 /**
  * CreateSprint Component
@@ -36,35 +39,92 @@ const CreateSprint: React.FC = () => {
   
   
   const [sprintName, setSprintName] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [startImmediately, setStartImmediately] = useState<boolean>(false);
   
+  // Auto-resize textarea for description
+  const descriptionTextareaRef = useAutoResizeTextarea(description, 4);
+  
+  // Calculate max date (1 year from today)
+  const maxDate = useMemo(() => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() + 1);
+    return date.toISOString().split('T')[0];
+  }, []);
+  
+  const today = useMemo(() => {
+    return new Date().toISOString().split('T')[0];
+  }, []);
+  
   // Progressive Disclosure + Affordance scroll indicators
-  const containerRef = useScrollIndicators([sprintName, startDate, endDate]);
+  const containerRef = useScrollIndicators([sprintName, description, startDate, endDate]);
   
   // Mutation hook for creating sprints
   const createSprintMutation = useCreateSprint();
   
   const handleCreateSprintSubmit = async (): Promise<void> => {
-    if (!sprintName || !startDate || !endDate) {
+    // Validate required fields
+    if (!sprintName.trim() || !startDate || !endDate) {
       showError("All fields are required.");
       return;
     }
     
-    if (new Date(endDate) <= new Date(startDate)) {
-      showError("End date must be after start date.");
-      return;
-    }
-    
-    // Validate projectId - check for null, undefined, empty string, or invalid string values
+    // Validate projectId
     if (!projectId || projectId === 'undefined' || projectId === 'null' || projectId.trim() === '') {
       showError("No project selected. Please select a project first.");
       return;
     }
     
-    if (!sprintName.trim()) {
-      showError("Sprint name cannot be empty.");
+    // Validate character restrictions
+    if (!isValidText(sprintName)) {
+      showError("Sprint name contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
+      return;
+    }
+    
+    if (description && !isValidText(description)) {
+      showError("Description contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
+      return;
+    }
+    
+    // Validate description length
+    if (description.length > 255) {
+      showError("Description cannot exceed 255 characters.");
+      return;
+    }
+    
+    // Validate date range (start date)
+    if (!isValidDateRange(startDate, 1)) {
+      const startDateObj = new Date(startDate);
+      const todayObj = new Date();
+      todayObj.setHours(0, 0, 0, 0);
+      
+      if (startDateObj < todayObj) {
+        showError("Start date cannot be in the past.");
+      } else {
+        showError("Start date cannot be more than 1 year in the future.");
+      }
+      return;
+    }
+    
+    // Validate date range (end date)
+    if (!isValidDateRange(endDate, 1)) {
+      const endDateObj = new Date(endDate);
+      const todayObj = new Date();
+      todayObj.setHours(0, 0, 0, 0);
+      
+      if (endDateObj < todayObj) {
+        showError("End date cannot be in the past.");
+      } else {
+        showError("End date cannot be more than 1 year in the future.");
+      }
+      return;
+    }
+    
+    // Validate end date is after start date
+    if (!isEndDateAfterStartDate(startDate, endDate)) {
+      showError("End date must be after start date.");
       return;
     }
     
@@ -72,10 +132,11 @@ const CreateSprint: React.FC = () => {
       await createSprintMutation.mutateAsync({
         projectId,
         sprintData: {
-          name: sprintName,
-          description: `Sprint: ${sprintName}`,
+          name: sprintName.trim(),
+          description: description.trim() || `Sprint: ${sprintName.trim()}`,
           startDate: new Date(startDate).toISOString(),
-          endDate: new Date(endDate).toISOString()
+          endDate: new Date(endDate).toISOString(),
+          isStarted: startImmediately
         }
       });
       
@@ -117,7 +178,7 @@ const CreateSprint: React.FC = () => {
       
       <div className="create-sprint-form">
         <div className="form-group">
-          <label htmlFor="sprintName" className="form-label">Sprint Name</label>
+          <label htmlFor="sprintName" className="form-label">Sprint Name *</label>
           <input
             type="text"
             id="sprintName"
@@ -131,26 +192,44 @@ const CreateSprint: React.FC = () => {
         </div>
         
         <div className="form-group">
-          <label htmlFor="startDate" className="form-label">Start Date</label>
+          <label htmlFor="sprintDescription" className="form-label">Description</label>
+          <textarea
+            ref={descriptionTextareaRef}
+            id="sprintDescription"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="form-input"
+            placeholder="Enter sprint description (optional)"
+            rows={4}
+            maxLength={255}
+            style={{ resize: 'none', overflow: 'hidden' }}
+          />
+          <div className="char-count">{description.length}/255</div>
+        </div>
+        
+        <div className="form-group">
+          <label htmlFor="startDate" className="form-label">Start Date *</label>
           <input
             type="date"
             id="startDate"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             className="form-input"
-            min={new Date().toISOString().split('T')[0]}
+            min={today}
+            max={maxDate}
           />
         </div>
         
         <div className="form-group">
-          <label htmlFor="endDate" className="form-label">End Date</label>
+          <label htmlFor="endDate" className="form-label">End Date *</label>
           <input
             type="date"
             id="endDate"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
             className="form-input"
-            min={startDate || new Date().toISOString().split('T')[0]}
+            min={startDate || today}
+            max={maxDate}
           />
         </div>
         

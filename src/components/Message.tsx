@@ -4,6 +4,7 @@ import { fetchUserById } from "../services/userService";
 import { getUserId } from "../services/authService";
 import useMessages from "../hooks/useMessages.js";
 import { User, Message as MessageType } from "../types/hooks.ts";
+import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import "../styles/message.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComments, faPaperPlane, faSpinner } from "@fortawesome/free-solid-svg-icons";
@@ -28,6 +29,9 @@ const Message: React.FC = () => {
   
   // Use the new TypeScript hook
   const { messages, newMessage, setNewMessage, handleSendMessage, messagesEndRef } = useMessages(toUserID || '', projectID || '');
+  
+  // Auto-resize textarea for message input
+  const messageTextareaRef = useAutoResizeTextarea(newMessage, 1);
 
   /**
    * formatMessageTime
@@ -193,6 +197,7 @@ const Message: React.FC = () => {
 
       <div className="message-input">
         <textarea
+          ref={messageTextareaRef}
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={handleKeyPress}
@@ -200,6 +205,7 @@ const Message: React.FC = () => {
           className="message-textarea"
           disabled={sending}
           rows={1}
+          style={{ resize: 'none', overflow: 'hidden' }}
         />
         <button
           onClick={handleSendMessage}

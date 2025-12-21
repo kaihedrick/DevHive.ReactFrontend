@@ -9,8 +9,11 @@ import { faArrowRotateLeft, faExclamationTriangle, faSpinner } from "@fortawesom
 import { User, Sprint } from "../types/hooks.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { useToast } from "../contexts/ToastContext.tsx";
+import { isValidText } from "../utils/validation.ts";
+import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import "../styles/create_task.css";
 import "../styles/create_sprint.css"; // Import shared form styles
+import "../styles/project_details.css"; // For char-count styling
 
 /**
  * CreateTask Component
@@ -106,6 +109,18 @@ const CreateTask: React.FC = () => {
       showError("Task description is required");
       return;
     }
+    
+    // Validate description length
+    if (description.length > 255) {
+      showError("Description cannot exceed 255 characters.");
+      return;
+    }
+    
+    // Validate character restrictions
+    if (!isValidText(description)) {
+      showError("Description contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
+      return;
+    }
 
     if (!sprintID) {
       showError("Please select a sprint");
@@ -176,6 +191,7 @@ const CreateTask: React.FC = () => {
           <div className="form-group">
           <label htmlFor="description" className="form-label">Task Description *</label>
             <textarea
+              ref={descriptionTextareaRef}
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -185,7 +201,10 @@ const CreateTask: React.FC = () => {
               rows={4}
               disabled={isSubmitting}
               required
+              maxLength={255}
+              style={{ resize: 'none', overflow: 'hidden' }}
             />
+            <div className="char-count">{description.length}/255</div>
           </div>
 
           {/* Sprint Selection */}

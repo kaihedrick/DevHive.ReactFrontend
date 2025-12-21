@@ -75,26 +75,28 @@ export const isAuthenticated = (): boolean => {
 
 /**
  * @function validateEmail
- * @param {string} email - Email to validate for duplication.
- * @returns {Promise<boolean>} True if email is taken, false if available.
+ * @param {string} email - Email to validate for availability and format.
+ * @returns {Promise<{ available: boolean }>} Object with available property indicating if email is available.
  */
-export const validateEmail = async (email: string): Promise<boolean> => {
+export const validateEmail = async (email: string): Promise<{ available: boolean }> => {
   try {
-    // This sends a raw string which matches your C# [FromBody] string email parameter
-    const response = await api.post(ENDPOINTS.VALIDATE_EMAIL, JSON.stringify(email), {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+    // Use GET with query params (can also use POST with body)
+    const response = await api.get('/users/validate-email', {
+      params: { email }
     });
 
     if (response.status === 200) {
-      return false; // Email is available
+      return response.data; // { available: true/false }
     } else {
-      return true; // Email is already in use
+      return { available: false }; // Default to unavailable on unexpected status
     }
   } catch (error: any) {
-    if (error.response && error.response.status === 409) {
-      return true; // Email is already in use
+    if (error.response?.status === 400) {
+      // Invalid email format
+      throw new Error('Invalid email format');
+    } else if (error.response?.status === 409) {
+      // Email is already in use
+      return { available: false };
     } else {
       console.error("❌ Error validating email:", error);
       throw error;

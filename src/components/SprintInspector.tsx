@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
-import { useUpdateSprint, useUpdateSprintStatus, useDeleteSprint } from '../hooks/useSprints.ts';
+import { useUpdateSprint, useDeleteSprint } from '../hooks/useSprints.ts';
 import { Sprint } from '../types/hooks.ts';
 import ConfirmationModal from './ConfirmationModal.tsx';
 import { useToast } from '../contexts/ToastContext.tsx';
+import { isValidText, isValidDateRange, isEndDateAfterStartDate } from '../utils/validation.ts';
+import { useAutoResizeTextarea } from '../hooks/useAutoResizeTextarea.ts';
 import '../styles/sprint_inspector.css';
+import '../styles/project_details.css'; // For char-count styling
 
 interface SprintInspectorProps {
   sprint: Sprint | null;
@@ -39,8 +42,18 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
   const { showSuccess, showError } = useToast();
 
   const updateSprintMutation = useUpdateSprint();
-  const updateSprintStatusMutation = useUpdateSprintStatus();
   const deleteSprintMutation = useDeleteSprint();
+  
+  // Calculate max date (1 year from today)
+  const maxDate = useMemo(() => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() + 1);
+    return date.toISOString().split('T')[0];
+  }, []);
+  
+  const today = useMemo(() => {
+    return new Date().toISOString().split('T')[0];
+  }, []);
 
   // Update local state when sprint changes
   useEffect(() => {
@@ -99,14 +112,60 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
       showError('Sprint name is required');
       return;
     }
+    
+    // Validate character restrictions
+    if (!isValidText(name)) {
+      showError('Sprint name contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.');
+      return;
+    }
+    
+    if (description && !isValidText(description)) {
+      showError('Description contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.');
+      return;
+    }
+    
+    // Validate description length
+    if (description.length > 255) {
+      showError('Description cannot exceed 255 characters.');
+      return;
+    }
 
     // Validate dates
     if (!startDate || !endDate) {
       showError('Start date and end date are required');
       return;
     }
+    
+    // Validate date range (start date)
+    if (!isValidDateRange(startDate, 1)) {
+      const startDateObj = new Date(startDate);
+      const todayObj = new Date();
+      todayObj.setHours(0, 0, 0, 0);
+      
+      if (startDateObj < todayObj) {
+        showError('Start date cannot be in the past.');
+      } else {
+        showError('Start date cannot be more than 1 year in the future.');
+      }
+      return;
+    }
+    
+    // Validate date range (end date)
+    if (!isValidDateRange(endDate, 1)) {
+      const endDateObj = new Date(endDate);
+      const todayObj = new Date();
+      todayObj.setHours(0, 0, 0, 0);
+      
+      if (endDateObj < todayObj) {
+        showError('End date cannot be in the past.');
+      } else {
+        showError('End date cannot be more than 1 year in the future.');
+      }
+      return;
+    }
 
-    if (new Date(endDate) <= new Date(startDate)) {
+    // Validate end date is after start date
+    if (!isEndDateAfterStartDate(startDate, endDate)) {
       showError('End date must be after start date');
       return;
     }
@@ -144,27 +203,9 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
     }
   };
 
-  const handleToggleStatus = async (): Promise<void> => {
-    if (!sprint) return;
-
-    const newStatus = !isStarted;
-    setIsStarted(newStatus);
-
-    // Use the dedicated status update endpoint
-    try {
-      await updateSprintStatusMutation.mutateAsync({
-        sprintId: sprint.id,
-        isStarted: newStatus,
-      });
-      
-      showSuccess(`Sprint ${newStatus ? 'activated' : 'deactivated'} successfully`);
-      onUpdate();
-    } catch (error: any) {
-      // Revert on error
-      setIsStarted(!newStatus);
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to update sprint status';
-      showError(errorMsg);
-    }
+  const handleToggleStatus = (): void => {
+    // Only update local state - save will happen when user clicks Save button
+    setIsStarted(!isStarted);
   };
 
   const handleDeleteClick = (): void => {
@@ -251,6 +292,7 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
                 Description
               </label>
               <textarea
+                ref={descriptionTextareaRef}
                 id="sprint-description"
                 className="inspector-textarea"
                 value={description}
@@ -258,7 +300,10 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
                 rows={4}
                 placeholder="Enter sprint description..."
                 disabled={isSaving}
+                maxLength={255}
+                style={{ resize: 'none', overflow: 'hidden' }}
               />
+              <div className="char-count">{description.length}/255</div>
             </div>
 
             {/* Start Date */}
@@ -273,6 +318,8 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 disabled={isSaving}
+                min={today}
+                max={maxDate}
               />
             </div>
 
@@ -288,6 +335,8 @@ const SprintInspector: React.FC<SprintInspectorProps> = ({
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 disabled={isSaving}
+                min={startDate || today}
+                max={maxDate}
               />
             </div>
 

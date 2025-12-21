@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useCreateProject } from "../hooks/useProjects.ts";
 import { getUserId } from "../services/authService";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
+import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import "../styles/create_project.css";
 import "../styles/create_sprint.css"; // Import for Apple-style layout
 import "../styles/projects.css"; // Import for unified button styles
@@ -78,6 +79,7 @@ const CreateProject: React.FC = () => {
         <div className="form-group">
           <label htmlFor="projectDescription" className="form-label">Project Description</label>
           <textarea
+            ref={descriptionTextareaRef}
             id="projectDescription"
             value={projectDescription}
             onChange={(e) => setProjectDescription(e.target.value)}
@@ -85,6 +87,7 @@ const CreateProject: React.FC = () => {
             placeholder="Enter project description (optional)"
             rows={4}
             maxLength={500}
+            style={{ resize: 'none', overflow: 'hidden' }}
           />
           <div className="character-count">
             {projectDescription.length}/500 characters

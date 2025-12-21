@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSelectedProject } from "../services/storageService";
 import { createSprint } from "../services/sprintService";
+import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft, faCalendarAlt, faPlay } from "@fortawesome/free-solid-svg-icons";
 import "../styles/create_sprint.css";
@@ -38,6 +39,9 @@ const CreateSprint = () => {
   const [startImmediately, setStartImmediately] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Auto-resize textarea for description
+  const descriptionTextareaRef = useAutoResizeTextarea(sprintDescription, 3);
   
   const handleCreateSprintSubmit = async () => {
     if (!sprintName || !startDate || !endDate) {
@@ -108,11 +112,13 @@ const CreateSprint = () => {
           />
 
           <textarea
+            ref={descriptionTextareaRef}
             placeholder="Enter Sprint Description (optional)"
             value={sprintDescription}
             onChange={(e) => setSprintDescription(e.target.value)}
             rows="3"
             className="sprint-description"
+            style={{ resize: 'none', overflow: 'hidden' }}
           />
 
           <div className="input-group">

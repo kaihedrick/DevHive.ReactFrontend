@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/login_register.css";
+import "../styles/project_details.css"; // For char-count styling
 import DevHiveLogo from "./assets/DevHiveLogo.png";
 import password_icon from "./assets/password.png";
 import { resetPassword } from "../services/authService";
@@ -170,7 +171,10 @@ const ResetPassword: React.FC = () => {
                       placeholder="New Password"
                       value={newPassword}
                       onChange={handleNewPasswordChange}
+                      maxLength={32}
+                      className="has-char-counter"
                     />
+                    <div className="char-counter">{newPassword.length}/32</div>
                   </div>
                 </div>
                 
@@ -182,7 +186,10 @@ const ResetPassword: React.FC = () => {
                       placeholder="Confirm Password"
                       value={confirmPassword}
                       onChange={handleConfirmPasswordChange}
+                      maxLength={32}
+                      className="has-char-counter"
                     />
+                    <div className="char-counter">{confirmPassword.length}/32</div>
                   </div>
                 </div>
               </div>
