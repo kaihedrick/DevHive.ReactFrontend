@@ -25,8 +25,8 @@
   top: 0 !important;
   right: 0 !important;
   width: 320px !important;
-  height: 100vh !important;
-  max-height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
   background: var(--bg-primary, #fff) !important;
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15) !important;
   z-index: 2147483001 !important;
@@ -98,7 +98,10 @@
   flex: 1 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  padding: 24px !important;
+  padding-top: 24px !important;
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+  padding-bottom: calc(24px + 72px + 24px + env(safe-area-inset-bottom)) !important; /* Account for footer height + extra spacing */
   -webkit-overflow-scrolling: touch !important;
   min-height: 0 !important;
 }
@@ -378,9 +381,9 @@
   .sprint-inspector {
     width: 100%;
     height: auto;
-    max-height: 90vh;
+    max-height: 90dvh;
     top: auto;
-    bottom: env(safe-area-inset-bottom);
+    bottom: 0;
     border-radius: 20px 20px 0 0;
     transform: translateY(100%);
   }
@@ -393,9 +396,17 @@
     background: rgba(0, 0, 0, 0.5);
   }
 
-  /* Footer padding: container already accounts for safe-area with bottom positioning */
+  /* Footer padding: preserve safe-area on mobile */
   .sprint-inspector-footer {
-    padding-bottom: 12px !important;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 12px) !important;
+  }
+
+  /* Body padding: account for footer height on mobile */
+  .sprint-inspector-body {
+    padding-top: 24px !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+    padding-bottom: calc(24px + 68px + 24px) !important; /* 16px top + 44px button + 12px bottom + extra spacing */
   }
 }
 
