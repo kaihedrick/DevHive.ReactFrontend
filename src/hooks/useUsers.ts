@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchUserById, updateUserProfile } from '../services/userService.ts';
 import { UserModel } from '../models/user.ts';
+import { useAuthContext } from '../contexts/AuthContext.tsx';
 
 /**
  * Hook to fetch a single user by ID
@@ -8,11 +9,20 @@ import { UserModel } from '../models/user.ts';
  * @returns Query result with user data
  */
 export const useUser = (userId: string | null | undefined) => {
+  const { isAuthenticated } = useAuthContext();
+  
   return useQuery({
     queryKey: ['user', userId],
     queryFn: () => fetchUserById(userId!),
-    enabled: !!userId, // Only run query if userId is provided
-    // No staleTime - uses Infinity from queryClient
+    enabled: !!userId && isAuthenticated, // ✅ Only fetch when authenticated
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 - token refresh should handle it
+      if (error?.status === 401 || error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 };
 

@@ -9,6 +9,7 @@ import {
   startSprint,
   completeSprint,
 } from '../services/sprintService';
+import { useAuthContext } from '../contexts/AuthContext.tsx';
 
 // Query keys
 export const sprintKeys = {
@@ -26,11 +27,20 @@ export const sprintKeys = {
  * @returns Query result with sprints data
  */
 export const useSprints = (projectId: string | null | undefined, options?: { limit?: number; offset?: number }) => {
+  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
+  
   return useQuery({
     queryKey: sprintKeys.list(projectId || '', options),
     queryFn: () => fetchProjectSprints(projectId!, options),
-    enabled: !!projectId, // Only run query if projectId is provided
-    // No staleTime - uses Infinity from queryClient
+    enabled: !!projectId && isAuthenticated && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 - token refresh should handle it
+      if (error?.status === 401 || error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 };
 
@@ -40,11 +50,20 @@ export const useSprints = (projectId: string | null | undefined, options?: { lim
  * @returns Query result with sprint data
  */
 export const useSprint = (sprintId: string | null | undefined) => {
+  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
+  
   return useQuery({
     queryKey: sprintKeys.detail(sprintId || ''),
     queryFn: () => fetchSprintById(sprintId!),
-    enabled: !!sprintId, // Only run query if sprintId is provided
-    // No staleTime - uses Infinity from queryClient
+    enabled: !!sprintId && isAuthenticated && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 - token refresh should handle it
+      if (error?.status === 401 || error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 };
 

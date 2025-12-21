@@ -4,9 +4,12 @@ import { useCreateProject } from "../hooks/useProjects.ts";
 import { getUserId } from "../services/authService";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
+import { isValidText } from "../utils/validation.ts";
+import { useToast } from "../contexts/ToastContext.tsx";
 import "../styles/create_project.css";
 import "../styles/create_sprint.css"; // Import for Apple-style layout
 import "../styles/projects.css"; // Import for unified button styles
+import "../styles/project_details.css"; // Import for char-count styling
 
 /**
  * CreateProject Component
@@ -20,12 +23,61 @@ const CreateProject: React.FC = () => {
   const navigate = useNavigate();
   const containerRef = useScrollIndicators([projectName, projectDescription, error]);
   const createProjectMutation = useCreateProject();
+  const { showError: showToastError } = useToast();
+  
+  // Auto-resize textarea for description
+  const descriptionTextareaRef = useAutoResizeTextarea(projectDescription, 4);
+
+  // Handle input validation for project name
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.value;
+    if (value.length <= 255) {
+      setProjectName(value);
+    }
+  };
+
+  // Handle input validation for project description
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
+    const value = e.target.value;
+    if (value.length <= 255) {
+      setProjectDescription(value);
+    }
+  };
+
+  // Prevent invalid characters on keydown
+  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const char = e.key;
+    if (char.length === 1 && !isValidText(char)) {
+      e.preventDefault();
+      showToastError("Invalid character. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
+    }
+  };
+
+  const handleDescriptionKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
+    const char = e.key;
+    if (char.length === 1 && !isValidText(char)) {
+      e.preventDefault();
+      showToastError("Invalid character. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
 
     if (!projectName.trim()) {
       setError("Project name is required");
+      return;
+    }
+
+    // Validate project name
+    if (!isValidText(projectName.trim())) {
+      setError("Project name contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
+      return;
+    }
+
+    // Validate project description
+    if (projectDescription.trim() && !isValidText(projectDescription.trim())) {
+      setError("Project description contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
       return;
     }
 
@@ -38,8 +90,8 @@ const CreateProject: React.FC = () => {
       }
 
       await createProjectMutation.mutateAsync({
-        name: projectName,
-        description: projectDescription,
+        name: projectName.trim(),
+        description: projectDescription.trim(),
       });
 
       navigate("/projects");
@@ -66,13 +118,14 @@ const CreateProject: React.FC = () => {
             type="text"
             id="projectName"
             value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
+            onChange={handleNameChange}
+            onKeyDown={handleNameKeyDown}
             className="form-input"
             placeholder="Enter project name"
-            maxLength={100}
+            maxLength={255}
           />
-          <div className="character-count">
-            {projectName.length}/100 characters
+          <div className="char-count">
+            {projectName.length}/255
           </div>
         </div>
 
@@ -82,15 +135,16 @@ const CreateProject: React.FC = () => {
             ref={descriptionTextareaRef}
             id="projectDescription"
             value={projectDescription}
-            onChange={(e) => setProjectDescription(e.target.value)}
+            onChange={handleDescriptionChange}
+            onKeyDown={handleDescriptionKeyDown}
             className="form-input"
             placeholder="Enter project description (optional)"
             rows={4}
-            maxLength={500}
+            maxLength={255}
             style={{ resize: 'none', overflow: 'hidden' }}
           />
-          <div className="character-count">
-            {projectDescription.length}/500 characters
+          <div className="char-count">
+            {projectDescription.length}/255
           </div>
         </div>
 

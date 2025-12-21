@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faXmark, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { useProjects } from "../hooks/useProjects";
+import { useProjects, useDeleteProject } from "../hooks/useProjects.ts";
 import { setSelectedProject } from "../services/storageService";
 import "../styles/projects.css";
 /**
@@ -40,7 +40,10 @@ const Projects = () => {
     }
   }, [navigate, userId]);
 
-  const { projects, loading, deleteProject } = useProjects(userId);
+  // Use the TypeScript version with auth guards
+  const { data: projectsData, isLoading: loading, error: queryError } = useProjects();
+  const projects = Array.isArray(projectsData) ? projectsData : (projectsData?.projects || []);
+  const { mutate: deleteProject } = useDeleteProject();
   /**
    * handleProjectSelection
    * 
@@ -103,14 +106,16 @@ const Projects = () => {
       return;
     }
 
-    try {
-      console.log(`🗑️ Confirming deletion of project: ${deleteProjectId}`);
-      await deleteProject(deleteProjectId);
-      setShowDeleteModal(false);
-      setDeleteProjectId(null);
-    } catch (error) {
-      console.error(`❌ Failed to delete project:`, error.message);
-    }
+    console.log(`🗑️ Confirming deletion of project: ${deleteProjectId}`);
+    deleteProject(deleteProjectId, {
+      onSuccess: () => {
+        setShowDeleteModal(false);
+        setDeleteProjectId(null);
+      },
+      onError: (error) => {
+        console.error(`❌ Failed to delete project:`, error.message);
+      }
+    });
   };
   /**
    * cancelDeleteProject

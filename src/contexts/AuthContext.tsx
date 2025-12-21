@@ -4,7 +4,7 @@ import { login as loginService, logout as logoutService, refreshToken as refresh
 import { LoginModel } from '../models/user.ts';
 import { cacheInvalidationService } from '../services/cacheInvalidationService.ts';
 import { getSelectedProject, clearSelectedProject } from '../services/storageService';
-import { getAccessToken, isTokenExpiredBeyondWindow, isTokenExpired } from '../lib/apiClient.ts';
+import { getAccessToken, isTokenExpired } from '../lib/apiClient.ts';
 import { useValidateProjectAccess } from '../hooks/useValidateProjectAccess.ts';
 
 interface AuthContextType {
@@ -56,16 +56,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
   
-  // Initialize state from localStorage immediately to avoid race conditions
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    const hasToken = !!localStorage.getItem('token');
-    const hasUserId = !!getUserId();
-    return hasToken && hasUserId;
-  });
+  // Initialize state to false - will be set to true only after validation
+  // This prevents queries from running before auth state is determined
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userId, setUserId] = useState<string | null>(() => getUserId());
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
 
   // Check for existing auth state on mount
+  // CRITICAL: Do NOT check token expiration here - let the backend tell us via 401 responses
+  // The 24-hour check was causing auth loops on public routes (login/register)
   useEffect(() => {
     const checkAuthState = async () => {
       try {
@@ -73,19 +72,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const hasToken = !!localStorage.getItem('token');
 
         if (hasToken && storedUserId) {
-          // Check if token is expired beyond 24-hour window
-          if (isTokenExpiredBeyondWindow()) {
-            console.log('⚠️ Token expired beyond 24-hour window, clearing auth state');
-            setIsAuthenticated(false);
-            setUserId(null);
-            logoutService();
-            setIsInitializing(false);
-            return;
-          }
-
-          // Check if token is expired but within 24-hour window
+          // Check if token is expired (basic JWT exp check)
+          // If expired, attempt refresh - backend will tell us if refresh token is invalid
           if (isTokenExpired()) {
-            console.log('⚠️ Token expired but within 24-hour window, attempting refresh');
+            console.log('⚠️ Access token expired, attempting refresh');
             try {
               await refreshTokenService();
               setIsAuthenticated(true);
@@ -106,11 +96,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               }
             }
           } else {
-            // Token is valid
+            // Token exists and is not expired - assume authenticated
+            // Backend will tell us via 401 if token is actually invalid
             setIsAuthenticated(true);
             setUserId(storedUserId);
           }
         } else {
+          // No token or userId - not authenticated
           setIsAuthenticated(false);
           setUserId(null);
         }
@@ -124,6 +116,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     checkAuthState();
+    
+    // Listen for auth state changes from API client (e.g., when refresh fails)
+    const handleAuthStateChange = () => {
+      // Re-check auth state when API client clears tokens
+      const storedUserId = getUserId();
+      const hasToken = !!localStorage.getItem('token');
+      
+      if (!hasToken || !storedUserId) {
+        setIsAuthenticated(false);
+        setUserId(null);
+      }
+    };
+    
+    window.addEventListener('auth-state-changed', handleAuthStateChange);
+    
+    return () => {
+      window.removeEventListener('auth-state-changed', handleAuthStateChange);
+    };
   }, []);
 
   // SINGLE OWNER: Connect cache invalidation WebSocket when authenticated with project selected
@@ -306,22 +316,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
-    // Disconnect cache invalidation WebSocket with explicit reason
+    // 1. CRITICAL: Clear auth state FIRST to immediately disable all queries
+    // This prevents any new queries from starting
+    setIsAuthenticated(false);
+    setUserId(null);
+    
+    // 2. Cancel all in-flight queries to prevent them from completing
+    queryClient.cancelQueries();
+    
+    // 3. Disconnect cache invalidation WebSocket with explicit reason
     // This ensures all timers are cleared and no reconnection attempts happen
     cacheInvalidationService.disconnect('User logout');
     previousProjectIdRef.current = null;
     
-    // Clear selected project for current user before logout
+    // 4. Clear selected project for current user before logout
     const currentUserId = getUserId();
     if (currentUserId) {
       clearSelectedProject(currentUserId);
     }
     
+    // 5. Clear auth tokens and call logout service
     logoutService();
-    setIsAuthenticated(false);
-    setUserId(null);
-    // Clear all cached queries
+    
+    // 6. Clear all cached queries (after canceling in-flight ones)
     queryClient.clear();
+    
+    // 7. Reset token expiration log flag
+    if ((window as any).__tokenExpiredLogged) {
+      delete (window as any).__tokenExpiredLogged;
+    }
+    
+    // 8. Dispatch event to notify any listeners that auth state has changed
+    window.dispatchEvent(new Event('auth-state-changed'));
   }, [queryClient]);
 
   const refreshToken = useCallback(async (): Promise<AuthToken> => {

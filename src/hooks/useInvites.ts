@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../lib/apiClient.ts';
 import { projectKeys } from './useProjects.ts';
 import { Project } from '../types/hooks.ts';
+import { useAuthContext } from '../contexts/AuthContext.tsx';
 
 // Types
 export interface Invite {
@@ -68,8 +69,7 @@ export const useInviteDetails = (inviteToken: string | null) => {
  * Backend will handle permission checks and return 403 if user doesn't have access.
  */
 export const useProjectInvites = (projectId: string | null, project: Project | null | undefined) => {
-  // Get user ID directly from localStorage (stable, doesn't depend on project state)
-  const loggedInUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+  const { isAuthenticated } = useAuthContext();
   
   // Determine if permissions explicitly forbid fetching
   // Only skip if permissions are explicitly set to false
@@ -79,12 +79,12 @@ export const useProjectInvites = (projectId: string | null, project: Project | n
   
   // Fetch if:
   // - projectId exists (required)
-  // - AND user is authenticated (loggedInUserId exists)
+  // - AND user is authenticated
   // - AND permissions don't explicitly forbid (canViewInvites !== false)
   // 
   // CRITICAL: Don't gate on project object being loaded - it can be temporarily unavailable during refetches
   // When project is undefined during refetch, canViewInvites is undefined, so we still fetch
-  const shouldFetch = !!projectId && !!loggedInUserId && !explicitlyForbidden;
+  const shouldFetch = !!projectId && isAuthenticated && !explicitlyForbidden;
   
   return useQuery<InvitesResponse>({
     queryKey: ['projects', projectId, 'invites'],

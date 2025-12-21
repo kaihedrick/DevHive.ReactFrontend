@@ -284,13 +284,15 @@ const Board: React.FC = () => {
 
   if (!selectedSprint || sprints.length === 0) {
     return (
-      <div className="board-container with-footer-pad scroll-pad-bottom">
-        <div className="no-sprint-message">
-          <h2>No Sprint Selected</h2>
-          <p>Please create a sprint or select an existing one to view tasks.</p>
-          <button onClick={() => navigate('/create-sprint')} className="btn-primary">
-            Create Sprint
-          </button>
+      <div className="board-page">
+        <div className="board-container with-footer-pad scroll-pad-bottom">
+          <div className="no-sprint-message">
+            <h2>No Sprint Selected</h2>
+            <p>Please create a sprint or select an existing one to view tasks.</p>
+            <button onClick={() => navigate('/create-sprint')} className="btn-primary">
+              Create Sprint
+            </button>
+          </div>
         </div>
       </div>
     );

@@ -3,6 +3,7 @@ import {
   fetchProjectMessages,
   sendMessage,
 } from '../services/messageService';
+import { useAuthContext } from '../contexts/AuthContext.tsx';
 
 // Query keys
 export const messageKeys = {
@@ -18,12 +19,21 @@ export const messageKeys = {
  * @returns Query result with messages data
  */
 export const useMessages = (projectId: string | null | undefined, options?: { limit?: number; offset?: number }) => {
+  const { isAuthenticated } = useAuthContext();
+  
   return useQuery({
     queryKey: messageKeys.project(projectId || ''),
     queryFn: () => fetchProjectMessages(projectId!, options),
-    enabled: !!projectId, // Only run query if projectId is provided
+    enabled: !!projectId && isAuthenticated, // ✅ Only fetch when authenticated
     staleTime: Infinity, // Messages are updated via WebSocket, no need to refetch automatically
     // Removed refetchInterval - WebSocket handles real-time updates via cache invalidation
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 - token refresh should handle it
+      if (error?.status === 401 || error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 };
 

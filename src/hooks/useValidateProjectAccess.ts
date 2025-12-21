@@ -1,4 +1,7 @@
-import { useProjects } from './useProjects';
+import { useQuery } from '@tanstack/react-query';
+import { fetchUserProjects } from '../services/projectService';
+import { getUserId } from '../services/authService.ts';
+import { projectKeys } from './useProjects.ts';
 
 /**
  * Hook to validate project access and get user role
@@ -6,10 +9,34 @@ import { useProjects } from './useProjects';
  * Validates if a projectId belongs to the current user's accessible projects
  * and provides the user's role in that project.
  * 
+ * NOTE: This hook is used inside AuthContext, so it cannot use useAuthContext.
+ * Instead, it checks auth state directly via localStorage/token to break the circular dependency.
+ * 
  * @returns Object with validation functions
  */
 export function useValidateProjectAccess() {
-  const { data: projectsData, isLoading } = useProjects();
+  // Check auth state directly (not via context) to avoid circular dependency
+  // AuthProvider → useValidateProjectAccess → useAuthContext → AuthProvider (circular!)
+  const hasToken = typeof window !== 'undefined' ? !!localStorage.getItem('token') : false;
+  const userId = getUserId();
+  
+  // Use useQuery directly instead of useProjects to avoid circular dependency
+  const { data: projectsData, isLoading } = useQuery({
+    queryKey: projectKeys.list(),
+    queryFn: () => fetchUserProjects(),
+    enabled: hasToken && !!userId, // Check auth directly, not via context
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnMount: false, // Don't refetch on mount if data exists
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnReconnect: false, // Don't refetch on reconnect
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 - token refresh should handle it
+      if (error?.status === 401 || error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
   
   // Extract projects array from response
   const projects = Array.isArray(projectsData) 

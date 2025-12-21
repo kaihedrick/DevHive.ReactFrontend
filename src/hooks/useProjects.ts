@@ -12,6 +12,7 @@ import {
 import { api } from '../lib/apiClient.ts';
 import { ENDPOINTS } from '../config';
 import { getUserId } from '../services/authService.ts';
+import { useAuthContext } from '../contexts/AuthContext.tsx';
 
 // Query keys
 export const projectKeys = {
@@ -28,10 +29,23 @@ export const projectKeys = {
  * @returns Query result with projects data
  */
 export const useProjects = (options?: { limit?: number; offset?: number }) => {
+  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
+  
   return useQuery({
     queryKey: projectKeys.list(options),
     queryFn: () => fetchUserProjects(options),
-    // No staleTime - uses Infinity from queryClient
+    enabled: isAuthenticated && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnMount: false, // Don't refetch on mount if data exists
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnReconnect: false, // Don't refetch on reconnect
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 - token refresh should handle it
+      if (error?.status === 401 || error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 };
 
@@ -42,11 +56,12 @@ export const useProjects = (options?: { limit?: number; offset?: number }) => {
  */
 export const useProject = (projectId: string | null | undefined) => {
   const queryClient = useQueryClient();
+  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   
   return useQuery({
     queryKey: projectKeys.detail(projectId || ''),
     queryFn: () => fetchProjectById(projectId!),
-    enabled: !!projectId, // Only run query if projectId is provided
+    enabled: !!projectId && isAuthenticated && !authLoading, // ✅ Only run if projectId is provided, user is authenticated, AND auth is initialized
     // No staleTime - uses Infinity from queryClient
     retry: (failureCount, error: any) => {
       // Don't retry on 403 (forbidden) - user was removed from project

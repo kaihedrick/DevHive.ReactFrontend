@@ -5,8 +5,11 @@ import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import { updateProject } from '../services/projectService';
 import { useDeleteProject } from '../hooks/useProjects.ts';
 import { useAutoResizeTextarea } from '../hooks/useAutoResizeTextarea.ts';
+import { isValidText } from '../utils/validation.ts';
+import { useToast } from '../contexts/ToastContext.tsx';
 import ConfirmationModal from './ConfirmationModal.tsx';
 import '../styles/project_inspector.css';
+import '../styles/project_details.css'; // Import for char-count styling
 
 interface Project {
   id: string;
@@ -46,9 +49,43 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const deleteProjectMutation = useDeleteProject();
+  const { showError: showToastError } = useToast();
   
   // Auto-resize textarea for description
   const descriptionTextareaRef = useAutoResizeTextarea(description, 4);
+
+  // Handle input validation for project name
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.value;
+    if (value.length <= 255) {
+      setName(value);
+    }
+  };
+
+  // Handle input validation for project description
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
+    const value = e.target.value;
+    if (value.length <= 255) {
+      setDescription(value);
+    }
+  };
+
+  // Prevent invalid characters on keydown
+  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const char = e.key;
+    if (char.length === 1 && !isValidText(char)) {
+      e.preventDefault();
+      showToastError("Invalid character. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
+    }
+  };
+
+  const handleDescriptionKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
+    const char = e.key;
+    if (char.length === 1 && !isValidText(char)) {
+      e.preventDefault();
+      showToastError("Invalid character. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
+    }
+  };
   
   // Get logged-in user ID and check if user is project owner
   const loggedInUserId = localStorage.getItem("userId");
@@ -98,7 +135,19 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
 
     // Validate name is not empty
     if (!name.trim()) {
-      console.error('Project name is required');
+      showToastError('Project name is required');
+      return;
+    }
+
+    // Validate project name
+    if (!isValidText(name.trim())) {
+      showToastError("Project name contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
+      return;
+    }
+
+    // Validate project description
+    if (description.trim() && !isValidText(description.trim())) {
+      showToastError("Project description contains invalid characters. Only letters, numbers, spaces, and basic punctuation (! ? . , - _ ( )) are allowed.");
       return;
     }
 
@@ -113,6 +162,7 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
       onClose();
     } catch (error) {
       console.error('Error saving project:', error);
+      showToastError('Failed to save project. Please try again.');
       // Don't close on error - let user see the error and retry
     } finally {
       setIsSaving(false);
@@ -197,10 +247,15 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                 type="text"
                 className="inspector-input"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={handleNameChange}
+                onKeyDown={handleNameKeyDown}
                 placeholder="Enter project name..."
                 disabled={isSaving}
+                maxLength={255}
               />
+              <div className="char-count">
+                {name.length}/255
+              </div>
             </div>
 
             {/* Description */}
@@ -213,12 +268,17 @@ const ProjectInspector: React.FC<ProjectInspectorProps> = ({
                 id="project-description"
                 className="inspector-textarea"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={handleDescriptionChange}
+                onKeyDown={handleDescriptionKeyDown}
                 rows={4}
                 placeholder="Enter project description..."
                 disabled={isSaving}
+                maxLength={255}
                 style={{ resize: 'none', overflow: 'hidden' }}
               />
+              <div className="char-count">
+                {description.length}/255
+              </div>
             </div>
 
             {/* Separator */}
