@@ -28,6 +28,7 @@ body {
   background-color: var(--black) !important;
   color: var(--white) !important;
   padding: 10px 20px !important;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom)) !important;
   text-align: center !important;
   font-size: 0.9rem !important;
   position: fixed !important;

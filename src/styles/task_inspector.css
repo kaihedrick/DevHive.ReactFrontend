@@ -147,6 +147,7 @@
   display: flex !important;
   gap: 12px !important;
   padding: 16px 24px !important;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important;
   border-top: 1px solid var(--border-color, #e0e0e0) !important;
   flex-shrink: 0 !important;
   background: var(--bg-primary, #fff) !important;
