@@ -54,35 +54,47 @@ export const useInviteDetails = (inviteToken: string | null) => {
 
 /**
  * Query: List project invites
- * Conditionally fetches based on project permissions
- * If permissions aren't loaded yet, will attempt to fetch (backend will handle permission check)
+ * 
+ * IMPORTANT: This query must be independent of transient project loading state.
+ * It should fetch based on:
+ * - projectId exists (from URL params or localStorage)
+ * - User is authenticated
+ * 
+ * It should NOT depend on:
+ * - projects array being loaded
+ * - project object being available
+ * - transient refetch states
+ * 
+ * Backend will handle permission checks and return 403 if user doesn't have access.
  */
 export const useProjectInvites = (projectId: string | null, project: Project | null | undefined) => {
-  // Determine if user can view invites:
-  // 1. If permissions are explicitly set, use that
-  // 2. If permissions aren't set yet (new project), check if user is owner
-  // 3. Otherwise, try to fetch (backend will return 403 if no permission)
+  // Get user ID directly from localStorage (stable, doesn't depend on project state)
+  const loggedInUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+  
+  // Determine if permissions explicitly forbid fetching
+  // Only skip if permissions are explicitly set to false
+  // Otherwise, fetch and let backend handle permission validation
   const canViewInvites = project?.permissions?.canViewInvites;
-  const isOwner = project?.userRole === 'owner' || 
-                  (project?.ownerId && typeof window !== 'undefined' && 
-                   localStorage.getItem('userId') === project.ownerId);
+  const explicitlyForbidden = canViewInvites === false;
   
   // Fetch if:
-  // - projectId exists
-  // - AND (permissions explicitly allow OR permissions not set but user is owner OR permissions not explicitly false)
-  const shouldFetch = !!projectId && (
-    canViewInvites === true || 
-    (canViewInvites === undefined && isOwner) || 
-    (canViewInvites !== false) // Default to true if not explicitly false
-  );
+  // - projectId exists (required)
+  // - AND user is authenticated (loggedInUserId exists)
+  // - AND permissions don't explicitly forbid (canViewInvites !== false)
+  // 
+  // CRITICAL: Don't gate on project object being loaded - it can be temporarily unavailable during refetches
+  // When project is undefined during refetch, canViewInvites is undefined, so we still fetch
+  const shouldFetch = !!projectId && !!loggedInUserId && !explicitlyForbidden;
   
   return useQuery<InvitesResponse>({
     queryKey: ['projects', projectId, 'invites'],
     queryFn: async () => {
+      console.log(`📡 Fetching invites for project ${projectId}`);
       const response = await apiClient.get(`/projects/${projectId}/invites`);
+      console.log(`✅ Invites fetched successfully:`, response.data);
       return response.data;
     },
-    enabled: shouldFetch, // Fetch based on permission check above
+    enabled: shouldFetch, // Fetch based on projectId and auth, not project object state
     staleTime: Infinity, // Cache indefinitely - only invalidate when invites change
     gcTime: 24 * 60 * 60 * 1000, // 24 hours - cache retention
     refetchOnMount: false, // Don't refetch on mount if data exists

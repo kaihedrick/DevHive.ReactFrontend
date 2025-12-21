@@ -503,7 +503,8 @@ const ProjectDetails: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
             <label className="form-label" style={{ marginBottom: 0 }}>Project Members</label>
             {/* Gate on hasSelectedProject to prevent hiding during refetches */}
-            {hasSelectedProject && (project?.permissions?.canViewInvites || isCurrentUserOwner) && (
+            {/* Show invite button based on permissions - use permissions if available, otherwise show (backend handles permission check) */}
+            {hasSelectedProject && (project?.permissions?.canViewInvites !== false) && (
               <button
                 type="button"
                 onClick={() => setShowInvites(!showInvites)}
@@ -539,7 +540,8 @@ const ProjectDetails: React.FC = () => {
           
           {/* Invite Management Section */}
           {/* Gate on hasSelectedProject to prevent hiding during refetches */}
-          {hasSelectedProject && showInvites && (project?.permissions?.canViewInvites || isCurrentUserOwner) && (
+          {/* Show invite section based on permissions - use permissions if available, otherwise show (backend handles permission check) */}
+          {hasSelectedProject && showInvites && (project?.permissions?.canViewInvites !== false) && (
             <div style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-4)', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
               <h3 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-4)' }}>Invite Management</h3>
               
@@ -552,7 +554,8 @@ const ProjectDetails: React.FC = () => {
               
               {/* Create Invite Section - Only show if user can create invites */}
               {/* Gate on hasSelectedProject to prevent hiding during refetches */}
-              {hasSelectedProject && (project?.permissions?.canCreateInvites || isCurrentUserOwner) && (
+              {/* Show create invite form based on permissions - only fall back to owner check if permissions aren't loaded yet */}
+              {hasSelectedProject && (project?.permissions?.canCreateInvites ?? (project ? undefined : isCurrentUserOwner)) && (
                 <>
                   <h4 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-3)' }}>Create Invite Link</h4>
                   
@@ -616,7 +619,8 @@ const ProjectDetails: React.FC = () => {
               
               {/* Active Invites List - Only show if user can view invites */}
               {/* Gate on hasSelectedProject to prevent hiding during refetches */}
-              {hasSelectedProject && (project?.permissions?.canViewInvites || isCurrentUserOwner) && (
+              {/* Show invites list based on permissions - use permissions if available, otherwise show (backend handles permission check) */}
+              {hasSelectedProject && (project?.permissions?.canViewInvites !== false) && (
                 <>
                   {invitesLoading && (
                     <div style={{ padding: 'var(--space-3)', textAlign: 'center', color: 'var(--text-secondary)' }}>
