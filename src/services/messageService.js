@@ -1,13 +1,17 @@
-// MessageService.js
-// This module handles message-related API calls and WebSocket communication for real-time messaging in DevHive.
+/**
+ * MessageService.js
+ *
+ * This module handles message-related REST API calls for DevHive.
+ *
+ * Architecture (per REALTIME_MESSAGING_ARCHITECTURE.md):
+ * - Messages are sent via REST API (POST /api/v1/projects/{projectId}/messages)
+ * - Backend broadcasts cache_invalidate via WebSocket to all project members
+ * - Frontend receives cache_invalidate and refetches messages via React Query
+ * - WebSocket connection is managed by cacheInvalidationService.ts
+ */
 
 import { api } from '../lib/apiClient.ts';
 import { ENDPOINTS } from '../config';
-
-let socket = null;
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 5;
-let heartbeatInterval = null;
 
 /**
  * Sends a new message to a project.
@@ -36,7 +40,7 @@ export const sendMessage = async (messageData) => {
         return response.data;
     } catch (error) {
         console.error("❌ Error sending message:", error.response?.status, error.response?.data || error.message);
-        
+
         if (error.response?.status === 500) {
             throw new Error("Server error - The messaging service is currently unavailable. Our team has been notified.");
         } else if (error.response?.status === 401 || error.response?.status === 403) {
@@ -143,211 +147,11 @@ export const sendReply = async (replyData) => {
     }
 };
 
-/**
- * Sends a heartbeat message to the server to keep the WebSocket connection alive.
- *
- * @param {WebSocket} ws - The WebSocket connection instance
- */
-const sendHeartbeat = (ws) => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        try {
-            ws.send(JSON.stringify({ type: "ping" }));
-            console.log("💓 Sent heartbeat to keep WebSocket connection alive");
-        } catch (error) {
-            console.error("❌ Failed to send heartbeat:", error);
-        }
-    }
-};
-
-/**
- * Helper function to build WebSocket URL
- *
- * @param {string} projectId - The project ID
- * @returns {string|null} - The WebSocket URL or null if invalid
- */
-const buildWebSocketUrl = (projectId) => {
-    if (!projectId) {
-        console.error("❌ Missing projectId for WebSocket URL");
-        return null;
-    }
-
-    // Use the new Go backend WebSocket endpoint
-    const token = getAuthToken();
-    const wsUrl = `${ENDPOINTS.MESSAGES_WS}?token=${token}&projectId=${projectId}`;
-    
-    console.log(`🔌 Configured WebSocket URL: ${wsUrl}`);
-    return wsUrl;
-};
-
-/**
- * Subscribes to real-time message updates for a project.
- *
- * @param {string} projectId - The project ID
- * @param {Function} onMessageReceived - Callback to invoke when a new message is received
- * @returns {WebSocket|null} - The WebSocket instance or null if connection fails
- */
-export const subscribeToMessageStream = (projectId, onMessageReceived) => {
-    if (!projectId) {
-        console.error("❌ Missing projectId for WebSocket");
-        return null;
-    }
-
-    // Close existing connection if any
-    if (socket && socket.readyState !== WebSocket.CLOSED) {
-        console.log("🔄 Closing existing WebSocket connection before creating a new one");
-        socket.close();
-    }
-    
-    // Clear any existing heartbeat interval
-    if (heartbeatInterval) {
-        clearInterval(heartbeatInterval);
-        heartbeatInterval = null;
-    }
-
-    try {
-        console.log('🔄 Attempting to connect to WebSocket...');
-        const wsUrl = buildWebSocketUrl(projectId);
-        
-        if (!wsUrl) {
-            console.error("❌ Failed to build WebSocket URL");
-            return null;
-        }
-        
-        console.log(`🔌 Connecting to WebSocket at: ${wsUrl}`);
-        socket = new WebSocket(wsUrl);
-
-        socket.onopen = () => {
-            console.log(`✅ WebSocket connection established for project ${projectId}`);
-            // Reset reconnect attempts on successful connection
-            reconnectAttempts = 0;
-            
-            // Send initialization message
-            try {
-                socket.send(JSON.stringify({ 
-                    type: "init", 
-                    projectId: projectId 
-                }));
-                console.log("📤 Sent initialization message to WebSocket server");
-            } catch (error) {
-                console.error("❌ Failed to send initialization message:", error);
-            }
-            
-            // Start heartbeat to keep connection alive
-            heartbeatInterval = setInterval(() => sendHeartbeat(socket), 30000);
-        };
-
-        socket.onmessage = (event) => {
-            try {
-                console.log("📩 Raw WebSocket message received:", event.data);
-                const message = JSON.parse(event.data);
-                
-                // Ignore heartbeat responses
-                if (message.type === "pong") {
-                    console.log("💓 Received heartbeat response");
-                    return;
-                }
-                
-                // Process the message
-                console.log("📨 Processed WebSocket message:", message);
-                onMessageReceived(message);
-            } catch (error) {
-                console.error("❌ Error parsing WebSocket message:", error);
-            }
-        };
-
-        socket.onerror = (error) => {
-            console.error("❌ WebSocket error:", error);
-            
-            // Clear heartbeat on error
-            if (heartbeatInterval) {
-                clearInterval(heartbeatInterval);
-                heartbeatInterval = null;
-            }
-        };
-
-        socket.onclose = (event) => {
-            console.log(`👋 WebSocket closed: Code: ${event.code}, Reason: ${event.reason || "No reason provided"}`);
-            
-            // Clear heartbeat on close
-            if (heartbeatInterval) {
-                clearInterval(heartbeatInterval);
-                heartbeatInterval = null;
-            }
-            
-            // Implement exponential backoff for reconnection
-            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                const delay = Math.min(30000, 1000 * Math.pow(1.5, reconnectAttempts));
-                reconnectAttempts++;
-                
-                console.log(`⏱️ Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}) in ${(delay/1000).toFixed(1)}s...`);
-                
-                setTimeout(() => {
-                    // Only attempt reconnection if the page is visible
-                    if (document.visibilityState !== 'hidden') {
-                        console.log(`🔄 Attempting reconnection #${reconnectAttempts}...`);
-                        subscribeToMessageStream(projectId, onMessageReceived);
-                    } else {
-                        console.log("📱 Page not visible, delaying reconnection attempt");
-                    }
-                }, delay);
-            } else {
-                console.error(`❌ Maximum WebSocket reconnection attempts (${MAX_RECONNECT_ATTEMPTS}) reached. Please refresh the page to reconnect.`);
-            }
-        };
-
-        return socket;
-    } catch (error) {
-        console.error("❌ Error establishing WebSocket connection:", error);
-        return null;
-    }
-};
-
-/**
- * Closes the WebSocket connection
- */
-export const closeMessageStream = () => {
-    if (socket && socket.readyState !== WebSocket.CLOSED) {
-        console.log("🔌 Closing WebSocket connection");
-        socket.close();
-    }
-    
-    if (heartbeatInterval) {
-        clearInterval(heartbeatInterval);
-        heartbeatInterval = null;
-    }
-};
-
-/**
- * Retrieves the stored JWT token from localStorage.
- *
- * @returns {string|null} - The stored JWT token or null if not found
- */
-export const getAuthToken = () => {
-    return localStorage.getItem("token");
-};
-
-/**
- * Retrieves the user ID from localStorage.
- *
- * @returns {string|null} - The current user's ID or null if not found
- */
-export const getUserId = () => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-        console.warn("User ID not found in localStorage.");
-    }
-    return userId;
-};
-
 const messageService = {
     sendMessage,
     fetchProjectMessages,
     fetchMessages,
     sendReply,
-    subscribeToMessageStream,
-    closeMessageStream,
-    getAuthToken,
-    getUserId
 };
 
 export default messageService;

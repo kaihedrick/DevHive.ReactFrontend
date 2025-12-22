@@ -37,7 +37,21 @@ const useBoardActions = (projectId: string): UseBoardActionsReturn => {
   // Filter out completed sprints - they should not appear on the Project Board
   const sprints: Sprint[] = useMemo(() => {
     if (!sprintsData) return [];
-    const allSprints = sprintsData.sprints || sprintsData || [];
+    
+    // Safely extract sprints array - handle various response formats
+    let allSprints: Sprint[] = [];
+    if (Array.isArray(sprintsData)) {
+      allSprints = sprintsData;
+    } else if (sprintsData && typeof sprintsData === 'object') {
+      // Check if it has a sprints property that is an array
+      if ('sprints' in sprintsData && Array.isArray(sprintsData.sprints)) {
+        allSprints = sprintsData.sprints;
+      } else if (Array.isArray(sprintsData.data)) {
+        // Some APIs wrap data in a data property
+        allSprints = sprintsData.data;
+      }
+    }
+    
     // Filter out completed sprints
     return allSprints.filter((sprint: Sprint) => !sprint.isCompleted);
   }, [sprintsData]);

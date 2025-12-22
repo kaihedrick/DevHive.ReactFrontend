@@ -500,3 +500,4 @@ refetchOnReconnect: false,     // WebSocket handles updates
 - **Active Filter**: `isActive === true && expiresAt > now`
 - **Cache**: Invalidated on create/revoke/accept operations
 
+

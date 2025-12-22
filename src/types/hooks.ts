@@ -78,6 +78,27 @@ export interface Project {
   };
 }
 
+// Message type - matches backend response from Go API
+export interface Message {
+  id: string;
+  projectId: string;
+  senderId: string;
+  content: string;
+  messageType: 'text' | 'image' | 'file';
+  parentMessageId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Sender info (populated by backend)
+  sender?: {
+    id: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+  };
+  // Alias for component compatibility (maps senderId for display logic)
+  userId?: string;
+}
+
 // Legacy types for backward compatibility (aliases)
 export type Task = TaskResponse;
 export type Sprint = SprintResponse;

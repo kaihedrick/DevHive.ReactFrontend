@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
-import { getAuthToken } from '../services/authService'; // Changed path
+import { getAuthToken } from '../services/authService.ts';
 
 // Create axios instance with default config
 export const api = axios.create({

@@ -1,961 +1,413 @@
 /* ==========================
-   Message Page Layout
+   Message Page - Apple Minimalistic Style
+   ALL styles scoped EXCLUSIVELY to .message-container
+   NO global selectors - prevents style leakage
 ========================== */
 
-/* No-Gap Grid Layout - Most Reliable for iOS */
-.message-page.grid-layout {
-    display: grid !important;
-    grid-template-rows: auto 1fr auto auto !important; /* header | chat | composer | footer */
-    min-height: 100vh !important;
-    min-height: 100dvh !important; /* iOS 16+ dynamic viewport */
-    min-height: 100svh !important; /* Stable viewport height (most reliable) */
-    min-height: calc(var(--vh, 1vh) * 100) !important; /* JavaScript polyfill fallback */
-    width: 100% !important;
-    background-color: var(--bg-secondary) !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: hidden !important;
-    gap: 0 !important; /* Ensure no gaps between grid rows */
-}
-
-/* Message page container */
-.message-page {
-    position: relative !important;
-    width: 100% !important;
-    min-height: 100vh !important;
-    min-height: 100dvh !important; /* iOS 16+ dynamic viewport */
-    min-height: 100svh !important; /* Stable viewport height (most reliable) */
-    min-height: calc(var(--vh, 1vh) * 100) !important; /* JavaScript polyfill fallback */
-    background-color: var(--bg-secondary) !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: hidden !important;
+/* Message page container - flush with navbar */
+.message-container {
+  position: relative !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  background-color: var(--bg-secondary) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  height: 100dvh !important;
 }
 
 /* ==========================
-   Chat Header (Absolute Positioned)
+   Message Header - Sticky Apple Minimalistic Style
+   EXCLUSIVELY scoped to .message-container
+   Matches contacts page header styling
 ========================== */
-
-/* Chat header positioned absolutely under navbar */
-.chat-header-absolute {
-    position: fixed !important;
-    top: var(--navbar-height-mobile) !important; /* Default: position under topbar */
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 100 !important; /* Below navbar but above content */
-    background: rgba(0, 0, 0, 0.7) !important; /* Transparent dark background */
-    backdrop-filter: blur(15px) !important; /* Enhanced glass effect */
-    -webkit-backdrop-filter: blur(15px) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle border */
-    padding: var(--space-3) var(--space-4) !important;
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3) !important; /* Enhanced shadow */
+.message-container .message-header {
+  background: var(--bg-primary) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  padding: 12px 16px !important;
+  position: sticky !important;
+  top: 0 !important; /* Default: flush with navbar (desktop sidebar) */
+  z-index: 100 !important; /* Match contacts header z-index */
+  margin: 0 !important;
+  margin-top: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  box-shadow: none !important;
 }
 
-.chat-header-title {
-    margin: 0 !important;
-    font-size: var(--font-size-lg) !important;
-    font-weight: var(--font-weight-bold) !important;
-    color: var(--white) !important; /* White text for contrast */
-    text-align: center !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: var(--space-2) !important;
+/* Desktop: Flush with sidebar navbar - use body class, not media query */
+body.has-sidebar .message-container .message-header {
+  top: 0 !important;
 }
 
-.chat-header-title i {
-    color: var(--accent-primary) !important; /* Gold accent for icon */
-    font-size: var(--font-size-lg) !important;
+/* Mobile: Position below topbar - use body class, not media query */
+@media (max-width: 600px) {
+  body.has-topbar .message-container .message-header {
+    top: var(--navbar-height-mobile) !important;
+  }
+}
+
+.message-container .message-header .user-info {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.message-container .message-header .user-info svg {
+  display: none !important;
+}
+
+.message-container .message-header h2 {
+  font-size: 17px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  color: var(--text-primary) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* ==========================
-   Chat Container
+   Message List - Apple Style
+   EXCLUSIVELY scoped to .message-container
 ========================== */
+.message-container .message-list {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 16px !important;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+  background-color: var(--bg-secondary) !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  scroll-behavior: smooth !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  gap: 2px !important;
+  position: relative !important;
+  z-index: 1 !important;
+  margin-top: 0 !important;
+  min-height: 0 !important;
+  align-items: stretch !important;
+}
 
-/* Main chat container */
-.chat-container {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    height: calc(100vh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* Use CSS variables */
-    height: calc(100dvh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* iOS 16+ dynamic viewport */
-    height: calc(100svh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* Stable viewport height (most reliable) */
-    height: calc(calc(var(--vh, 1vh) * 100) - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* JavaScript polyfill fallback */
-    margin-top: calc(var(--navbar-height-mobile) + 60px) !important; /* Default: space for topbar header */
-    background: transparent !important;
-    position: relative !important;
-    overflow: hidden !important;
+.message-container .message-list > div:last-child {
+  scroll-margin-bottom: 0 !important;
+  min-height: 1px !important;
+  flex-shrink: 0 !important;
+}
+
+@media (min-width: 601px) {
+  .message-container .message-list {
+    padding: 20px 24px !important;
+    padding-bottom: calc(72px + 60px + env(safe-area-inset-bottom)) !important;
+  }
 }
 
 /* ==========================
-   Messages Container
+   Message Items - iMessage Style Bubbles
+   EXCLUSIVELY scoped to .message-container
 ========================== */
+.message-container .message-item {
+  display: flex !important;
+  width: 100% !important;
+  margin-bottom: 2px !important;
+  animation: fadeIn 0.2s ease-out !important;
+}
 
-/* Scrollable messages container */
-.messages-container {
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: var(--space-3) !important;
-    padding: var(--space-4) var(--space-6) !important; /* Increased horizontal padding */
-    padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab) + var(--kb)) !important; /* Account for composer, footer, safe area, and keyboard */
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    background-color: transparent !important;
-    position: relative !important;
-    /* Touch scrolling optimizations */
-    -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior: contain !important;
-    scroll-behavior: smooth !important;
-    /* Better touch handling */
-    touch-action: pan-y !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
-    /* Prevent momentum scrolling issues */
-    -webkit-transform: translate3d(0, 0, 0) !important;
-    transform: translate3d(0, 0, 0) !important;
-    /* Better scroll performance */
-    will-change: scroll-position !important;
+.message-container .message-item.sent {
+  justify-content: flex-end !important;
+}
+
+.message-container .message-item.received {
+  justify-content: flex-start !important;
+}
+
+.message-container .message-content {
+  max-width: 70% !important;
+  padding: 8px 12px !important;
+  border-radius: 18px !important;
+  word-wrap: break-word !important;
+  position: relative !important;
+  box-shadow: none !important;
+  font-size: 15px !important;
+  line-height: 1.4 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
+}
+
+.message-container .message-item.received .message-content {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: var(--text-primary) !important;
+  border-bottom-left-radius: 4px !important;
+}
+
+.message-container .message-item.sent .message-content {
+  background: #007AFF !important;
+  color: white !important;
+  border-bottom-right-radius: 4px !important;
+}
+
+.message-container .message-content p {
+  margin: 0 !important;
+  padding: 0 !important;
+  color: inherit !important;
+}
+
+.message-container .message-time {
+  font-size: 11px !important;
+  color: inherit !important;
+  opacity: 0.7 !important;
+  display: block !important;
+  margin-top: 4px !important;
+  text-align: right !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.01em !important;
+}
+
+.message-container .message-item.received .message-time {
+  text-align: left !important;
 }
 
 /* ==========================
-   Message Styling
+   Message Input - Apple Style
+   EXCLUSIVELY scoped to .message-container
 ========================== */
-
-/* Message wrapper */
-.message-wrapper {
-    display: flex !important;
-    width: 100% !important;
-    margin-bottom: var(--space-3) !important;
+.message-container .message-input {
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 8px !important;
+  padding: 12px 16px !important;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  background: var(--bg-primary) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+  position: relative !important;
+  z-index: 10 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  margin-top: auto !important;
+  margin-bottom: calc(60px + env(safe-area-inset-bottom)) !important;
 }
 
-/* Receiver messages (Left-aligned) */
-.received-wrapper {
-    justify-content: flex-start !important;
+.message-container .message-textarea {
+  flex: 1 !important;
+  padding: 10px 16px !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: none !important;
+  border-radius: 20px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
+  font-size: 15px !important;
+  color: var(--text-primary) !important;
+  resize: none !important;
+  overflow: hidden !important;
+  min-height: 40px !important;
+  max-height: 120px !important;
+  line-height: 1.4 !important;
+  transition: background 120ms ease !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
-/* Sender messages (Right-aligned) */
-.sent-wrapper {
-    justify-content: flex-end !important;
+.message-container .message-textarea:focus {
+  outline: none !important;
+  background: rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Message box styling */
-.message {
-    max-width: 70% !important; /* Reduced from 75% to prevent cutoff */
-    padding: var(--space-3) !important;
-    border-radius: var(--border-radius) !important;
-    word-wrap: break-word !important;
-    font-size: var(--font-size-base) !important;
-    position: relative !important;
-    box-shadow: var(--shadow-sm) !important;
-    animation: fadeIn 0.3s ease-out !important;
+.message-container .message-textarea::placeholder {
+  color: var(--text-secondary) !important;
+  opacity: 0.6 !important;
 }
 
-/* Receiver message styling - Dark theme */
-.received {
-    background-color: var(--dark-gray) !important; /* Dark gray background */
-    color: var(--white) !important; /* White text for contrast */
-    border-radius: var(--border-radius) var(--border-radius) var(--border-radius) 0 !important;
-    border: 1px solid var(--gray) !important;
-    align-self: flex-start !important;
+.message-container .send-button {
+  background: #007AFF !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 20px !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 120ms ease !important;
+  flex-shrink: 0 !important;
+  padding: 0 !important;
 }
 
-/* Sender message styling - Gold accent with proper contrast */
-.sent {
-    background-color: var(--accent-primary) !important; /* Gold background */
-    color: var(--black) !important; /* Black text for maximum contrast on gold */
-    border-radius: var(--border-radius) var(--border-radius) 0 var(--border-radius) !important;
-    border: 1px solid var(--accent-primary) !important;
-    align-self: flex-end !important;
-    font-weight: var(--font-weight-bold) !important;
-    max-width: 65% !important; /* Slightly narrower to prevent right-side cutoff */
+.message-container .send-button:hover:not(:disabled) {
+  background: #0051D5 !important;
+  transform: scale(1.05) !important;
 }
 
-/* Message text with proper contrast */
-.message-text {
-    margin: 0 0 var(--space-2) 0 !important;
-    line-height: var(--line-height-normal) !important;
-    font-family: var(--primary-font) !important;
-    /* Ensure text is always readable */
-    color: inherit !important;
+.message-container .send-button:active:not(:disabled) {
+  transform: scale(0.95) !important;
 }
 
-/* Message meta information */
-.message-meta {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    margin-top: var(--space-1) !important;
+.message-container .send-button:disabled {
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: var(--text-tertiary) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
 }
 
-/* Message status indicators */
-.message-status {
-    font-size: var(--font-size-xs) !important;
-    font-style: italic !important;
-    color: inherit !important; /* Inherit from parent message */
-}
-
-.message-status.failed {
-    color: var(--error-color, #dc3545) !important;
-    cursor: pointer !important;
-}
-
-/* Message timestamp with proper contrast */
-.message-time {
-    font-size: var(--font-size-xs) !important;
-    color: inherit !important; /* Inherit from parent message */
-    display: block !important;
-    margin-top: var(--space-1) !important;
-    text-align: right !important;
-    font-weight: var(--font-weight-medium) !important;
-    /* Ensure timestamp is readable on all backgrounds */
-    opacity: 0.8 !important;
-}
-
-/* Specific timestamp colors for better readability */
-.received .message-time {
-    color: var(--light-gray) !important; /* Light gray on dark background */
-}
-
-.sent .message-time {
-    color: var(--black) !important; /* Black on gold background */
-    font-weight: var(--font-weight-bold) !important; /* Make it bolder for contrast */
-}
-
-/* Ensure all text in sent messages is readable */
-.sent .message-text,
-.sent .message-status:not(.failed) {
-    color: var(--black) !important;
-    font-weight: var(--font-weight-bold) !important;
-}
-
-/* Ensure all text in received messages is readable */
-.received .message-text,
-.received .message-status:not(.failed) {
-    color: var(--white) !important;
+.message-container .send-button svg {
+  width: 18px !important;
+  height: 18px !important;
+  color: inherit !important;
 }
 
 /* ==========================
-   Message Input
+   Empty States
+   EXCLUSIVELY scoped to .message-container
 ========================== */
-
-/* Message input container - always above footer */
-.message-input {
-    display: flex !important;
-    padding: var(--space-4) var(--space-6) !important; /* Increased horizontal padding */
-    padding-bottom: max(var(--space-4), calc(var(--sab) + var(--kb))) !important; /* Safe area + keyboard bottom padding */
-    background: rgba(0, 0, 0, 0.8) !important; /* Transparent dark background */
-    backdrop-filter: blur(15px) !important;
-    -webkit-backdrop-filter: blur(15px) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle border */
-    gap: var(--space-3) !important;
-    position: fixed !important; /* Fixed position to stay above footer */
-    bottom: calc(var(--footer-height) + var(--sab) + var(--kb)) !important; /* Position above footer with safe area and keyboard */
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 50 !important;
-    /* Ensure proper spacing */
-    box-sizing: border-box !important;
-    /* Default: full width for mobile */
-    width: 100vw !important;
+.message-container .no-messages {
+  text-align: center !important;
+  color: var(--text-secondary) !important;
+  padding: 48px 16px !important;
+  font-size: 15px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
 }
 
-/* Input field */
-.message-input input {
-    flex: 1 !important;
-    padding: var(--space-3) var(--space-4) !important;
-    background: var(--dark-gray) !important; /* Dark background matching theme */
-    border: 2px solid var(--gray) !important; /* Gray border */
-    border-radius: var(--border-radius) !important;
-    font-family: var(--primary-font) !important;
-    font-size: 16px !important; /* Prevent zoom on iOS */
-    color: var(--white) !important; /* White text for contrast */
-    transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
-    -webkit-appearance: none !important;
-    /* Mobile input optimizations */
-    -webkit-tap-highlight-color: transparent !important;
-    touch-action: manipulation !important;
-    /* Ensure proper mobile behavior */
-    min-height: 44px !important; /* Touch target size */
+.message-container .loading-message,
+.message-container .error-message {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 48px 16px !important;
+  text-align: center !important;
+  color: var(--text-secondary) !important;
+  font-size: 15px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
 }
 
-.message-input input:focus {
-    border-color: var(--accent-primary) !important; /* Gold border on focus */
-    box-shadow: var(--shadow-focus) !important;
-    outline: none !important;
+.message-container .loading-message svg {
+  margin-bottom: 12px !important;
+  color: var(--text-tertiary) !important;
 }
 
-.message-input input::placeholder {
-    color: var(--light-gray) !important; /* Light gray placeholder text */
+.message-container .error-message h2 {
+  font-size: 17px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  margin-bottom: 8px !important;
 }
 
-/* Send button - hidden on mobile */
-.send-button {
-    background: var(--accent-primary) !important; /* Gold background */
-    color: var(--black) !important; /* Black text for maximum contrast */
-    border: none !important;
-    border-radius: var(--border-radius) !important;
-    font-weight: var(--font-weight-bold) !important;
-    cursor: pointer !important;
-    transition: all var(--transition-fast) ease !important;
-    padding: var(--space-3) var(--space-5) !important;
-    min-width: 100px !important;
-    white-space: nowrap !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    /* Enhanced contrast and styling */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
-    text-shadow: none !important; /* Remove any text shadow */
-}
-
-.send-button:hover {
-    background: var(--dark-gold) !important; /* Darker gold on hover */
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-    color: var(--black) !important; /* Ensure text stays black on hover */
-}
-
-.send-button:disabled {
-    background: var(--gray) !important; /* Gray when disabled */
-    color: var(--dark-gray) !important; /* Dark text when disabled */
-    cursor: not-allowed !important;
-    transform: none !important;
-    box-shadow: none !important;
-}
-
-.send-button i {
-    margin-left: var(--space-2) !important;
-    font-size: var(--font-size-base) !important;
-    color: var(--black) !important; /* Ensure icon is black */
+.message-container .error-message p {
+  font-size: 15px !important;
+  color: var(--text-secondary) !important;
+  margin: 0 !important;
 }
 
 /* ==========================
-   Error Messages
+   Dark Mode Support
+   EXCLUSIVELY scoped to .message-container
 ========================== */
-
-.error-message {
-    background-color: rgba(220, 53, 69, 0.2) !important; /* Transparent red background */
-    color: #ff6b6b !important; /* Bright red text for visibility */
-    padding: var(--space-2) var(--space-3) !important;
-    margin: var(--space-2) !important;
-    border-radius: var(--border-radius) !important;
-    text-align: center !important;
-    border: 1px solid rgba(220, 53, 69, 0.3) !important; /* Subtle red border */
-    backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
-}
-
-/* ==========================
-   Empty State
-========================== */
-
-.no-messages {
-    text-align: center !important;
-    color: var(--text-secondary) !important;
-    font-style: italic !important;
-    padding: var(--space-6) !important;
-    margin: auto !important;
+@media (prefers-color-scheme: dark) {
+  .message-container .message-header {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  }
+  
+  .message-container .message-header h2 {
+    color: var(--text-primary) !important;
+  }
+  
+  .message-container .message-item.received .message-content {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  .message-container .message-textarea {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  .message-container .message-textarea:focus {
+    background: rgba(255, 255, 255, 0.15) !important;
+  }
+  
+  .message-container .message-input {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-top-color: rgba(255, 255, 255, 0.06) !important;
+  }
 }
 
 /* ==========================
    Responsive Design
+   EXCLUSIVELY scoped to .message-container
 ========================== */
-
-/* Desktop sidebar mode adjustments */
-@media (min-width: 601px) {
-    .chat-header-absolute {
-        top: 0 !important; /* Position at top when sidebar is present */
-        left: calc(var(--navbar-width-collapsed) + var(--content-pad)) !important; /* Account for sidebar width + content padding */
-        right: 0 !important;
-        /* Adjust for sidebar mode - size to content column, not full viewport */
-        width: calc(100vw - var(--navbar-width-collapsed) - (var(--content-pad) * 2)) !important;
-        padding: var(--space-4) var(--space-6) !important; /* Increased padding for desktop */
-    }
-    
-    .chat-container {
-        height: calc(100vh - var(--footer-height) - var(--composer-height)) !important; /* Account for header, footer, and input only */
-        height: calc(100dvh - var(--footer-height) - var(--composer-height)) !important; /* iOS 16+ dynamic viewport */
-        height: calc(100svh - var(--footer-height) - var(--composer-height)) !important; /* Stable viewport height (most reliable) */
-        height: calc(calc(var(--vh, 1vh) * 100) - var(--footer-height) - var(--composer-height)) !important; /* JavaScript polyfill fallback */
-        margin-top: 60px !important; /* Space for header only (no topbar) */
-        /* REMOVE duplicate offsets - let main handle the sidebar margin */
-        margin-left: 0 !important;
-        width: 100% !important;
-        /* Avoid clipping content - use clip or visible */
-        overflow-x: visible !important;
-        /* overflow-x: clip !important; */ /* Alternative for modern browsers */
-    }
-    
-    .messages-container {
-        padding: var(--space-4) var(--space-8) !important; /* Generous padding for desktop */
-        padding-bottom: calc(var(--space-4) + var(--composer-height) + var(--footer-height) + var(--sab)) !important; /* Reduced bottom padding for better proximity to input */
-    }
-    
-    .message {
-        max-width: 60% !important; /* Narrower on desktop to prevent overflow */
-    }
-    
-    /* Specific styling for sent messages on desktop */
-    .sent {
-        max-width: 55% !important;
-    }
-    
-    /* When sidebar is hovered and expanded */
-    body.has-sidebar .navbar:hover ~ .chat-header-absolute {
-        left: calc(var(--navbar-width-expanded) + var(--content-pad)) !important;
-        width: calc(100vw - var(--navbar-width-expanded) - (var(--content-pad) * 2)) !important;
-    }
-    
-    body.has-sidebar .navbar:hover ~ .chat-container {
-        /* Let main handle the sidebar margin - no duplicate offset needed */
-        margin-left: 0 !important;
-        width: 100% !important;
-    }
-}
-
-/* Desktop sidebar mode input adjustments */
-@media (min-width: 601px) {
-    .message-input {
-        left: calc(var(--navbar-width-collapsed) + var(--content-pad)) !important; /* Account for sidebar width + content padding */
-        width: calc(100vw - var(--navbar-width-collapsed) - (var(--content-pad) * 2)) !important; /* Size to content column */
-        padding: var(--space-4) var(--space-8) !important; /* Match container padding */
-    }
-    
-    /* When sidebar is hovered and expanded */
-    body.has-sidebar .navbar:hover ~ .message-input {
-        left: calc(var(--navbar-width-expanded) + var(--content-pad)) !important;
-        width: calc(100vw - var(--navbar-width-expanded) - (var(--content-pad) * 2)) !important;
-    }
-}
-
-/* Mobile topbar mode adjustments */
 @media (max-width: 600px) {
-    .message-page {
-        height: 100vh !important;
-        min-height: 100vh !important;
-    }
-    
-    .chat-header-absolute {
-        padding: var(--space-2) var(--space-3) !important;
-        top: var(--navbar-height-mobile) !important; /* Position under topbar */
-        left: 0 !important;
-        right: 0 !important;
-        width: 100vw !important;
-    }
-    
-    .chat-header-title {
-        font-size: var(--font-size-base) !important;
-    }
-    
-    .chat-container {
-        height: calc(100vh - var(--navbar-height-mobile) - 120px) !important;
-        margin-top: calc(var(--navbar-height-mobile) + 50px) !important; /* Reduced header height */
-        margin-left: 0 !important; /* No sidebar margin on mobile */
-        width: 100vw !important;
-    }
-    
-    .messages-container {
-        padding: var(--space-3) var(--space-4) !important; /* Increased padding for mobile */
-        padding-bottom: calc(var(--space-6) + 60px) !important; /* Bottom padding for mobile */
-    }
-    
-    .message {
-        max-width: 85% !important; /* Slightly wider on mobile but still safe */
-        padding: var(--space-2) !important;
-    }
-    
-    .message-input {
-        left: 0 !important;
-        width: 100vw !important;
-        padding: var(--space-3) var(--space-4) !important; /* Increased padding for mobile */
-        /* Hide send button on mobile */
-        justify-content: center !important;
-    }
-    
-    /* Hide send button on mobile */
-    .send-button {
-        display: none !important;
-    }
-    
-    .message-input input {
-        padding: var(--space-2) var(--space-3) !important;
-        font-size: 16px !important; /* Prevent zoom on iOS */
-    }
+  .message-container .message-list {
+    padding: 12px 16px !important;
+  }
+  
+  .message-container .message-content {
+    max-width: 80% !important;
+    font-size: 15px !important;
+  }
+  
+  .message-container .message-input {
+    padding: 12px 16px !important;
+  }
+  
+  .message-container .message-textarea {
+    font-size: 16px !important;
+  }
 }
 
-/* Very small screens */
 @media (max-width: 480px) {
-    .chat-header-absolute {
-        padding: var(--space-2) !important;
-    }
-    
-    .chat-header-title {
-        font-size: var(--font-size-sm) !important;
-    }
-    
-    .chat-container {
-        height: calc(100vh - var(--navbar-height-mobile) - 120px) !important;
-        margin-top: calc(var(--navbar-height-mobile) + 45px) !important;
-    }
-    
-    .messages-container {
-        padding: var(--space-2) var(--space-3) !important; /* Safe padding for very small screens */
-        padding-bottom: calc(var(--space-5) + 60px) !important; /* Bottom padding for very small screens */
-    }
-    
-    .message {
-        max-width: 90% !important; /* Wider on very small screens */
-        padding: var(--space-2) !important;
-        font-size: var(--font-size-sm) !important;
-    }
-    
-    .message-input {
-        padding: var(--space-2) var(--space-3) !important; /* Safe padding for very small screens */
-        left: 0 !important;
-        width: 100vw !important;
-        bottom: 60px !important; /* Keep consistent with footer height */
-    }
-    
-    .message-input input {
-        padding: var(--space-2) !important;
-        font-size: 16px !important;
-    }
-    
-    .message-text {
-        font-size: var(--font-size-sm) !important;
-    }
-    
-    .message-time {
-        font-size: var(--font-size-xs) !important;
-    }
-}
-
-/* ==========================
-   iOS Safari Specific Fixes
-========================== */
-
-@supports (-webkit-touch-callout: none) {
-    .chat-header-absolute {
-        /* iOS safe area support */
-        padding-top: calc(var(--space-3) + env(safe-area-inset-top)) !important;
-        padding-left: calc(var(--space-4) + env(safe-area-inset-left)) !important;
-        padding-right: calc(var(--space-4) + env(safe-area-inset-right)) !important;
-    }
-    
-    .message-input {
-        /* iOS safe area for input */
-        padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom)) !important;
-        margin-bottom: calc(60px + env(safe-area-inset-bottom)) !important;
-    }
-    
-    .messages-container {
-        /* iOS Safari scrolling optimizations */
-        -webkit-overflow-scrolling: touch !important;
-        -webkit-transform: translateZ(0) !important;
-        transform: translateZ(0) !important;
-    }
-}
-
-/* ==========================
-   Android Chrome Specific Fixes
-========================== */
-
-@media screen and (-webkit-min-device-pixel-ratio: 0) {
-    .messages-container {
-        /* Android Chrome scrolling optimizations */
-        -webkit-overflow-scrolling: touch !important;
-        overscroll-behavior: contain !important;
-    }
-}
-
-/* ==========================
-   Landscape Orientation Fixes
-========================== */
-
-@media (max-width: 768px) and (orientation: landscape) {
-    .chat-header-absolute {
-        padding: var(--space-2) var(--space-3) !important;
-    }
-    
-    .chat-container {
-        height: calc(100vh - var(--navbar-height-mobile) - 120px) !important;
-        margin-top: calc(var(--navbar-height-mobile) + 45px) !important;
-    }
-}
-
-/* ==========================
-   Animation Effects
-========================== */
-
-/* Subtle fade-in for new messages */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ==========================
-   Custom Scrollbar Styling
-========================== */
-
-/* Webkit browsers */
-.messages-container::-webkit-scrollbar {
-    width: 6px !important;
-}
-
-.messages-container::-webkit-scrollbar-track {
-    background: transparent !important;
-}
-
-.messages-container::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2) !important;
-    border-radius: 3px !important;
-}
-
-.messages-container::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.3) !important;
-}
-
-/* Firefox */
-.messages-container {
-    scrollbar-width: thin !important;
-    scrollbar-color: rgba(0, 0, 0, 0.2) transparent !important;
-}
-
-/* Large desktop screens - ensure proper scaling */
-@media (min-width: 1024px) {
-    .chat-container {
-        /* Let main handle the sidebar margin - no duplicate offset needed */
-        margin-left: 0 !important;
-        width: 100% !important;
-        /* Avoid clipping content */
-        overflow-x: visible !important;
-        /* overflow-x: clip !important; */ /* Alternative for modern browsers */
-    }
-    
-    .messages-container {
-        padding: var(--space-4) var(--space-10) !important; /* Even more generous padding on large screens */
-        padding-bottom: calc(var(--space-6) + var(--composer-height) + var(--footer-height) + var(--sab)) !important; /* Reduced bottom padding for better proximity to input */
-        max-width: 100% !important;
-        width: 100% !important;
-        overflow-x: hidden !important;
-    }
-    
-    .message {
-        max-width: 55% !important; /* Even narrower on very large screens */
-    }
-    
-    /* Specific styling for sent messages on large screens */
-    .sent {
-        max-width: 50% !important;
-    }
-    
-    /* When sidebar is hovered and expanded */
-    body.has-sidebar .navbar:hover ~ .chat-container {
-        /* Let main handle the sidebar margin - no duplicate offset needed */
-        margin-left: 0 !important;
-        width: 100% !important;
-    }
-}
-
-/* Extra large desktop screens */
-@media (min-width: 1280px) {
-    /* All 1280px+ styling is now handled in the 1280px Breakpoint Hotfix section above */
-}
-
-/* ==========================
-   Mobile Device Specific Fixes
-========================== */
-
-/* Mobile devices - eliminate gap between input and footer */
-@media (max-width: 600px) {
-    .message-input {
-        bottom: calc(var(--footer-height) + var(--sab)) !important; /* Use CSS variables */
-        /* Ensure no gap on mobile devices */
-        position: fixed !important;
-        z-index: 50 !important;
-    }
-    
-    /* Adjust messages container to account for fixed input */
-    .messages-container {
-        padding: var(--space-3) var(--space-4) !important;
-        padding-bottom: calc(var(--space-6) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-        /* Ensure proper scrolling to bottom */
-        scroll-padding-bottom: calc(var(--space-6) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-    }
-}
-
-/* Very small mobile devices */
-@media (max-width: 480px) {
-    .message-input {
-        bottom: calc(var(--footer-height) + var(--sab)) !important; /* Use CSS variables */
-        padding: var(--space-2) var(--space-3) !important;
-    }
-    
-    .messages-container {
-        padding: var(--space-2) var(--space-3) !important;
-        padding-bottom: calc(var(--space-5) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-        scroll-padding-bottom: calc(var(--space-5) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-    }
-}
-
-/* iOS Safari specific fixes for mobile */
-@supports (-webkit-touch-callout: none) {
-    .message-input {
-        /* iOS safe area support */
-        padding-bottom: max(var(--space-4), var(--sab)) !important;
-        bottom: calc(var(--footer-height) + var(--sab)) !important; /* Use CSS variables */
-    }
-    
-    .messages-container {
-        /* iOS safe area for content */
-        padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-        scroll-padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-    }
-    
-    /* Large screen iOS override - reduce excessive padding */
-    @media (min-width: 1024px) {
-        .messages-container {
-            padding-bottom: calc(var(--space-4) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-            scroll-padding-bottom: calc(var(--space-4) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-        }
-    }
-    
-    /* Mobile iOS specific adjustments */
-    @media (max-width: 600px) {
-        .message-input {
-            bottom: calc(var(--footer-height) + var(--sab)) !important;
-        }
-        
-        .messages-container {
-            padding-bottom: calc(var(--space-6) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-            scroll-padding-bottom: calc(var(--space-6) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .message-input {
-            bottom: calc(var(--footer-height) + var(--sab)) !important;
-        }
-        
-        .messages-container {
-            padding-bottom: calc(var(--space-5) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-            scroll-padding-bottom: calc(var(--space-5) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-        }
-    }
-}
-
-/* ==========================
-   Mobile Viewport Optimizations
-========================== */
-
-/* Mobile devices - ensure proper viewport handling */
-@media (max-width: 600px) {
-    .message-page {
-        height: 100vh !important;
-        min-height: 100vh !important;
-        height: 100dvh !important; /* iOS 16+ dynamic viewport */
-        min-height: 100dvh !important; /* iOS 16+ dynamic viewport */
-        height: calc(var(--vh, 1vh) * 100) !important; /* JavaScript polyfill fallback */
-        min-height: calc(var(--vh, 1vh) * 100) !important; /* JavaScript polyfill fallback */
-        /* Mobile viewport optimizations */
-        height: -webkit-fill-available !important;
-        min-height: -webkit-fill-available !important;
-    }
-    
-    .chat-container {
-        height: calc(100vh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important;
-        height: calc(100dvh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* iOS 16+ dynamic viewport */
-        height: calc(calc(var(--vh, 1vh) * 100) - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* JavaScript polyfill fallback */
-        /* Mobile viewport fallback */
-        height: calc(-webkit-fill-available - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important;
-        margin-top: calc(var(--navbar-height-mobile) + 50px) !important;
-        margin-left: 0 !important;
-        width: 100vw !important;
-        /* Ensure proper mobile layout */
-        overflow: hidden !important;
-        position: relative !important;
-    }
-    
-    /* Ensure input field is perfectly positioned */
-    .message-input {
-        position: fixed !important;
-        bottom: calc(var(--footer-height) + var(--sab)) !important; /* Use CSS variables */
-        left: 0 !important;
-        right: 0 !important;
-        width: 100vw !important;
-        z-index: 50 !important;
-        /* Mobile-specific positioning */
-        transform: translateZ(0) !important;
-        -webkit-transform: translateZ(0) !important;
-    }
-}
-
-/* Very small mobile devices */
-@media (max-width: 480px) {
-    .chat-container {
-        height: calc(100vh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important;
-        height: calc(100dvh - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* iOS 16+ dynamic viewport */
-        height: calc(calc(var(--vh, 1vh) * 100) - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important; /* JavaScript polyfill fallback */
-        height: calc(-webkit-fill-available - var(--navbar-height-mobile) - var(--footer-height) - var(--composer-height)) !important;
-        margin-top: calc(var(--navbar-height-mobile) + 45px) !important;
-    }
-    
-    .message-input {
-        bottom: calc(var(--footer-height) + var(--sab)) !important; /* Use CSS variables */
-        /* Ensure no gap on very small screens */
-        position: fixed !important;
-        z-index: 50 !important;
-    }
-}
-
-/* ==========================
-   Fixed Composer Variant (Bulletproof)
-========================== */
-
-/* Alternative fixed positioning for maximum compatibility */
-.message-input.fixed-composer {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    z-index: 1000 !important;
-    padding-bottom: max(var(--space-4), calc(var(--sab) + var(--kb))) !important;
-    background: rgba(0, 0, 0, 0.9) !important; /* Slightly more opaque for better visibility */
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-}
-
-/* When using fixed composer, reserve space in the scroll area */
-.messages-container.with-fixed-composer {
-    padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab) + var(--kb)) !important;
-    scroll-padding-bottom: calc(var(--space-8) + var(--composer-height) + var(--footer-height) + var(--sab) + var(--kb)) !important;
-}
-
-/* ==========================
-   Margin Collision Guards
-========================== */
-
-/* On small screens, explicitly remove any margins that could create a visible seam */
-@media (max-width: 768px) {
-    .message-input { 
-        margin-bottom: 0 !important; 
-        margin-top: 0 !important;
-    }
-    
-    .site-footer { 
-        margin-top: 0 !important; 
-        margin-bottom: 0 !important;
-    }
-    
-    /* Ensure no gap between input and footer */
-    .message-input + .site-footer,
-    .message-input ~ .site-footer {
-        margin-top: 0 !important;
-    }
-}
-
-/* ==========================
-   iOS Safe Area Debug (Remove in production)
-========================== */
-
-/* Temporary class to test safe area - add this to your message input temporarily */
-.message-input.debug-safe-area {
-    outline: 2px solid red !important;
-    background: rgba(255, 0, 0, 0.1) !important;
-}
-
-.message-input.debug-safe-area::before {
-    content: 'Safe Area Bottom: ' attr(data-safe-area) !important;
-    position: absolute !important;
-    top: -20px !important;
-    left: 10px !important;
-    background: rgba(0, 0, 0, 0.8) !important;
-    color: white !important;
-    padding: 2px 6px !important;
+  .message-container .message-content {
+    max-width: 85% !important;
+    padding: 7px 11px !important;
+  }
+  
+  .message-container .message-time {
     font-size: 10px !important;
-    border-radius: 4px !important;
-    z-index: 1000 !important;
+  }
 }
 
-/* Debug probe for gap detection */
-.message-input.debug-probe,
-.site-footer.debug-probe {
-    outline: 2px solid blue !important;
-    background: rgba(0, 0, 255, 0.1) !important;
+/* ==========================
+   Animations
+========================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Remove this section after testing */
-
 /* ==========================
-   Desktop / Wide-Screen Cutoff Fix
+   Scrollbar Styling
+   EXCLUSIVELY scoped to .message-container
 ========================== */
+.message-container .message-list::-webkit-scrollbar {
+  width: 0px !important;
+  background: transparent !important;
+}
 
-/* 
- * FIXED: Desktop cutoff issue where header/composer extended beyond content column
- * 
- * What was fixed:
- * 1. Added --content-pad variable that matches main container padding at each breakpoint
- * 2. Fixed elements now subtract content padding from both sides: calc(100vw - sidebar - (content-pad * 2))
- * 3. Removed duplicate offsets from .chat-container (let main handle sidebar margins)
- * 4. Changed overflow-x from hidden to visible/clip to prevent content clipping
- * 5. Added chat max-width centering on very large screens
- * 6. Added 1280px breakpoint hotfix to handle 3rem padding desync
- * 7. Added wide-screen polish: removed compositor seams, fixed scrollbar gutter, consistent bubble widths
- * 
- * Result: Fixed header/composer now align perfectly with the padded content column
- * at every breakpoint, eliminating the right edge cutoff and thin vertical gutters.
- */
-
-/* ==========================
-   1280px Breakpoint Hotfix
-========================== */
-
-/* At 1280px, global CSS increases container padding to 3rem, but fixed elements 
-   need explicit overrides to maintain alignment with the content column */
-@media (min-width: 1280px) {
-    /* Ensure the shared padding var equals the global 3rem */
-    :root { --content-pad: 3rem !important; }
-    
-    /* 1) Keep the fixed bars aligned to the padded column */
-    .chat-header-absolute,
-    .message-input {
-        left: calc(var(--navbar-width-collapsed) + var(--content-pad)) !important;
-        width: calc(100vw - var(--navbar-width-collapsed) - (var(--content-pad) * 2)) !important;
-    }
-    
-    body.has-sidebar .navbar:hover ~ .chat-header-absolute,
-    body.has-sidebar .navbar:hover ~ .message-input {
-        left: calc(var(--navbar-width-expanded) + var(--content-pad)) !important;
-        width: calc(100vw - var(--navbar-width-expanded) - (var(--content-pad) * 2)) !important;
-    }
-    
-    /* 2) Inner chat follows content box and avoids clipping */
-    .chat-container {
-        margin-left: 0 !important;                 /* Remove double offset */
-        width: 100% !important;                    /* Inherit from main */
-        padding-inline: var(--content-pad) !important; /* Match outer padding */
-        overflow-x: visible !important;            /* Avoid clipping on the right */
-        /* overflow-x: clip !important; */        /* Alternative for modern browsers */
-    }
-    
-    /* 3) Remove compositor seam + keep layout stable for the scrollbar */
-    .messages-container {
-        transform: none !important;                /* Was translate3d(0,0,0) - prevents compositor seam */
-        will-change: auto !important;              /* Remove unnecessary compositing */
-        scrollbar-gutter: stable both-edges !important; /* Prevents jitter/gutter line */
-        padding-right: calc(var(--space-6) + 8px) !important; /* Room for scrollbar */
-        position: relative !important;
-        /* Cap readable width and center the column for wide screens */
-        max-width: var(--chat-max) !important;
-        margin-inline: auto !important;
-        /* Ensure last message sits close to input box */
-        padding-bottom: calc(var(--space-4) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-        scroll-padding-bottom: calc(var(--space-4) + var(--composer-height) + var(--footer-height) + var(--sab)) !important;
-    }
-    
-    /* Consistent bubble width for wide screens */
-    .message { 
-        max-width: 640px !important; 
-    }
+.message-container .message-list {
+  scrollbar-width: none !important;
 }

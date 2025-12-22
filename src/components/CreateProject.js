@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createProject } from "../services/projectService";
-import { getUserId } from "../services/authService";
+import { getUserId } from "../services/authService.ts";
 import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRotateLeft } from "@fortawesome/free-solid-svg-icons";

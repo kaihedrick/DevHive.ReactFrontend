@@ -17,8 +17,8 @@ import { WS_BASE_URL } from '../config.js';
  * in case some backend instances haven't been migrated yet.
  */
 interface CacheInvalidationPayload {
-  resource: 'project' | 'projects' | 'sprint' | 'sprints' | 'task' | 'tasks' | 'project_members';
-  id: string; // UUID for projects/sprints/tasks, "project_id:user_id" for project_members
+  resource: 'project' | 'projects' | 'sprint' | 'sprints' | 'task' | 'tasks' | 'project_members' | 'message' | 'messages';
+  id: string; // UUID for projects/sprints/tasks/messages, "project_id:user_id" for project_members
   action: 'INSERT' | 'UPDATE' | 'DELETE';
   project_id: string; // Always present
   timestamp: string; // ISO 8601 format
@@ -572,9 +572,10 @@ class CacheInvalidationService {
     console.log(`🔄 Cache invalidation: ${resource} ${action}`, { id, project_id });
 
     // Normalize resource name (handle both singular and plural for backward compatibility)
-    const normalizedResource = resource === 'projects' ? 'project' 
+    const normalizedResource = resource === 'projects' ? 'project'
       : resource === 'sprints' ? 'sprint'
       : resource === 'tasks' ? 'task'
+      : resource === 'messages' ? 'message'
       : resource;
 
     switch (normalizedResource) {
@@ -635,16 +636,26 @@ class CacheInvalidationService {
 
       case 'project_members':
         // Handle member changes (immediately refetch for real-time updates)
-        queryClient.refetchQueries({ 
+        queryClient.refetchQueries({
           queryKey: ['projectMembers', project_id],
-          exact: false 
+          exact: false
         });
-        queryClient.refetchQueries({ 
+        queryClient.refetchQueries({
           queryKey: ['projects', 'bundle', project_id],
-          exact: false 
+          exact: false
         });
         queryClient.invalidateQueries({ queryKey: ['projects', 'list'] });
         console.log(`✅ Refetched project members for project ${project_id}`);
+        break;
+
+      case 'message':
+        // Handle message changes - refetch messages for real-time chat updates
+        // Architecture: Messages sent via REST API trigger cache_invalidate via WebSocket
+        queryClient.refetchQueries({
+          queryKey: ['messages', 'list', 'project', project_id],
+          exact: false
+        });
+        console.log(`✅ Refetched messages for project ${project_id}`);
         break;
 
       default:

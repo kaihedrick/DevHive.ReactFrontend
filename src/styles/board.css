@@ -2,7 +2,9 @@
 /* Board Component Styling - Absolute Page-Level Scoping */
 .board-page {
   display: block !important;
-  padding: var(--space-5) !important;
+  padding: 0 var(--space-5) var(--space-5) var(--space-5) !important; /* Flush top padding for flush look */
+  margin-top: 0 !important; /* Ensure flush with navbar */
+  padding-top: 0 !important; /* Ensure no top padding */
   min-height: 100vh !important;
   background-color: var(--bg-secondary) !important;
   overflow: auto !important;
@@ -15,6 +17,8 @@
 /* Remove flexbox centering - let container handle its own centering */
 body.has-sidebar .board-page {
   margin-left: 0 !important;
+  margin-top: 0 !important; /* Ensure flush with top */
+  padding-top: 0 !important; /* Ensure no top padding */
   width: 100% !important;
   display: block !important;
   position: relative !important;
@@ -22,6 +26,8 @@ body.has-sidebar .board-page {
 
 body.has-sidebar .navbar:hover ~ main .board-page {
   margin-left: 0 !important;
+  margin-top: 0 !important; /* Ensure flush with top */
+  padding-top: 0 !important; /* Ensure no top padding */
   width: 100% !important;
   display: block !important;
 }
@@ -55,13 +61,14 @@ body.has-sidebar .navbar:hover ~ main .board-page {
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
     position: absolute !important; /* Absolute positioning within fixed parent */
-    top: var(--navbar-height-mobile) !important; /* Position below navbar */
+    top: var(--navbar-height-mobile) !important; /* Position below navbar - flush */
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important; /* Stretch to bottom - calculates height automatically */
     box-sizing: border-box !important;
-    padding: var(--space-5) !important;
+    padding: 0 var(--space-5) var(--space-5) var(--space-5) !important; /* Flush top padding */
     margin: 0 !important;
+    margin-top: 0 !important; /* Ensure no top margin */
     height: auto !important; /* Let bottom: 0 calculate height */
     min-height: auto !important; /* Remove min-height constraint */
     
@@ -97,12 +104,25 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   body.has-topbar main .board-page,
   body.has-topbar .board-page,
   body.has-topbar .content main .board-page {
-    /* Already handled by mobile fix above */
+    margin-top: 0 !important; /* Ensure flush with topbar */
+    padding-top: 0 !important; /* Ensure no top padding */
   }
   
   /* Ensure the first element in the page also has proper spacing */
   body.has-topbar .board-page > *:first-child {
     margin-top: 0 !important; /* Remove any top margin from first child */
+  }
+  
+  /* Ensure container is flush in topbar view */
+  body.has-topbar .board-page .board-container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  
+  /* Ensure sprint-selector is flush */
+  body.has-topbar .board-page .board-container .sprint-selector {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
   }
 }
 
@@ -114,15 +134,21 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   overscroll-behavior-y: contain !important; /* Prevents pull-to-refresh */
   max-width: 1400px !important;
   background: var(--bg-primary) !important;
-  padding: var(--space-5) !important;
-  border-radius: var(--border-radius) !important;
+  padding: 0 var(--space-5) var(--space-5) var(--space-5) !important; /* Flush top padding */
+  border-radius: 0 var(--border-radius) var(--border-radius) var(--border-radius) !important; /* No top border-radius for flush look */
   box-shadow: var(--shadow-md) !important;
   display: flex !important;
   flex-direction: column !important;
   min-height: calc(100vh - 2 * var(--space-5)) !important;
   margin-left: auto !important;
   margin-right: auto !important;
+  margin-top: 0 !important; /* Ensure no top margin */
   box-sizing: border-box !important;
+}
+
+/* Ensure first child of container has no top margin for flush alignment */
+.board-page .board-container > *:first-child {
+  margin-top: 0 !important;
 }
 
 .board-page .board-header {
@@ -145,6 +171,9 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   display: flex !important;
   align-items: center !important;
   gap: var(--space-3) !important;
+  margin-top: 0 !important; /* Ensure flush with container top */
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
 }
 
 .board-page .sprint-selector label {
@@ -660,12 +689,12 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 /* Responsive improvements for larger screens */
 @media (min-width: 1200px) {
   .board-page {
-    padding: var(--space-6) !important;
+    padding: 0 var(--space-6) var(--space-6) var(--space-6) !important; /* Flush top padding */
   }
   
   .board-page .board-container {
     max-width: 1200px !important;
-    padding: var(--space-6) !important;
+    padding: 0 var(--space-6) var(--space-6) var(--space-6) !important; /* Flush top padding */
   }
   
   .board-page .board-columns {
@@ -676,7 +705,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 @media (min-width: 1600px) {
   .board-page .board-container {
     max-width: 1400px !important;
-    padding: var(--space-8) !important;
+    padding: 0 var(--space-8) var(--space-8) var(--space-8) !important; /* Flush top padding */
   }
   
   .board-page .board-columns {
@@ -690,21 +719,27 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 ============================= */
 @media (max-width: 768px) {
   /* 1. Remove outer card container - make board a flat scroll surface */
+  /* NOTE: This section is for Apple-style layout, but we preserve flush positioning from above */
   .board-page {
-    padding: var(--space-4) !important;
-    padding-bottom: calc(var(--footer-h) + env(safe-area-inset-bottom) + var(--space-6)) !important;
-    background: var(--bg-secondary) !important;
-    overflow-y: auto !important;
-    position: relative !important;
+    /* Keep fixed positioning from earlier rule for flush navbar alignment */
+    padding: 0 !important; /* Override any padding to ensure flush */
+    padding-bottom: 0 !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
   }
   
-  /* Remove card styling from container on mobile */
+  /* Remove card styling from container on mobile - preserve flush positioning */
   .board-page .board-container {
     background: transparent !important;
-    padding: 0 !important;
+    padding: 0 var(--space-5) var(--space-5) var(--space-5) !important; /* Flush top, keep sides/bottom */
+    padding-top: 0 !important; /* Ensure flush top */
     border-radius: 0 !important;
     box-shadow: none !important;
     margin: 0 !important;
+    margin-top: 0 !important; /* Ensure no top margin */
+    /* Preserve absolute positioning from earlier rule for flush alignment */
+    position: absolute !important;
+    top: var(--navbar-height-mobile) !important; /* Flush with navbar */
     max-width: 100% !important;
     min-height: auto !important;
   }

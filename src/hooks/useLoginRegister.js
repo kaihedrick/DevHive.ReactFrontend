@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { login, register } from "../services/authService";
+import { login, register } from "../services/authService.ts";
 import { validateEmail } from "../services/userService";
 /**
  * useLoginRegister

@@ -70,12 +70,15 @@ export const projectStorage = {
 
   /**
    * Stores the selected project ID in localStorage, scoped by userId.
+   * Dispatches 'project-changed' event for same-tab listeners.
    * @param {string} projectId - The ID of the selected project.
    * @param {string|null} userId - The current user ID (optional)
    */
   setSelectedProject: (projectId, userId = null) => {
     const key = projectStorage.getStorageKey(userId);
     storage.set(key, projectId);
+    // Dispatch event for same-tab listeners (storage event only fires cross-tab)
+    window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId } }));
   },
 
   /**
@@ -90,6 +93,7 @@ export const projectStorage = {
 
   /**
    * Removes the selected project ID from localStorage, scoped by userId.
+   * Dispatches 'project-changed' event for same-tab listeners.
    * @param {string|null} userId - The current user ID (optional)
    */
   clearSelectedProject: (userId = null) => {
@@ -97,6 +101,8 @@ export const projectStorage = {
     storage.remove(key);
     // Also clear legacy unscoped key for backward compatibility
     storage.remove(StorageKeys.SELECTED_PROJECT);
+    // Dispatch event for same-tab listeners (storage event only fires cross-tab)
+    window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId: null } }));
   },
 
   /**

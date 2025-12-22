@@ -1,12 +1,14 @@
 /* ==========================
-   Contacts Page Container - Absolute Page-Level Scoping
+   Contacts Page Container - Apple Minimalistic Style
 ========================== */
 .contacts-page {
   width: 100% !important;
   min-height: 100vh !important;
   margin: 0 !important;
+  margin-top: 0 !important;
+  padding: 0 !important;
+  padding-top: 0 !important;
   display: block !important;
-  padding: var(--space-5) !important;
   background-color: var(--bg-secondary) !important;
   box-sizing: border-box !important;
   position: relative !important;
@@ -15,12 +17,16 @@
 /* Override global main styles for Contacts page - Absolute Scoping */
 body.has-sidebar .contacts-page {
   margin-left: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
   width: 100% !important;
   display: block !important;
 }
 
 body.has-sidebar .navbar:hover ~ main .contacts-page {
   margin-left: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
   width: 100% !important;
 }
 
@@ -30,74 +36,94 @@ body.has-sidebar .navbar:hover ~ main .contacts-page {
   body.has-topbar main .contacts-page,
   body.has-topbar .contacts-page,
   body.has-topbar .content main .contacts-page {
-    padding-top: var(--space-5) !important; /* Match base top padding; global .content handles navbar clearance */
-    padding-right: var(--space-5) !important; /* Keep existing side padding */
-    padding-bottom: var(--space-5) !important; /* Keep existing bottom padding */
-    padding-left: var(--space-5) !important; /* Keep existing side padding */
-    margin-top: 0 !important; /* Override any margin-top from global rules */
-    position: relative !important; /* Ensure proper stacking context */
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 0 !important;
+    position: relative !important;
   }
   
   /* Ensure the first element in the page also has proper spacing */
   body.has-topbar .contacts-page > *:first-child {
-    margin-top: 0 !important; /* Remove any top margin from first child */
+    margin-top: 0 !important;
   }
 }
 
 .contacts-page .no-contacts-text {
-    color: white !important;
-    text-align: center !important;
-    font-size: var(--font-size-base) !important;
-    margin-top: var(--space-3) !important;
-    align:"center"  ;
-  }
+  color: var(--text-secondary) !important;
+  text-align: center !important;
+  font-size: 15px !important;
+  margin-top: var(--space-6) !important;
+  padding: var(--space-4) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
+}
   
 /* ==========================
-   Contacts Container
+   Contacts Container - Apple Minimalistic
 ========================== */
 .contacts-page .contact-container {
-  width: 90% !important;
-  max-width: 800px !important;
-  background: var(--bg-primary) !important;
-  border-radius: var(--border-radius) !important;
-  box-shadow: var(--shadow-sm) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
   font-family: var(--primary-font) !important;
-  border: 1px solid var(--border-color) !important;
-  overflow: hidden !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  min-height: calc(100vh - 200px) !important;
+  border: none !important;
+  overflow: visible !important;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  padding: 0 !important;
+  min-height: 100vh !important;
   box-sizing: border-box !important;
-  display: block !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 /* ==========================
-   Contacts Header
+   Contacts Header - Apple Minimalistic Sticky
 ========================== */
 .contacts-page .contact-header {
-  background: var(--accent-primary) !important; /* Using gold from global colors, matches message.css */
-  color: var(--black) !important; /* Better contrast on gold background */
-  text-align: center !important;
-  padding: var(--space-4) !important;
-  border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
-  box-shadow: none !important; /* Removed shadow for cleaner look */
-  position: relative !important;
-  z-index: 2 !important; /* Ensures header is above content */
+  background: var(--bg-primary) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  color: var(--text-primary) !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: none !important;
+  position: sticky !important;
+  top: 0 !important; /* Flush under navbar - will be adjusted for mobile */
+  z-index: 100 !important;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Desktop: Flush with sidebar navbar */
+body.has-sidebar .contacts-page .contact-header {
+  top: 0 !important;
+}
+
+/* Mobile: Position below topbar */
+@media (max-width: 600px) {
+  body.has-topbar .contacts-page .contact-header {
+    top: var(--navbar-height-mobile) !important; /* Position below fixed topbar */
+  }
 }
 
 .contacts-page .contact-header h1 {
-  color: var(--black) !important; /* Better contrast on gold */
-  font-size: var(--font-size-xl) !important; /* Consistent with message.css */
-  font-weight: var(--font-weight-bold) !important;
+  color: var(--text-primary) !important;
+  font-size: 17px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
   margin: 0 !important;
+  padding: 0 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
 }
 
 .contacts-page .contact-header p {
-  color: var(--black) !important; /* Better contrast on gold */
-  font-size: var(--font-size-base) !important;
-  margin-top: var(--space-2) !important;
-  margin-bottom: 0 !important;
-  opacity: 0.9 !important; /* Slight opacity for visual hierarchy */
+  display: none !important; /* Hide subtitle for minimalistic look */
 }
 
 /* ==========================
@@ -206,48 +232,40 @@ body.has-sidebar .navbar:hover ~ main .contacts-page {
 }
 
 .contacts-page .contact-list {
-  padding: var(--space-4) !important;
-  height: auto !important; /* Remove fixed height for mobile */
-  max-height: none !important; /* Remove max-height constraint */
-  overflow-y: visible !important; /* Allow natural flow on mobile */
+  padding: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow-y: visible !important;
   background-color: var(--bg-primary) !important;
-  scrollbar-width: thin !important;
-  scrollbar-color: var(--accent-primary) var(--bg-secondary) !important;
+  scrollbar-width: none !important;
 }
 
-/* Customize scrollbar for Webkit browsers */
+/* Hide scrollbar for Apple minimalistic look */
 .contacts-page .contact-list::-webkit-scrollbar {
-  width: 8px !important;
-}
-
-.contacts-page .contact-list::-webkit-scrollbar-track {
-  background: var(--bg-secondary) !important;
-  border-radius: 10px !important;
-}
-
-.contacts-page .contact-list::-webkit-scrollbar-thumb {
-  background-color: var(--accent-primary) !important;
-  border-radius: 10px !important;
+  width: 0px !important;
+  background: transparent !important;
 }
 
 .contacts-page .contact-list-item {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  padding: var(--space-3) !important;
-  border-bottom: 1px solid var(--border-color) !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
   background: var(--bg-primary) !important;
   cursor: pointer !important;
-  transition: transform var(--transition-normal) ease, box-shadow var(--transition-normal) ease !important;
-  animation: fadeIn 0.3s ease-out !important;
+  transition: background 120ms ease !important;
   position: relative !important;
-  box-shadow: none !important; /* Remove default item shadows */
+  box-shadow: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
 }
 
-.contacts-page .contact-list-item:hover {
-  transform: translateY(-1px) !important; /* Reduced from -2px for subtler effect */
-  box-shadow: var(--shadow-sm) !important; /* Reduced shadow on hover */
-  background: var(--bg-secondary) !important;
+.contacts-page .contact-list-item:hover,
+.contacts-page .contact-list-item:active {
+  background: rgba(0, 0, 0, 0.03) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .contacts-page .contact-list-item:last-child {
@@ -265,18 +283,20 @@ body.has-sidebar .navbar:hover ~ main .contacts-page {
 }
 
 .contacts-page .contact-avatar {
-  width: 50px !important;
-  height: 50px !important;
+  width: 40px !important;
+  height: 40px !important;
   border-radius: 50% !important;
-  background: var(--accent-primary) !important; /* Gold background */
-  color: var(--black) !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: var(--text-secondary) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: var(--font-size-lg) !important;
-  font-weight: var(--font-weight-bold) !important;
-  flex-shrink: 0 !important; /* Prevent avatar from shrinking */
-  box-shadow: none !important; /* Remove avatar shadow for cleaner look */
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  flex-shrink: 0 !important;
+  box-shadow: none !important;
+  letter-spacing: 0.01em !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
 }
 
 .contacts-page .contact-details {
@@ -287,18 +307,23 @@ body.has-sidebar .navbar:hover ~ main .contacts-page {
 }
 
 .contacts-page .contact-name {
-  font-size: var(--font-size-base) !important;
-  font-weight: var(--font-weight-bold) !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
   color: var(--text-primary) !important;
-  margin-bottom: var(--space-1) !important;
-  word-wrap: break-word !important; /* Allow long names to wrap */
+  margin-bottom: 2px !important;
+  word-wrap: break-word !important;
+  line-height: 1.4 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
 }
 
 .contacts-page .contact-email,
 .contacts-page .contact-role {
-  font-size: var(--font-size-sm) !important;
+  font-size: 13px !important;
   color: var(--text-secondary) !important;
-  word-wrap: break-word !important; /* Allow long text to wrap */
+  word-wrap: break-word !important;
+  line-height: 1.4 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
+  margin-top: 1px !important;
 }
 
 /* ==========================
@@ -477,20 +502,31 @@ body.has-sidebar .navbar:hover ~ main .contacts-page {
 }
 
 /* ==========================
-   Responsive Design
+   Responsive Design - Apple Minimalistic
 ========================== */
 @media (max-width: 768px) {
   .contacts-page {
-    width: 100% !important; /* Full width on mobile */
-    padding: var(--space-3) !important; /* Reduce padding on mobile */
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
   
   .contacts-page .contact-container {
-    width: 100% !important; /* Full width on mobile */
-    margin: 0 !important; /* Remove margins on mobile */
-    box-shadow: none !important; /* Remove shadows on mobile for cleaner look */
-    border: none !important; /* Remove borders on mobile */
-    border-radius: 0 !important; /* Remove border radius on mobile */
+    width: 100% !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .contacts-page .contact-header {
+    padding: 12px 16px !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  }
+  
+  .contacts-page .contact-header h1 {
+    font-size: 17px !important;
   }
   
   .contacts-page .contact-form {
@@ -519,15 +555,15 @@ body.has-sidebar .navbar:hover ~ main .contacts-page {
   
   .contacts-page .contact-list-container,
   .contacts-page .contact-list {
-    padding: var(--space-2) !important; /* Reduce padding on mobile */
+    padding: 0 !important;
   }
   
   .contacts-page .contact-list-item {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: var(--space-2) !important; /* Add gap between elements */
-    padding: var(--space-3) !important;
-    border-radius: 0 !important; /* Remove border radius on mobile */
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0 !important;
+    padding: 12px 16px !important;
+    border-radius: 0 !important;
   }
   
   .contacts-page .contact-info {
@@ -562,19 +598,19 @@ body.has-sidebar .navbar:hover ~ main .contacts-page {
 /* For smaller screens */
 @media (max-width: 480px) {
   .contacts-page {
-    padding: var(--space-2) !important; /* Minimal padding on very small screens */
+    padding: 0 !important;
   }
   
   .contacts-page .contact-header {
-    padding: var(--space-3) !important; /* Reduce header padding */
+    padding: 12px 16px !important;
   }
   
   .contacts-page .contact-header h1 {
-    font-size: var(--font-size-lg) !important;
+    font-size: 17px !important;
   }
   
-  .contacts-page .contact-header p {
-    font-size: var(--font-size-sm) !important;
+  .contacts-page .contact-list-item {
+    padding: 12px 16px !important;
   }
   
   .contacts-page .contact-form {
@@ -610,6 +646,31 @@ body.has-sidebar .navbar:hover ~ main .contacts-page {
   .contacts-page .filter-button {
     padding: var(--space-1) var(--space-2) !important; /* Minimal padding */
     font-size: var(--font-size-xs) !important; /* Smallest font */
+  }
+}
+
+/* ==========================
+   Dark Mode Support
+========================== */
+@media (prefers-color-scheme: dark) {
+  .contacts-page .contact-header {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  }
+  
+  .contacts-page .contact-list-item {
+    background: var(--bg-primary) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  }
+  
+  .contacts-page .contact-list-item:hover,
+  .contacts-page .contact-list-item:active {
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+  
+  .contacts-page .contact-avatar {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-secondary) !important;
   }
 }
 

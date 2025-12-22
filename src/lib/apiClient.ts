@@ -296,42 +296,52 @@ api.interceptors.response.use(
     // Return the original error to preserve all its properties
 
     // Handle 403 errors for project access (user was removed from project)
+    // BUT: Skip this for auth routes (login/register) - those 403s are "Invalid credentials"
     if (error.response?.status === 403) {
-      const url = originalRequest?.url || '';
-      const projectIdMatch = url.match(/\/projects\/([^/]+)/);
+      const url = originalRequest?.url || error.config?.url || error.request?.responseURL || '';
       
-      if (projectIdMatch && projectIdMatch[1]) {
-        const projectId = projectIdMatch[1];
-        const currentUserId = localStorage.getItem('userId');
+      // Don't treat 403 from auth routes as project access errors
+      // Auth route 403s should be treated as "Invalid credentials" and fall through to error normalization
+      if (isAuthRoute(url) || isPublicRoute(url)) {
+        // Let it fall through to error normalization below
+        // The backend should return "Invalid credentials" in the error detail
+      } else {
+        // Only handle project access 403s for non-auth routes
+        const projectIdMatch = url.match(/\/projects\/([^/]+)/);
         
-        // Only handle if we have a userId (user is logged in)
-        if (currentUserId) {
-          // Import queryClient dynamically to avoid circular dependencies
-          const { queryClient } = await import('../lib/queryClient.ts');
+        if (projectIdMatch && projectIdMatch[1]) {
+          const projectId = projectIdMatch[1];
+          const currentUserId = localStorage.getItem('userId');
           
-          // Remove project from projects list cache
-          queryClient.setQueriesData(
-            { 
-              queryKey: ['projects', 'list'],
-              exact: false
-            },
-            (oldData: any) => {
-              if (!oldData) return oldData;
-              const isArray = Array.isArray(oldData);
-              const projects = isArray ? oldData : (oldData.projects || []);
-              const filteredProjects = projects.filter((project: any) => project.id !== projectId);
-              return isArray ? filteredProjects : { ...oldData, projects: filteredProjects };
+          // Only handle if we have a userId (user is logged in)
+          if (currentUserId) {
+            // Import queryClient dynamically to avoid circular dependencies
+            const { queryClient } = await import('../lib/queryClient.ts');
+            
+            // Remove project from projects list cache
+            queryClient.setQueriesData(
+              { 
+                queryKey: ['projects', 'list'],
+                exact: false
+              },
+              (oldData: any) => {
+                if (!oldData) return oldData;
+                const isArray = Array.isArray(oldData);
+                const projects = isArray ? oldData : (oldData.projects || []);
+                const filteredProjects = projects.filter((project: any) => project.id !== projectId);
+                return isArray ? filteredProjects : { ...oldData, projects: filteredProjects };
+              }
+            );
+            
+            // Clear selected project if it's the one being accessed
+            const selectedProject = localStorage.getItem('selectedProjectId');
+            if (selectedProject === projectId) {
+              localStorage.removeItem('selectedProjectId');
             }
-          );
-          
-          // Clear selected project if it's the one being accessed
-          const selectedProject = localStorage.getItem('selectedProjectId');
-          if (selectedProject === projectId) {
-            localStorage.removeItem('selectedProjectId');
+            
+            // Invalidate project detail cache
+            queryClient.removeQueries({ queryKey: ['projects', 'detail', projectId] });
           }
-          
-          // Invalidate project detail cache
-          queryClient.removeQueries({ queryKey: ['projects', 'detail', projectId] });
         }
       }
     }
@@ -394,6 +404,11 @@ api.interceptors.response.use(
       }
     } else if (error.message) {
       message = error.message;
+    }
+    
+    // Fallback: If 403 from auth route and no message extracted, provide user-friendly message
+    if (status === 403 && (isAuthRouteError || isPublicRouteError) && message === "Request failed") {
+      message = "Invalid credentials. Please check your username and password.";
     }
     
     // Preserve all error properties when creating normalized error

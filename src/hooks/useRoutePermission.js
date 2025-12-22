@@ -45,7 +45,8 @@ const useRoutePermission = () => {
   // NOT when route changes
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === 'selectedProjectId') {
+      // Check for user-scoped key (selectedProjectId:{userId}) or legacy key
+      if (e.key && e.key.startsWith('selectedProjectId')) {
         const currentUserId = getUserId();
         setSelectedProject(getSelectedProject(currentUserId));
       }

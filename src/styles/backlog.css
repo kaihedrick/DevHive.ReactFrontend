@@ -602,7 +602,7 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 /***** Sticky header on mobile *****/
 .backlog-page .backlog-header {
   position: sticky;
-  top: 0;
+  top: 0; /* Default: flush with navbar (desktop sidebar) */
   z-index: 20;
   backdrop-filter: saturate(180%) blur(12px);
   background: color-mix(in srgb, var(--bg-secondary), #fff 25%) !important;
@@ -613,6 +613,18 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   align-items: flex-end !important; 
   justify-content: space-between !important; 
   gap: var(--space-3) !important;
+}
+
+/* Desktop: Flush with sidebar navbar */
+body.has-sidebar .backlog-page .backlog-header {
+  top: 0 !important;
+}
+
+/* Mobile: Position below topbar */
+@media (max-width: 600px) {
+  body.has-topbar .backlog-page .backlog-header {
+    top: var(--navbar-height-mobile) !important;
+  }
 }
 
 /* Scoped page title and subtitle within backlog header - matching Projects page */

@@ -5,7 +5,7 @@ import "../styles/login_register.css";
 import "../styles/project_details.css"; // For char-count styling
 import DevHiveLogo from "./assets/DevHiveLogo.png";
 import password_icon from "./assets/password.png";
-import { resetPassword } from "../services/authService";
+import { resetPassword } from "../services/authService.ts";
 /**
  * ResetPassword component handles password reset flow
  * 

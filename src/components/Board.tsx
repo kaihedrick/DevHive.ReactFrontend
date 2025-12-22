@@ -639,9 +639,9 @@ const Board: React.FC = () => {
       {/* Sprint Selector */}
       <div className="sprint-selector">
         <FontAwesomeIcon icon={faCalendarAlt} />
-        <select 
-          value={selectedSprint || ''} 
-          onChange={(e) => handleSprintChange(e.target.value)}
+        <select
+          value={selectedSprint || ''}
+          onChange={handleSprintChange}
           className="sprint-dropdown"
         >
           <option value="">Select a sprint...</option>

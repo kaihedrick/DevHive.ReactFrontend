@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext.tsx';
-import { register } from '../services/authService';
+import { register } from '../services/authService.ts';
 import { useEmailValidation, isStrictEmailValid } from './useEmailValidation.ts';
 import { isValidText, isValidUsername } from '../utils/validation.ts';
 import { 

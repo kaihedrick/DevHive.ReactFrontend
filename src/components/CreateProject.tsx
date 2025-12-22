@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreateProject } from "../hooks/useProjects.ts";
-import { getUserId } from "../services/authService";
+import { getUserId } from "../services/authService.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import { isValidText } from "../utils/validation.ts";

@@ -64,8 +64,7 @@ const Contacts = () => {
       <div className="contacts-page with-footer-pad scroll-pad-bottom">
         <div className="contact-container">
           <div className="contact-header">
-            <h1>📇 Project Contacts</h1>
-            <p>Manage your project contacts here</p>
+            <h1>Project Contacts</h1>
           </div>
 
           {loading && <p className="text-muted text-center">Loading contacts...</p>}

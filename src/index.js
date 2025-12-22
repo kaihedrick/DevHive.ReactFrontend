@@ -4,7 +4,8 @@ import "./styles/global.css"; // Import Global Styles
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './axiosConfig';
+// NOTE: axiosConfig.js removed - it conflicted with apiClient.ts interceptors
+// The apiClient.ts handles all auth, token refresh, and error handling properly
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient.ts';

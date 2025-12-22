@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { fetchUserById } from "../services/userService";
-import { getUserId } from "../services/authService";
-import useMessages from "../hooks/useMessages.js";
+import { useMessages } from "../hooks/useMessages.ts";
+import { useUser } from "../hooks/useUsers.ts";
 import { User, Message as MessageType } from "../types/hooks.ts";
 import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import "../styles/message.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComments, faPaperPlane, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faPaperPlane, faSpinner } from "@fortawesome/free-solid-svg-icons";
 
 /**
  * Message Component
@@ -20,15 +19,61 @@ import { faComments, faPaperPlane, faSpinner } from "@fortawesome/free-solid-svg
 const Message: React.FC = () => {
   /**
    * useParams
-   * 
+   *
    * Extracts `userId` and `projectId` from route parameters for context-aware messaging
    */
   const { userId: toUserID, projectId: projectID } = useParams<{ userId: string; projectId: string }>();
-  const [user, setUser] = useState<User | null>(null);
-  const loggedInUserId = getUserId();
   
-  // Use the new TypeScript hook
-  const { messages, newMessage, setNewMessage, handleSendMessage, messagesEndRef } = useMessages(toUserID || '', projectID || '');
+  // Use cached user hook instead of direct fetch - caches for 2 minutes
+  const { data: userData, isLoading: userLoading, error: userError } = useUser(toUserID);
+  
+  // Debug: Log raw userData to see what we're getting from the API
+  useEffect(() => {
+    if (userData) {
+      console.log('📋 Raw userData from API:', userData);
+      console.log('📋 FirstName:', userData.FirstName);
+      console.log('📋 LastName:', userData.LastName);
+      console.log('📋 Username:', userData.Username);
+    }
+  }, [userData]);
+  
+  // Convert UserModel (PascalCase) to User type (camelCase) for compatibility
+  // Handle both PascalCase and camelCase field names from API
+  const user: User | null = userData ? {
+    id: userData.ID || (userData as any).id || '',
+    username: userData.Username || (userData as any).username || '',
+    email: userData.Email || (userData as any).email || '',
+    firstName: (userData.FirstName || (userData as any).firstName || '').trim(),
+    lastName: (userData.LastName || (userData as any).lastName || '').trim(),
+    avatarUrl: undefined // UserModel doesn't have avatarUrl
+  } : null;
+
+  // Get display name for header - check for non-empty strings
+  const displayName = user 
+    ? (user.firstName && user.lastName && user.firstName.length > 0 && user.lastName.length > 0
+        ? `${user.firstName} ${user.lastName}`
+        : (user.firstName && user.firstName.length > 0) 
+          ? user.firstName
+          : (user.lastName && user.lastName.length > 0)
+            ? user.lastName
+            : (user.username && user.username.length > 0)
+              ? user.username
+              : 'Unknown User')
+    : userLoading 
+      ? 'Loading...'
+      : 'Unknown User';
+
+  // Use the TypeScript hook for project-wide messaging
+  // Architecture: Messages are fetched via REST API and updated via WebSocket cache invalidation
+  const {
+    messages,
+    newMessage,
+    setNewMessage,
+    handleSendMessage,
+    messagesEndRef,
+    sending,
+    loggedInUserId
+  } = useMessages(projectID);
   
   // Auto-resize textarea for message input
   const messageTextareaRef = useAutoResizeTextarea(newMessage, 1);
@@ -88,29 +133,7 @@ const Message: React.FC = () => {
     return date.toLocaleDateString();
   };
 
-  /**
-   * useEffect - Load Recipient User
-   * 
-   * Fetches recipient user data using the provided user ID when component mounts
-   * 
-   * @dependencies [toUserID]
-   */
-  useEffect(() => {
-    const loadUser = async (): Promise<void> => {
-      try {
-        const userData = await fetchUserById(toUserID || '');
-        setUser(userData);
-      } catch (error: any) {
-        console.error("❌ Error fetching user:", error);
-      }
-    };
-
-    if (toUserID) {
-      loadUser();
-    }
-  }, [toUserID]);
-
-  // Messages are now handled by the useMessages hook
+  // User data is now handled by the cached useUser hook
 
   /**
    * useEffect - Auto Scroll on Message Update
@@ -120,8 +143,24 @@ const Message: React.FC = () => {
    * @dependencies [messages]
    */
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, messagesEndRef]);
+    // Scroll to bottom when messages change
+    const timer = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
+  
+  // Scroll to bottom on initial mount
+  useEffect(() => {
+    if (messages.length > 0) {
+      const timer = setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length]);
 
 
   /**
@@ -149,7 +188,7 @@ const Message: React.FC = () => {
     );
   }
 
-  if (!user) {
+  if (userLoading) {
     return (
       <div className="message-container with-footer-pad scroll-pad-bottom">
         <div className="loading-message">
@@ -160,12 +199,22 @@ const Message: React.FC = () => {
     );
   }
 
+  if (userError || !user) {
+    return (
+      <div className="message-container with-footer-pad scroll-pad-bottom">
+        <div className="error-message">
+          <h2>User Not Found</h2>
+          <p>Unable to load user information. Please try again.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="message-container with-footer-pad scroll-pad-bottom">
       <div className="message-header">
         <div className="user-info">
-          <FontAwesomeIcon icon={faComments} />
-          <h2>Chat with {user.firstName} {user.lastName}</h2>
+          <h2>{displayName}</h2>
         </div>
       </div>
 
@@ -175,25 +224,47 @@ const Message: React.FC = () => {
             <p>No messages yet. Start the conversation!</p>
           </div>
         ) : (
-          messages.map((message: MessageType) => (
-            <div
-              key={message.id}
-              className={`message-item ${
-                message.userId === loggedInUserId ? 'sent' : 'received'
-              }`}
-            >
-              <div className="message-content">
-                <p>{message.content}</p>
-                <span className="message-time">
-                  {formatMessageTime(message.createdAt)}
-                </span>
+          (() => {
+            // Sort messages oldest → newest
+            const orderedMessages = [...messages].sort((a, b) => {
+              const getTime = (dateTime: any): number => {
+                if (dateTime instanceof Date) {
+                  return dateTime.getTime();
+                }
+                if (typeof dateTime === "string") {
+                  return new Date(dateTime).getTime();
+                }
+                if (dateTime && typeof dateTime === "object" && 'seconds' in dateTime) {
+                  return (dateTime as { seconds: number }).seconds * 1000;
+                }
+                return 0;
+              };
+
+              const ta = getTime(a.createdAt);
+              const tb = getTime(b.createdAt);
+
+              return ta - tb; // oldest -> newest
+            });
+
+            return orderedMessages.map((message: MessageType) => (
+              <div
+                key={message.id}
+                className={`message-item ${
+                  message.userId === loggedInUserId ? 'sent' : 'received'
+                }`}
+              >
+                <div className="message-content">
+                  <p>{message.content}</p>
+                  <span className="message-time">
+                    {formatMessageTime(message.createdAt)}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))
+            ));
+          })()
         )}
         <div ref={messagesEndRef} />
       </div>
-
 
       <div className="message-input">
         <textarea
@@ -201,7 +272,7 @@ const Message: React.FC = () => {
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Type your message..."
+          placeholder="Message"
           className="message-textarea"
           disabled={sending}
           rows={1}
@@ -211,6 +282,7 @@ const Message: React.FC = () => {
           onClick={handleSendMessage}
           disabled={!newMessage.trim() || sending}
           className="send-button"
+          aria-label="Send message"
         >
           {sending ? (
             <FontAwesomeIcon icon={faSpinner} spin />
