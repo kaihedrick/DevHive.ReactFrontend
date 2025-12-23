@@ -98,11 +98,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     // This prevents redirects during token refresh or brief state updates
   }
 
-  // If not authenticated, redirect to login
-  // Only redirect if this is a real auth state change, not a transient state
-  if (!isAuthenticated && hasInitializedRef.current) {
+  // If not authenticated and auth check is complete (not loading), redirect to login
+  // CRITICAL: Check !isLoading directly instead of relying on hasInitializedRef
+  // This ensures redirect happens on first render when auth check completes with isAuthenticated=false
+  // hasInitializedRef is set in useEffect which runs AFTER render, causing children to mount before redirect
+  if (!isAuthenticated && !isLoading) {
     // Only log redirect on actual auth loss, not on every route change
-    if (prevAuthStateRef.current?.isAuthenticated) {
+    if (prevAuthStateRef.current?.isAuthenticated || !hasInitializedRef.current) {
       console.log("🚫 Not authenticated, redirecting to login from:", location.pathname);
     }
     return <Navigate to="/" state={{ from: location.pathname }} replace />;

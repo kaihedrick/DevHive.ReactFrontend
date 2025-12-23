@@ -1,7 +1,8 @@
 import React, { useEffect, useState, Suspense, lazy, useMemo } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useRoutePermission } from '../hooks/useRoutePermission';
 import { isProjectAgnosticRoute } from '../config/routeConfig.ts';
+import { useAuthContext } from '../contexts/AuthContext.tsx';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import ProtectedRoute from './ProtectedRoute.tsx';
@@ -36,6 +37,32 @@ const GoogleOAuthCallback = lazy(() => import('./GoogleOAuthCallback.tsx'));
  * It's separated from App.js to provide stable component identity and prevent
  * unnecessary remounts of the provider tree.
  */
+/**
+ * LoginRouteWrapper
+ * 
+ * Wrapper component for the login route that redirects authenticated users
+ * to /projects instead of showing the login page.
+ * 
+ * Handles lazy-loaded LoginRegister component properly within Suspense boundary.
+ */
+const LoginRouteWrapper = () => {
+  const { isAuthenticated, isLoading } = useAuthContext();
+  
+  // If still loading auth state, show loading fallback
+  if (isLoading) {
+    return <LoadingFallback />;
+  }
+  
+  // If authenticated, redirect to projects
+  if (isAuthenticated) {
+    return <Navigate to="/projects" replace />;
+  }
+  
+  // If not authenticated, show login page (lazy-loaded component)
+  // Suspense boundary in Routes will handle loading state
+  return <LoginRegister />;
+};
+
 function AppContent() {
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
@@ -110,7 +137,7 @@ function AppContent() {
         <main>
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
-              <Route path="/" element={<LoginRegister />} />
+              <Route path="/" element={<LoginRouteWrapper />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/create-project" element={<CreateProject />} />
               <Route path="/projects" element={<Projects />} />

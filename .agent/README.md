@@ -15,7 +15,7 @@ This directory contains comprehensive documentation for the DevHive React Fronte
 Core architecture and technical documentation:
 
 - **[Project Architecture](./System/project_architecture.md)** - Complete overview of the system architecture, tech stack, project structure, and core components
-- **[Authentication Architecture](./System/authentication_architecture.md)** - Detailed authentication flows, token management, and security measures
+- **[Authentication Architecture](./System/authentication_architecture.md)** - Detailed authentication flows, token management, and security measures ⚠️ **Updated 2025-12-23** with JWT expiration parsing, iOS Safari fixes, and logout flow improvements
 - **[Caching Strategy](./System/caching_strategy.md)** - React Query configuration, WebSocket cache invalidation, and caching patterns
 - **[Realtime Messaging](./System/realtime_messaging.md)** - WebSocket implementation, messaging system, and PostgreSQL NOTIFY integration
 - **[Invite Management](./System/invite_management.md)** - Project invite system, expiration logic, and frontend implementation
@@ -37,7 +37,7 @@ Feature PRDs and implementation plans:
 
 - **[Google OAuth Implementation](./Tasks/google_oauth.md)** - Google OAuth 2.0 authentication implementation plan with "Remember Me" functionality
 - **[Fix Google OAuth Cache Leak](./Tasks/fix_google_oauth_cache_leak.md)** - Fix data leakage where previous user's projects are visible after OAuth login
-- **[Fix Authentication 15-Minute Logouts](./Tasks/fix_authentication_15min_logout.md)** - Fix random logouts after 15 minutes, token refresh issues, and operation flow problems
+- **[Fix Authentication 15-Minute Logouts](./Tasks/fix_authentication_15min_logout.md)** - Fix random logouts after 15 minutes, token refresh issues, and operation flow problems ⚠️ **Updated 2025-12-23** with iOS Safari fixes, JWT expiration parsing, and retry logic
 
 ## Documentation Structure
 
@@ -74,7 +74,7 @@ Feature PRDs and implementation plans:
 
 ### For Understanding Authentication
 
-1. Read **[Authentication Architecture](./System/authentication_architecture.md)** for complete auth flows ⚠️ **Updated 2025-12-23** with critical logout fixes
+1. Read **[Authentication Architecture](./System/authentication_architecture.md)** for complete auth flows ⚠️ **Updated 2025-12-23** with JWT expiration parsing, iOS Safari fixes, logout flow improvements, and 401-only logout logic
 2. Review **[Risk Analysis](./System/risk_analysis.md)** for critical areas to avoid breaking
 3. Check **[File Reference](./System/file_reference.md)** for auth-related file locations
 

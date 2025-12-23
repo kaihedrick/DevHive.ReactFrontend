@@ -83,12 +83,37 @@ export const projectStorage = {
 
   /**
    * Retrieves the selected project ID from localStorage, scoped by userId.
+   * Falls back to legacy unscoped key for backward compatibility.
    * @param {string|null} userId - The current user ID (optional)
    * @returns {string|null} - The selected project ID, or null if not set.
    */
   getSelectedProject: (userId = null) => {
     const key = projectStorage.getStorageKey(userId);
-    return storage.get(key);
+    let value = storage.get(key);
+
+    // Debug logging for troubleshooting project selection issues
+    const currentUserId = userId || storage.get(StorageKeys.USER_ID);
+    console.log('📦 getSelectedProject:', {
+      providedUserId: userId,
+      resolvedUserId: currentUserId,
+      key,
+      value: value ? '(found)' : '(null)'
+    });
+
+    // Fallback: If user-scoped key is empty, check legacy unscoped key
+    if (!value && currentUserId) {
+      const legacyValue = storage.get(StorageKeys.SELECTED_PROJECT);
+      if (legacyValue) {
+        console.log('📦 Found project in legacy key, migrating to user-scoped key');
+        // Migrate to user-scoped key
+        projectStorage.setSelectedProject(legacyValue, currentUserId);
+        // Clear legacy key
+        storage.remove(StorageKeys.SELECTED_PROJECT);
+        value = legacyValue;
+      }
+    }
+
+    return value;
   },
 
   /**

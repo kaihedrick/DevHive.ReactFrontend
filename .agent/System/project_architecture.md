@@ -88,8 +88,8 @@ src/
 
 The application uses a **dual-token authentication system**:
 
-- **Access Token (JWT)**: Short-lived (24 hours), stored in-memory and localStorage
-- **Refresh Token**: Long-lived (7 days), stored in HTTP-only cookies
+- **Access Token (JWT)**: Short-lived (15 minutes), stored in-memory and localStorage
+- **Refresh Token**: Long-lived (7 days session or 30 days persistent/rememberMe), stored in HTTP-only cookies
 
 **Key Components:**
 - `AuthContext.tsx` - Central authentication state management

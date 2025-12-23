@@ -51,19 +51,33 @@ const useRoutePermission = () => {
         setSelectedProject(getSelectedProject(currentUserId));
       }
     };
-    
+
     // Also listen for custom event in case same-tab changes occur
     const handleProjectChange = () => {
       const currentUserId = getUserId();
       setSelectedProject(getSelectedProject(currentUserId));
     };
-    
+
+    // Re-read project when auth state changes (e.g., after token refresh)
+    // This ensures project ID is found after auth is fully ready
+    const handleAuthStateChange = () => {
+      const currentUserId = getUserId();
+      const project = getSelectedProject(currentUserId);
+      console.log('📦 useRoutePermission: Auth state changed, re-reading project:', {
+        userId: currentUserId ? '(present)' : '(null)',
+        project: project ? '(found)' : '(null)'
+      });
+      setSelectedProject(project);
+    };
+
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('project-changed', handleProjectChange);
-    
+    window.addEventListener('auth-state-changed', handleAuthStateChange);
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('project-changed', handleProjectChange);
+      window.removeEventListener('auth-state-changed', handleAuthStateChange);
     };
   }, []);
 

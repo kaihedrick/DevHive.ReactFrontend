@@ -3,15 +3,46 @@ import { API_BASE_URL, ENDPOINTS } from '../config';
 
 // Token expiration tracking
 const TOKEN_EXPIRATION_KEY = 'tokenExpiration';
-const TOKEN_VALIDITY_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds (fallback)
+const TOKEN_VALIDITY_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds (fallback)
 
 // In-memory storage for access token (not localStorage for security)
 let accessToken: string | null = null;
 let isRefreshing = false;
+let authInitializationPromise: Promise<string | null> | null = null; // Track initialization refresh
 let failedQueue: Array<{
   resolve: (value?: any) => void;
   reject: (error?: any) => void;
 }> = [];
+
+/**
+ * Check if a token refresh is currently in progress
+ * Used by AuthContext to coordinate with response interceptor
+ */
+export const getIsRefreshing = (): boolean => isRefreshing;
+
+/**
+ * Set the refreshing state
+ * Called by AuthContext during initialization refresh
+ */
+export const setIsRefreshing = (value: boolean): void => {
+  isRefreshing = value;
+};
+
+/**
+ * Set the auth initialization promise
+ * This allows the response interceptor to wait for initialization refresh
+ */
+export const setAuthInitializationPromise = (promise: Promise<string | null> | null): void => {
+  authInitializationPromise = promise;
+};
+
+/**
+ * Get the current auth initialization promise
+ * Used by response interceptor to wait for initialization if in progress
+ */
+export const getAuthInitializationPromise = (): Promise<string | null> | null => {
+  return authInitializationPromise;
+};
 
 /**
  * Parse JWT Expiration
@@ -87,29 +118,44 @@ export const getAccessToken = (): string | null => accessToken;
 
 /**
  * Check if token is expired
- * 
+ *
  * Uses a 30-second buffer to prevent race conditions where the token
  * expires between the check and the actual API request.
- * 
+ *
  * Related Documentation:
  * - .agent/Tasks/fix_authentication_15min_logout.md - Fix 3: Add buffer time
  */
 export const isTokenExpired = (): boolean => {
   const expirationTimestamp = localStorage.getItem(TOKEN_EXPIRATION_KEY);
+  const hasToken = !!localStorage.getItem('token');
+
   if (!expirationTimestamp) {
     // No expiration timestamp - consider expired if token exists (legacy token)
-    return !!localStorage.getItem('token');
+    console.log('🔍 isTokenExpired: No expiration timestamp, hasToken:', hasToken);
+    return hasToken;
   }
-  
+
   const expirationTime = parseInt(expirationTimestamp, 10);
   const now = Date.now();
   const buffer = 30 * 1000; // 30 seconds buffer to prevent race conditions
-  
+  const isExpired = (now + buffer) > expirationTime;
+
+  // Debug logging for token expiration check
+  const ttlSeconds = Math.round((expirationTime - now) / 1000);
+  const ttlMinutes = Math.round(ttlSeconds / 60);
+  console.log('🔍 isTokenExpired:', {
+    isExpired,
+    ttlSeconds,
+    ttlMinutes,
+    expirationTime: new Date(expirationTime).toISOString(),
+    now: new Date(now).toISOString()
+  });
+
   // Token is expired if current time + buffer is past expiration time
-  return (now + buffer) > expirationTime;
+  return isExpired;
 };
 
-// Check if token is expired beyond 24-hour window
+// Check if token is expired beyond validity window (used for cleanup/validation)
 export const isTokenExpiredBeyondWindow = (): boolean => {
   const expirationTimestamp = localStorage.getItem(TOKEN_EXPIRATION_KEY);
   if (!expirationTimestamp) {
@@ -120,7 +166,7 @@ export const isTokenExpiredBeyondWindow = (): boolean => {
   const now = Date.now();
   const windowEnd = expirationTime + TOKEN_VALIDITY_DURATION;
   
-  // Token is expired beyond 24-hour window if current time is past window end
+  // Token is expired beyond validity window if current time is past window end
   return now > windowEnd;
 };
 
@@ -150,16 +196,16 @@ export const setAccessToken = (token: string | null): void => {
       const expirationDate = new Date(jwtExpiration).toISOString();
       console.log('🔑 Token stored with expiration:', expirationDate, 'TTL:', ttlMinutes, 'minutes');
       
-      // Warn if token expiration differs significantly from expected 24 hours
-      const expectedTTL = 24 * 60; // 24 hours in minutes
-      if (Math.abs(ttlMinutes - expectedTTL) > 60) {
-        console.warn('⚠️ Token expiration differs from expected 24 hours:', ttlMinutes, 'minutes');
+      // Warn if token expiration differs significantly from expected 15 minutes
+      const expectedTTL = 15; // 15 minutes
+      if (Math.abs(ttlMinutes - expectedTTL) > 5) {
+        console.warn('⚠️ Token expiration differs from expected 15 minutes:', ttlMinutes, 'minutes');
       }
     } else {
-      // Fallback to 24 hours if JWT parsing fails
+      // Fallback to 15 minutes if JWT parsing fails
       const expirationTime = Date.now() + TOKEN_VALIDITY_DURATION;
       localStorage.setItem(TOKEN_EXPIRATION_KEY, expirationTime.toString());
-      console.warn('⚠️ Failed to parse JWT expiration, using 24-hour fallback');
+      console.warn('⚠️ Failed to parse JWT expiration, using 15-minute fallback');
     }
   } else {
     localStorage.removeItem('token');
@@ -175,11 +221,29 @@ export const clearAccessToken = (): void => {
   localStorage.removeItem(TOKEN_EXPIRATION_KEY);
 };
 
-// Refresh token function
-// Calls POST /api/v1/auth/refresh with no body - refresh token is in httpOnly cookie
-// Returns new access token: { "token": "...", "userID": "..." }
-// Note: Uses axios directly (not api instance) to avoid interceptor loops
-export const refreshToken = async (): Promise<string | null> => {
+/**
+ * Refresh token function
+ *
+ * Calls POST /api/v1/auth/refresh with no body - refresh token is in httpOnly cookie
+ * Returns new access token: { "token": "...", "userID": "..." }
+ * Note: Uses axios directly (not api instance) to avoid interceptor loops
+ *
+ * iOS Safari Fix:
+ * On iOS Safari, after a page is reloaded from background, the first request
+ * sometimes doesn't include HttpOnly cookies properly. This is a known iOS bug.
+ * We implement a retry mechanism with a short delay to handle this case.
+ *
+ * @param retryCount - Internal parameter for retry logic (default 0)
+ */
+export const refreshToken = async (retryCount: number = 0): Promise<string | null> => {
+  const MAX_RETRIES = 3; // Retry up to 3 times for iOS Safari cookie issues
+  const RETRY_DELAY = 150; // Wait 150ms before retry (give Safari time to attach cookies)
+
+  // Log attempt for debugging iOS Safari issues
+  if (retryCount === 0) {
+    console.log('🔄 Starting token refresh (attempt 1)');
+  }
+
   try {
     // Use axios directly to avoid interceptor loops (refresh endpoint is auth route)
     // This bypasses the api instance interceptors
@@ -194,28 +258,69 @@ export const refreshToken = async (): Promise<string | null> => {
         },
       }
     );
-    
+
     // Backend returns: { "token": "...", "userID": "..." }
     const { token, Token, userID, userId } = response.data;
     const newToken = token || Token;
     const newUserId = userID || userId;
-    
+
     if (newToken) {
       setAccessToken(newToken);
       if (newUserId) {
         localStorage.setItem('userId', newUserId);
       }
+      if (retryCount > 0) {
+        console.log(`✅ Token refresh succeeded on retry ${retryCount}`);
+      }
       return newToken;
     }
-    
+
     throw new Error('Refresh token response missing token');
   } catch (error) {
-    // CRITICAL: Only clear tokens on 401 (refresh token expired)
+    const status = (error as any)?.response?.status;
+    const is401 = status === 401;
+
+    // Log the error for debugging
+    console.log(`❌ Refresh token failed on attempt ${retryCount + 1}:`, {
+      status,
+      is401,
+      message: (error as any)?.message,
+      retryCount
+    });
+
+    // iOS Safari Cookie Fix:
+    // If we get a 401 on the first attempt, retry ONCE after a short delay.
+    // iOS Safari sometimes doesn't attach HttpOnly cookies on the first request
+    // after page reload. If we get 401 again after the retry, the refresh token
+    // is legitimately expired - don't retry further.
+    // Also retry on network errors (status undefined) as these might be transient.
+    const isNetworkError = status === undefined;
+    const shouldRetry401 = is401 && retryCount === 0; // Only retry 401 once (first attempt only)
+    const shouldRetryNetwork = isNetworkError && retryCount < MAX_RETRIES; // Retry network errors up to MAX_RETRIES
+    const shouldRetry = shouldRetry401 || shouldRetryNetwork;
+
+    if (shouldRetry) {
+      // Exponential backoff: 150ms, 300ms, 600ms for network errors
+      // For 401 errors, use 150ms delay (single retry for iOS Safari cookie fix)
+      const delay = RETRY_DELAY * Math.pow(2, retryCount);
+      const retryType = is401 ? 'iOS Safari cookie fix' : 'network error';
+      const maxAttempts = is401 ? 2 : MAX_RETRIES + 1; // 401 gets 2 attempts total, network errors get MAX_RETRIES + 1
+      console.log(`⏳ Refresh token retry ${retryCount + 2}/${maxAttempts} in ${delay}ms (${retryType})...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return refreshToken(retryCount + 1);
+    }
+
+    // CRITICAL: Only clear tokens on 401 after retries exhausted
+    // For 401 errors: Only retry once (iOS Safari cookie fix), then clear if still 401
     // Network errors, 500s, timeouts should NOT clear tokens
     // The refresh token cookie might still be valid - let the user retry
-    const is401 = (error as any)?.response?.status === 401;
     if (is401) {
-      console.log('⚠️ Refresh token expired (401), clearing auth');
+      if (retryCount === 0) {
+        // This shouldn't happen - we should have retried once already
+        console.log('⚠️ Refresh token expired (401 on first attempt, retry skipped), clearing auth');
+      } else {
+        console.log(`⚠️ Refresh token expired (401 after ${retryCount + 1} attempt(s)), clearing auth`);
+      }
       clearAccessToken();
     } else {
       console.warn('⚠️ Refresh failed with non-401 error, keeping tokens for retry:', error);
@@ -324,6 +429,25 @@ api.interceptors.response.use(
         // No user ID means user is not authenticated - don't attempt refresh
         // Just return the original 401 error
         return Promise.reject(error);
+      }
+
+      // CRITICAL: Check if auth initialization is in progress
+      // If so, wait for it to complete instead of starting a new refresh
+      // This prevents race conditions during app startup on iOS Safari
+      const initPromise = authInitializationPromise;
+      if (initPromise) {
+        console.log('🔄 401 received, waiting for initialization refresh to complete...');
+        try {
+          const token = await initPromise;
+          if (token && originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+          }
+          return api(originalRequest);
+        } catch (initError) {
+          // Initialization refresh failed - return original error
+          console.log('⚠️ Initialization refresh failed, returning original 401');
+          return Promise.reject(error);
+        }
       }
 
       // Check if we're already refreshing

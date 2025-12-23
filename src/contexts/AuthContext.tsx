@@ -4,7 +4,7 @@ import { login as loginService, logout as logoutService, refreshToken as refresh
 import { LoginModel } from '../models/user.ts';
 import { cacheInvalidationService } from '../services/cacheInvalidationService.ts';
 import { getSelectedProject, clearSelectedProject } from '../services/storageService';
-import { isTokenExpired } from '../lib/apiClient.ts';
+import { isTokenExpired, setIsRefreshing, setAuthInitializationPromise, getAccessToken } from '../lib/apiClient.ts';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -84,46 +84,90 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const storedUserId = getUserId();
         const hasToken = !!localStorage.getItem('token');
 
+        console.log('🔐 checkAuthState:', {
+          hasToken,
+          storedUserId: storedUserId ? '(present)' : '(null)',
+          tokenExpiration: localStorage.getItem('tokenExpiration')
+        });
+
         if (hasToken && storedUserId) {
-          // Check if token is expired (basic JWT exp check)
-          // If expired, attempt refresh - backend will tell us if refresh token is invalid
-          if (isTokenExpired()) {
+          // CRITICAL: Always attempt refresh on initialization if we have credentials
+          // The refresh endpoint only checks the refresh token cookie, not the access token.
+          // Even if the access token appears expired, the refresh token cookie might still be
+          // valid (refresh tokens last 7 days for session or 30 days for persistent/rememberMe).
+          // Let the backend tell us if refresh token is invalid.
+          // This ensures users stay logged in even after the app has been closed for days.
+          const tokenExpired = isTokenExpired();
+          if (tokenExpired) {
             console.log('⚠️ Access token expired, attempting refresh');
-            try {
-              await refreshTokenService();
-              setIsAuthenticated(true);
-              setUserId(storedUserId);
-            } catch (error) {
-              // Refresh failed - check if it's a 401 (refresh token invalid)
-              const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
-              if (is401) {
-                console.log('⚠️ Refresh token invalid during initialization, triggering logout');
-                // Use proper logout flow instead of direct logoutService() call
-                // This ensures proper cleanup order and prevents remounting
-                if (logoutRef.current) {
-                  logoutRef.current();
-                } else {
-                  // Fallback if logout not yet available (shouldn't happen, but safety check)
-                  console.warn('⚠️ Logout function not available, using direct cleanup');
-                  explicitLogoutRef.current = true;
-                  setIsAuthenticated(false);
-                  setUserId(null);
-                  logoutService();
-                }
-              } else {
-                console.error('❌ Unexpected error during token refresh:', error);
-                // Network errors or other non-401 errors should NOT cause logout
-                // Keep authenticated state - token might still be valid
-                console.log('⚠️ Non-401 error during refresh, keeping auth state (token may still be valid)');
-                setIsAuthenticated(true);
-                setUserId(storedUserId);
-              }
-            }
           } else {
-            // Token exists and is not expired - assume authenticated
-            // Backend will tell us via 401 if token is actually invalid
+            console.log('🔄 Access token appears valid, but refreshing anyway to ensure fresh token');
+          }
+
+          // iOS Safari Fix: Add a small initial delay on page load
+          // Safari sometimes needs a moment to attach HttpOnly cookies after page reload
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+          if (isIOS || isSafari) {
+            console.log('📱 iOS/Safari detected, adding 100ms delay before refresh...');
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+
+          // CRITICAL: Set isRefreshing flag and promise BEFORE refresh
+          // This coordinates with the response interceptor to prevent concurrent refreshes
+          // and allows 401 responses to wait for initialization to complete
+          setIsRefreshing(true);
+
+          // Create and store the initialization promise
+          const refreshPromise = (async (): Promise<string | null> => {
+            try {
+              const result = await refreshTokenService();
+              return result?.Token || getAccessToken();
+            } catch (error) {
+              throw error;
+            } finally {
+              // Always clean up
+              setIsRefreshing(false);
+              setAuthInitializationPromise(null);
+            }
+          })();
+
+          setAuthInitializationPromise(refreshPromise);
+
+          try {
+            await refreshPromise;
             setIsAuthenticated(true);
             setUserId(storedUserId);
+            console.log('✅ Token refresh successful during initialization');
+            // Dispatch event so useRoutePermission can re-read project ID
+            window.dispatchEvent(new Event('auth-state-changed'));
+          } catch (error) {
+            // Refresh failed - check if it's a 401 (refresh token invalid)
+            const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
+            if (is401) {
+              console.log('⚠️ Refresh token invalid during initialization, triggering logout');
+              // Use proper logout flow instead of direct logoutService() call
+              // This ensures proper cleanup order and prevents remounting
+              if (logoutRef.current) {
+                logoutRef.current();
+              } else {
+                // Fallback if logout not yet available (shouldn't happen, but safety check)
+                console.warn('⚠️ Logout function not available, using direct cleanup');
+                explicitLogoutRef.current = true;
+                setIsAuthenticated(false);
+                setUserId(null);
+                logoutService();
+              }
+            } else {
+              console.error('❌ Unexpected error during token refresh:', error);
+              // Network errors or other non-401 errors should NOT cause logout
+              // Keep authenticated state - token might still be valid
+              console.log('⚠️ Non-401 error during refresh, keeping auth state (token may still be valid)');
+              setIsAuthenticated(true);
+              setUserId(storedUserId);
+              // Dispatch event so useRoutePermission can re-read project ID
+              window.dispatchEvent(new Event('auth-state-changed'));
+            }
           }
         } else {
           // No token or userId - not authenticated
@@ -137,6 +181,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } finally {
         setIsInitializing(false);
         authInitializedRef.current = true; // Mark as initialized
+        // Ensure cleanup even if early return or error
+        setIsRefreshing(false);
+        setAuthInitializationPromise(null);
       }
     };
 
@@ -253,63 +300,76 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (document.visibilityState === 'visible') {
         const storedUserId = getUserId();
         const hasToken = !!localStorage.getItem('token');
-        
+
         // Check for token existence (not isAuthenticated state)
         // This ensures we refresh even if token expired while in background
         if (hasToken && storedUserId) {
-          // Check if token is expired or about to expire
-          if (isTokenExpired()) {
+          // CRITICAL: Always attempt refresh when page becomes visible if we have credentials
+          // The refresh endpoint only checks the refresh token cookie, not the access token.
+          // Even if the access token appears expired, the refresh token cookie might still be
+          // valid (refresh tokens last 7 days for session or 30 days for persistent/rememberMe).
+          // This ensures users stay logged in even after
+          // the app has been closed/backgrounded for a long time.
+          const tokenExpired = isTokenExpired();
+          if (tokenExpired) {
             console.log('📱 Page visible: Token expired while in background, refreshing...');
-            try {
-              await refreshTokenService();
-              setIsAuthenticated(true);
-              setUserId(storedUserId);
-              console.log('✅ Token refreshed after page visibility change');
-            } catch (error) {
-              // Refresh failed - check if it's a 401 (refresh token invalid)
-              const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
-              if (is401) {
-                console.log('⚠️ Refresh token invalid after visibility change, triggering logout');
-                // Use proper logout flow instead of direct logoutService() call
-                if (logoutRef.current) {
-                  logoutRef.current();
-                } else {
-                  // Fallback if logout not yet available
-                  console.warn('⚠️ Logout function not available, using direct cleanup');
-                  explicitLogoutRef.current = true;
-                  setIsAuthenticated(false);
-                  setUserId(null);
-                  logoutService();
-                }
-              } else {
-                console.error('❌ Unexpected error during token refresh on visibility change:', error);
-                // Network errors or other non-401 errors should NOT cause logout
-                // Token might still be valid, just couldn't refresh due to network issue
-                console.log('⚠️ Non-401 error during refresh, keeping auth state (token may still be valid)');
-              }
-            }
           } else {
-            // Token is still valid, but check if it expires soon (within 10 minutes)
-            // Proactively refresh to prevent expiration during next background period
-            // Increased from 5 to 10 minutes for better reliability
-            const expirationTimestamp = localStorage.getItem('tokenExpiration');
-            if (expirationTimestamp) {
-              const expirationTime = parseInt(expirationTimestamp, 10);
-              const now = Date.now();
-              const timeUntilExpiration = expirationTime - now;
-              const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
-              
-              // If token expires within 10 minutes, refresh proactively
-              if (timeUntilExpiration > 0 && timeUntilExpiration < tenMinutes) {
-                console.log('📱 Page visible: Token expires soon, refreshing proactively...');
-                try {
-                  await refreshTokenService();
-                  console.log('✅ Token refreshed proactively after page visibility change');
-                } catch (error) {
-                  console.error('❌ Failed to proactively refresh token on visibility change:', error);
-                  // Don't clear auth on proactive refresh failure - token is still valid
-                }
+            console.log('📱 Page visible: Refreshing token to ensure fresh credentials...');
+          }
+
+          // iOS Safari Fix: Add a small delay before refresh
+          // Safari sometimes needs a moment to attach HttpOnly cookies after returning from background
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+          if (isIOS || isSafari) {
+            console.log('📱 iOS/Safari detected, adding 100ms delay before refresh...');
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+
+          // CRITICAL: Set isRefreshing flag and promise for visibility refresh
+          // This coordinates with the response interceptor to prevent concurrent refreshes
+          setIsRefreshing(true);
+
+          const refreshPromise = (async (): Promise<string | null> => {
+            try {
+              const result = await refreshTokenService();
+              return result?.Token || getAccessToken();
+            } catch (error) {
+              throw error;
+            } finally {
+              setIsRefreshing(false);
+              setAuthInitializationPromise(null);
+            }
+          })();
+
+          setAuthInitializationPromise(refreshPromise);
+
+          try {
+            await refreshPromise;
+            setIsAuthenticated(true);
+            setUserId(storedUserId);
+            console.log('✅ Token refreshed after page visibility change');
+          } catch (error) {
+            // Refresh failed - check if it's a 401 (refresh token invalid)
+            const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
+            if (is401) {
+              console.log('⚠️ Refresh token invalid after visibility change, triggering logout');
+              // Use proper logout flow instead of direct logoutService() call
+              if (logoutRef.current) {
+                logoutRef.current();
+              } else {
+                // Fallback if logout not yet available
+                console.warn('⚠️ Logout function not available, using direct cleanup');
+                explicitLogoutRef.current = true;
+                setIsAuthenticated(false);
+                setUserId(null);
+                logoutService();
               }
+            } else {
+              console.error('❌ Unexpected error during token refresh on visibility change:', error);
+              // Network errors or other non-401 errors should NOT cause logout
+              // Token might still be valid, just couldn't refresh due to network issue
+              console.log('⚠️ Non-401 error during refresh, keeping auth state (token may still be valid)');
             }
           }
         }
@@ -337,7 +397,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const hasToken = !!localStorage.getItem('token');
         
         if (hasToken && storedUserId) {
-          // Check if token is expired or expires within 5 minutes
+          // CRITICAL: Always attempt refresh during periodic check if token is expired
+          // For non-expired tokens, refresh proactively if they expire within 10 minutes
+          // The refresh endpoint only checks the refresh token cookie, so we should refresh
+          // whenever we detect the access token needs refreshing
           if (isTokenExpired()) {
             console.log('⏰ Periodic check: Token expired, refreshing...');
             refreshTokenService()
@@ -368,7 +431,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               });
           } else {
             // Check if token expires within 10 minutes
-            // Increased from 5 to 10 minutes for better reliability
+            // Proactively refresh to prevent expiration during active use
             const expirationTimestamp = localStorage.getItem('tokenExpiration');
             if (expirationTimestamp) {
               const expirationTime = parseInt(expirationTimestamp, 10);

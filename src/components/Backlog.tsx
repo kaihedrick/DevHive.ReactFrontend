@@ -11,6 +11,7 @@ import { Sprint, Task, User } from "../types/hooks.ts";
 import TaskInspector from "./TaskInspector.tsx";
 import SprintInspector from "./SprintInspector.tsx";
 import { useToast } from "../contexts/ToastContext.tsx";
+import { useAuthContext } from "../contexts/AuthContext.tsx";
 import { getSprintStatusLabel, getSprintStatusColorClass } from "../utils/sprintUtils.ts";
 import "../styles/backlog.css";
 
@@ -28,7 +29,8 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showSuccess, showError } = useToast();
-  
+  const { userId, isLoading: authLoading } = useAuthContext();
+
   const { handleUpdateTaskStatus } = useBacklogActions();
 
   // UI state only
@@ -36,11 +38,24 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
   const [selectedTaskForEdit, setSelectedTaskForEdit] = useState<Task | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState<boolean>(false);
   const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
-  
-  // Stabilize projectId to prevent remounts during navigation
-  // Read once and memoize - don't re-read on every render
-  // This prevents hooks from seeing null/value/null flips that cause remounts
-  const storedProjectId = useMemo(() => getSelectedProject(), []); // Only read once on mount
+
+  // Read project ID from storage, re-read when userId changes (auth state stabilizes)
+  // This ensures we get the correct user-scoped project ID after auth is ready
+  const [storedProjectId, setStoredProjectId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Only read project ID once auth is loaded (userId is available or confirmed null)
+    if (!authLoading) {
+      const project = getSelectedProject(userId);
+      console.log('📦 Backlog: Reading project ID after auth ready:', {
+        userId: userId ? '(present)' : '(null)',
+        projectId: project ? '(found)' : '(null)',
+        authLoading
+      });
+      setStoredProjectId(project);
+    }
+  }, [userId, authLoading]);
+
   const selectedProjectId = projectId || storedProjectId;
 
   // TanStack Query hooks for data fetching
@@ -146,7 +161,13 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
   };
 
   // Handle URL params for sprintId to restore sprint view
+  // Wait for auth to be ready before showing "No Project ID" error
   useEffect(() => {
+    // Don't show error while auth is loading - project ID will be read once auth is ready
+    if (authLoading) {
+      return;
+    }
+
     if (!selectedProjectId) {
       showError("No Project ID found. Please select a project.");
       return;
@@ -164,7 +185,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
         navigate('/backlog', { replace: true });
       }
     }
-  }, [selectedProjectId, location.search, sprints, selectedSprint, navigate, showError]);
+  }, [selectedProjectId, location.search, sprints, selectedSprint, navigate, showError, authLoading]);
 
   // Helper function to get status text
   const getStatusText = (status: number): string => {

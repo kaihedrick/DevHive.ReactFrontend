@@ -4,16 +4,26 @@
 
 The authentication system uses a dual-token approach with automatic token refresh and session persistence. This document describes the complete authentication flow, token management, and security measures.
 
-**CRITICAL UPDATE (2025-12-23):** Fixed order of operations issues that caused unexpected logouts on network errors. The system now only logs users out on actual token expiration (401), not on temporary network/server issues.
+**CRITICAL UPDATES (2025-12-23):** 
+- Fixed order of operations issues that caused unexpected logouts on network errors
+- Implemented JWT expiration parsing to use actual backend token expiration
+- Added iOS Safari cookie handling fixes for mobile devices
+- Improved logout flow to prevent remounting and preserve console logs
+- Enhanced token refresh with retry logic and coordination mechanisms
+- **Always attempt refresh on initialization/visibility change** - Refresh endpoint only checks refresh token cookie (not access token), so we always attempt refresh when credentials exist
 
 ## Architecture Summary
 
-- **Dual-token system**: Access tokens (JWT, 24h) + HTTP-only refresh tokens (7d)
+- **Dual-token system**: Access tokens (JWT, 15min) + HTTP-only refresh tokens (7d session or 30d persistent)
 - **In-memory + localStorage token management** with automatic refresh
 - **React Query for data caching** with WebSocket-driven invalidation
 - **Real-time cache synchronization** via WebSocket connections
 - **User-scoped project selection** to prevent cross-account data leakage
 - **Resilient authentication**: Only 401 errors trigger logout; network/server errors preserve auth state
+- **JWT expiration parsing**: Uses actual backend token expiration instead of frontend-calculated timestamps
+- **iOS Safari support**: Retry logic and cookie handling fixes for mobile Safari
+- **Proactive refresh**: 10-minute window with 30-second buffer to prevent expiration
+- **Always-attempt refresh**: Refresh endpoint only validates refresh token cookie (not access token), so we always attempt refresh when credentials exist, allowing users to stay logged in even after long periods of inactivity
 
 ## Critical Fixes (2025-12-23)
 
@@ -93,8 +103,24 @@ if (is401) {
 
 | Token Type     | Storage Location            | Lifetime | Purpose                    |
 |----------------|----------------------------|----------|----------------------------|
-| Access Token   | In-memory + localStorage   | 24 hours | API Authorization          |
-| Refresh Token  | HTTP-only cookie           | 7 days   | Token refresh (XSS-immune) |
+| Access Token   | In-memory + localStorage   | 15 minutes | API Authorization          |
+| Refresh Token  | HTTP-only cookie           | 7 days (session) or 30 days (persistent) | Token refresh (XSS-immune) |
+
+**Refresh Token Details:**
+- **Session (rememberMe = false):**
+  - Database expiry: 7 days (default, configurable via `JWT_REFRESH_EXPIRATION_DAYS`)
+  - Cookie: Session cookie (expires when browser closes)
+  - Use case: Temporary sessions, logout on browser close
+  
+- **Persistent (rememberMe = true):**
+  - Database expiry: 30 days (configurable via `JWT_REFRESH_EXPIRATION_PERSISTENT_DAYS`)
+  - Cookie: MaxAge = 30 days
+  - Use case: "Remember Me" functionality, stays logged in across browser sessions
+
+**Backend Configuration (configurable via environment variables):**
+- `JWT_EXPIRATION_MINUTES`: Access token lifetime (default: 15 minutes)
+- `JWT_REFRESH_EXPIRATION_DAYS`: Session refresh token expiry (default: 7 days)
+- `JWT_REFRESH_EXPIRATION_PERSISTENT_DAYS`: Persistent refresh token expiry (default: 30 days)
 
 ### Storage Locations
 
@@ -102,7 +128,7 @@ if (is401) {
 // localStorage keys
 localStorage.token                        // Access token (JWT)
 localStorage.userId                       // User ID
-localStorage.tokenExpiration              // Timestamp (Date.now() + 24h)
+localStorage.tokenExpiration              // Timestamp (from JWT exp claim, typically ~15 minutes)
 localStorage['selectedProjectId:{userId}'] // User-scoped project selection
 localStorage.REACT_QUERY_OFFLINE_CACHE    // Persisted query cache
 
@@ -319,8 +345,16 @@ accessToken  // Primary access token (security best practice)
 1. 401 Unauthorized response from API (automatic)
 2. Token expiration check on app initialization
 3. WebSocket connection attempts with expired tokens
+4. Proactive refresh when token expires within 10 minutes
+5. Page visibility change (mobile background/locked screen)
 
-**File:** `src/lib/apiClient.ts` (lines 206-293)
+**File:** `src/lib/apiClient.ts` (lines 257-340)
+
+**CRITICAL IMPROVEMENTS (2025-12-23):**
+- **JWT Expiration Parsing:** Uses actual `exp` claim from JWT instead of frontend-calculated timestamp
+- **30-Second Buffer:** Prevents race conditions where token expires between check and request
+- **iOS Safari Retry Logic:** Retries 401 errors once (first attempt only) for cookie attachment issues; retries network errors up to 3 times with exponential backoff
+- **Refresh Coordination:** Prevents concurrent refresh attempts during initialization
 
 ```
 ┌─────────────────────┐
@@ -386,6 +420,23 @@ accessToken  // Primary access token (security best practice)
 2. **User Check:** Only refresh if `userId` exists (indicates logged-in user)
 3. **Request Queue:** Queue concurrent requests during refresh (prevents race conditions)
 4. **Retry Flag:** Mark requests with `_retry` flag (prevents infinite loops)
+5. **401-Only Logout:** Only clear tokens on 401 errors, not network/server errors
+6. **Refresh Coordination:** Wait for initialization refresh to complete before retrying 401s
+
+**Token Expiration Handling:**
+
+1. **JWT Expiration Parsing:** `parseJWTExpiration()` extracts actual `exp` claim from token
+2. **30-Second Buffer:** `isTokenExpired()` adds buffer to prevent race conditions
+3. **Proactive Refresh:** Tokens refreshed 10 minutes before expiration
+4. **Debug Logging:** Logs token TTL and expiration times for troubleshooting
+
+**iOS Safari Cookie Handling:**
+
+1. **401 Error Retry:** Retries once (on first attempt only) with 150ms delay for iOS Safari cookie attachment issues. If 401 occurs again, the refresh token is expired and auth is cleared.
+2. **Network Error Retry:** Retries up to 3 times with exponential backoff (150ms, 300ms, 600ms) for transient network errors
+3. **Cookie Attachment:** Gives Safari time to properly attach HttpOnly cookies after page reload
+4. **Coordination:** Response interceptor waits for initialization refresh to complete
+5. **Efficient Failure Handling:** Prevents unnecessary retries when refresh token is legitimately expired, reducing user wait time
 
 ### 3. Logout Flow
 
@@ -534,7 +585,7 @@ When token refresh fails in `apiClient.ts` (lines 257-340):
 
 ### 4. Mobile Token Refresh (Background/Locked Screen)
 
-**File:** `src/contexts/AuthContext.tsx` (lines 150-270)
+**File:** `src/contexts/AuthContext.tsx` (lines 294-469)
 
 **Problem:** On mobile devices, when the phone screen is locked or the app is in the background, JavaScript execution is throttled or paused. This prevents automatic token refresh from working, causing tokens to expire without being refreshed.
 
@@ -543,6 +594,8 @@ When token refresh fails in `apiClient.ts` (lines 257-340):
 1. **Page Visibility API** - Detects when page becomes visible again
 2. **Focus Events** - Additional mobile browser support
 3. **Periodic Checks** - Proactive token refresh every 5 minutes (only when visible)
+
+**CRITICAL:** Always attempts refresh when page becomes visible if credentials exist, regardless of access token expiration. Since the refresh endpoint only checks the refresh token cookie (not the access token), we should always attempt refresh to ensure users stay logged in even after the app has been closed/backgrounded for days.
 
 ```
 ┌─────────────────────────────────────────┐
@@ -560,34 +613,41 @@ When token refresh fails in `apiClient.ts` (lines 257-340):
       YES              NO
         │               │
         ▼               │
-┌───────────────────┐   │
-│ isTokenExpired()? │   │
-└───────┬───────────┘   │
-        │               │
-   ┌────┴────┐          │
-   ▼         ▼          │
- YES        NO          │
-   │         │          │
-   ▼         ▼          │
-┌──────────────────┐ ┌──────────────────────┐
-│ refreshToken()   │ │ Check expires < 5min? │
-│ Update auth state│ │ If yes: refreshToken() │
-└──────────────────┘ └──────────────────────┘
+┌─────────────────────┐ │
+│ ALWAYS attempt      │ │
+│ refreshToken()      │ │
+│ (backend checks     │ │
+│  refresh token      │ │
+│  cookie only)       │ │
+└──────────┬──────────┘ │
+           │            │
+    ┌──────┴──────┐     │
+    ▼             ▼     │
+ Success      Failure (401)
+    │            │      │
+    ▼            ▼      │
+┌──────────┐  ┌──────────┐
+│Update    │  │Clear auth│
+│auth state│  │Logout    │
+└──────────┘  └──────────┘
 ```
 
 **Implementation Details:**
 
-- **Visibility Change Handler:** Checks token expiration when `document.visibilityState === 'visible'`
+- **Visibility Change Handler:** Always attempts refresh when `document.visibilityState === 'visible'` if credentials exist
 - **Focus Event Handler:** Additional check on `window.focus` event (mobile browser support)
 - **Periodic Check:** `setInterval` every 5 minutes (only runs when page is visible to save battery)
-- **Proactive Refresh:** Refreshes tokens that expire within 5 minutes to prevent expiration during next background period
+  - Refreshes if token is expired
+  - Proactively refreshes if token expires within 10 minutes
+- **iOS Safari Cookie Handling:** Adds 100ms delay before refresh to allow Safari to attach HttpOnly cookies
 
 **Mobile-Specific Considerations:**
 
 - Only checks when page is visible (saves battery)
 - Checks token existence in localStorage (not `isAuthenticated` state, which might be stale)
-- Handles expired tokens that occurred while in background
+- Always attempts refresh on visibility change to handle expired tokens from background periods
 - Updates auth state after successful refresh
+- Refresh token cookie validity (7 days session or 30 days persistent) allows users to stay logged in even after long background periods
 
 ### 6. Auth State Change Event Handler
 
@@ -643,7 +703,9 @@ When token refresh fails in `apiClient.ts` (lines 257-340):
 
 ### 7. Session Initialization
 
-**File:** `src/contexts/AuthContext.tsx` (lines 80-153)
+**File:** `src/contexts/AuthContext.tsx` (lines 80-163)
+
+**CRITICAL:** Always attempts refresh on initialization if credentials exist, regardless of access token expiration. Since the refresh endpoint only checks the refresh token cookie (not the access token), we should always attempt refresh and let the backend tell us if the refresh token is invalid via 401.
 
 ```
 ┌─────────────────────┐
@@ -673,23 +735,16 @@ When token refresh fails in `apiClient.ts` (lines 257-340):
    YES            NO
     │              │
     ▼              ▼
-┌─────────────┐   ┌─────────────────────┐
-│isTokenExpired│   │setIsAuthenticated   │
-│     ()?     │   │       (false)       │
-└──────┬──────┘   └─────────────────────┘
-       │
-  ┌────┴────┐
-  ▼         ▼
- YES        NO
-  │          │
-  ▼          ▼
-┌───────────────────┐  ┌─────────────────────┐
-│ refreshTokenService│  │setIsAuthenticated   │
-│       ()          │  │       (true)        │
-└─────────┬─────────┘  └─────────────────────┘
-          │
-    ┌─────┴─────┐
-    ▼           ▼
+┌─────────────────────┐  ┌─────────────────────┐
+│ ALWAYS attempt      │  │setIsAuthenticated   │
+│ refreshTokenService │  │       (false)       │
+│ (backend checks     │  │                     │
+│  refresh token      │  │                     │
+│  cookie only)       │  │                     │
+└──────────┬──────────┘  └─────────────────────┘
+           │
+    ┌──────┴──────┐
+    ▼             ▼
  Success      Failure (401)
     │            │
     ▼            ▼
@@ -766,17 +821,46 @@ IF code === 4003 || (code === 1008 && reason.includes('not authorized')):
 - WebSocket connections scoped to selected project
 - Cache invalidation respects project boundaries
 
+## UI Improvements (2025-12-23)
+
+### Apple Minimalist Design
+
+The login interface has been updated with Apple-inspired minimalist design:
+
+**Remember Me Checkbox:**
+- Custom-styled checkbox with subtle borders
+- Smooth transitions and hover effects
+- Gold accent when checked with white checkmark
+- Simplified text: "Remember me" (removed verbose description)
+- Positioned on same line as "Forgot Password?" for better layout
+
+**Google Sign In Button:**
+- Clean, minimal styling with subtle borders and shadows
+- Text changed to "Continue with Google" (more Apple-like)
+- Smaller icon (18px) for better proportion
+- Softer hover effects (subtle lift, no color change)
+- Properly scoped styles to prevent global CSS conflicts
+- Dark text on white background for visibility
+
+**Design Principles:**
+- Subtle borders and shadows
+- Smooth transitions
+- Clean typography with slight letter-spacing
+- Minimal color palette aligned with DevHive gold/black theme
+- Refined hover and active states
+
 ## Related Files
 
-| File | Purpose |
-|------|---------|
-| `src/services/authService.ts` | Auth API calls, token storage, OAuth initiation |
-| `src/lib/apiClient.ts` | Axios instance, interceptors |
-| `src/contexts/AuthContext.tsx` | Auth state provider, event handlers |
-| `src/components/ProtectedRoute.tsx` | Route guard |
-| `src/components/LoginRegister.tsx` | Login/register UI, OAuth button |
-| `src/components/GoogleOAuthCallback.tsx` | OAuth callback handler, token extraction |
-| `src/hooks/useRoutePermission.js` | Project selection validation |
+| File | Purpose | Key Functions |
+|------|---------|---------------|
+| `src/services/authService.ts` | Auth API calls, token storage, OAuth initiation | `login()`, `refreshToken()`, `initiateGoogleOAuth()` |
+| `src/lib/apiClient.ts` | Axios instance, interceptors, token management | `setAccessToken()`, `refreshToken()`, `parseJWTExpiration()`, `isTokenExpired()`, `setIsRefreshing()`, `setAuthInitializationPromise()` |
+| `src/contexts/AuthContext.tsx` | Auth state provider, event handlers | `logout()`, `checkAuthState()`, `handleAuthStateChange()` |
+| `src/components/ProtectedRoute.tsx` | Route guard | Redirects unauthenticated users |
+| `src/components/LoginRegister.tsx` | Login/register UI, OAuth button | Apple minimalist design, Remember Me checkbox |
+| `src/components/GoogleOAuthCallback.tsx` | OAuth callback handler, token extraction | Handles OAuth redirect |
+| `src/hooks/useRoutePermission.js` | Project selection validation | Validates project access |
+| `src/styles/login_register.css` | Login page styling | Apple minimalist styles, scoped button styles |
 
 ## Related Documentation
 
@@ -787,4 +871,5 @@ IF code === 4003 || (code === 1008 && reason.includes('not authorized')):
 - [File Reference](./file_reference.md) - Quick reference for auth-related files
 - [Google OAuth Implementation](../Tasks/google_oauth.md) - Google OAuth 2.0 implementation plan
 - [Fix Google OAuth Cache Leak](../Tasks/fix_google_oauth_cache_leak.md) - OAuth cache clearing strategy
+- [Fix Authentication 15-Minute Logouts](../Tasks/fix_authentication_15min_logout.md) - Token refresh fixes and iOS Safari handling
 

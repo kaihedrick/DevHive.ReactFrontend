@@ -15,8 +15,8 @@ After analyzing the codebase, I've identified several potential root causes:
 ### Issue 1: Token Expiration vs Refresh Token Confusion
 
 **Current State:**
-- Access token lifetime: 24 hours (stored in `tokenExpiration`)
-- Refresh token lifetime: 7 days (HTTP-only cookie)
+- Access token lifetime: 15 minutes (stored in `tokenExpiration` from JWT exp claim)
+- Refresh token lifetime: 7 days (session) or 30 days (persistent/rememberMe), HTTP-only cookie
 
 **Problem:** The 15-minute logout suggests either:
 1. The backend might be returning access tokens with shorter expiration than expected
@@ -24,7 +24,7 @@ After analyzing the codebase, I've identified several potential root causes:
 3. The periodic check interval (5 minutes) isn't preventing expiration during active use
 
 **Evidence in code:**
-- `apiClient.ts:6` - `TOKEN_VALIDITY_DURATION = 24 * 60 * 60 * 1000` (24 hours)
+- `apiClient.ts:6` - `TOKEN_VALIDITY_DURATION = 15 * 60 * 1000` (15 minutes, fallback only)
 - `AuthContext.tsx:332-391` - Periodic check runs every 5 minutes
 
 ### Issue 2: Token Refresh Race Conditions
@@ -56,29 +56,24 @@ export const refreshToken = async (): Promise<AuthToken> => {
 
 **Current Flow:**
 1. User logs in → `setAccessToken()` stores token + expiration timestamp
-2. Token expires after 24 hours
+2. Token expires after 15 minutes
 3. Automatic refresh triggers
 4. New token stored via `setAccessToken()`
-5. **New expiration timestamp is set correctly** in `apiClient.ts:77`
+5. **New expiration timestamp is set correctly** using JWT exp claim in `apiClient.ts:190`
 
-This part appears correct, but let me verify there's no issue with the timestamp calculation.
+This part is now correct - uses actual JWT expiration instead of frontend-calculated timestamp.
 
 ### Issue 4: Proactive Refresh Window Too Small
 
 **Current State:**
-- Proactive refresh triggers 5 minutes before expiration (`AuthContext.tsx:302`)
-- Periodic check runs every 5 minutes (`AuthContext.tsx:391`)
+- Proactive refresh triggers 10 minutes before expiration (`AuthContext.tsx:378`)
+- Periodic check runs every 5 minutes (`AuthContext.tsx:408`)
 
-**Problem:** If the access token is only valid for 15 minutes (not 24 hours as configured), then:
-- Token expires at 15 minutes
-- Proactive refresh only triggers at 10 minutes
-- But if periodic check runs right after token is issued (at minute 0), next check is at minute 5, then 10, then 15 (already expired)
-
-**Hypothesis:** The backend might be issuing tokens with 15-minute expiration, but the frontend is storing 24-hour expiration timestamps.
+**Status:** Fixed - Proactive refresh window increased to 10 minutes, and tokens are now always refreshed on initialization/visibility change.
 
 ### Issue 5: JWT Expiration vs Stored Expiration Mismatch
 
-**Problem:** The frontend stores its own `tokenExpiration` timestamp (24 hours from login) but never validates against the actual JWT `exp` claim.
+**Status:** Fixed - The frontend now uses the actual JWT `exp` claim from the token instead of a frontend-calculated timestamp.
 
 The `isJWTExpired()` function exists for WebSocket use, but the main token expiration check `isTokenExpired()` only checks localStorage timestamp.
 
@@ -150,7 +145,7 @@ export const setAccessToken = (token: string | null): void => {
     if (jwtExpiration) {
       localStorage.setItem(TOKEN_EXPIRATION_KEY, jwtExpiration.toString());
     } else {
-      // Fallback to 24 hours if JWT parsing fails
+      // Fallback to 15 minutes if JWT parsing fails
       const expirationTime = Date.now() + TOKEN_VALIDITY_DURATION;
       localStorage.setItem(TOKEN_EXPIRATION_KEY, expirationTime.toString());
     }
@@ -235,7 +230,7 @@ export const setAccessToken = (token: string | null): void => {
 
 ### Phase 3: Robustness Improvements
 1. **Increase proactive refresh window** - From 5 to 10 minutes
-2. **Add expiration mismatch detection** - Warn if JWT exp differs from expected 24 hours
+2. **Add expiration mismatch detection** - Warn if JWT exp differs from expected 15 minutes
 3. **Improve error handling** - More granular error types for different failure modes
 
 ### Phase 4: Verification
@@ -267,7 +262,7 @@ export const setAccessToken = (token: string | null): void => {
 | Risk | Mitigation |
 |------|------------|
 | Breaking existing auth flow | Phase implementation, test each fix independently |
-| Token parsing failure | Fallback to existing 24-hour timestamp |
+| Token parsing failure | Fallback to 15-minute timestamp |
 | Browser compatibility for atob | This is widely supported, but could add try-catch |
 
 ## Related Documentation
@@ -279,13 +274,13 @@ export const setAccessToken = (token: string | null): void => {
 ## Status
 
 - **Created:** 2025-12-23
-- **Status:** ✅ Implemented
+- **Status:** ✅ Implemented (Phase 2 - iOS Safari Fixes)
 - **Priority:** High (users experiencing random logouts)
-- **Completed:** 2025-12-23
+- **Last Updated:** 2025-12-23
 
 ## Implementation Summary
 
-All fixes have been implemented:
+### Phase 1 Fixes (Initial)
 
 ✅ **Fix 1:** `authService.refreshToken()` now only clears auth data on 401 errors, not on all errors
 ✅ **Fix 2:** Added `parseJWTExpiration()` utility to extract actual JWT `exp` claim
@@ -294,7 +289,95 @@ All fixes have been implemented:
 ✅ **Fix 5:** Increased proactive refresh window from 5 to 10 minutes in both visibility change and periodic checks
 ✅ **Fix 6:** Added debug logging to track token expiration times and warn on mismatches
 
-### Files Modified:
-- `src/services/authService.ts` - Fixed refreshToken() error handling
-- `src/lib/apiClient.ts` - Added JWT parsing, updated setAccessToken(), added buffer to isTokenExpired()
-- `src/contexts/AuthContext.tsx` - Increased proactive refresh window to 10 minutes
+### Phase 2 Fixes (iOS Safari - 2025-12-23)
+
+After further testing on iOS Safari, additional issues were discovered:
+
+#### Issue: iOS Safari Cookie Not Sent After Page Reload
+
+**Root Cause:** When iOS Safari reloads a page after being in background for 5-15 minutes, it may completely unload and reload the page. On this reload, HttpOnly cookies (like the refresh_token) are sometimes not attached to the first few network requests. This is a known iOS Safari bug.
+
+**Symptoms:**
+- User tabs out of Safari for 5-15 minutes
+- User tabs back in, Safari reloads the page completely
+- Token refresh fails with 401 (cookie not sent)
+- User sees "No Project ID found" error
+- Logout/login fixes the issue
+
+#### Additional Fixes Implemented:
+
+✅ **Fix 7:** Added retry logic with exponential backoff to `refreshToken()` in `apiClient.ts`
+  - Retries up to 3 times on 401 errors
+  - Uses exponential backoff: 150ms, 300ms, 600ms
+  - Gives Safari time to properly attach cookies
+
+✅ **Fix 8:** Added iOS/Safari detection with initial delay before refresh
+  - Detects iOS devices and Safari browsers
+  - Adds 100ms delay before first refresh attempt on page load
+  - Allows Safari to fully initialize cookie handling
+
+✅ **Fix 9:** Added coordination between `checkAuthState()` and response interceptor
+  - Exported `setIsRefreshing` and `setAuthInitializationPromise` from apiClient
+  - `checkAuthState()` now sets these flags during initialization refresh
+  - Response interceptor waits for initialization refresh to complete before retrying
+  - Prevents race conditions where multiple refresh calls happen concurrently
+
+✅ **Fix 10:** Added visibility change coordination
+  - `handleVisibilityChange` now also uses the refresh coordination mechanism
+  - Prevents concurrent refreshes when user returns to page and queries trigger 401s
+
+### Files Modified (Phase 2):
+- `src/lib/apiClient.ts`:
+  - Added `setIsRefreshing()`, `setAuthInitializationPromise()`, `getAuthInitializationPromise()` exports
+  - Updated `refreshToken()` with retry logic and exponential backoff (3 retries, 150ms base delay)
+  - Response interceptor now waits for `authInitializationPromise` if set
+  - Added detailed logging for debugging iOS Safari issues
+
+- `src/contexts/AuthContext.tsx`:
+  - Updated imports to include new apiClient exports
+  - `checkAuthState()` now sets `isRefreshing` flag and `authInitializationPromise`
+  - Added iOS/Safari detection with initial 100ms delay before refresh
+  - `handleVisibilityChange` now uses same coordination mechanism
+  - Added more detailed logging for mobile scenarios
+
+### Debugging iOS Safari Issues
+
+When debugging iOS Safari token refresh issues, look for these console logs:
+
+1. **Successful refresh:**
+   ```
+   📱 iOS/Safari detected, adding 100ms delay before refresh...
+   🔄 Starting token refresh (attempt 1)
+   ✅ Token refresh successful during initialization
+   ```
+
+2. **Retry scenario (cookie issue):**
+   ```
+   📱 iOS/Safari detected, adding 100ms delay before refresh...
+   🔄 Starting token refresh (attempt 1)
+   ❌ Refresh token failed on attempt 1: { status: 401, ... }
+   ⏳ Refresh token retry 2/4 in 150ms (iOS Safari cookie fix)...
+   ✅ Token refresh succeeded on retry 1
+   ```
+
+3. **Failed scenario (refresh token actually expired):**
+   ```
+   📱 iOS/Safari detected, adding 100ms delay before refresh...
+   🔄 Starting token refresh (attempt 1)
+   ❌ Refresh token failed on attempt 1: { status: 401, ... }
+   ⏳ Refresh token retry 2/4 in 150ms...
+   ⏳ Refresh token retry 3/4 in 300ms...
+   ⏳ Refresh token retry 4/4 in 600ms...
+   ⚠️ Refresh token expired (401 after all retries), clearing auth
+   ```
+
+### Testing Checklist (Updated)
+
+- [ ] Login on iOS Safari and verify token refresh works on page load
+- [ ] Tab out of Safari for 5 minutes, tab back in, verify no logout
+- [ ] Tab out of Safari for 10 minutes, tab back in, verify token refreshes
+- [ ] Manually refresh page while on project board, verify stays logged in
+- [ ] Lock/unlock iPhone while on app, verify no logout
+- [ ] Verify "No Project ID found" error no longer appears on page refresh
+- [ ] Test on desktop Safari for similar behavior
+- [ ] Test on Chrome (iOS) as it also uses WebKit
