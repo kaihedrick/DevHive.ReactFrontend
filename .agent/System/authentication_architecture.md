@@ -10,7 +10,7 @@ The authentication system uses a dual-token approach with automatic token refres
 - Added iOS Safari cookie handling fixes for mobile devices
 - Improved logout flow to prevent remounting and preserve console logs
 - Enhanced token refresh with retry logic and coordination mechanisms
-- **Always attempt refresh on initialization/visibility change** - Refresh endpoint only checks refresh token cookie (not access token), so we always attempt refresh when credentials exist
+- **Unconditional refresh on initialization** - Always attempt refresh on app mount, regardless of localStorage state. We cannot check refresh token cookie existence from JavaScript (it's HttpOnly), so we always attempt refresh and let backend return 401 if cookie is invalid. This ensures sessions persist even if localStorage was cleared but refresh token cookie remains valid.
 
 ## Architecture Summary
 
@@ -23,7 +23,7 @@ The authentication system uses a dual-token approach with automatic token refres
 - **JWT expiration parsing**: Uses actual backend token expiration instead of frontend-calculated timestamps
 - **iOS Safari support**: Retry logic and cookie handling fixes for mobile Safari
 - **Proactive refresh**: 10-minute window with 30-second buffer to prevent expiration
-- **Always-attempt refresh**: Refresh endpoint only validates refresh token cookie (not access token), so we always attempt refresh when credentials exist, allowing users to stay logged in even after long periods of inactivity
+- **Unconditional refresh on initialization**: Always attempt refresh on app mount, regardless of localStorage state (userId/token). We cannot check refresh token cookie existence from JavaScript (it's HttpOnly), so we always attempt refresh and let backend return 401 if cookie is invalid. This ensures sessions persist even if localStorage was cleared but refresh token cookie remains valid (7 days session or 30 days persistent)
 
 ## Critical Fixes (2025-12-23)
 
@@ -705,7 +705,24 @@ When token refresh fails in `apiClient.ts` (lines 257-340):
 
 **File:** `src/contexts/AuthContext.tsx` (lines 80-163)
 
-**CRITICAL:** Always attempts refresh on initialization if credentials exist, regardless of access token expiration. Since the refresh endpoint only checks the refresh token cookie (not the access token), we should always attempt refresh and let the backend tell us if the refresh token is invalid via 401.
+**CRITICAL:** Always attempts refresh on initialization, **unconditionally**, regardless of whether `storedUserId` or `hasToken` exist in localStorage. 
+
+**Why Unconditional Refresh?**
+
+We cannot check if the refresh token cookie exists from JavaScript (it's HttpOnly). The refresh token cookie may persist even if localStorage was cleared. For example:
+
+- User closes browser → localStorage cleared by browser settings
+- Refresh token cookie persists (7 days session or 30 days persistent/rememberMe)
+- User reopens browser → `storedUserId` is null, but refresh token cookie is valid
+- **Solution:** Always attempt refresh, backend will return 401 if cookie is invalid
+
+**Flow:**
+1. On app mount, `checkAuthState()` always attempts `refreshTokenService()`
+2. If refresh succeeds: Get `userId` from response (stored in localStorage by `refreshToken()`)
+3. If refresh fails with 401: Refresh token cookie is invalid/expired → logout
+4. If refresh fails with non-401: Network error → stay logged out if no `storedUserId`, keep state if `storedUserId` exists (might be transient)
+
+Since the refresh endpoint only checks the refresh token cookie (not the access token or localStorage), we should always attempt refresh and let the backend tell us if the refresh token is invalid via 401.
 
 ```
 ┌─────────────────────┐
@@ -723,35 +740,36 @@ When token refresh fails in `apiClient.ts` (lines 257-340):
 ┌─────────────────────────────────────────────────┐
 │ storedUserId = getUserId()                      │
 │ hasToken = !!localStorage.getItem('token')      │
+│ (for logging only - not used in decision)       │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
-┌──────────────────────────────┐
-│ hasToken && storedUserId?    │
-└──────────┬───────────────────┘
+┌─────────────────────────────────────────────────┐
+│ ALWAYS attempt refreshTokenService()            │
+│ (regardless of storedUserId or hasToken)        │
+│                                                 │
+│ Backend checks refresh token cookie only        │
+│ Cannot check cookie existence from JavaScript   │
+└──────────┬──────────────────────────────────────┘
            │
     ┌──────┴──────┐
     ▼             ▼
-   YES            NO
-    │              │
-    ▼              ▼
-┌─────────────────────┐  ┌─────────────────────┐
-│ ALWAYS attempt      │  │setIsAuthenticated   │
-│ refreshTokenService │  │       (false)       │
-│ (backend checks     │  │                     │
-│  refresh token      │  │                     │
-│  cookie only)       │  │                     │
-└──────────┬──────────┘  └─────────────────────┘
-           │
-    ┌──────┴──────┐
-    ▼             ▼
- Success      Failure (401)
+ Success      Failure
     │            │
-    ▼            ▼
-┌──────────┐  ┌─────────────┐
-│setIsAuth │  │Clear auth   │
-│  (true)  │  │Logout       │
-└──────────┘  └─────────────┘
+    │            ├──► 401: Invalid/expired refresh token
+    │            │    → Clear auth + Logout
+    │            │
+    │            └──► Non-401: Network error
+    │                 → Stay logged out if no storedUserId
+    │                 → Keep state if storedUserId exists
+    │
+    ▼
+┌─────────────────────────────────────────────────┐
+│ Get userId from localStorage (stored by         │
+│ refreshToken() from response)                   │
+│ setIsAuthenticated(true)                        │
+│ setUserId(refreshedUserId)                      │
+└─────────────────────────────────────────────────┘
 ```
 
 **Key Checks:**

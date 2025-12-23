@@ -90,85 +90,91 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           tokenExpiration: localStorage.getItem('tokenExpiration')
         });
 
-        // CRITICAL: Attempt refresh if we have userId, even if access token is missing/expired
-        // The refresh endpoint only checks the refresh token cookie (HTTP-only, stored by backend).
-        // If user selected "Remember Me", the refresh token cookie persists for 30 days.
-        // If they didn't, it's a session cookie (expires when browser closes).
-        // Either way, we should attempt refresh - the backend will tell us if the refresh token is invalid.
-        if (storedUserId) {
-          // CRITICAL: Always attempt refresh on initialization if we have credentials
-          // The refresh endpoint only checks the refresh token cookie, not the access token.
-          // Even if the access token appears expired, the refresh token cookie might still be
-          // valid (refresh tokens last 7 days for session or 30 days for persistent/rememberMe).
-          // Let the backend tell us if refresh token is invalid.
-          // This ensures users stay logged in even after the app has been closed for days.
-          const tokenExpired = isTokenExpired();
-          if (tokenExpired) {
-            console.log('⚠️ Access token expired, attempting refresh');
-          } else {
-            console.log('🔄 Access token appears valid, but refreshing anyway to ensure fresh token');
-          }
+        // CRITICAL: Always attempt refresh on initialization, regardless of storedUserId
+        // We cannot check if the refresh token cookie exists from JavaScript (it's HttpOnly).
+        // The refresh token cookie may persist even if localStorage was cleared.
+        // 
+        // If refresh succeeds: We get a new access token and userId (stored in localStorage by refreshToken).
+        // If refresh fails with 401: The refresh token cookie is invalid/expired - user is logged out.
+        // If refresh fails with non-401: Network error - we'll stay logged out for now, but user can retry.
+        //
+        // The refresh endpoint only checks the refresh token cookie, not the access token or localStorage.
+        // Refresh tokens last 7 days (session) or 30 days (persistent/rememberMe) based on user's choice.
+        //
+        // This ensures users stay logged in even if localStorage was cleared but refresh token cookie persists.
+        console.log('🔄 Attempting token refresh to restore session (checking refresh token cookie)');
 
-          // CRITICAL: Set isRefreshing flag and promise BEFORE refresh
-          // This coordinates with the response interceptor to prevent concurrent refreshes
-          // and allows 401 responses to wait for initialization to complete
-          setIsRefreshing(true);
+        // CRITICAL: Set isRefreshing flag and promise BEFORE refresh
+        // This coordinates with the response interceptor to prevent concurrent refreshes
+        // and allows 401 responses to wait for initialization to complete
+        setIsRefreshing(true);
 
-          // Create and store the initialization promise
-          const refreshPromise = (async (): Promise<string | null> => {
-            try {
-              const result = await refreshTokenService();
-              return result?.Token || getAccessToken();
-            } catch (error) {
-              throw error;
-            } finally {
-              // Always clean up
-              setIsRefreshing(false);
-              setAuthInitializationPromise(null);
-            }
-          })();
-
-          setAuthInitializationPromise(refreshPromise);
-
+        // Create and store the initialization promise
+        const refreshPromise = (async (): Promise<string | null> => {
           try {
-            await refreshPromise;
+            const result = await refreshTokenService();
+            return result?.Token || getAccessToken();
+          } catch (error) {
+            throw error;
+          } finally {
+            // Always clean up
+            setIsRefreshing(false);
+            setAuthInitializationPromise(null);
+          }
+        })();
+
+        setAuthInitializationPromise(refreshPromise);
+
+        try {
+          await refreshPromise;
+          // Refresh succeeded - get userId from localStorage (it was stored by refreshToken)
+          const refreshedUserId = getUserId();
+          if (refreshedUserId) {
             setIsAuthenticated(true);
-            setUserId(storedUserId);
-            console.log('✅ Token refresh successful during initialization');
+            setUserId(refreshedUserId);
+            console.log('✅ Token refresh successful during initialization, session restored');
             // Dispatch event so useRoutePermission can re-read project ID
             window.dispatchEvent(new Event('auth-state-changed'));
-          } catch (error) {
-            // Refresh failed - check if it's a 401 (refresh token invalid)
-            const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
-            if (is401) {
-              console.log('⚠️ Refresh token invalid during initialization, triggering logout');
-              // Use proper logout flow instead of direct logoutService() call
-              // This ensures proper cleanup order and prevents remounting
-              if (logoutRef.current) {
-                logoutRef.current();
-              } else {
-                // Fallback if logout not yet available (shouldn't happen, but safety check)
-                console.warn('⚠️ Logout function not available, using direct cleanup');
-                explicitLogoutRef.current = true;
-                setIsAuthenticated(false);
-                setUserId(null);
-                logoutService();
-              }
+          } else {
+            // This should not happen - refreshToken stores userId, but handle gracefully
+            console.warn('⚠️ Refresh succeeded but no userId found, treating as logout');
+            setIsAuthenticated(false);
+            setUserId(null);
+          }
+        } catch (error) {
+          // Refresh failed - check if it's a 401 (refresh token invalid/expired)
+          const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
+          if (is401) {
+            console.log('⚠️ Refresh token invalid/expired (401), no valid session cookie - user is logged out');
+            // Use proper logout flow instead of direct logoutService() call
+            // This ensures proper cleanup order and prevents remounting
+            if (logoutRef.current) {
+              logoutRef.current();
             } else {
-              console.error('❌ Unexpected error during token refresh:', error);
-              // Network errors or other non-401 errors should NOT cause logout
-              // Keep authenticated state - token might still be valid
-              console.log('⚠️ Non-401 error during refresh, keeping auth state (token may still be valid)');
+              // Fallback if logout not yet available (shouldn't happen, but safety check)
+              console.warn('⚠️ Logout function not available, using direct cleanup');
+              explicitLogoutRef.current = true;
+              setIsAuthenticated(false);
+              setUserId(null);
+              logoutService();
+            }
+          } else {
+            // Network errors or other non-401 errors
+            // If we had storedUserId, keep it (might be a transient network issue)
+            // If we didn't, stay logged out (no session to restore)
+            console.error('❌ Unexpected error during token refresh:', error);
+            if (storedUserId) {
+              console.log('⚠️ Non-401 error during refresh but had storedUserId, keeping auth state (token may still be valid)');
               setIsAuthenticated(true);
               setUserId(storedUserId);
               // Dispatch event so useRoutePermission can re-read project ID
               window.dispatchEvent(new Event('auth-state-changed'));
+            } else {
+              console.log('⚠️ Non-401 error during refresh and no storedUserId, staying logged out');
+              setIsAuthenticated(false);
+              setUserId(null);
             }
           }
-        } else {
-          // No token or userId - not authenticated
-          setIsAuthenticated(false);
-          setUserId(null);
         }
       } catch (error) {
         console.error('❌ Error checking auth state:', error);
