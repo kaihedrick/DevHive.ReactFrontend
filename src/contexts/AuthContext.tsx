@@ -130,18 +130,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     checkAuthState();
     
-    // Listen for auth state changes from API client (e.g., when refresh fails)
-    const handleAuthStateChange = () => {
-      // Only respond to explicit auth-state-changed events (from logout or token expiration)
-      // NOT from transient state changes during navigation
+    // Listen for auth state changes from API client (e.g., when refresh fails, OAuth login)
+    const handleAuthStateChange = async () => {
+      // Re-validate auth state when auth-state-changed event is dispatched
+      // This handles both logout (tokens cleared) and OAuth login (tokens newly stored)
       const storedUserId = getUserId();
       const hasToken = !!localStorage.getItem('token');
       
       if (!hasToken || !storedUserId) {
+        // Tokens cleared - logout scenario
         console.log('🔓 Auth state changed: tokens cleared, setting authenticated=false');
         explicitLogoutRef.current = true; // Mark as explicit logout
         setIsAuthenticated(false);
         setUserId(null);
+      } else {
+        // Tokens present - could be OAuth login or token refresh
+        // Re-validate auth state to update isAuthenticated
+        console.log('🔄 Auth state changed: tokens present, re-validating auth state');
+        try {
+          if (isTokenExpired()) {
+            console.log('⚠️ Token expired on auth state change, attempting refresh');
+            try {
+              await refreshTokenService();
+              setIsAuthenticated(true);
+              setUserId(storedUserId);
+              console.log('✅ Auth state updated after token refresh');
+            } catch (error) {
+              const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
+              if (is401) {
+                console.log('⚠️ Refresh token invalid on auth state change, clearing auth state');
+                setIsAuthenticated(false);
+                setUserId(null);
+                logoutService();
+              } else {
+                console.error('❌ Unexpected error during token refresh on auth state change:', error);
+                // Keep authenticated state if we have a valid access token
+                setIsAuthenticated(true);
+                setUserId(storedUserId);
+              }
+            }
+          } else {
+            // Token exists and is not expired - set authenticated
+            setIsAuthenticated(true);
+            setUserId(storedUserId);
+            console.log('✅ Auth state updated: user authenticated');
+          }
+        } catch (error) {
+          console.error('❌ Error re-validating auth state:', error);
+          // On error, check if token exists - if yes, assume authenticated
+          // Backend will tell us via 401 if token is actually invalid
+          setIsAuthenticated(true);
+          setUserId(storedUserId);
+        }
       }
     };
     
