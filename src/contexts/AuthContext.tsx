@@ -37,11 +37,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const selectedProjectIdRef = useRef<string | null>(null); // Track stable selectedProjectId across navigations
   const explicitLogoutRef = useRef<boolean>(false); // Track if logout was explicitly called
   const authInitializedRef = useRef<boolean>(false); // Track if auth has been initialized
+  const logoutRef = useRef<(() => void) | null>(null); // Ref to logout function for use in event handlers
   
   // Direct validation without triggering queries - reads from cache only
   const validateProjectIdFromCache = useCallback((projectId: string): boolean => {
     // Read from cache - don't trigger refetch
-    const cached = queryClient.getQueryData(['projects', 'list']);
+    const cached = queryClient.getQueryData(['projects', 'list']) as any;
     const projects = Array.isArray(cached) ? cached : (cached?.projects || []);
     
     if (projects.length === 0) {
@@ -96,13 +97,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               // Refresh failed - check if it's a 401 (refresh token invalid)
               const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
               if (is401) {
-                console.log('⚠️ Refresh token invalid, clearing auth state');
-                setIsAuthenticated(false);
-                setUserId(null);
-                logoutService();
+                console.log('⚠️ Refresh token invalid during initialization, triggering logout');
+                // Use proper logout flow instead of direct logoutService() call
+                // This ensures proper cleanup order and prevents remounting
+                if (logoutRef.current) {
+                  logoutRef.current();
+                } else {
+                  // Fallback if logout not yet available (shouldn't happen, but safety check)
+                  console.warn('⚠️ Logout function not available, using direct cleanup');
+                  explicitLogoutRef.current = true;
+                  setIsAuthenticated(false);
+                  setUserId(null);
+                  logoutService();
+                }
               } else {
                 console.error('❌ Unexpected error during token refresh:', error);
-                // Keep authenticated state if we have a valid access token
+                // Network errors or other non-401 errors should NOT cause logout
+                // Keep authenticated state - token might still be valid
+                console.log('⚠️ Non-401 error during refresh, keeping auth state (token may still be valid)');
                 setIsAuthenticated(true);
                 setUserId(storedUserId);
               }
@@ -130,7 +142,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     checkAuthState();
     
-    // Listen for auth state changes from API client (e.g., when refresh fails, OAuth login)
+    /**
+     * Auth State Change Event Handler
+     * 
+     * Listens for 'auth-state-changed' events dispatched by:
+     * 1. apiClient.ts - When token refresh fails (tokens cleared)
+     * 2. logout() function - After clearing tokens and cache
+     * 3. GoogleOAuthCallback - After storing new tokens from OAuth login
+     * 
+     * Purpose: Re-validate auth state when tokens are added or removed externally.
+     * This ensures AuthContext stays in sync with actual token state in localStorage.
+     * 
+     * Flow:
+     * - If tokens cleared: Set explicitLogoutRef=true FIRST (before state changes), clear auth state (triggers WebSocket disconnect)
+     * - If tokens present: Re-validate expiration, refresh if needed, update auth state
+     * 
+     * CRITICAL: Set explicitLogoutRef BEFORE clearing state to prevent race conditions
+     * This ensures WebSocket effect sees the flag before checking isAuthenticated
+     * 
+     * Related Documentation:
+     * - .agent/System/authentication_architecture.md - Auth state change flow (section 6)
+     * - .agent/System/authentication_architecture.md - Logout flow (section 3)
+     * - .agent/System/authentication_architecture.md - Google OAuth flow (section 1.5)
+     */
     const handleAuthStateChange = async () => {
       // Re-validate auth state when auth-state-changed event is dispatched
       // This handles both logout (tokens cleared) and OAuth login (tokens newly stored)
@@ -139,10 +173,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (!hasToken || !storedUserId) {
         // Tokens cleared - logout scenario
-        console.log('🔓 Auth state changed: tokens cleared, setting authenticated=false');
-        explicitLogoutRef.current = true; // Mark as explicit logout
+        // This can happen when:
+        // 1. Token refresh failed (apiClient.ts dispatches event after clearing tokens)
+        // 2. User explicitly logged out (logout() function dispatches event)
+        // 3. Session expired on backend (refresh token invalid)
+        console.log('🔓 Auth state changed: tokens cleared, triggering logout flow');
+        
+        // CRITICAL: Set explicitLogoutRef FIRST before any state changes
+        // This prevents race condition where WebSocket effect checks before flag is set
+        explicitLogoutRef.current = true;
+        
+        // Now clear auth state (triggers WebSocket disconnect via effect)
         setIsAuthenticated(false);
         setUserId(null);
+        
+        // Note: Don't call logoutService() here - tokens are already cleared by apiClient
+        // The logout() function would be called if this was user-initiated logout
+        // But for token refresh failures, apiClient already cleared tokens
       } else {
         // Tokens present - could be OAuth login or token refresh
         // Re-validate auth state to update isAuthenticated
@@ -158,13 +205,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             } catch (error) {
               const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
               if (is401) {
-                console.log('⚠️ Refresh token invalid on auth state change, clearing auth state');
-                setIsAuthenticated(false);
-                setUserId(null);
-                logoutService();
+                console.log('⚠️ Refresh token invalid on auth state change, triggering logout');
+                // Use proper logout flow instead of direct logoutService() call
+                if (logoutRef.current) {
+                  logoutRef.current();
+                } else {
+                  // Fallback if logout not yet available
+                  console.warn('⚠️ Logout function not available, using direct cleanup');
+                  explicitLogoutRef.current = true;
+                  setIsAuthenticated(false);
+                  setUserId(null);
+                  logoutService();
+                }
               } else {
                 console.error('❌ Unexpected error during token refresh on auth state change:', error);
-                // Keep authenticated state if we have a valid access token
+                // Network errors or other non-401 errors should NOT cause logout
+                // Keep authenticated state - token might still be valid
+                console.log('⚠️ Non-401 error during refresh, keeping auth state (token may still be valid)');
                 setIsAuthenticated(true);
                 setUserId(storedUserId);
               }
@@ -212,12 +269,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               // Refresh failed - check if it's a 401 (refresh token invalid)
               const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
               if (is401) {
-                console.log('⚠️ Refresh token invalid after visibility change, clearing auth state');
-                setIsAuthenticated(false);
-                setUserId(null);
-                logoutService();
+                console.log('⚠️ Refresh token invalid after visibility change, triggering logout');
+                // Use proper logout flow instead of direct logoutService() call
+                if (logoutRef.current) {
+                  logoutRef.current();
+                } else {
+                  // Fallback if logout not yet available
+                  console.warn('⚠️ Logout function not available, using direct cleanup');
+                  explicitLogoutRef.current = true;
+                  setIsAuthenticated(false);
+                  setUserId(null);
+                  logoutService();
+                }
               } else {
                 console.error('❌ Unexpected error during token refresh on visibility change:', error);
+                // Network errors or other non-401 errors should NOT cause logout
+                // Token might still be valid, just couldn't refresh due to network issue
+                console.log('⚠️ Non-401 error during refresh, keeping auth state (token may still be valid)');
               }
             }
           } else {
@@ -280,10 +348,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               .catch((error) => {
                 const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
                 if (is401) {
-                  console.log('⚠️ Refresh token invalid during periodic check, clearing auth state');
-                  setIsAuthenticated(false);
-                  setUserId(null);
-                  logoutService();
+                  console.log('⚠️ Refresh token invalid during periodic check, triggering logout');
+                  // Use proper logout flow instead of direct logoutService() call
+                  if (logoutRef.current) {
+                    logoutRef.current();
+                  } else {
+                    // Fallback if logout not yet available
+                    console.warn('⚠️ Logout function not available, using direct cleanup');
+                    explicitLogoutRef.current = true;
+                    setIsAuthenticated(false);
+                    setUserId(null);
+                    logoutService();
+                  }
+                } else {
+                  // Non-401 errors should NOT cause logout
+                  console.log('⚠️ Non-401 error during periodic refresh, keeping auth state (token may still be valid)');
                 }
               });
           } else {
@@ -319,34 +398,99 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []); // Empty deps - only runs once on mount, handlers check state dynamically
 
-  // SINGLE OWNER: Connect cache invalidation WebSocket when authenticated with project selected
-  // Only connects on: login (isAuthenticated change) or project change
-  // Disconnects on: EXPLICIT logout or project cleared
-  // CRITICAL: NEVER disconnect on transient isAuthenticated=false during navigation
-  // NOTE: Reconnection on network errors is handled by cacheInvalidationService internally
-  // STABILITY: Dependencies only include stable auth state, not route-dependent values
+  /**
+   * WebSocket Connection Management Effect
+   * 
+   * SINGLE OWNER: Connects cache invalidation WebSocket when authenticated with project selected.
+   * 
+   * Connection Triggers:
+   * - User login (isAuthenticated changes from false to true)
+   * - Project selection change (selectedProjectId changes)
+   * - Page refresh with valid auth state
+   * 
+   * Disconnection Triggers:
+   * - EXPLICIT logout (explicitLogoutRef.current === true)
+   * - Project cleared (selectedProjectId becomes null)
+   * - Invalid project access (403 Forbidden)
+   * 
+   * CRITICAL: Transient Auth State Protection
+   * 
+   * This effect implements protection against transient `isAuthenticated=false` states that can
+   * occur during:
+   * 1. Initial auth state check (before tokens are validated)
+   * 2. Token refresh operations (brief moment during refresh)
+   * 3. Navigation between routes (React state updates)
+   * 4. Race conditions between token expiration and refresh
+   * 
+   * The `explicitLogoutRef` flag distinguishes between:
+   * - EXPLICIT logout: User clicked logout OR token refresh failed (tokens cleared)
+   * - TRANSIENT false: Temporary state during initialization or refresh
+   * 
+   * When `isAuthenticated=false` but `explicitLogoutRef.current=false`:
+   * - This is a transient state - DO NOT disconnect WebSocket
+   * - WebSocket connection remains active (prevents unnecessary reconnections)
+   * - Auth state will stabilize once initialization/refresh completes
+   * 
+   * When `isAuthenticated=false` and `explicitLogoutRef.current=true`:
+   * - This is an explicit logout - DISCONNECT WebSocket immediately
+   * - Clear all refs and connection state
+   * - Prevent any reconnection attempts
+   * 
+   * Logout Flow (see logout() function):
+   * 1. Set explicitLogoutRef.current = true (marks as explicit logout)
+   * 2. Set isAuthenticated = false (disables queries)
+   * 3. Cancel in-flight queries
+   * 4. Disconnect WebSocket (via this effect detecting explicitLogoutRef)
+   * 5. Clear tokens and cache
+   * 6. Dispatch 'auth-state-changed' event
+   * 
+   * Token Refresh Failure Flow (apiClient.ts):
+   * 1. Refresh token API call fails (401 Unauthorized)
+   * 2. clearAccessToken() clears tokens from memory + localStorage
+   * 3. Dispatch 'auth-state-changed' event
+   * 4. handleAuthStateChange() detects tokens cleared
+   * 5. Sets explicitLogoutRef.current = true
+   * 6. Sets isAuthenticated = false
+   * 7. This effect detects explicitLogoutRef and disconnects WebSocket
+   * 
+   * NOTE: Reconnection on network errors is handled by cacheInvalidationService internally.
+   * STABILITY: Dependencies only include stable auth state, not route-dependent values.
+   * 
+   * Related Documentation:
+   * - .agent/System/authentication_architecture.md - Complete auth flows and token management
+   * - .agent/System/realtime_messaging.md - WebSocket implementation and cache invalidation
+   * - .agent/System/caching_strategy.md - React Query cache management
+   */
   useEffect(() => {
-    // CRITICAL: Ignore transient auth false states during navigation
-    // Only respond to actual logout (explicitLogoutRef.current === true)
+    // CRITICAL: Wait for auth initialization to complete before making connection decisions
+    // Prevents disconnecting during initial state check when tokens might be temporarily unavailable
     if (!authInitializedRef.current) {
-      // Auth not initialized yet - wait
+      // Auth not initialized yet - wait for checkAuthState() to complete
       return;
     }
 
+    // EXPLICIT LOGOUT: User clicked logout OR token refresh failed (tokens cleared)
+    // This is a real logout - disconnect WebSocket and clear all state
     if (!isAuthenticated && explicitLogoutRef.current) {
-      // Explicit logout - disconnect WebSocket
       console.log('🔓 Explicit logout detected, disconnecting WebSocket');
       cacheInvalidationService.disconnect('User logout');
       previousProjectIdRef.current = null;
       validatedProjectIdRef.current = null;
       isConnectingRef.current = false;
       selectedProjectIdRef.current = null;
-      explicitLogoutRef.current = false; // Reset flag
+      explicitLogoutRef.current = false; // Reset flag for next session
       return;
     }
 
+    // TRANSIENT FALSE STATE: Temporary isAuthenticated=false during initialization or refresh
+    // This happens when:
+    // - Auth state is being checked on mount (before tokens are validated)
+    // - Token refresh is in progress (brief moment during refresh)
+    // - Race condition between token expiration check and refresh
+    // 
+    // DO NOT disconnect WebSocket - this would cause unnecessary reconnections
+    // The auth state will stabilize once initialization/refresh completes
     if (!isAuthenticated && !explicitLogoutRef.current) {
-      // Transient false during navigation or initialization - IGNORE
       console.log('⏭️ Ignoring transient auth false state (no explicit logout)');
       return;
     }
@@ -386,7 +530,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!isValid && !isConnectingRef.current) {
       // Projects are in cache and projectId not found → invalid
       // Read cache to get available projects for logging
-      const cached = queryClient.getQueryData(['projects', 'list']);
+      const cached = queryClient.getQueryData(['projects', 'list']) as any;
       const projects = Array.isArray(cached) ? cached : (cached?.projects || []);
       
       console.warn('⚠️ Selected projectId not in cache, clearing selection:', {
@@ -569,7 +713,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       // Extract rememberMe if present, then pass credentials and rememberMe separately
       const { rememberMe, ...loginCredentials } = credentials;
-      const result = await loginService(loginCredentials, rememberMe);
+      const result = await loginService(loginCredentials, rememberMe) as any;
       // Ensure we have userId from the result
       const userId = result.userId || result.user_id || localStorage.getItem('userId');
       setIsAuthenticated(true);
@@ -583,9 +727,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  /**
+   * Logout Function
+   * 
+   * Performs complete logout sequence with proper cleanup order.
+   * 
+   * CRITICAL EXECUTION ORDER:
+   * 1. Set explicitLogoutRef flag FIRST - tells WebSocket effect this is real logout
+   * 2. Clear auth state - immediately disables all queries
+   * 3. Cancel in-flight queries - prevents stale data from completing
+   * 4. Disconnect WebSocket - stops real-time updates
+   * 5. Clear selected project - removes user-scoped project selection
+   * 6. Clear tokens - removes auth credentials from memory + localStorage
+   * 7. Clear query cache - removes all cached data
+   * 8. Clear persisted cache - removes offline cache from localStorage
+   * 9. Dispatch event - notifies other components/tabs of logout
+   * 
+   * The explicitLogoutRef flag is critical because:
+   * - WebSocket effect checks this flag to distinguish explicit logout from transient states
+   * - Without this flag, WebSocket might not disconnect during logout
+   * - Prevents race conditions where isAuthenticated=false occurs during navigation
+   * 
+   * NOTE: This function does NOT redirect - let ProtectedRoute handle navigation
+   * Redirecting causes remounting which loses console logs and breaks debugging
+   * 
+   * Related Documentation:
+   * - .agent/System/authentication_architecture.md - Logout flow (section 3)
+   * - .agent/System/authentication_architecture.md - Critical logout order table
+   * - .agent/System/realtime_messaging.md - WebSocket disconnection handling
+   * - .agent/System/caching_strategy.md - Cache clearing on logout
+   */
   const logout = useCallback(() => {
+    console.log('🚪 Logout initiated - starting cleanup sequence');
+    
     // CRITICAL: Set explicit logout flag FIRST
     // This tells the WebSocket effect that this is a real logout, not a transient state
+    // The WebSocket effect checks this flag to determine if it should disconnect
     explicitLogoutRef.current = true;
     
     // 1. CRITICAL: Clear auth state to immediately disable all queries
@@ -594,37 +771,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUserId(null);
     
     // 2. Cancel all in-flight queries to prevent them from completing
+    // This ensures stale data doesn't populate the cache after logout
     queryClient.cancelQueries();
     
     // 3. Disconnect cache invalidation WebSocket with explicit reason
-    // The effect will handle this via explicitLogoutRef
+    // The WebSocket effect will also handle this via explicitLogoutRef check
     // This ensures all timers are cleared and no reconnection attempts happen
     cacheInvalidationService.disconnect('User logout');
     previousProjectIdRef.current = null;
     
     // 4. Clear selected project for current user before logout
+    // This ensures project selection is cleared for the correct user
     const currentUserId = getUserId();
     if (currentUserId) {
       clearSelectedProject(currentUserId);
     }
     
     // 5. Clear auth tokens and call logout service
+    // This removes tokens from memory (apiClient) and localStorage
     logoutService();
     
     // 6. Clear all cached queries (after canceling in-flight ones)
+    // This removes all React Query cache data
     queryClient.clear();
 
     // CRITICAL: Also clear the persisted React Query cache from localStorage
+    // This ensures offline cache doesn't persist across logout/login cycles
     localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE');
 
-    // 7. Reset token expiration log flag
+    // 7. Reset token expiration log flag (prevents duplicate logs)
     if ((window as any).__tokenExpiredLogged) {
       delete (window as any).__tokenExpiredLogged;
     }
     
     // 8. Dispatch event to notify any listeners that auth state has changed
+    // This triggers handleAuthStateChange() which will see tokens are cleared
+    // Other tabs/components listening to this event will also update their state
     window.dispatchEvent(new Event('auth-state-changed'));
+    
+    console.log('✅ Logout cleanup sequence completed');
+    // NOTE: Do NOT redirect here - let ProtectedRoute handle navigation
+    // Redirecting causes remounting which loses console logs
   }, [queryClient]);
+  
+  // Store logout function in ref so it can be called from event handlers
+  // This allows proper logout flow from anywhere without circular dependencies
+  useEffect(() => {
+    logoutRef.current = logout;
+  }, [logout]);
 
   const refreshToken = useCallback(async (): Promise<AuthToken> => {
     try {

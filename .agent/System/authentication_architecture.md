@@ -4,6 +4,8 @@
 
 The authentication system uses a dual-token approach with automatic token refresh and session persistence. This document describes the complete authentication flow, token management, and security measures.
 
+**CRITICAL UPDATE (2025-12-23):** Fixed order of operations issues that caused unexpected logouts on network errors. The system now only logs users out on actual token expiration (401), not on temporary network/server issues.
+
 ## Architecture Summary
 
 - **Dual-token system**: Access tokens (JWT, 24h) + HTTP-only refresh tokens (7d)
@@ -11,6 +13,43 @@ The authentication system uses a dual-token approach with automatic token refres
 - **React Query for data caching** with WebSocket-driven invalidation
 - **Real-time cache synchronization** via WebSocket connections
 - **User-scoped project selection** to prevent cross-account data leakage
+- **Resilient authentication**: Only 401 errors trigger logout; network/server errors preserve auth state
+
+## Critical Fixes (2025-12-23)
+
+### Problem: Unexpected Logouts on Network Errors
+
+**Issue:** Token refresh failures from network errors, timeouts, or server errors (500) were clearing authentication tokens and logging users out, even though the refresh token cookie was still valid.
+
+**Root Cause:** Two locations in `apiClient.ts` unconditionally cleared tokens on ANY refresh failure:
+1. `refreshToken()` function (line 128) - cleared tokens on all errors
+2. Response interceptor (line 280) - cleared tokens and dispatched logout event on all errors
+
+**Impact:** Users with slow/unreliable networks were repeatedly logged out during temporary network issues.
+
+### Solution: 401-Only Logout Logic
+
+**Fixed Locations:**
+- `src/lib/apiClient.ts:128-139` - `refreshToken()` function now checks error status
+- `src/lib/apiClient.ts:280-340` - Response interceptor now checks error status
+
+**New Behavior:**
+```javascript
+// Only clear tokens on 401 (refresh token expired)
+const is401 = refreshError?.response?.status === 401;
+if (is401) {
+    clearAccessToken();
+    window.dispatchEvent(new Event('auth-state-changed'));
+} else {
+    // Keep tokens - refresh token cookie still valid
+    console.warn('Refresh failed with non-401 error, keeping tokens for retry');
+}
+```
+
+**Result:**
+- ✅ 401 errors (refresh token expired) → User logged out
+- ✅ Network errors, timeouts, 500 errors → User stays logged in, can retry
+- ✅ Users with slow networks no longer experience unexpected logouts
 
 ## Architecture Diagram
 
@@ -350,23 +389,33 @@ accessToken  // Primary access token (security best practice)
 
 ### 3. Logout Flow
 
-**File:** `src/contexts/AuthContext.tsx` (lines 359-397)
+**File:** `src/contexts/AuthContext.tsx` (lines 701-781)
+
+**CRITICAL:** All logout operations MUST go through `AuthContext.logout()` function. Never call `logoutService()` directly - this bypasses proper cleanup order and causes remounting.
+
+**Logout Triggers:**
+1. User clicks logout button → `logout()` function called directly
+2. Token refresh fails with 401 → `apiClient.ts` clears tokens, dispatches event → `handleAuthStateChange()` calls `logout()`
+3. Refresh token invalid during initialization → `checkAuthState()` calls `logout()`
 
 ```
 ┌─────────────────────┐
-│ User clicks Logout  │
+│ Logout Triggered    │
+│ (user click OR      │
+│  token refresh fail)│
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────────────────────────────────┐
 │ 1. explicitLogoutRef.current = true             │
 │    (prevents transient state issues)            │
+│    CRITICAL: Set FIRST before any state changes │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────────────────┐
 │ 2. setIsAuthenticated(false)                    │
-│    (disables queries)                           │
+│    (disables queries immediately)                │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
@@ -378,13 +427,13 @@ accessToken  // Primary access token (security best practice)
            ▼
 ┌─────────────────────────────────────────────────┐
 │ 4. cacheInvalidationService.disconnect()        │
-│    (closes WebSocket)                           │
+│    (closes WebSocket, prevents reconnection)    │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────────────────┐
 │ 5. clearSelectedProject(userId)                 │
-│    (clears project selection)                   │
+│    (clears user-scoped project selection)       │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
@@ -401,27 +450,87 @@ accessToken  // Primary access token (security best practice)
            │
            ▼
 ┌─────────────────────────────────────────────────┐
-│ 8. window.dispatchEvent('auth-state-changed')   │
+│ 8. localStorage.removeItem(                     │
+│    'REACT_QUERY_OFFLINE_CACHE')                 │
+│    (clears persisted cache)                      │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
-┌─────────────────────┐
-│ Navigate to /       │
-└─────────────────────┘
+┌─────────────────────────────────────────────────┐
+│ 9. window.dispatchEvent('auth-state-changed')   │
+│    (notifies other tabs/components)             │
+└──────────┬──────────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────────────────┐
+│ 10. ProtectedRoute detects isAuthenticated=false│
+│     and redirects to / (no remounting!)         │
+└─────────────────────────────────────────────────┘
 ```
 
 **Critical Logout Order:**
 
 | Step | Action | Reason |
 |------|--------|--------|
-| 1 | Flag explicit logout | Prevents transient state confusion |
+| 1 | Flag explicit logout FIRST | Prevents race conditions with WebSocket effect |
 | 2 | Disable queries | Prevents new requests |
 | 3 | Cancel in-flight requests | Clean pending work |
 | 4 | Disconnect WebSocket | Prevent reconnection attempts |
 | 5 | Clear project selection | Clean user data |
 | 6 | Clear tokens | Remove auth credentials |
 | 7 | Clear cache | Remove all stale data |
-| 8 | Dispatch event | Notify other tabs/components |
+| 8 | Clear persisted cache | Remove offline cache |
+| 9 | Dispatch event | Notify other tabs/components |
+| 10 | ProtectedRoute redirects | No remounting - preserves console logs |
+
+**Preventing Unexpected Logouts:**
+
+1. **Only logout on 401 errors** - Network errors or other non-401 errors should NOT trigger logout
+2. **Use proper logout flow** - Always call `AuthContext.logout()`, never `logoutService()` directly
+3. **No redirects in apiClient** - Let ProtectedRoute handle navigation to prevent remounting
+4. **Set explicitLogoutRef FIRST** - Prevents race conditions where WebSocket effect checks before flag is set
+5. **Preserve console logs** - No remounting allows debugging logout issues
+
+**Token Refresh Failure Flow:**
+
+**CRITICAL: Only 401 errors trigger logout. All other errors preserve auth state.**
+
+When token refresh fails in `apiClient.ts` (lines 257-340):
+
+**Case 1: 401 Error (Refresh Token Expired)**
+```
+1. Refresh API call fails with 401
+2. Check: is401 = refreshError?.response?.status === 401 ✅
+3. clearAccessToken() - removes tokens from memory + localStorage
+4. Dispatch 'auth-state-changed' event
+5. AuthContext.handleAuthStateChange() detects tokens cleared
+6. Sets explicitLogoutRef.current = true FIRST (before state changes)
+7. Sets isAuthenticated = false
+8. WebSocket effect detects explicitLogoutRef and disconnects
+9. ProtectedRoute redirects to '/' (no remounting)
+```
+
+**Case 2: Non-401 Error (Network, Timeout, 500, etc.)**
+```
+1. Refresh API call fails with network error/timeout/500
+2. Check: is401 = false ❌
+3. Keep tokens in localStorage (refresh token cookie still valid!)
+4. Log warning: "Refresh failed with non-401 error, keeping tokens for retry"
+5. Return error to caller
+6. Auth state preserved - user stays logged in
+7. User retries request when network/server recovers
+8. Refresh succeeds on retry ✅
+```
+
+**Why This Matters:**
+
+- **Old behavior:** ANY refresh failure (network, timeout, 500) logged user out
+- **New behavior:** Only refresh token expiration (401) logs user out
+- **Impact:** Users with slow/unreliable networks stay logged in instead of being repeatedly logged out
+
+**Related Code:**
+- `apiClient.ts:128-139` - refreshToken() function checks 401 before clearing
+- `apiClient.ts:280-340` - Response interceptor checks 401 before clearing and dispatching event
 
 ### 4. Mobile Token Refresh (Background/Locked Screen)
 

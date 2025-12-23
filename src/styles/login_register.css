@@ -52,8 +52,11 @@ html, body {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .background {
+  .background,
+  .login-register-page .background {
     padding: var(--space-3) !important;
+    min-height: 100dvh !important; /* Use dynamic viewport height for mobile */
+    height: 100dvh !important;
   }
   
   .container {
@@ -64,36 +67,51 @@ html, body {
 }
 
 @media (max-width: 480px) {
-  .background {
+  .background,
+  .login-register-page .background {
     padding: var(--space-2) !important;
+    min-height: 100dvh !important; /* Use dynamic viewport height for mobile */
+    height: 100dvh !important;
+    width: 100% !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
   }
   
   .container {
-    width: 100% !important; /* Full width on mobile */
+    width: calc(100% - var(--space-4)) !important; /* Symmetric width with padding */
     padding: var(--space-4) !important; /* Consistent padding */
     min-width: auto !important; /* Remove min-width constraint */
-    margin: 0 var(--space-2) !important; /* Add horizontal margin for breathing room */
-    max-width: calc(100% - var(--space-4)) !important; /* Ensure it doesn't overflow */
+    margin: 0 auto !important; /* Keep centered */
+    max-width: calc(100% - var(--space-4)) !important; /* Symmetric max-width */
   }
   
   .logo-container {
+    margin-top: calc(var(--space-10) * 2) !important;
     margin-bottom: var(--space-4) !important;
   }
 }
 
 /* iPhone-specific adjustments */
 @media (max-width: 375px) {
-  .background {
+  .background,
+  .login-register-page .background {
     padding: var(--space-1) !important;
+    min-height: 100dvh !important; /* Use dynamic viewport height for mobile */
+    height: 100dvh !important;
   }
   
   .container {
     padding: var(--space-3) !important;
-    margin: 0 var(--space-1) !important;
-    max-width: calc(100% - var(--space-2)) !important;
+    width: calc(100% - var(--space-2)) !important; /* Symmetric width */
+    margin: 0 auto !important; /* Keep centered */
+    max-width: calc(100% - var(--space-2)) !important; /* Symmetric max-width */
   }
   
   .logo-container {
+    margin-top: calc(var(--space-10) * 2) !important;
     margin-bottom: var(--space-3) !important;
   }
   
@@ -111,6 +129,7 @@ html, body {
   display: flex !important; 
   align-items: center !important; 
   justify-content: center !important; 
+  margin-top: calc(var(--space-16) * 2) !important;
   margin-bottom: var(--space-6) !important;
   width: 100% !important;
   max-width: 100% !important;
@@ -165,15 +184,18 @@ html, body {
   box-sizing: border-box !important;
   position: relative !important;
   z-index: 10 !important;
+  /* Ensure symmetric resizing */
+  flex-shrink: 1 !important;
+  flex-grow: 0 !important;
 }
 
 /* Mobile-first container adjustments */
 @media (max-width: 600px) {
   .container {
     min-width: auto !important; /* Remove min-width constraint */
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 var(--space-2) !important;
+    width: calc(100% - var(--space-4)) !important; /* Symmetric padding from parent */
+    max-width: calc(100% - var(--space-4)) !important;
+    margin: 0 auto !important; /* Keep centered */
     padding: var(--space-4) !important;
     padding-bottom: var(--space-6) !important;
   }
@@ -219,7 +241,7 @@ html, body {
 .inputs-section {
   display: flex !important;
   flex-direction: column !important;
-  gap: var(--space-4) !important;
+  gap: var(--space-1) !important;
   width: 100% !important;
   margin-bottom: var(--space-4) !important;
 }
@@ -332,11 +354,21 @@ img.input-icon {
   margin-left: var(--space-1) !important;
 }
 
+/* Login Options Container - Forgot Password and Remember Me side by side */
+.login-options-container {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-top: var(--space-2) !important;
+  margin-bottom: var(--space-2) !important;
+}
+
 .forgot-password {
   text-align: left !important;
-  margin-top: var(--space-2) !important;
   font-size: var(--font-size-sm) !important;
   color: var(--text-tertiary) !important;
+  flex: 0 0 auto !important;
 }
 
 .forgot-password span {
@@ -453,12 +485,13 @@ img.input-icon {
   font-size: var(--font-size-sm) !important;
 }
 
-/* Remember Me Checkbox */
+/* Remember Me Checkbox - Apple Minimalist Style */
 .remember-me-container {
-  margin: var(--space-3) 0 !important;
+  margin: 0 !important;
   display: flex !important;
   align-items: center !important;
-  justify-content: flex-start !important;
+  justify-content: flex-end !important;
+  flex: 0 0 auto !important;
 }
 
 .remember-me-label {
@@ -466,21 +499,71 @@ img.input-icon {
   align-items: center !important;
   cursor: pointer !important;
   user-select: none !important;
-  font-size: var(--font-size-sm) !important;
-  color: var(--text-primary) !important;
+  gap: var(--space-3) !important;
+}
+
+.remember-me-checkbox-wrapper {
+  position: relative !important;
+  display: inline-block !important;
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0 !important;
 }
 
 .remember-me-checkbox {
-  margin-right: var(--space-2) !important;
-  width: 18px !important;
-  height: 18px !important;
+  position: absolute !important;
+  opacity: 0 !important;
   cursor: pointer !important;
-  accent-color: var(--gold) !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  z-index: 2 !important;
+}
+
+.remember-me-checkmark {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+  border: 1.5px solid var(--text-tertiary) !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  transition: all var(--transition-fast) ease !important;
+  box-sizing: border-box !important;
+}
+
+.remember-me-checkbox:checked ~ .remember-me-checkmark {
+  background: var(--gold) !important;
+  border-color: var(--gold) !important;
+}
+
+.remember-me-checkmark::after {
+  content: '' !important;
+  position: absolute !important;
+  display: none !important;
+  left: 6px !important;
+  top: 2px !important;
+  width: 5px !important;
+  height: 10px !important;
+  border: solid var(--white) !important;
+  border-width: 0 2px 2px 0 !important;
+  transform: rotate(45deg) !important;
+}
+
+.remember-me-checkbox:checked ~ .remember-me-checkmark::after {
+  display: block !important;
+}
+
+.remember-me-label:hover .remember-me-checkmark {
+  border-color: var(--gold) !important;
 }
 
 .remember-me-text {
   font-size: var(--font-size-sm) !important;
   color: var(--text-secondary) !important;
+  font-weight: var(--font-weight-normal) !important;
+  letter-spacing: -0.01em !important;
 }
 
 /* Google OAuth Button */
@@ -509,43 +592,59 @@ img.input-icon {
   font-size: var(--font-size-sm) !important;
 }
 
-.google-oauth-button {
+/* Google OAuth Button - Apple Minimalist Style - Scoped to Login Register Page */
+.login-register-page .google-oauth-button {
   width: 100% !important;
   padding: var(--space-3) var(--space-4) !important;
-  background: #ffffff !important;
-  border: 1px solid #dadce0 !important;
+  background: var(--white) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
   border-radius: var(--border-radius) !important;
-  color: #3c4043 !important;
-  font-size: var(--font-size-base) !important;
-  font-weight: 500 !important;
+  color: var(--black) !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-medium) !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: var(--space-2) !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  gap: var(--space-3) !important;
+  transition: all var(--transition-fast) ease !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  letter-spacing: -0.01em !important;
+  /* Reset any global button styles */
+  margin: 0 !important;
+  line-height: 1.5 !important;
+  text-decoration: none !important;
+  font-family: var(--primary-font) !important;
 }
 
-.google-oauth-button:hover:not(:disabled) {
-  background: #f8f9fa !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
-  transform: translateY(-1px) !important;
+/* Ensure text inside button is dark */
+.login-register-page .google-oauth-button,
+.login-register-page .google-oauth-button span {
+  color: var(--black) !important;
 }
 
-.google-oauth-button:active:not(:disabled) {
+.login-register-page .google-oauth-button:hover:not(:disabled) {
+  background: var(--white) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+  transform: translateY(-0.5px) !important;
+}
+
+.login-register-page .google-oauth-button:active:not(:disabled) {
   transform: translateY(0) !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  background: var(--bg-secondary) !important;
 }
 
-.google-oauth-button:disabled {
-  opacity: 0.6 !important;
+.login-register-page .google-oauth-button:disabled {
+  opacity: 0.5 !important;
   cursor: not-allowed !important;
+  transform: none !important;
 }
 
-.oauth-button-icon {
-  width: 20px !important;
-  height: 20px !important;
+.login-register-page .oauth-button-icon {
+  width: 18px !important;
+  height: 18px !important;
   flex-shrink: 0 !important;
 }
 

@@ -71,7 +71,7 @@ Feature PRDs and implementation plans:
 
 ### For Understanding Authentication
 
-1. Read **[Authentication Architecture](./System/authentication_architecture.md)** for complete auth flows
+1. Read **[Authentication Architecture](./System/authentication_architecture.md)** for complete auth flows ⚠️ **Updated 2025-12-23** with critical logout fixes
 2. Review **[Risk Analysis](./System/risk_analysis.md)** for critical areas to avoid breaking
 3. Check **[File Reference](./System/file_reference.md)** for auth-related file locations
 

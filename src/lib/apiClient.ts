@@ -125,8 +125,16 @@ export const refreshToken = async (): Promise<string | null> => {
     
     throw new Error('Refresh token response missing token');
   } catch (error) {
-    // Refresh failed - clear auth and let caller handle redirect
-    clearAccessToken();
+    // CRITICAL: Only clear tokens on 401 (refresh token expired)
+    // Network errors, 500s, timeouts should NOT clear tokens
+    // The refresh token cookie might still be valid - let the user retry
+    const is401 = (error as any)?.response?.status === 401;
+    if (is401) {
+      console.log('⚠️ Refresh token expired (401), clearing auth');
+      clearAccessToken();
+    } else {
+      console.warn('⚠️ Refresh failed with non-401 error, keeping tokens for retry:', error);
+    }
     throw error;
   }
 };
@@ -269,23 +277,63 @@ api.interceptors.response.use(
         // Retry original request with new token
         return api(originalRequest);
       } catch (refreshError: any) {
-        // Refresh failed - user needs to log in again
+        // Refresh failed - check if it's a 401 (refresh token expired) or other error
         processQueue(refreshError, null);
-        
-        // Clear auth state
-        clearAccessToken();
-        
-        // Dispatch event to notify AuthContext of auth state change
-        // This allows components to reactively update when auth is cleared
-        window.dispatchEvent(new Event('auth-state-changed'));
-        
-        // Redirect to login if not already there
-        if (window.location.pathname !== '/') {
-          window.location.href = '/';
+
+        // CRITICAL: Only clear tokens and trigger logout on 401
+        // Network errors, 500s, timeouts should NOT trigger logout
+        // The refresh token cookie might still be valid - let the user retry
+        const is401 = refreshError?.response?.status === 401;
+
+        if (is401) {
+          // Refresh token expired (7 days passed) or invalidated
+          // This is a real authentication failure - clear tokens and trigger logout
+          console.log('⚠️ Refresh token expired (401), triggering logout');
+
+          // Clear auth state - removes tokens from memory and localStorage
+          clearAccessToken();
+
+          /**
+           * Dispatch 'auth-state-changed' Event
+           *
+           * This event notifies AuthContext that tokens have been cleared due to refresh token expiration.
+           *
+           * Event Flow:
+           * 1. This interceptor clears tokens and dispatches event
+           * 2. AuthContext.handleAuthStateChange() listens for this event
+           * 3. Handler detects tokens cleared, sets explicitLogoutRef.current = true
+           * 4. Handler sets isAuthenticated = false
+           * 5. WebSocket effect detects explicitLogoutRef and disconnects WebSocket
+           *
+           * Why dispatch event instead of calling logout() directly?
+           * - Keeps separation of concerns (apiClient doesn't know about AuthContext)
+           * - Allows other components to listen for auth state changes
+           * - Enables cross-tab synchronization via storage events
+           *
+           * CRITICAL: Do NOT redirect here - let AuthContext handle navigation
+           * Redirecting causes page remount which loses console logs and breaks debugging
+           * AuthContext will handle navigation through ProtectedRoute components
+           *
+           * Related Documentation:
+           * - .agent/System/authentication_architecture.md - Token refresh flow (section 2)
+           * - .agent/System/authentication_architecture.md - Auth state change handler (section 6)
+           * - src/contexts/AuthContext.tsx - handleAuthStateChange() function
+           */
+          window.dispatchEvent(new Event('auth-state-changed'));
+
+          // DO NOT redirect here - causes remounting and loses console logs
+          // Let AuthContext and ProtectedRoute handle navigation naturally
+          // This preserves console logs for debugging logout issues
+        } else {
+          // Network error, timeout, 500, etc - NOT a token expiration
+          // Keep tokens and auth state - refresh token might still be valid
+          // User can retry when network/server recovers
+          console.warn('⚠️ Refresh failed with non-401 error, keeping tokens for retry:', refreshError);
         }
-        
+
         // Return the original 401 error with all its properties preserved
         // This ensures url, status, response, config are all maintained
+        // The calling code can handle the error appropriately
         return Promise.reject(error);
       } finally {
         isRefreshing = false;
