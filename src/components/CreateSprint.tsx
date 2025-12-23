@@ -266,12 +266,6 @@ const CreateSprint: React.FC = () => {
           >
             {createSprintMutation.isPending ? "Creating..." : "Create Sprint"}
           </button>
-          <button 
-            onClick={() => navigate("/backlog")} 
-            className="cancel-btn"
-          >
-            Cancel
-          </button>
         </div>
       </div>
     </div>

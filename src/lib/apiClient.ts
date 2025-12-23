@@ -228,18 +228,15 @@ export const clearAccessToken = (): void => {
  * Returns new access token: { "token": "...", "userID": "..." }
  * Note: Uses axios directly (not api instance) to avoid interceptor loops
  *
- * iOS Safari Fix:
- * On iOS Safari, after a page is reloaded from background, the first request
- * sometimes doesn't include HttpOnly cookies properly. This is a known iOS bug.
- * We implement a retry mechanism with a short delay to handle this case.
+ * Includes retry logic for transient failures (network errors, temporary cookie attachment issues)
  *
  * @param retryCount - Internal parameter for retry logic (default 0)
  */
 export const refreshToken = async (retryCount: number = 0): Promise<string | null> => {
-  const MAX_RETRIES = 3; // Retry up to 3 times for iOS Safari cookie issues
-  const RETRY_DELAY = 150; // Wait 150ms before retry (give Safari time to attach cookies)
+  const MAX_RETRIES = 3; // Retry up to 3 times for transient network errors
+  const RETRY_DELAY = 150; // Wait 150ms before retry (exponential backoff)
 
-  // Log attempt for debugging iOS Safari issues
+  // Log attempt for debugging
   if (retryCount === 0) {
     console.log('🔄 Starting token refresh (attempt 1)');
   }
@@ -288,12 +285,10 @@ export const refreshToken = async (retryCount: number = 0): Promise<string | nul
       retryCount
     });
 
-    // iOS Safari Cookie Fix:
-    // If we get a 401 on the first attempt, retry ONCE after a short delay.
-    // iOS Safari sometimes doesn't attach HttpOnly cookies on the first request
-    // after page reload. If we get 401 again after the retry, the refresh token
-    // is legitimately expired - don't retry further.
-    // Also retry on network errors (status undefined) as these might be transient.
+    // Retry logic for transient failures:
+    // - Network errors (status undefined): Retry up to MAX_RETRIES with exponential backoff
+    // - 401 errors: Retry once (could be transient cookie attachment issue on any browser)
+    //   If 401 persists after retry, the refresh token is legitimately expired
     const isNetworkError = status === undefined;
     const shouldRetry401 = is401 && retryCount === 0; // Only retry 401 once (first attempt only)
     const shouldRetryNetwork = isNetworkError && retryCount < MAX_RETRIES; // Retry network errors up to MAX_RETRIES
@@ -301,9 +296,9 @@ export const refreshToken = async (retryCount: number = 0): Promise<string | nul
 
     if (shouldRetry) {
       // Exponential backoff: 150ms, 300ms, 600ms for network errors
-      // For 401 errors, use 150ms delay (single retry for iOS Safari cookie fix)
+      // For 401 errors, use 150ms delay (single retry for transient failures)
       const delay = RETRY_DELAY * Math.pow(2, retryCount);
-      const retryType = is401 ? 'iOS Safari cookie fix' : 'network error';
+      const retryType = is401 ? 'transient failure' : 'network error';
       const maxAttempts = is401 ? 2 : MAX_RETRIES + 1; // 401 gets 2 attempts total, network errors get MAX_RETRIES + 1
       console.log(`⏳ Refresh token retry ${retryCount + 2}/${maxAttempts} in ${delay}ms (${retryType})...`);
       await new Promise(resolve => setTimeout(resolve, delay));
@@ -311,7 +306,7 @@ export const refreshToken = async (retryCount: number = 0): Promise<string | nul
     }
 
     // CRITICAL: Only clear tokens on 401 after retries exhausted
-    // For 401 errors: Only retry once (iOS Safari cookie fix), then clear if still 401
+    // For 401 errors: Retry once (transient failure), then clear if still 401
     // Network errors, 500s, timeouts should NOT clear tokens
     // The refresh token cookie might still be valid - let the user retry
     if (is401) {
@@ -433,7 +428,7 @@ api.interceptors.response.use(
 
       // CRITICAL: Check if auth initialization is in progress
       // If so, wait for it to complete instead of starting a new refresh
-      // This prevents race conditions during app startup on iOS Safari
+      // This prevents race conditions during app startup
       const initPromise = authInitializationPromise;
       if (initPromise) {
         console.log('🔄 401 received, waiting for initialization refresh to complete...');

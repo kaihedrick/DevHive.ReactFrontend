@@ -565,6 +565,10 @@ body {
 
 .form-group {
   margin-bottom: var(--space-6) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  position: relative !important;
 }
 
 .form-label {
@@ -579,6 +583,7 @@ body {
 
 .form-input {
   width: 100% !important;
+  max-width: 100% !important;
   padding: var(--space-4) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: 12px !important;
@@ -588,6 +593,26 @@ body {
   font-weight: var(--font-weight-normal) !important;
   transition: all 0.2s ease !important;
   outline: none !important;
+  box-sizing: border-box !important;
+}
+
+/* Fix iOS date inputs extending beyond container */
+.form-input[type="date"] {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* iOS Safari specific fix for date inputs */
+@supports (-webkit-touch-callout: none) {
+  .form-input[type="date"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
 }
 
 .form-input:focus {

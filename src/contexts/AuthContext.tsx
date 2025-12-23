@@ -4,7 +4,7 @@ import { login as loginService, logout as logoutService, refreshToken as refresh
 import { LoginModel } from '../models/user.ts';
 import { cacheInvalidationService } from '../services/cacheInvalidationService.ts';
 import { getSelectedProject, clearSelectedProject } from '../services/storageService';
-import { isTokenExpired, setIsRefreshing, setAuthInitializationPromise, getAccessToken } from '../lib/apiClient.ts';
+import { isTokenExpired, setIsRefreshing, setAuthInitializationPromise, getAccessToken, getIsRefreshing } from '../lib/apiClient.ts';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -90,7 +90,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           tokenExpiration: localStorage.getItem('tokenExpiration')
         });
 
-        if (hasToken && storedUserId) {
+        // CRITICAL: Attempt refresh if we have userId, even if access token is missing/expired
+        // The refresh endpoint only checks the refresh token cookie (HTTP-only, stored by backend).
+        // If user selected "Remember Me", the refresh token cookie persists for 30 days.
+        // If they didn't, it's a session cookie (expires when browser closes).
+        // Either way, we should attempt refresh - the backend will tell us if the refresh token is invalid.
+        if (storedUserId) {
           // CRITICAL: Always attempt refresh on initialization if we have credentials
           // The refresh endpoint only checks the refresh token cookie, not the access token.
           // Even if the access token appears expired, the refresh token cookie might still be
@@ -102,15 +107,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log('⚠️ Access token expired, attempting refresh');
           } else {
             console.log('🔄 Access token appears valid, but refreshing anyway to ensure fresh token');
-          }
-
-          // iOS Safari Fix: Add a small initial delay on page load
-          // Safari sometimes needs a moment to attach HttpOnly cookies after page reload
-          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-          const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-          if (isIOS || isSafari) {
-            console.log('📱 iOS/Safari detected, adding 100ms delay before refresh...');
-            await new Promise(resolve => setTimeout(resolve, 100));
           }
 
           // CRITICAL: Set isRefreshing flag and promise BEFORE refresh
@@ -295,15 +291,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // When page becomes visible again, check and refresh token if needed
     // CRITICAL: Check for token existence, not isAuthenticated state
     // (isAuthenticated might be false if token expired while in background)
+    // Debounce rapid visibility changes to prevent multiple concurrent refresh attempts
+    const VISIBILITY_REFRESH_DEBOUNCE = 2000; // Wait 2 seconds between visibility-triggered refreshes
+    let visibilityRefreshTimeout: NodeJS.Timeout | null = null;
+    let lastVisibilityRefresh = 0;
+
     const handleVisibilityChange = async () => {
       // Only check if page is visible
       if (document.visibilityState === 'visible') {
-        const storedUserId = getUserId();
-        const hasToken = !!localStorage.getItem('token');
+        // Clear any pending timeout
+        if (visibilityRefreshTimeout) {
+          clearTimeout(visibilityRefreshTimeout);
+          visibilityRefreshTimeout = null;
+        }
 
-        // Check for token existence (not isAuthenticated state)
-        // This ensures we refresh even if token expired while in background
-        if (hasToken && storedUserId) {
+        const storedUserId = getUserId();
+
+        // CRITICAL: Attempt refresh if we have userId, even if access token is missing/expired
+        // The refresh endpoint only checks the refresh token cookie (HTTP-only, stored by backend).
+        // The refresh token cookie may still be valid even if the access token is missing/expired.
+        if (storedUserId) {
+          // Debounce rapid visibility changes (common when switching apps or locking/unlocking screen)
+          const now = Date.now();
+          const timeSinceLastRefresh = now - lastVisibilityRefresh;
+          
+          // If refresh happened recently, debounce it
+          if (timeSinceLastRefresh < VISIBILITY_REFRESH_DEBOUNCE) {
+            console.log(`📱 Visibility change debounced (${timeSinceLastRefresh}ms since last refresh)`);
+            visibilityRefreshTimeout = setTimeout(() => {
+              handleVisibilityChange();
+            }, VISIBILITY_REFRESH_DEBOUNCE - timeSinceLastRefresh);
+            return;
+          }
+
+          // Check if refresh is already in progress (prevents concurrent refreshes)
+          if (getIsRefreshing()) {
+            console.log('📱 Refresh already in progress, skipping visibility-triggered refresh');
+            return;
+          }
+
           // CRITICAL: Always attempt refresh when page becomes visible if we have credentials
           // The refresh endpoint only checks the refresh token cookie, not the access token.
           // Even if the access token appears expired, the refresh token cookie might still be
@@ -317,14 +343,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log('📱 Page visible: Refreshing token to ensure fresh credentials...');
           }
 
-          // iOS Safari Fix: Add a small delay before refresh
-          // Safari sometimes needs a moment to attach HttpOnly cookies after returning from background
-          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-          const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-          if (isIOS || isSafari) {
-            console.log('📱 iOS/Safari detected, adding 100ms delay before refresh...');
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
+          // Update last refresh time
+          lastVisibilityRefresh = Date.now();
 
           // CRITICAL: Set isRefreshing flag and promise for visibility refresh
           // This coordinates with the response interceptor to prevent concurrent refreshes
@@ -369,7 +389,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               console.error('❌ Unexpected error during token refresh on visibility change:', error);
               // Network errors or other non-401 errors should NOT cause logout
               // Token might still be valid, just couldn't refresh due to network issue
+              // CRITICAL: Still set authenticated state to true - token is likely still valid
               console.log('⚠️ Non-401 error during refresh, keeping auth state (token may still be valid)');
+              setIsAuthenticated(true);
+              setUserId(storedUserId);
             }
           }
         }
@@ -394,9 +417,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Only check if page is visible (don't waste battery when in background)
       if (document.visibilityState === 'visible') {
         const storedUserId = getUserId();
-        const hasToken = !!localStorage.getItem('token');
         
-        if (hasToken && storedUserId) {
+        // CRITICAL: Attempt refresh if we have userId, even if access token is missing/expired
+        // The refresh endpoint only checks the refresh token cookie (HTTP-only, stored by backend).
+        if (storedUserId) {
           // CRITICAL: Always attempt refresh during periodic check if token is expired
           // For non-expired tokens, refresh proactively if they expire within 10 minutes
           // The refresh endpoint only checks the refresh token cookie, so we should refresh
@@ -461,6 +485,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
       clearInterval(tokenRefreshInterval);
+      // Cleanup: Clear any pending visibility refresh timeout
+      if (visibilityRefreshTimeout) {
+        clearTimeout(visibilityRefreshTimeout);
+        visibilityRefreshTimeout = null;
+      }
     };
   }, []); // Empty deps - only runs once on mount, handlers check state dynamically
 
