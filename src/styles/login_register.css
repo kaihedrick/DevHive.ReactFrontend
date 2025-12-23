@@ -452,3 +452,124 @@ img.input-icon {
   line-height: 1.5 !important;
   font-size: var(--font-size-sm) !important;
 }
+
+/* Remember Me Checkbox */
+.remember-me-container {
+  margin: var(--space-3) 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+.remember-me-label {
+  display: flex !important;
+  align-items: center !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  font-size: var(--font-size-sm) !important;
+  color: var(--text-primary) !important;
+}
+
+.remember-me-checkbox {
+  margin-right: var(--space-2) !important;
+  width: 18px !important;
+  height: 18px !important;
+  cursor: pointer !important;
+  accent-color: var(--gold) !important;
+}
+
+.remember-me-text {
+  font-size: var(--font-size-sm) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Google OAuth Button */
+.oauth-container {
+  margin-top: var(--space-4) !important;
+  width: 100% !important;
+}
+
+.oauth-divider {
+  display: flex !important;
+  align-items: center !important;
+  text-align: center !important;
+  margin: var(--space-4) 0 !important;
+}
+
+.oauth-divider::before,
+.oauth-divider::after {
+  content: '' !important;
+  flex: 1 !important;
+  border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.1)) !important;
+}
+
+.oauth-divider-text {
+  padding: 0 var(--space-3) !important;
+  color: var(--text-tertiary) !important;
+  font-size: var(--font-size-sm) !important;
+}
+
+.google-oauth-button {
+  width: 100% !important;
+  padding: var(--space-3) var(--space-4) !important;
+  background: #ffffff !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: var(--border-radius) !important;
+  color: #3c4043 !important;
+  font-size: var(--font-size-base) !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: var(--space-2) !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+.google-oauth-button:hover:not(:disabled) {
+  background: #f8f9fa !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-1px) !important;
+}
+
+.google-oauth-button:active:not(:disabled) {
+  transform: translateY(0) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+.google-oauth-button:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+.oauth-button-icon {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0 !important;
+}
+
+/* OAuth Callback Loading/Error States */
+.oauth-callback-loading,
+.oauth-callback-error {
+  text-align: center !important;
+  padding: var(--space-4) !important;
+}
+
+.oauth-callback-loading .loading-icon {
+  font-size: 2rem !important;
+  color: var(--gold) !important;
+  margin-bottom: var(--space-3) !important;
+}
+
+.oauth-callback-loading p {
+  color: var(--text-secondary) !important;
+  font-size: var(--font-size-base) !important;
+  margin-top: var(--space-2) !important;
+}
+
+.oauth-callback-error .error-hint {
+  color: var(--text-tertiary) !important;
+  font-size: var(--font-size-sm) !important;
+  margin-top: var(--space-2) !important;
+}

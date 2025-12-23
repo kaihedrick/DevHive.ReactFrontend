@@ -71,3 +71,26 @@ src/
 ├── utils/           # Utility functions and helpers
 ├── assets/          # Static files (images, CSS, etc.)
 └── App.js           # Main application component
+```
+
+---
+
+## 📚 Documentation
+
+Comprehensive documentation for the DevHive React Frontend is available in the [`.agent/`](./.agent/) directory.
+
+### Quick Links
+
+- **[Documentation Index](./.agent/README.md)** - Complete documentation index and navigation
+- **[Project Architecture](./.agent/System/project_architecture.md)** - System architecture overview
+- **[Development Workflow](./.agent/SOP/development_workflow.md)** - Common development procedures
+- **[Environment Setup](./.agent/SOP/environment_setup.md)** - Development environment setup
+- **[Google OAuth Troubleshooting](./GOOGLE_OAUTH_TROUBLESHOOTING.md)** - Troubleshooting Google OAuth issues
+
+### Documentation Structure
+
+- **System/** - Architecture, design, and technical documentation
+- **SOP/** - Standard Operating Procedures for development tasks
+- **Tasks/** - Feature PRDs and implementation plans
+
+For a complete list of all documentation, see the [Documentation Index](./.agent/README.md).

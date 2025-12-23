@@ -27,6 +27,7 @@ const CreateTask = lazy(() => import('./CreateTask.tsx'));
 const EditSprint = lazy(() => import('./EditSprint.tsx'));
 const EditTask = lazy(() => import('./EditTask.tsx'));
 const ResetPassword = lazy(() => import('./ResetPassword.tsx'));
+const GoogleOAuthCallback = lazy(() => import('./GoogleOAuthCallback.tsx'));
 
 /**
  * AppContent - Main application content with routing
@@ -116,6 +117,7 @@ function AppContent() {
               <Route path="/invite/:token" element={<InviteAcceptPage />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
+              <Route path="/auth/callback" element={<GoogleOAuthCallback />} />
 
               <Route path="/project-details" element={<ProtectedRoute><ProjectDetails /></ProtectedRoute>} />
               <Route path="/invite" element={<ProtectedRoute><InviteMembers /></ProtectedRoute>} />

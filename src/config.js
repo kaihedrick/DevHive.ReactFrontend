@@ -81,6 +81,9 @@ export const ENDPOINTS = {
   AUTH_REFRESH: `${API_BASE_URL}/auth/refresh`, // Currently returns 400 "not implemented"
   AUTH_PASSWORD_RESET_REQUEST: `${API_BASE_URL}/auth/password/reset-request`,
   AUTH_PASSWORD_RESET: `${API_BASE_URL}/auth/password/reset`,
+  // Google OAuth endpoints
+  AUTH_GOOGLE_LOGIN: `${API_BASE_URL}/auth/google/login`,
+  AUTH_GOOGLE_CALLBACK: `${API_BASE_URL}/auth/google/callback`,
   
   // User endpoints
   USERS: `${API_BASE_URL}/users`, // POST for registration

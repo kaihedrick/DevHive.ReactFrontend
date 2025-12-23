@@ -337,12 +337,72 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, [isAuthenticated, validateProjectIdFromCache]);
 
+  // Listen for same-tab project selection changes (via 'project-changed' custom event)
+  // This ensures WebSocket reconnects when a project is selected after OAuth login
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const handleProjectChange = async (e: Event) => {
+      const customEvent = e as CustomEvent<{ projectId: string | null }>;
+      const newProjectId = customEvent.detail?.projectId;
+      const oldProjectId = previousProjectIdRef.current;
+
+      console.log('📢 Project changed event received', { oldProjectId, newProjectId });
+
+      if (newProjectId !== oldProjectId) {
+        if (oldProjectId !== null) {
+          cacheInvalidationService.disconnect('Project changed (same-tab)');
+        }
+
+        // Validate new projectId before connecting (cache-only check)
+        const currentUserId = getUserId();
+        if (newProjectId && validateProjectIdFromCache(newProjectId)) {
+          previousProjectIdRef.current = newProjectId;
+          validatedProjectIdRef.current = newProjectId;
+          try {
+            console.log('🔌 Connecting WebSocket for new project:', newProjectId);
+            await cacheInvalidationService.connect(newProjectId);
+          } catch (error: any) {
+            // Handle 403 Forbidden - clear invalid projectId
+            if (error?.message?.includes('not authorized') || error?.message?.includes('Forbidden')) {
+              console.error('❌ Not authorized for project, clearing selection');
+              clearSelectedProject(currentUserId);
+              previousProjectIdRef.current = null;
+              validatedProjectIdRef.current = null;
+            }
+            console.error('❌ Failed to connect WebSocket:', error);
+          }
+        } else if (newProjectId) {
+          // Invalid projectId - clear it
+          console.warn('⚠️ Invalid projectId from project-changed event, clearing:', newProjectId);
+          clearSelectedProject(currentUserId);
+          previousProjectIdRef.current = null;
+          validatedProjectIdRef.current = null;
+        } else {
+          // Project cleared - disconnect WebSocket
+          console.log('🔌 Project cleared, disconnecting WebSocket');
+          cacheInvalidationService.disconnect('No project selected');
+          previousProjectIdRef.current = null;
+          validatedProjectIdRef.current = null;
+        }
+      }
+    };
+
+    window.addEventListener('project-changed', handleProjectChange as EventListener);
+
+    return () => {
+      window.removeEventListener('project-changed', handleProjectChange as EventListener);
+    };
+  }, [isAuthenticated, validateProjectIdFromCache]);
+
   // WebSocket maintains connection and handles cache invalidation
   // No need to invalidate on visibility change
 
   const login = useCallback(async (credentials: LoginModel | any): Promise<AuthToken> => {
     try {
-      const result = await loginService(credentials);
+      // Extract rememberMe if present, then pass credentials and rememberMe separately
+      const { rememberMe, ...loginCredentials } = credentials;
+      const result = await loginService(loginCredentials, rememberMe);
       // Ensure we have userId from the result
       const userId = result.userId || result.user_id || localStorage.getItem('userId');
       setIsAuthenticated(true);
@@ -386,7 +446,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // 6. Clear all cached queries (after canceling in-flight ones)
     queryClient.clear();
-    
+
+    // CRITICAL: Also clear the persisted React Query cache from localStorage
+    localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE');
+
     // 7. Reset token expiration log flag
     if ((window as any).__tokenExpiredLogged) {
       delete (window as any).__tokenExpiredLogged;

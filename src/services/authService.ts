@@ -41,6 +41,7 @@ export const storeAuthData = (token: string, userId: string): void => {
 export const clearAuthData = (): void => {
   // Clear from memory via apiClient (also clears localStorage)
   clearAccessToken();
+  localStorage.removeItem('userId');  // Clear userId to prevent stale user detection
   localStorage.removeItem('selectedProjectId');
 };
 
@@ -149,18 +150,24 @@ export const validateUsername = async (username: string, currentUsername?: strin
 /**
  * @function login
  * @param {LoginModel} credentials - User login credentials.
+ * @param {boolean} [rememberMe] - Optional "Remember Me" flag for persistent login.
  * @returns {Promise<AuthToken>} Auth token and user ID if successful.
  */
-export const login = async (credentials: LoginModel | any): Promise<AuthToken> => {
+export const login = async (credentials: LoginModel | any, rememberMe?: boolean): Promise<AuthToken> => {
   try {
-    // Backend expects only username and password (per API spec: POST /auth/login with { "username", "password" })
+    // Backend expects username, password, and optional rememberMe
     // Handle both capitalized (Username/Password) and lowercase (username/password) field names
-    const loginData = {
+    const loginData: any = {
       username: credentials.username || credentials.Username,
       password: credentials.password || credentials.Password
     };
     
-    console.log('🔐 Attempting login with:', { username: loginData.username, password: '***' });
+    // Add rememberMe if provided
+    if (rememberMe !== undefined) {
+      loginData.rememberMe = rememberMe;
+    }
+    
+    console.log('🔐 Attempting login with:', { username: loginData.username, password: '***', rememberMe });
     const response = await api.post(ENDPOINTS.AUTH_LOGIN, loginData);
     const { Token, userId, token } = response.data; // Handle both Token and token (case variations)
 
@@ -168,7 +175,7 @@ export const login = async (credentials: LoginModel | any): Promise<AuthToken> =
     if (authToken && userId) {
       storeAuthData(authToken, userId);
       console.log('✅ Login successful');
-      // Refresh token is stored as HttpOnly cookie by backend, no action needed here
+      // Refresh token is stored as HttpOnly cookie by backend with appropriate MaxAge based on rememberMe
     } else {
       console.warn('⚠️ Login response missing token or userId:', response.data);
     }
@@ -176,6 +183,111 @@ export const login = async (credentials: LoginModel | any): Promise<AuthToken> =
   } catch (error) {
     console.error('❌ Login error:', error);
     throw handleApiError(error, 'logging in');
+  }
+};
+
+/**
+ * @function initiateGoogleOAuth
+ * Initiates Google OAuth 2.0 login flow by getting authorization URL from backend.
+ * @param {boolean} [rememberMe] - Optional "Remember Me" flag for persistent login.
+ * @param {string} [redirectUrl] - Optional frontend URL to redirect after successful auth.
+ * @returns {Promise<{authUrl: string, state: string}>} Authorization URL and state token.
+ */
+export const initiateGoogleOAuth = async (
+  rememberMe: boolean = false, 
+  redirectUrl?: string
+): Promise<{authUrl: string, state: string}> => {
+  try {
+    const params: any = {
+      remember_me: rememberMe
+    };
+    
+    if (redirectUrl) {
+      params.redirect = redirectUrl;
+    }
+    
+    console.log('🔐 Initiating Google OAuth with:', { rememberMe, redirectUrl });
+    const response = await api.get(ENDPOINTS.AUTH_GOOGLE_LOGIN, { params });
+    
+    if (response.data?.authUrl && response.data?.state) {
+      console.log('✅ Google OAuth URL received');
+      return {
+        authUrl: response.data.authUrl,
+        state: response.data.state
+      };
+    } else {
+      throw new Error('Invalid OAuth response: missing authUrl or state');
+    }
+  } catch (error) {
+    console.error('❌ Google OAuth initiation error:', error);
+    throw handleApiError(error, 'initiating Google OAuth');
+  }
+};
+
+/**
+ * @interface GoogleOAuthCallbackResponse
+ * Response structure from Google OAuth callback endpoint
+ */
+export interface GoogleOAuthCallbackResponse {
+  token: string;
+  userId: string;
+  isNewUser?: boolean;
+  user?: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    profilePicture?: string;
+  };
+}
+
+/**
+ * @function handleGoogleOAuthCallback
+ * Handles Google OAuth callback by exchanging authorization code for tokens.
+ * @param {string} code - Authorization code from Google.
+ * @param {string} state - CSRF state token.
+ * @returns {Promise<GoogleOAuthCallbackResponse>} Auth token, user ID, and user info if successful.
+ */
+export const handleGoogleOAuthCallback = async (code: string, state: string): Promise<GoogleOAuthCallbackResponse> => {
+  try {
+    if (!code || !state) {
+      throw new Error('Missing authorization code or state token');
+    }
+    
+    console.log('🔐 Handling Google OAuth callback');
+    const response = await api.get(ENDPOINTS.AUTH_GOOGLE_CALLBACK, {
+      params: { code, state }
+    });
+    
+    // Handle both Token/token variations and userId/user_id
+    const { Token, userId, token, user_id, isNewUser, user } = response.data;
+    const authToken = Token || token;
+    const finalUserId = userId || user_id;
+    
+    if (authToken && finalUserId) {
+      // Store the access token (for API requests)
+      storeAuthData(authToken, finalUserId);
+      console.log('✅ Google OAuth login successful', { 
+        userId: finalUserId, 
+        isNewUser,
+        hasUserInfo: !!user 
+      });
+      // Refresh token is stored as HttpOnly cookie by backend
+    } else {
+      console.warn('⚠️ OAuth callback response missing token or userId:', response.data);
+      throw new Error('Invalid OAuth response: missing token or userId');
+    }
+    
+    // Return structured response
+    return {
+      token: authToken,
+      userId: finalUserId,
+      isNewUser: isNewUser || false,
+      user: user || undefined
+    };
+  } catch (error) {
+    console.error('❌ Google OAuth callback error:', error);
+    throw handleApiError(error, 'completing Google OAuth');
   }
 };
 /**

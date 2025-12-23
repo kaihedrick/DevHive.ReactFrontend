@@ -500,6 +500,10 @@ refetchOnReconnect: false,     // WebSocket handles updates
 - **Active Filter**: `isActive === true && expiresAt > now`
 - **Cache**: Invalidated on create/revoke/accept operations
 
+## Related Documentation
 
-
+- [Project Architecture](./project_architecture.md) - Overall system architecture
+- [Realtime Messaging](./realtime_messaging.md) - WebSocket and messaging system
+- [Caching Strategy](./caching_strategy.md) - Cache invalidation for invites
+- [File Reference](./file_reference.md) - Quick reference for invite-related files
 

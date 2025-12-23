@@ -22,6 +22,7 @@ interface LoginRegisterState {
   successType: 'login' | 'registration' | null;
   loading: boolean;
   emailValidationStatus: 'success' | 'error' | 'validating' | null;
+  rememberMe: boolean; // Remember Me checkbox state
 }
 /**
  * useLoginRegisterNew
@@ -50,7 +51,8 @@ const useLoginRegisterNew = () => {
     success: false,
     successType: null,
     loading: false,
-    emailValidationStatus: null
+    emailValidationStatus: null,
+    rememberMe: false // Default to unchecked
   });
   
   const navigate = useNavigate();
@@ -192,11 +194,13 @@ const useLoginRegisterNew = () => {
         // Convert to lowercase field names for backend API
         const loginCredentials = {
           username: state.credentials.Username,
-          password: state.credentials.Password
+          password: state.credentials.Password,
+          rememberMe: state.rememberMe
         };
         
         // Use AuthContext login to update auth state
-        await loginFromContext(loginCredentials as LoginModel);
+        // Note: AuthContext.login will pass rememberMe to authService.login
+        await loginFromContext(loginCredentials as LoginModel & { rememberMe?: boolean });
         updateState({ success: true, successType: 'login', error: '' });
         
         // Check for redirect parameter
@@ -256,6 +260,10 @@ const useLoginRegisterNew = () => {
     }
   }, [state.action, handleAction]);
 
+  const handleRememberMeChange = useCallback((checked: boolean) => {
+    updateState({ rememberMe: checked });
+  }, []);
+
   return {
     action: state.action,
     credentials: state.credentials,
@@ -264,8 +272,10 @@ const useLoginRegisterNew = () => {
     success: state.success,
     successType: state.successType,
     loading: state.loading,
+    rememberMe: state.rememberMe,
     handleChange,
     handleButtonClick,
+    handleRememberMeChange,
     emailValidationStatus,
     emailValidationError: emailValidation.error,
     emailValidationAvailable: emailValidation.available,

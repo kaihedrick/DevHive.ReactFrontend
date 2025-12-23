@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { setSelectedProject, clearSelectedProject } from "../services/storageService";
+import { storeAuthData } from "../services/authService.ts";
 import { useProjects } from "../hooks/useProjects.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCog, faBars } from "@fortawesome/free-solid-svg-icons";
@@ -36,6 +37,47 @@ const Projects: React.FC = () => {
   useEffect(() => {
     // Clear selected project when entering projects list
     clearSelectedProject();
+    
+    // Handle OAuth callback token from URL hash
+    // Backend redirects to frontend with token in hash: #token={base64-encoded-json}
+    const hash = window.location.hash;
+    if (hash.startsWith('#token=')) {
+      try {
+        // Extract and decode token data
+        const tokenDataEncoded = hash.substring(7); // Remove '#token='
+        const tokenDataJSON = atob(tokenDataEncoded); // Decode base64
+        const tokenData = JSON.parse(tokenDataJSON);
+        
+        // Store the access token (for API requests)
+        // storeAuthData handles both in-memory and localStorage storage
+        storeAuthData(tokenData.token, tokenData.userId);
+        
+        console.log('✅ OAuth token stored from URL hash', { 
+          userId: tokenData.userId, 
+          isNewUser: tokenData.isNewUser 
+        });
+        
+        // Optional: Handle new user onboarding
+        if (tokenData.isNewUser) {
+          // Show welcome message, profile completion, etc.
+          console.log('Welcome new user!', tokenData.user);
+          // You can add UI for new user onboarding here
+          // e.g., show a welcome modal, redirect to profile completion, etc.
+        }
+        
+        // Clear the hash from URL for clean UX
+        window.history.replaceState(null, '', window.location.pathname);
+        
+        // Trigger auth state update by dispatching event
+        window.dispatchEvent(new Event('auth-state-changed'));
+      } catch (error) {
+        console.error('❌ Failed to parse OAuth token data from hash:', error);
+        // Clear invalid hash and redirect to login on error
+        window.history.replaceState(null, '', window.location.pathname);
+        // Optionally redirect to login if token parsing fails
+        // window.location.href = '/';
+      }
+    }
   }, []);
 
   const handleCreateProject = () => navigate("/create-project");
