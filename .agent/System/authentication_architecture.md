@@ -146,6 +146,134 @@ accessToken  // Primary access token (security best practice)
 | `storeAuthData()` | `authService.ts:32` | Store tokens and userId |
 | `setAccessToken()` | `apiClient.ts:71` | Update in-memory + localStorage token |
 
+### 1.5. Google OAuth Login Flow
+
+**Entry Point:** `src/components/LoginRegister.tsx` (Google OAuth button)  
+**Callback Handler:** `src/components/GoogleOAuthCallback.tsx`  
+**Service:** `src/services/authService.ts` (lines 187-225)
+
+```
+┌─────────────────────┐
+│ User clicks         │
+│ "Sign in with       │
+│  Google" button     │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ initiateGoogleOAuth(rememberMe)     │
+│ GET /api/v1/auth/google/login       │
+│ ?rememberMe={true|false}            │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ Backend returns: { authUrl, state } │
+│ authUrl = Google OAuth consent URL │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ window.location.href = authUrl      │
+│ (Redirect to Google)                │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ User authorizes on Google           │
+│ Google redirects to backend         │
+│ /api/v1/auth/google/callback        │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ Backend processes OAuth callback    │
+│ - Validates state                   │
+│ - Exchanges code for token          │
+│ - Creates/updates user              │
+│ - Generates access token            │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ Backend redirects to frontend:     │
+│ /auth/callback#token={base64-json} │
+│ Token data: { token, userId,        │
+│              isNewUser, user }      │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ GoogleOAuthCallback component     │
+│ - Extracts token from hash          │
+│ - Decodes base64 JSON               │
+│ - Clears previous user cache        │
+│   (if user changed)                │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ storeAuthData(token, userId)        │
+│ - setAccessToken(token)             │
+│ - localStorage.setItem('userId')    │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ window.dispatchEvent(               │
+│   'auth-state-changed'              │
+│ )                                    │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ AuthContext.handleAuthStateChange() │
+│ - Detects tokens present            │
+│ - Validates token expiration        │
+│ - Refreshes if expired              │
+│ - setIsAuthenticated(true)          │
+│ - setUserId(userId)                 │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ Wait 150ms for state propagation   │
+│ queryClient.invalidateQueries(      │
+│   { queryKey: ['projects'] }        │
+│ )                                    │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ navigate('/projects')                │
+│ Projects component mounts            │
+│ - isAuthenticated = true            │
+│ - Projects query enabled            │
+│ - Projects fetch automatically      │
+└─────────────────────────────────────┘
+```
+
+**Critical Implementation Details:**
+
+1. **Token Storage from Hash:** Backend redirects with token in URL fragment (`#token=...`) to prevent token exposure in server logs
+2. **Auth State Update:** `auth-state-changed` event triggers `AuthContext` to re-validate and update auth state
+3. **Query Invalidation:** Projects query is invalidated to ensure fresh data fetch after OAuth login
+4. **Cache Clearing:** Previous user's cache is cleared if switching users to prevent data leakage
+5. **State Propagation Delay:** 150ms delay ensures `isAuthenticated` state updates before navigation
+
+**Key Functions:**
+
+| Function | Location | Purpose |
+|----------|----------|---------|
+| `initiateGoogleOAuth()` | `authService.ts:187` | Get Google OAuth authorization URL |
+| `storeAuthData()` | `authService.ts:32` | Store tokens and userId |
+| `handleAuthStateChange()` | `AuthContext.tsx:134` | Re-validate auth state on event |
+| `GoogleOAuthCallback` | `GoogleOAuthCallback.tsx` | Handle OAuth redirect and token extraction |
+
+**Related Documentation:**
+- [Google OAuth Implementation Plan](../Tasks/google_oauth.md) - Complete OAuth implementation details
+- [Fix Google OAuth Cache Leak](../Tasks/fix_google_oauth_cache_leak.md) - Cache clearing strategy
+
 ### 2. Token Refresh Flow
 
 **Trigger Conditions:**
@@ -352,7 +480,59 @@ accessToken  // Primary access token (security best practice)
 - Handles expired tokens that occurred while in background
 - Updates auth state after successful refresh
 
-### 6. Session Initialization
+### 6. Auth State Change Event Handler
+
+**File:** `src/contexts/AuthContext.tsx` (lines 134-186)
+
+**Purpose:** Handles `auth-state-changed` events dispatched when auth state changes (login, logout, token refresh).
+
+**Event Sources:**
+1. **OAuth Login:** `GoogleOAuthCallback` dispatches after storing tokens
+2. **Logout:** `AuthContext.logout()` dispatches after clearing tokens
+3. **Token Expiration:** API client dispatches when refresh fails
+
+**Handler Logic:**
+
+```
+┌─────────────────────────────────────┐
+│ Event: 'auth-state-changed'         │
+└──────────┬──────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ handleAuthStateChange()             │
+│ Check: hasToken && storedUserId?    │
+└──────────┬──────────────────────────┘
+           │
+    ┌──────┴──────┐
+    ▼             ▼
+  YES            NO
+   │              │
+   │              ▼
+   │      ┌─────────────────────┐
+   │      │ Tokens cleared       │
+   │      │ (Logout scenario)    │
+   │      │ - setIsAuth(false)   │
+   │      │ - setUserId(null)    │
+   │      └─────────────────────┘
+   │
+   ▼
+┌─────────────────────────────────────┐
+│ Tokens present                      │
+│ (OAuth login or token refresh)      │
+│ - Check token expiration            │
+│ - Refresh if expired                │
+│ - setIsAuthenticated(true)          │
+│ - setUserId(storedUserId)            │
+└─────────────────────────────────────┘
+```
+
+**Key Behavior:**
+- **Logout:** Clears auth state when tokens are missing
+- **OAuth Login:** Re-validates and sets auth state when tokens are present
+- **Token Refresh:** Handles token expiration during state changes
+
+### 7. Session Initialization
 
 **File:** `src/contexts/AuthContext.tsx` (lines 80-153)
 
@@ -417,7 +597,7 @@ accessToken  // Primary access token (security best practice)
 | `isTokenExpired()` | Checks stored `tokenExpiration` timestamp |
 | `isJWTExpired()` | Decodes JWT and checks `exp` claim (WebSocket uses this) |
 
-### 7. Session Persistence
+### 8. Session Persistence
 
 **Storage Strategy:**
 
@@ -435,7 +615,7 @@ accessToken  // Primary access token (security best practice)
 - **Custom Events:** `project-changed` for same-tab updates
 - **WebSocket:** Reconnection on project change
 
-### 8. 403 Forbidden Handling
+### 9. 403 Forbidden Handling
 
 **Two-Level Handling:**
 
@@ -481,10 +661,12 @@ IF code === 4003 || (code === 1008 && reason.includes('not authorized')):
 
 | File | Purpose |
 |------|---------|
-| `src/services/authService.ts` | Auth API calls, token storage |
+| `src/services/authService.ts` | Auth API calls, token storage, OAuth initiation |
 | `src/lib/apiClient.ts` | Axios instance, interceptors |
-| `src/contexts/AuthContext.tsx` | Auth state provider |
+| `src/contexts/AuthContext.tsx` | Auth state provider, event handlers |
 | `src/components/ProtectedRoute.tsx` | Route guard |
+| `src/components/LoginRegister.tsx` | Login/register UI, OAuth button |
+| `src/components/GoogleOAuthCallback.tsx` | OAuth callback handler, token extraction |
 | `src/hooks/useRoutePermission.js` | Project selection validation |
 
 ## Related Documentation
@@ -494,4 +676,6 @@ IF code === 4003 || (code === 1008 && reason.includes('not authorized')):
 - [Realtime Messaging](./realtime_messaging.md) - WebSocket implementation
 - [Risk Analysis](./risk_analysis.md) - Authentication risk areas and testing
 - [File Reference](./file_reference.md) - Quick reference for auth-related files
+- [Google OAuth Implementation](../Tasks/google_oauth.md) - Google OAuth 2.0 implementation plan
+- [Fix Google OAuth Cache Leak](../Tasks/fix_google_oauth_cache_leak.md) - OAuth cache clearing strategy
 
