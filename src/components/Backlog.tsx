@@ -42,6 +42,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
   // Read project ID from storage, re-read when userId changes (auth state stabilizes)
   // This ensures we get the correct user-scoped project ID after auth is ready
   const [storedProjectId, setStoredProjectId] = useState<string | null>(null);
+  const [projectIdRead, setProjectIdRead] = useState<boolean>(false); // Track if we've attempted to read project ID
 
   useEffect(() => {
     // Only read project ID once auth is loaded (userId is available or confirmed null)
@@ -53,6 +54,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
         authLoading
       });
       setStoredProjectId(project);
+      setProjectIdRead(true); // Mark that we've attempted to read the project ID
     }
   }, [userId, authLoading]);
 
@@ -161,13 +163,14 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
   };
 
   // Handle URL params for sprintId to restore sprint view
-  // Wait for auth to be ready before showing "No Project ID" error
+  // Wait for auth to be ready AND project ID to be read before showing "No Project ID" error
   useEffect(() => {
     // Don't show error while auth is loading - project ID will be read once auth is ready
-    if (authLoading) {
+    if (authLoading || !projectIdRead) {
       return;
     }
 
+    // Only show error after we've confirmed the project ID is actually missing
     if (!selectedProjectId) {
       showError("No Project ID found. Please select a project.");
       return;
@@ -185,7 +188,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
         navigate('/backlog', { replace: true });
       }
     }
-  }, [selectedProjectId, location.search, sprints, selectedSprint, navigate, showError, authLoading]);
+  }, [selectedProjectId, location.search, sprints, selectedSprint, navigate, showError, authLoading, projectIdRead]);
 
   // Helper function to get status text
   const getStatusText = (status: number): string => {

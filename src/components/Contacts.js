@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSelectedProject } from "../services/storageService";
+import { useAuthContext } from "../contexts/AuthContext.tsx";
 import { useProjectMembers } from "../hooks/useProjects.ts";
 import "../styles/contacts.css";
 /**
@@ -21,12 +22,14 @@ import "../styles/contacts.css";
  */
 const Contacts = () => {
   const navigate = useNavigate();
-  const loggedInUserId = localStorage.getItem("userId"); // Get logged-in user ID
+  const { userId } = useAuthContext();
+  const loggedInUserId = userId || localStorage.getItem("userId"); // Get logged-in user ID from context, fallback to localStorage
   
-  // Stabilize projectId to prevent remounts during navigation
-  // Read once and memoize - don't re-read on every render
-  // This prevents hooks from seeing null/value/null flips that cause remounts
-  const projectId = useMemo(() => getSelectedProject(), []); // Only read once on mount
+  // Read project ID using userId from AuthContext to ensure user-scoped lookup
+  // Re-read when userId changes (e.g., after auth initialization)
+  const projectId = useMemo(() => {
+    return userId ? getSelectedProject(userId) : null;
+  }, [userId]);
 
   // TanStack Query hook for data fetching
   const { data: membersData, isLoading: loading, error: queryError } = useProjectMembers(projectId);
@@ -46,7 +49,7 @@ const Contacts = () => {
   const error = queryError ? String(queryError) : null;
 
   const handleContactClick = (contactId) => {
-    const projectId = getSelectedProject(); // Ensure project ID is used
+    // Use the memoized projectId from component state
     navigate(`/messages/${contactId}/${projectId}`); // Navigate to Messages Page with user ID & project ID
   };
 
