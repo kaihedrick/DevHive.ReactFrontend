@@ -167,7 +167,6 @@ export const login = async (credentials: LoginModel | any, rememberMe?: boolean)
       loginData.rememberMe = rememberMe;
     }
     
-    console.log('🔐 Attempting login with:', { username: loginData.username, password: '***', rememberMe });
     const response = await api.post(ENDPOINTS.AUTH_LOGIN, loginData);
     const { Token, userId, token } = response.data; // Handle both Token and token (case variations)
 
