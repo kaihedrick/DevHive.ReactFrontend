@@ -111,12 +111,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAuthState(refreshedUserId ? 'authenticated' : 'unauthenticated');
       } catch (error: any) {
         const is401 = error?.response?.status === 401;
+        const hasAccessToken = !!getAccessToken();
+        
         if (is401) {
-          console.log('🔄 Refresh 401');
+          // CRITICAL: Only clear auth on refresh 401 if NO access token exists
+          // If access token exists, user just logged in and refresh cookie may not be ready yet
+          if (!hasAccessToken) {
+            console.log('🔄 Refresh 401 - no access token, clearing auth');
+            // Refresh failed and no access token - clear userId, isAuthenticated will be false (derived)
+            setUserId(null);
+            setAuthState('unauthenticated');
+          } else {
+            console.log('🔄 Refresh 401 ignored - access token exists (likely fresh login)');
+            // Access token exists - get userId from localStorage and mark as authenticated
+            // User just logged in, refresh cookie may not be ready yet
+            const existingUserId = getUserId();
+            setUserId(existingUserId || null);
+            setAuthState(existingUserId ? 'authenticated' : 'unauthenticated');
+          }
+        } else {
+          // Non-401 error - network/server error, don't clear auth state
+          console.log('🔄 Refresh failed with non-401 error, preserving auth state');
+          // Check if we have access token - if so, use it
+          if (hasAccessToken) {
+            const existingUserId = getUserId();
+            setUserId(existingUserId || null);
+            setAuthState(existingUserId ? 'authenticated' : 'unauthenticated');
+          } else {
+            // No access token and refresh failed - clear auth
+            setUserId(null);
+            setAuthState('unauthenticated');
+          }
         }
-        // Refresh failed - clear userId, isAuthenticated will be false (derived)
-        setUserId(null);
-        setAuthState('unauthenticated');
       } finally {
         // Task 1: Always mark as initialized after attempt, regardless of success/failure
         setAuthInitialized(true);

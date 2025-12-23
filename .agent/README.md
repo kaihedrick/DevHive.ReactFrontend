@@ -15,7 +15,7 @@ This directory contains comprehensive documentation for the DevHive React Fronte
 Core architecture and technical documentation:
 
 - **[Project Architecture](./System/project_architecture.md)** - Complete overview of the system architecture, tech stack, project structure, and core components
-- **[Authentication Architecture](./System/authentication_architecture.md)** - Detailed authentication flows, token management, and security measures ⚠️ **Updated 2025-12-23** with OAuth double refresh fix, auth initialization flag, comprehensive logout cleanup, JWT expiration parsing, iOS Safari fixes, and logout flow improvements
+- **[Authentication Architecture](./System/authentication_architecture.md)** - Detailed authentication flows, token management, and security measures ⚠️ **Updated 2025-12-23** - Latest: Never refresh if access token exists (prevents immediate 401-after-login). Previous: OAuth double refresh fix, auth initialization flag, comprehensive logout cleanup, JWT expiration parsing, iOS Safari fixes, logout flow improvements
 - **[Caching Strategy](./System/caching_strategy.md)** - React Query configuration, WebSocket cache invalidation, and caching patterns
 - **[Realtime Messaging](./System/realtime_messaging.md)** - WebSocket implementation, messaging system, and PostgreSQL NOTIFY integration
 - **[Invite Management](./System/invite_management.md)** - Project invite system, expiration logic, and frontend implementation
@@ -74,7 +74,7 @@ Feature PRDs and implementation plans:
 
 ### For Understanding Authentication
 
-1. Read **[Authentication Architecture](./System/authentication_architecture.md)** for complete auth flows ⚠️ **Updated 2025-12-23** with OAuth double refresh fix, auth initialization flag, comprehensive logout cleanup, JWT expiration parsing, iOS Safari fixes, logout flow improvements, and 401-only logout logic
+1. Read **[Authentication Architecture](./System/authentication_architecture.md)** for complete auth flows ⚠️ **Updated 2025-12-23** - Latest: Never refresh if access token exists (prevents immediate 401-after-login). Previous: OAuth double refresh fix, auth initialization flag, comprehensive logout cleanup, JWT expiration parsing, iOS Safari fixes, logout flow improvements, and 401-only logout logic
 2. Review **[Risk Analysis](./System/risk_analysis.md)** for critical areas to avoid breaking
 3. Check **[File Reference](./System/file_reference.md)** for auth-related file locations
 

@@ -16,6 +16,7 @@ The authentication system uses a dual-token approach with automatic token refres
 - **OAuth double refresh fix** - Prevents refresh token call during OAuth callback to avoid 401 errors and token clearing immediately after OAuth login
 - **Auth initialization flag** - Added `authInitialized` flag to prevent premature redirects during app bootstrap, fixing race condition where logged-out users could access protected routes after page refresh
 - **Comprehensive logout cleanup** - Logout now calls backend logout endpoint to clear refresh token cookie, clears all localStorage keys (projects, cache, userId), and ensures users cannot access protected routes after logout and page refresh
+- **CRITICAL: Never refresh if access token exists** - Refresh is recovery, not validation. If access token exists (fresh login), never call refresh endpoint. This prevents immediate 401-after-login where refresh cookie may not be ready yet, causing auth to be incorrectly cleared.
 
 ## Architecture Summary
 
@@ -211,19 +212,45 @@ accessToken  // Primary access token (security best practice - NOT in localStora
                                                            │
                             ┌──────────────────────────────▼──────────┐
                             │ Refresh failed (401)                    │
-                            │ - setUserId(null)                       │
-                            │ - setAuthState('unauthenticated')       │
-                            │ - setAuthInitialized(true)              │
-                            │ - ProtectedRoute redirects to login     │
-                            └──────────────────────────────────────────┘
+                            │ Check: getAccessToken() exists?         │
+                            └──────────┬───────────────────────────────┘
+                                       │
+                                       ├─── YES ────────────────────┐
+                                       │                             │
+                                       │    ┌────────────────────────▼──────┐
+                                       │    │ Ignore 401 - access token    │
+                                       │    │ exists (fresh login, cookie   │
+                                       │    │ not ready yet)                │
+                                       │    │ - setUserId(userId)           │
+                                       │    │ - setAuthState('authenticated')│
+                                       │    └───────────────────────────────┘
+                                       │
+                                       └─── NO ─────────────────────┐
+                                                                    │
+                                       ┌────────────────────────────▼──────┐
+                                       │ No access token - clear auth      │
+                                       │ - setUserId(null)                  │
+                                       │ - setAuthState('unauthenticated')  │
+                                       └────────────────────────────────────┘
+                            │
+                            ▼
+                            setAuthInitialized(true)
+                            ProtectedRoute redirects if needed
 ```
 
 **Key Points:**
 
 1. **`authInitialized` Flag:** Prevents redirects until auth state is determined. All route guards (`ProtectedRoute`, `LoginRouteWrapper`) check this flag before making navigation decisions.
-2. **Skip Refresh if Token Exists:** If token already exists (e.g., from OAuth), skip refresh to avoid double refresh calls.
-3. **Unconditional Refresh:** If no token exists, always attempt refresh (we cannot check refresh token cookie existence from JavaScript since it's HttpOnly).
-4. **Always Set Flag:** `authInitialized` is always set to `true` in the `finally` block, ensuring routes are never blocked permanently.
+2. **Skip Refresh if Token Exists:** If token already exists (e.g., from OAuth or fresh login), skip refresh to avoid unnecessary API calls and potential 401 errors.
+3. **Conditional Refresh:** If no token exists, attempt refresh to restore session (we cannot check refresh token cookie existence from JavaScript since it's HttpOnly).
+4. **Never Clear Auth on Refresh 401 if Token Exists:** If refresh returns 401 but access token exists, preserve auth state (user just logged in, cookie may not be ready yet).
+5. **Always Set Flag:** `authInitialized` is always set to `true` in the `finally` block, ensuring routes are never blocked permanently.
+
+**CRITICAL RULE: Refresh is Recovery, Not Validation**
+
+- **Refresh when:** No access token exists (cold start, page reload, expired session)
+- **Never refresh when:** Access token exists (fresh login, OAuth callback, active session)
+- **Why:** Refresh cookie may not be ready immediately after login. If access token exists, trust it and skip refresh.
 
 **Route Guard Protection:**
 
@@ -432,6 +459,8 @@ accessToken  // Primary access token (security best practice - NOT in localStora
 - **30-Second Buffer:** Prevents race conditions where token expires between check and request
 - **iOS Safari Retry Logic:** Retries 401 errors once (first attempt only) for cookie attachment issues; retries network errors up to 3 times with exponential backoff
 - **Refresh Coordination:** Prevents concurrent refresh attempts during initialization
+- **CRITICAL: Never refresh if access token exists** - `refreshToken()` function now checks for existing access token first. If token exists, returns immediately without calling backend. This prevents immediate 401-after-login where refresh cookie may not be ready yet after login.
+- **Never clear auth on refresh 401 if access token exists** - If refresh returns 401 but access token exists, ignore the 401 (user just logged in, cookie not ready). Only clear auth if both refresh fails AND no access token exists.
 
 ```
 ┌─────────────────────┐
@@ -453,7 +482,8 @@ accessToken  // Primary access token (security best practice - NOT in localStora
            ▼ (401 Unauthorized)
 ┌─────────────────────────────────────┐
 │ Check: !originalRequest._retry      │
-│        && hasUserId                 │
+│        && !hasAccessToken()         │
+│        (CRITICAL: Skip if token exists)│
 └──────────┬──────────────────────────┘
            │
            ▼
@@ -465,25 +495,56 @@ accessToken  // Primary access token (security best practice - NOT in localStora
            ▼
 ┌─────────────────────────────────────┐
 │ refreshToken()                      │
-│ POST /api/v1/auth/refresh           │
-│ (refresh_token cookie sent auto)    │
+│ Check: getAccessToken() exists?     │
 └──────────┬──────────────────────────┘
            │
-           ▼
-┌─────────────────────────────────────┐
-│ Backend returns: { token, userID }  │
-└──────────┬──────────────────────────┘
+           ├─── YES ──────────────────┐
+           │                           │
+           │    ┌──────────────────────▼──────────────┐
+           │    │ Return existing token immediately   │
+           │    │ (No API call - refresh is recovery) │
+           │    └─────────────────────────────────────┘
            │
-           ▼
-┌─────────────────────────────────────┐
-│ setAccessToken(newToken)            │
-│ Process queued requests             │
-└──────────┬──────────────────────────┘
+           └─── NO ────────────────────┐
+                                       │
+              ┌────────────────────────▼────────────────────────┐
+              │ POST /api/v1/auth/refresh                       │
+              │ (refresh_token cookie sent auto)                │
+              └──────────┬───────────────────────────────────────┘
+                         │
+                         ├─── SUCCESS ──────────────────┐
+                         │                              │
+                         │    ┌─────────────────────────▼──────────┐
+                         │    │ Backend returns: { token, userID }│
+                         │    │ setAccessToken(newToken)          │
+                         │    │ Process queued requests            │
+                         │    └────────────────────────────────────┘
+                         │
+                         └─── FAILURE (401) ────────────┐
+                                                         │
+                            ┌────────────────────────────▼──────────┐
+                            │ Check: getAccessToken() exists?      │
+                            └──────────┬───────────────────────────┘
+                                       │
+                                       ├─── YES ────────────────────┐
+                                       │                             │
+                                       │    ┌───────────────────────▼──────┐
+                                       │    │ Ignore 401 - access token   │
+                                       │    │ exists (fresh login, cookie   │
+                                       │    │ not ready yet)               │
+                                       │    └───────────────────────────────┘
+                                       │
+                                       └─── NO ─────────────────────┐
+                                                                    │
+                                       ┌────────────────────────────▼──────┐
+                                       │ Clear auth - refresh token expired │
+                                       │ (No access token to fall back to) │
+                                       └────────────────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────┐
 │ Retry original request              │
-│ with new token                      │
+│ with token (existing or new)        │
 └──────────┬──────────────────────────┘
            │
            ├─────► Success: Return response
@@ -494,11 +555,12 @@ accessToken  // Primary access token (security best practice - NOT in localStora
 **Security Measures:**
 
 1. **Route Detection:** Only refresh on non-auth routes (prevents loops)
-2. **User Check:** Only refresh if `userId` exists (indicates logged-in user)
+2. **Access Token Check:** **CRITICAL** - Never refresh if access token exists (refresh is recovery, not validation)
 3. **Request Queue:** Queue concurrent requests during refresh (prevents race conditions)
 4. **Retry Flag:** Mark requests with `_retry` flag (prevents infinite loops)
 5. **401-Only Logout:** Only clear tokens on 401 errors, not network/server errors
 6. **Refresh Coordination:** Wait for initialization refresh to complete before retrying 401s
+7. **Never clear auth on refresh 401 if access token exists:** If refresh returns 401 but access token exists, ignore the 401 (user just logged in, cookie may not be ready yet)
 
 **Token Expiration Handling:**
 
@@ -847,13 +909,37 @@ The login interface has been updated with Apple-inspired minimalist design:
 | File | Purpose | Key Functions |
 |------|---------|---------------|
 | `src/services/authService.ts` | Auth API calls, token storage, OAuth initiation | `login()`, `refreshToken()`, `initiateGoogleOAuth()` |
-| `src/lib/apiClient.ts` | Axios instance, interceptors, token management | `setAccessToken()`, `refreshToken()`, `parseJWTExpiration()`, `isTokenExpired()`, `setIsRefreshing()`, `setAuthInitializationPromise()` |
+| `src/lib/apiClient.ts` | Axios instance, interceptors, token management | `setAccessToken()`, `refreshToken()` (never refreshes if token exists), `getAccessToken()`, `clearAccessToken()` |
 | `src/contexts/AuthContext.tsx` | Auth state provider, initialization | `logout()`, `initializeAuth()`, `completeOAuthLogin()`, `setOAuthMode()` |
 | `src/components/ProtectedRoute.tsx` | Route guard | Redirects unauthenticated users |
 | `src/components/LoginRegister.tsx` | Login/register UI, OAuth button | Apple minimalist design, Remember Me checkbox |
 | `src/components/GoogleOAuthCallback.tsx` | OAuth callback handler, token extraction | Handles OAuth redirect |
 | `src/hooks/useRoutePermission.js` | Project selection validation | Validates project access |
 | `src/styles/login_register.css` | Login page styling | Apple minimalist styles, scoped button styles |
+
+## Critical Rules (Lock These In)
+
+### Refresh is Recovery, Not Validation
+
+**The Golden Rule:** Only refresh when something is missing — never when something is fresh.
+
+1. **Never refresh if access token exists** - If `getAccessToken()` returns a token, return it immediately without calling the backend
+2. **Never clear auth on refresh 401 if access token exists** - If refresh returns 401 but access token exists, ignore the 401 (user just logged in, cookie may not be ready yet)
+3. **Refresh only for recovery** - Refresh is for restoring sessions (cold start, page reload, expired token), not for validating fresh logins
+
+**Why This Matters:**
+
+- After login, backend sets refresh cookie, but browser may not attach it immediately
+- Calling refresh immediately after login can return 401 (cookie not ready)
+- If we clear auth on this 401, we incorrectly log out a user who just logged in
+- Solution: If access token exists, trust it and skip refresh
+
+**Implementation:**
+
+- `refreshToken()` function checks `getAccessToken()` first - if token exists, returns immediately
+- Response interceptor checks `getAccessToken()` before attempting refresh
+- Initialization checks `getAccessToken()` before calling refresh
+- All refresh 401 handlers check `getAccessToken()` before clearing auth
 
 ## Related Documentation
 

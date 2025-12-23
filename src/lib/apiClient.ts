@@ -57,9 +57,20 @@ export const clearAccessToken = (): void => {
  * Calls POST /api/v1/auth/refresh with no body - refresh token is in httpOnly cookie
  * Returns new access token: { "token": "...", "userID": "..." }
  * 
+ * CRITICAL: Never refresh if access token already exists (fresh login).
+ * Refresh is only for recovery when token is missing, not for validation.
+ * 
  * @returns Promise<string | null> New access token or null on failure
  */
 export const refreshToken = async (): Promise<string | null> => {
+  // CRITICAL FIX: Never refresh if access token already exists
+  // Refresh is recovery, not validation - only refresh when token is missing
+  const existingToken = getAccessToken();
+  if (existingToken) {
+    console.log('🔄 Refresh skipped - access token already exists (fresh login)');
+    return existingToken;
+  }
+
   console.log('🔄 Starting token refresh');
 
   try {
@@ -101,12 +112,19 @@ export const refreshToken = async (): Promise<string | null> => {
     });
 
     if (is401) {
-      // Task 4.2: Do not clear token on refresh 401 during OAuth
-      if (!isOAuthFlow) {
-        console.log('⚠️ Refresh token expired (401), clearing auth');
+      // CRITICAL FIX: Never clear auth on refresh 401 if access token exists
+      // If user just logged in, access token is valid even if refresh fails
+      const hasAccessToken = !!getAccessToken();
+      
+      if (!isOAuthFlow && !hasAccessToken) {
+        // Only clear if no access token exists (legitimate expiration)
+        console.log('⚠️ Refresh token expired (401) and no access token, clearing auth');
         clearAccessToken();
         // Clear userId as well
         localStorage.removeItem('userId');
+      } else if (hasAccessToken) {
+        // Access token exists - ignore refresh 401 (cookie may not be ready yet after login)
+        console.log('⚠️ Refresh 401 ignored - access token exists (likely fresh login, cookie not ready)');
       }
     }
 
@@ -198,7 +216,9 @@ api.interceptors.response.use(
     // 1. Request is not an auth/public route
     // 2. Error is 401 (Unauthorized)
     // 3. Request hasn't been retried yet
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    // 4. NO access token exists (refresh is recovery, not validation)
+    const hasAccessToken = !!getAccessToken();
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !hasAccessToken) {
       // Check if we're already refreshing
       if (isRefreshing) {
         // If already refreshing, queue this request
@@ -222,6 +242,7 @@ api.interceptors.response.use(
 
       try {
         // Call refresh endpoint (ONE attempt only)
+        // Note: refreshToken() will return existing token if one exists, so this is safe
         const newToken = await refreshToken();
         
         if (!newToken) {
@@ -243,12 +264,18 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
 
         const is401 = refreshError?.response?.status === 401;
-        if (is401) {
+        const stillHasAccessToken = !!getAccessToken();
+        
+        if (is401 && !stillHasAccessToken) {
           // Task 4.2: Do not clear token on refresh 401 during OAuth
+          // Also: Don't log if access token exists (user just logged in)
           if (!isOAuthFlow) {
-            // Refresh token expired - logout will be handled by AuthContext state machine
+            // Refresh token expired and no access token - logout will be handled by AuthContext state machine
             console.log('⚠️ Refresh token expired (401), auth state will be unauthenticated');
           }
+        } else if (stillHasAccessToken) {
+          // Access token exists - ignore refresh 401 (cookie may not be ready after login)
+          console.log('⚠️ Refresh 401 ignored in interceptor - access token exists');
         }
 
         // Return the original 401 error
