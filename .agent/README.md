@@ -37,6 +37,7 @@ Feature PRDs and implementation plans:
 
 - **[Google OAuth Implementation](./Tasks/google_oauth.md)** - Google OAuth 2.0 authentication implementation plan with "Remember Me" functionality
 - **[Fix Google OAuth Cache Leak](./Tasks/fix_google_oauth_cache_leak.md)** - Fix data leakage where previous user's projects are visible after OAuth login
+- **[Fix Authentication 15-Minute Logouts](./Tasks/fix_authentication_15min_logout.md)** - Fix random logouts after 15 minutes, token refresh issues, and operation flow problems
 
 ## Documentation Structure
 
@@ -52,7 +53,9 @@ Feature PRDs and implementation plans:
 │   ├── file_reference.md              # Quick file reference
 │   └── risk_analysis.md               # Risk areas and testing
 ├── Tasks/                            # Feature PRDs and implementation plans
-│   └── google_oauth.md               # Google OAuth 2.0 implementation
+│   ├── google_oauth.md               # Google OAuth 2.0 implementation
+│   ├── fix_google_oauth_cache_leak.md # OAuth cache leak fix
+│   └── fix_authentication_15min_logout.md # 15-minute logout fix
 └── SOP/                              # Standard Operating Procedures
     ├── environment_setup.md          # Environment configuration
     ├── development_workflow.md       # Development procedures

@@ -289,17 +289,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               }
             }
           } else {
-            // Token is still valid, but check if it expires soon (within 5 minutes)
+            // Token is still valid, but check if it expires soon (within 10 minutes)
             // Proactively refresh to prevent expiration during next background period
+            // Increased from 5 to 10 minutes for better reliability
             const expirationTimestamp = localStorage.getItem('tokenExpiration');
             if (expirationTimestamp) {
               const expirationTime = parseInt(expirationTimestamp, 10);
               const now = Date.now();
               const timeUntilExpiration = expirationTime - now;
-              const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+              const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
               
-              // If token expires within 5 minutes, refresh proactively
-              if (timeUntilExpiration > 0 && timeUntilExpiration < fiveMinutes) {
+              // If token expires within 10 minutes, refresh proactively
+              if (timeUntilExpiration > 0 && timeUntilExpiration < tenMinutes) {
                 console.log('📱 Page visible: Token expires soon, refreshing proactively...');
                 try {
                   await refreshTokenService();
@@ -366,15 +367,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 }
               });
           } else {
-            // Check if token expires within 5 minutes
+            // Check if token expires within 10 minutes
+            // Increased from 5 to 10 minutes for better reliability
             const expirationTimestamp = localStorage.getItem('tokenExpiration');
             if (expirationTimestamp) {
               const expirationTime = parseInt(expirationTimestamp, 10);
               const now = Date.now();
               const timeUntilExpiration = expirationTime - now;
-              const fiveMinutes = 5 * 60 * 1000;
+              const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
               
-              if (timeUntilExpiration > 0 && timeUntilExpiration < fiveMinutes) {
+              if (timeUntilExpiration > 0 && timeUntilExpiration < tenMinutes) {
                 console.log('⏰ Periodic check: Token expires soon, refreshing proactively...');
                 refreshTokenService()
                   .then(() => {
@@ -382,6 +384,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   })
                   .catch((error) => {
                     console.error('❌ Failed to proactively refresh token during periodic check:', error);
+                    // Don't clear auth on proactive refresh failure - token is still valid
                   });
               }
             }

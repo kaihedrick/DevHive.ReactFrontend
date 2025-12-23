@@ -3,7 +3,7 @@ import { API_BASE_URL, ENDPOINTS } from '../config';
 
 // Token expiration tracking
 const TOKEN_EXPIRATION_KEY = 'tokenExpiration';
-const TOKEN_VALIDITY_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const TOKEN_VALIDITY_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds (fallback)
 
 // In-memory storage for access token (not localStorage for security)
 let accessToken: string | null = null;
@@ -12,6 +12,54 @@ let failedQueue: Array<{
   resolve: (value?: any) => void;
   reject: (error?: any) => void;
 }> = [];
+
+/**
+ * Parse JWT Expiration
+ * 
+ * Extracts the actual expiration time from the JWT 'exp' claim.
+ * This ensures we use the backend's actual token expiration instead of
+ * a frontend-calculated timestamp.
+ * 
+ * Related Documentation:
+ * - .agent/Tasks/fix_authentication_15min_logout.md - Fix 2: Use JWT expiration
+ */
+export const parseJWTExpiration = (token: string): number | null => {
+  try {
+    // JWT format: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      console.warn('⚠️ Invalid JWT format - expected 3 parts');
+      return null;
+    }
+    
+    // Decode base64url payload
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    
+    // Add padding if needed
+    const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+    
+    // Decode and parse JSON
+    const jsonPayload = decodeURIComponent(
+      atob(padded)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    
+    const payload = JSON.parse(jsonPayload);
+    
+    // JWT exp is in seconds, convert to milliseconds
+    if (payload.exp && typeof payload.exp === 'number') {
+      return payload.exp * 1000;
+    }
+    
+    return null;
+  } catch (error) {
+    console.warn('⚠️ Failed to parse JWT expiration:', error);
+    return null;
+  }
+};
 
 // Helper to process queued requests after token refresh
 const processQueue = (error: any, token: string | null = null) => {
@@ -37,7 +85,15 @@ export const api = axios.create({
 // Get access token from memory
 export const getAccessToken = (): string | null => accessToken;
 
-// Check if token is expired
+/**
+ * Check if token is expired
+ * 
+ * Uses a 30-second buffer to prevent race conditions where the token
+ * expires between the check and the actual API request.
+ * 
+ * Related Documentation:
+ * - .agent/Tasks/fix_authentication_15min_logout.md - Fix 3: Add buffer time
+ */
 export const isTokenExpired = (): boolean => {
   const expirationTimestamp = localStorage.getItem(TOKEN_EXPIRATION_KEY);
   if (!expirationTimestamp) {
@@ -47,9 +103,10 @@ export const isTokenExpired = (): boolean => {
   
   const expirationTime = parseInt(expirationTimestamp, 10);
   const now = Date.now();
+  const buffer = 30 * 1000; // 30 seconds buffer to prevent race conditions
   
-  // Token is expired if current time is past expiration time
-  return now > expirationTime;
+  // Token is expired if current time + buffer is past expiration time
+  return (now + buffer) > expirationTime;
 };
 
 // Check if token is expired beyond 24-hour window
@@ -67,15 +124,43 @@ export const isTokenExpiredBeyondWindow = (): boolean => {
   return now > windowEnd;
 };
 
-// Set access token in memory
+/**
+ * Set access token in memory and localStorage
+ * 
+ * Uses actual JWT expiration from the token's 'exp' claim instead of
+ * frontend-calculated timestamp. This ensures we respect the backend's
+ * actual token expiration time.
+ * 
+ * Related Documentation:
+ * - .agent/Tasks/fix_authentication_15min_logout.md - Fix 2: Use JWT expiration
+ */
 export const setAccessToken = (token: string | null): void => {
   accessToken = token;
   // Also update localStorage for backward compatibility during migration
   if (token) {
     localStorage.setItem('token', token);
-    // Store expiration timestamp (24 hours from now)
-    const expirationTime = Date.now() + TOKEN_VALIDITY_DURATION;
-    localStorage.setItem(TOKEN_EXPIRATION_KEY, expirationTime.toString());
+    
+    // Use actual JWT expiration instead of frontend-calculated timestamp
+    const jwtExpiration = parseJWTExpiration(token);
+    if (jwtExpiration) {
+      localStorage.setItem(TOKEN_EXPIRATION_KEY, jwtExpiration.toString());
+      
+      // Debug logging to diagnose expiration issues
+      const ttlMinutes = Math.round((jwtExpiration - Date.now()) / 1000 / 60);
+      const expirationDate = new Date(jwtExpiration).toISOString();
+      console.log('🔑 Token stored with expiration:', expirationDate, 'TTL:', ttlMinutes, 'minutes');
+      
+      // Warn if token expiration differs significantly from expected 24 hours
+      const expectedTTL = 24 * 60; // 24 hours in minutes
+      if (Math.abs(ttlMinutes - expectedTTL) > 60) {
+        console.warn('⚠️ Token expiration differs from expected 24 hours:', ttlMinutes, 'minutes');
+      }
+    } else {
+      // Fallback to 24 hours if JWT parsing fails
+      const expirationTime = Date.now() + TOKEN_VALIDITY_DURATION;
+      localStorage.setItem(TOKEN_EXPIRATION_KEY, expirationTime.toString());
+      console.warn('⚠️ Failed to parse JWT expiration, using 24-hour fallback');
+    }
   } else {
     localStorage.removeItem('token');
     localStorage.removeItem(TOKEN_EXPIRATION_KEY);

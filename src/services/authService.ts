@@ -294,6 +294,13 @@ export const handleGoogleOAuthCallback = async (code: string, state: string): Pr
  * @function refreshToken
  * Refreshes the access token using the refresh token cookie.
  * @returns {Promise<AuthToken>} New auth token and user ID if successful.
+ * 
+ * CRITICAL: Only clears auth data on 401 errors (refresh token expired).
+ * Network errors, 500s, timeouts should NOT clear tokens - the refresh token
+ * cookie might still be valid and the user should be able to retry.
+ * 
+ * Related Documentation:
+ * - .agent/Tasks/fix_authentication_15min_logout.md - Fix 1: Align with apiClient.ts pattern
  */
 export const refreshToken = async (): Promise<AuthToken> => {
   try {
@@ -307,7 +314,15 @@ export const refreshToken = async (): Promise<AuthToken> => {
     throw new Error('Refresh token response missing token or userId');
   } catch (error) {
     console.error('❌ Refresh token error:', error);
-    clearAuthData();
+    // FIXED: Only clear auth data on 401 (refresh token expired)
+    // Network errors, 500s, timeouts should NOT clear tokens
+    const is401 = (error as any)?.response?.status === 401 || (error as any)?.status === 401;
+    if (is401) {
+      console.log('⚠️ Refresh token expired (401), clearing auth data');
+      clearAuthData();
+    } else {
+      console.warn('⚠️ Refresh failed with non-401 error, keeping tokens for retry:', error);
+    }
     throw error;
   }
 };
