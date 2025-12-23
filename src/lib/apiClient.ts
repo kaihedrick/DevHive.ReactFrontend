@@ -4,10 +4,27 @@ import { API_BASE_URL, ENDPOINTS } from '../config';
 // In-memory storage for access token only (no localStorage)
 let accessToken: string | null = null;
 let isRefreshing = false;
+let isOAuthFlow = false; // Task 2.2: Track OAuth flow to prevent token clearing during OAuth
 let failedQueue: Array<{
   resolve: (value?: any) => void;
   reject: (error?: any) => void;
 }> = [];
+
+/**
+ * Set OAuth flow mode
+ * Task 2.2: Used by AuthContext to signal OAuth flow in progress
+ */
+export const setOAuthFlow = (enabled: boolean): void => {
+  isOAuthFlow = enabled;
+};
+
+/**
+ * Check if OAuth flow is active
+ * Task 4.2: Used to prevent token clearing during OAuth
+ */
+export const getOAuthFlow = (): boolean => {
+  return isOAuthFlow;
+};
 
 /**
  * Get access token from memory
@@ -84,10 +101,13 @@ export const refreshToken = async (): Promise<string | null> => {
     });
 
     if (is401) {
-      console.log('⚠️ Refresh token expired (401), clearing auth');
-      clearAccessToken();
-      // Clear userId as well
-      localStorage.removeItem('userId');
+      // Task 4.2: Do not clear token on refresh 401 during OAuth
+      if (!isOAuthFlow) {
+        console.log('⚠️ Refresh token expired (401), clearing auth');
+        clearAccessToken();
+        // Clear userId as well
+        localStorage.removeItem('userId');
+      }
     }
 
     throw error;
@@ -224,8 +244,11 @@ api.interceptors.response.use(
 
         const is401 = refreshError?.response?.status === 401;
         if (is401) {
-          // Refresh token expired - logout will be handled by AuthContext state machine
-          console.log('⚠️ Refresh token expired (401), auth state will be unauthenticated');
+          // Task 4.2: Do not clear token on refresh 401 during OAuth
+          if (!isOAuthFlow) {
+            // Refresh token expired - logout will be handled by AuthContext state machine
+            console.log('⚠️ Refresh token expired (401), auth state will be unauthenticated');
+          }
         }
 
         // Return the original 401 error

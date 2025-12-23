@@ -9,11 +9,13 @@ import { useAuthContext } from '../contexts/AuthContext.tsx';
  * @returns {Object} Authentication state and utilities
  */
 const useAuth = () => {
-  const { isAuthenticated, isLoading } = useAuthContext();
+  const { isAuthenticated, isLoading, userId, authInitialized } = useAuthContext();
   
   return { 
     isAuthenticated,
-    isLoading 
+    isLoading,
+    userId,
+    authInitialized
   };
 };
 

@@ -78,7 +78,8 @@ export const JWT_CONFIG = {
 export const ENDPOINTS = {
   // Auth endpoints
   AUTH_LOGIN: `${API_BASE_URL}/auth/login`,
-  AUTH_REFRESH: `${API_BASE_URL}/auth/refresh`, // Currently returns 400 "not implemented"
+  AUTH_REFRESH: `${API_BASE_URL}/auth/refresh`,
+  AUTH_LOGOUT: `${API_BASE_URL}/auth/logout`,
   AUTH_PASSWORD_RESET_REQUEST: `${API_BASE_URL}/auth/password/reset-request`,
   AUTH_PASSWORD_RESET: `${API_BASE_URL}/auth/password/reset`,
   // Google OAuth endpoints

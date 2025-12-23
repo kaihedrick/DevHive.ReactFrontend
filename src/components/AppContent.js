@@ -44,21 +44,24 @@ const GoogleOAuthCallback = lazy(() => import('./GoogleOAuthCallback.tsx'));
  * to /projects instead of showing the login page.
  * 
  * Handles lazy-loaded LoginRegister component properly within Suspense boundary.
+ * 
+ * Task 3: Never redirect from /login unless explicitly authenticated AND initialized
  */
 const LoginRouteWrapper = () => {
-  const { isAuthenticated, isLoading } = useAuthContext();
+  const { isAuthenticated, isLoading, authInitialized } = useAuthContext();
   
-  // If still loading auth state, show loading fallback
-  if (isLoading) {
+  // Task 2: Block ALL redirects until auth is initialized
+  // Task 3: Never redirect from /login unless explicitly authenticated AND initialized
+  if (!authInitialized || isLoading) {
     return <LoadingFallback />;
   }
   
-  // If authenticated, redirect to projects
-  if (isAuthenticated) {
+  // Only redirect if auth is initialized AND user is authenticated
+  if (authInitialized && isAuthenticated) {
     return <Navigate to="/projects" replace />;
   }
   
-  // If not authenticated, show login page (lazy-loaded component)
+  // If not authenticated and auth is initialized, show login page (lazy-loaded component)
   // Suspense boundary in Routes will handle loading state
   return <LoginRegister />;
 };

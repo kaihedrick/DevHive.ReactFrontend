@@ -29,12 +29,13 @@ export const projectKeys = {
  * @returns Query result with projects data
  */
 export const useProjects = (options?: { limit?: number; offset?: number }) => {
-  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
+  const { userId, isLoading: authLoading } = useAuthContext();
   
+  // Task 4.2: Guard project queries - early exit if no userId
   return useQuery({
     queryKey: projectKeys.list(options),
     queryFn: () => fetchUserProjects(options),
-    enabled: isAuthenticated && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
+    enabled: !!userId && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnMount: false, // Don't refetch on mount if data exists
     refetchOnWindowFocus: false, // Don't refetch on window focus
@@ -56,12 +57,13 @@ export const useProjects = (options?: { limit?: number; offset?: number }) => {
  */
 export const useProject = (projectId: string | null | undefined) => {
   const queryClient = useQueryClient();
-  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
+  const { userId, isLoading: authLoading } = useAuthContext();
   
+  // Task 4.2: Guard project queries - early exit if no userId
   return useQuery({
     queryKey: projectKeys.detail(projectId || ''),
     queryFn: () => fetchProjectById(projectId!),
-    enabled: !!projectId && isAuthenticated && !authLoading, // ✅ Only run if projectId is provided, user is authenticated, AND auth is initialized
+    enabled: !!projectId && !!userId && !authLoading, // ✅ Only run if projectId is provided, user is authenticated, AND auth is initialized
     // No staleTime - uses Infinity from queryClient
     retry: (failureCount, error: any) => {
       // Don't retry on 403 (forbidden) - user was removed from project

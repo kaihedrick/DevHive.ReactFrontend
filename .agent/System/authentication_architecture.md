@@ -12,6 +12,11 @@ The authentication system uses a dual-token approach with automatic token refres
 - Enhanced token refresh with retry logic and coordination mechanisms
 - **Unconditional refresh on initialization** - Always attempt refresh on app mount, regardless of localStorage state. We cannot check refresh token cookie existence from JavaScript (it's HttpOnly), so we always attempt refresh and let backend return 401 if cookie is invalid. This ensures sessions persist even if localStorage was cleared but refresh token cookie remains valid.
 
+**LATEST UPDATES (2025-12-23):**
+- **OAuth double refresh fix** - Prevents refresh token call during OAuth callback to avoid 401 errors and token clearing immediately after OAuth login
+- **Auth initialization flag** - Added `authInitialized` flag to prevent premature redirects during app bootstrap, fixing race condition where logged-out users could access protected routes after page refresh
+- **Comprehensive logout cleanup** - Logout now calls backend logout endpoint to clear refresh token cookie, clears all localStorage keys (projects, cache, userId), and ensures users cannot access protected routes after logout and page refresh
+
 ## Architecture Summary
 
 - **Dual-token system**: Access tokens (JWT, 15min) + HTTP-only refresh tokens (7d session or 30d persistent)
@@ -126,15 +131,15 @@ if (is401) {
 
 ```javascript
 // localStorage keys
-localStorage.token                        // Access token (JWT)
 localStorage.userId                       // User ID
-localStorage.tokenExpiration              // Timestamp (from JWT exp claim, typically ~15 minutes)
-localStorage['selectedProjectId:{userId}'] // User-scoped project selection
+localStorage['selectedProjectId:{userId}'] // User-scoped project selection (user-scoped)
 localStorage.REACT_QUERY_OFFLINE_CACHE    // Persisted query cache
 
 // In-memory (apiClient.ts)
-accessToken  // Primary access token (security best practice)
+accessToken  // Primary access token (security best practice - NOT in localStorage)
 ```
+
+**CRITICAL (2025-12-23):** Access tokens are stored ONLY in memory, not in localStorage. This is a security best practice to prevent XSS attacks from stealing tokens. Token expiration is calculated from JWT `exp` claim, not stored separately.
 
 ## Core Components
 
@@ -150,6 +155,80 @@ accessToken  // Primary access token (security best practice)
 ### 3. Route Protection
 - **ProtectedRoute** (`src/components/ProtectedRoute.tsx`) - Route guard component
 - **useRoutePermission** (`src/hooks/useRoutePermission.js`) - Project selection validation
+
+## App Initialization & Auth Bootstrap
+
+**File:** `src/contexts/AuthContext.tsx` (lines 88-122)
+
+**CRITICAL FIX (2025-12-23):** Added `authInitialized` flag to prevent premature redirects during app bootstrap. This fixes race condition where logged-out users could access protected routes after page refresh.
+
+**Initialization Flow:**
+
+```
+┌─────────────────────┐
+│ App Mounts          │
+│ authInitialized =   │
+│   false (default)   │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────────────────────┐
+│ Check: getAccessToken() exists?     │
+│ (in-memory token check)             │
+└──────────┬──────────────────────────┘
+           │
+           ├─── YES ──────────────────────┐
+           │                               │
+           │    ┌──────────────────────────▼──────────────────────────┐
+           │    │ Token exists (e.g., from OAuth)                    │
+           │    │ - getUserId() from localStorage                    │
+           │    │ - setUserId(userId)                                │
+           │    │ - setAuthState('authenticated')                    │
+           │    │ - setAuthInitialized(true)                         │
+           │    │ - SKIP refresh (token already fresh)               │
+           │    └────────────────────────────────────────────────────┘
+           │
+           └─── NO ────────────────────────┐
+                                           │
+              ┌────────────────────────────▼──────────────────────────┐
+              │ No token - attempt refresh to restore session        │
+              │ POST /api/v1/auth/refresh                            │
+              │ (refresh_token cookie sent automatically)            │
+              └──────────┬───────────────────────────────────────────┘
+                         │
+                         ├─── SUCCESS ────────────────────┐
+                         │                                 │
+                         │    ┌────────────────────────────▼──────────┐
+                         │    │ Refresh succeeded                     │
+                         │    │ - Token set in memory                │
+                         │    │ - userId from localStorage           │
+                         │    │ - setUserId(userId)                  │
+                         │    │ - setAuthState('authenticated')      │
+                         │    │ - setAuthInitialized(true)           │
+                         │    └───────────────────────────────────────┘
+                         │
+                         └─── FAILURE (401) ──────────────┐
+                                                           │
+                            ┌──────────────────────────────▼──────────┐
+                            │ Refresh failed (401)                    │
+                            │ - setUserId(null)                       │
+                            │ - setAuthState('unauthenticated')       │
+                            │ - setAuthInitialized(true)              │
+                            │ - ProtectedRoute redirects to login     │
+                            └──────────────────────────────────────────┘
+```
+
+**Key Points:**
+
+1. **`authInitialized` Flag:** Prevents redirects until auth state is determined. All route guards (`ProtectedRoute`, `LoginRouteWrapper`) check this flag before making navigation decisions.
+2. **Skip Refresh if Token Exists:** If token already exists (e.g., from OAuth), skip refresh to avoid double refresh calls.
+3. **Unconditional Refresh:** If no token exists, always attempt refresh (we cannot check refresh token cookie existence from JavaScript since it's HttpOnly).
+4. **Always Set Flag:** `authInitialized` is always set to `true` in the `finally` block, ensuring routes are never blocked permanently.
+
+**Route Guard Protection:**
+
+- **ProtectedRoute:** Shows loading fallback until `authInitialized === true`, then checks `userId` for authentication
+- **LoginRouteWrapper:** Shows loading fallback until `authInitialized === true`, then redirects to `/projects` only if authenticated
 
 ## Authentication Flows
 
@@ -217,6 +296,8 @@ accessToken  // Primary access token (security best practice)
 **Callback Handler:** `src/components/GoogleOAuthCallback.tsx`  
 **Service:** `src/services/authService.ts` (lines 187-225)
 
+**CRITICAL FIX (2025-12-23):** OAuth callback no longer calls refresh token endpoint. OAuth already provides a fresh, trusted token, so no refresh is needed. This prevents double refresh (OAuth callback + initialization) that was causing 401 errors and token clearing immediately after login.
+
 ```
 ┌─────────────────────┐
 │ User clicks         │
@@ -257,6 +338,7 @@ accessToken  // Primary access token (security best practice)
 │ - Exchanges code for token          │
 │ - Creates/updates user              │
 │ - Generates access token            │
+│ - Sets refresh token cookie         │
 └──────────┬──────────────────────────┘
            │
            ▼
@@ -270,10 +352,12 @@ accessToken  // Primary access token (security best practice)
            ▼
 ┌─────────────────────────────────────┐
 │ GoogleOAuthCallback component     │
-│ - Extracts token from hash          │
-│ - Decodes base64 JSON               │
-│ - Clears previous user cache        │
-│   (if user changed)                │
+│ 1. setOAuthMode(true)              │
+│    (prevents refresh during OAuth) │
+│ 2. Extract token from hash          │
+│ 3. Decode base64 JSON               │
+│ 4. Clear previous user cache        │
+│    (if user changed)                │
 └──────────┬──────────────────────────┘
            │
            ▼
@@ -285,24 +369,16 @@ accessToken  // Primary access token (security best practice)
            │
            ▼
 ┌─────────────────────────────────────┐
-│ window.dispatchEvent(               │
-│   'auth-state-changed'              │
-│ )                                    │
-└──────────┬──────────────────────────┘
-           │
-           ▼
-┌─────────────────────────────────────┐
-│ AuthContext.handleAuthStateChange() │
-│ - Detects tokens present            │
-│ - Validates token expiration        │
-│ - Refreshes if expired              │
-│ - setIsAuthenticated(true)          │
+│ completeOAuthLogin(userId)          │
 │ - setUserId(userId)                 │
+│ - setAuthState('authenticated')     │
+│ - NO refresh token call             │
+│   (OAuth already provides fresh token)│
 └──────────┬──────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────┐
-│ Wait 150ms for state propagation   │
+│ setOAuthMode(false)                 │
 │ queryClient.invalidateQueries(      │
 │   { queryKey: ['projects'] }        │
 │ )                                    │
@@ -321,10 +397,11 @@ accessToken  // Primary access token (security best practice)
 **Critical Implementation Details:**
 
 1. **Token Storage from Hash:** Backend redirects with token in URL fragment (`#token=...`) to prevent token exposure in server logs
-2. **Auth State Update:** `auth-state-changed` event triggers `AuthContext` to re-validate and update auth state
-3. **Query Invalidation:** Projects query is invalidated to ensure fresh data fetch after OAuth login
-4. **Cache Clearing:** Previous user's cache is cleared if switching users to prevent data leakage
-5. **State Propagation Delay:** 150ms delay ensures `isAuthenticated` state updates before navigation
+2. **OAuth Mode Guard:** `setOAuthMode(true)` prevents refresh token calls during OAuth flow, avoiding double refresh that causes 401 errors
+3. **Direct State Update:** `completeOAuthLogin()` directly sets auth state without calling refresh endpoint (OAuth already provides fresh token)
+4. **Query Invalidation:** Projects query is invalidated to ensure fresh data fetch after OAuth login
+5. **Cache Clearing:** Previous user's cache is cleared if switching users to prevent data leakage
+6. **No Refresh Needed:** OAuth callback does NOT call refresh token endpoint - OAuth token is already fresh and trusted
 
 **Key Functions:**
 
@@ -332,7 +409,7 @@ accessToken  // Primary access token (security best practice)
 |----------|----------|---------|
 | `initiateGoogleOAuth()` | `authService.ts:187` | Get Google OAuth authorization URL |
 | `storeAuthData()` | `authService.ts:32` | Store tokens and userId |
-| `handleAuthStateChange()` | `AuthContext.tsx:134` | Re-validate auth state on event |
+| `completeOAuthLogin()` | `AuthContext.tsx:381` | Directly sets auth state after OAuth login (no refresh needed) |
 | `GoogleOAuthCallback` | `GoogleOAuthCallback.tsx` | Handle OAuth redirect and token extraction |
 
 **Related Documentation:**
@@ -440,63 +517,90 @@ accessToken  // Primary access token (security best practice)
 
 ### 3. Logout Flow
 
-**File:** `src/contexts/AuthContext.tsx` (lines 701-781)
+**File:** `src/contexts/AuthContext.tsx` (lines 353-404)
 
-**CRITICAL:** All logout operations MUST go through `AuthContext.logout()` function. Never call `logoutService()` directly - this bypasses proper cleanup order and causes remounting.
+**CRITICAL UPDATES (2025-12-23):**
+- Logout now calls backend logout endpoint to clear refresh token cookie (HTTP-only cookie)
+- Comprehensive cleanup of all localStorage keys (projects, cache, userId)
+- Ensures users cannot access protected routes after logout and page refresh
 
 **Logout Triggers:**
 1. User clicks logout button → `logout()` function called directly
-2. Token refresh fails with 401 → `apiClient.ts` clears tokens, dispatches event → `handleAuthStateChange()` calls `logout()`
-3. Refresh token invalid during initialization → `checkAuthState()` calls `logout()`
+2. Token refresh fails with 401 → Auth state set to `unauthenticated`
+
+**CRITICAL:** All logout operations MUST go through `AuthContext.logout()` function. Never call `logoutService()` directly - this bypasses proper cleanup order.
 
 ```
 ┌─────────────────────┐
 │ Logout Triggered    │
-│ (user click OR      │
-│  token refresh fail)│
+│ (user click)        │
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────────────────────────────────┐
-│ 1. explicitLogoutRef.current = true             │
-│    (prevents transient state issues)            │
-│    CRITICAL: Set FIRST before any state changes │
+│ 1. POST /api/v1/auth/logout                     │
+│    (clears refresh token HTTP-only cookie)      │
+│    CRITICAL: Must be called FIRST               │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────────────────┐
-│ 2. setIsAuthenticated(false)                    │
-│    (disables queries immediately)                │
+│ 2. clearAccessToken()                           │
+│    (clears in-memory access token)              │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────────────────┐
-│ 3. queryClient.cancelQueries()                  │
-│    (stops in-flight requests)                   │
+│ 3. setUserId(null)                              │
+│    (clears userId state - isAuthenticated       │
+│     derives to false)                           │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────────────────┐
-│ 4. cacheInvalidationService.disconnect()        │
+│ 4. setAuthState('unauthenticated')              │
+│    (marks auth state as unauthenticated)        │
+└──────────┬──────────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────────────────┐
+│ 5. clearAllSelectedProjects()                   │
+│    (clears all selectedProjectId:* keys)        │
+└──────────┬──────────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────────────────┐
+│ 6. cacheInvalidationService.disconnect()        │
 │    (closes WebSocket, prevents reconnection)    │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────────────────┐
-│ 5. clearSelectedProject(userId)                 │
-│    (clears user-scoped project selection)       │
+│ 7. queryClient.cancelQueries()                  │
+│    (stops in-flight requests)                   │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────────────────┐
-│ 6. logoutService() → clearAccessToken()         │
-│    (clears tokens from memory + localStorage)   │
+│ 8. queryClient.clear()                          │
+│    (wipes all cached data: projects, users,     │
+│     tasks, sprints, messages, etc.)             │
 └──────────┬──────────────────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────────────────┐
-│ 7. queryClient.clear()                          │
-│    (wipes all cached data)                      │
+│ 9. localStorage cleanup:                        │
+│    - removeItem('userId')                       │
+│    - removeItem('REACT_QUERY_OFFLINE_CACHE')    │
+│    - removeItem('token') // legacy              │
+│    - remove all 'react-query*' keys             │
+└──────────┬──────────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────────────────────┐
+│ ProtectedRoute detects userId === null          │
+│ Navigate to '/' (login page)                    │
+└─────────────────────────────────────────────────┘
 └──────────┬──────────────────────────────────────┘
            │
            ▼
@@ -508,14 +612,9 @@ accessToken  // Primary access token (security best practice)
            │
            ▼
 ┌─────────────────────────────────────────────────┐
-│ 9. window.dispatchEvent('auth-state-changed')   │
-│    (notifies other tabs/components)             │
-└──────────┬──────────────────────────────────────┘
-           │
-           ▼
-┌─────────────────────────────────────────────────┐
-│ 10. ProtectedRoute detects isAuthenticated=false│
-│     and redirects to / (no remounting!)         │
+│ 9. ProtectedRoute detects userId === null      │
+│    Navigate to '/' (login page)                │
+│    (using replace to prevent back navigation)  │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -531,8 +630,7 @@ accessToken  // Primary access token (security best practice)
 | 6 | Clear tokens | Remove auth credentials |
 | 7 | Clear cache | Remove all stale data |
 | 8 | Clear persisted cache | Remove offline cache |
-| 9 | Dispatch event | Notify other tabs/components |
-| 10 | ProtectedRoute redirects | No remounting - preserves console logs |
+| 9 | ProtectedRoute redirects | Redirects to login when userId === null |
 
 **Preventing Unexpected Logouts:**
 
@@ -552,13 +650,11 @@ When token refresh fails in `apiClient.ts` (lines 257-340):
 ```
 1. Refresh API call fails with 401
 2. Check: is401 = refreshError?.response?.status === 401 ✅
-3. clearAccessToken() - removes tokens from memory + localStorage
-4. Dispatch 'auth-state-changed' event
-5. AuthContext.handleAuthStateChange() detects tokens cleared
-6. Sets explicitLogoutRef.current = true FIRST (before state changes)
-7. Sets isAuthenticated = false
-8. WebSocket effect detects explicitLogoutRef and disconnects
-9. ProtectedRoute redirects to '/' (no remounting)
+3. clearAccessToken() - removes tokens from memory
+4. AuthContext detects refresh failure (401)
+5. Sets userId = null (isAuthenticated derives to false)
+6. Sets authState = 'unauthenticated'
+7. ProtectedRoute detects userId === null and redirects to '/'
 ```
 
 **Case 2: Non-401 Error (Network, Timeout, 500, etc.)**
@@ -649,135 +745,14 @@ When token refresh fails in `apiClient.ts` (lines 257-340):
 - Updates auth state after successful refresh
 - Refresh token cookie validity (7 days session or 30 days persistent) allows users to stay logged in even after long background periods
 
-### 6. Auth State Change Event Handler
+### 6. Auth State Change Event Handler (OUTDATED - Removed)
 
-**File:** `src/contexts/AuthContext.tsx` (lines 134-186)
+**NOTE:** This section describes the old event-based auth state handling system that has been removed. The current implementation uses direct state updates via `completeOAuthLogin()` for OAuth and direct state management for logout. See "App Initialization & Auth Bootstrap" and "OAuth Login Flow" sections above for current implementation.
 
-**Purpose:** Handles `auth-state-changed` events dispatched when auth state changes (login, logout, token refresh).
+### 7. Session Initialization (OUTDATED - Replaced)
 
-**Event Sources:**
-1. **OAuth Login:** `GoogleOAuthCallback` dispatches after storing tokens
-2. **Logout:** `AuthContext.logout()` dispatches after clearing tokens
-3. **Token Expiration:** API client dispatches when refresh fails
+**NOTE:** This section has been replaced by "App Initialization & Auth Bootstrap" section above, which describes the current implementation with `authInitialized` flag and conditional refresh logic. 
 
-**Handler Logic:**
-
-```
-┌─────────────────────────────────────┐
-│ Event: 'auth-state-changed'         │
-└──────────┬──────────────────────────┘
-           │
-           ▼
-┌─────────────────────────────────────┐
-│ handleAuthStateChange()             │
-│ Check: hasToken && storedUserId?    │
-└──────────┬──────────────────────────┘
-           │
-    ┌──────┴──────┐
-    ▼             ▼
-  YES            NO
-   │              │
-   │              ▼
-   │      ┌─────────────────────┐
-   │      │ Tokens cleared       │
-   │      │ (Logout scenario)    │
-   │      │ - setIsAuth(false)   │
-   │      │ - setUserId(null)    │
-   │      └─────────────────────┘
-   │
-   ▼
-┌─────────────────────────────────────┐
-│ Tokens present                      │
-│ (OAuth login or token refresh)      │
-│ - Check token expiration            │
-│ - Refresh if expired                │
-│ - setIsAuthenticated(true)          │
-│ - setUserId(storedUserId)            │
-└─────────────────────────────────────┘
-```
-
-**Key Behavior:**
-- **Logout:** Clears auth state when tokens are missing
-- **OAuth Login:** Re-validates and sets auth state when tokens are present
-- **Token Refresh:** Handles token expiration during state changes
-
-### 7. Session Initialization
-
-**File:** `src/contexts/AuthContext.tsx` (lines 80-163)
-
-**CRITICAL:** Always attempts refresh on initialization, **unconditionally**, regardless of whether `storedUserId` or `hasToken` exist in localStorage. 
-
-**Why Unconditional Refresh?**
-
-We cannot check if the refresh token cookie exists from JavaScript (it's HttpOnly). The refresh token cookie may persist even if localStorage was cleared. For example:
-
-- User closes browser → localStorage cleared by browser settings
-- Refresh token cookie persists (7 days session or 30 days persistent/rememberMe)
-- User reopens browser → `storedUserId` is null, but refresh token cookie is valid
-- **Solution:** Always attempt refresh, backend will return 401 if cookie is invalid
-
-**Flow:**
-1. On app mount, `checkAuthState()` always attempts `refreshTokenService()`
-2. If refresh succeeds: Get `userId` from response (stored in localStorage by `refreshToken()`)
-3. If refresh fails with 401: Refresh token cookie is invalid/expired → logout
-4. If refresh fails with non-401: Network error → stay logged out if no `storedUserId`, keep state if `storedUserId` exists (might be transient)
-
-Since the refresh endpoint only checks the refresh token cookie (not the access token or localStorage), we should always attempt refresh and let the backend tell us if the refresh token is invalid via 401.
-
-```
-┌─────────────────────┐
-│ App Mount           │
-│ AuthProvider mounts │
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────────────────────────────────┐
-│ useEffect() runs ONCE (empty deps)              │
-│ checkAuthState()                                │
-└──────────┬──────────────────────────────────────┘
-           │
-           ▼
-┌─────────────────────────────────────────────────┐
-│ storedUserId = getUserId()                      │
-│ hasToken = !!localStorage.getItem('token')      │
-│ (for logging only - not used in decision)       │
-└──────────┬──────────────────────────────────────┘
-           │
-           ▼
-┌─────────────────────────────────────────────────┐
-│ ALWAYS attempt refreshTokenService()            │
-│ (regardless of storedUserId or hasToken)        │
-│                                                 │
-│ Backend checks refresh token cookie only        │
-│ Cannot check cookie existence from JavaScript   │
-└──────────┬──────────────────────────────────────┘
-           │
-    ┌──────┴──────┐
-    ▼             ▼
- Success      Failure
-    │            │
-    │            ├──► 401: Invalid/expired refresh token
-    │            │    → Clear auth + Logout
-    │            │
-    │            └──► Non-401: Network error
-    │                 → Stay logged out if no storedUserId
-    │                 → Keep state if storedUserId exists
-    │
-    ▼
-┌─────────────────────────────────────────────────┐
-│ Get userId from localStorage (stored by         │
-│ refreshToken() from response)                   │
-│ setIsAuthenticated(true)                        │
-│ setUserId(refreshedUserId)                      │
-└─────────────────────────────────────────────────┘
-```
-
-**Key Checks:**
-
-| Function | Purpose |
-|----------|---------|
-| `isTokenExpired()` | Checks stored `tokenExpiration` timestamp |
-| `isJWTExpired()` | Decodes JWT and checks `exp` claim (WebSocket uses this) |
 
 ### 8. Session Persistence
 
@@ -873,7 +848,7 @@ The login interface has been updated with Apple-inspired minimalist design:
 |------|---------|---------------|
 | `src/services/authService.ts` | Auth API calls, token storage, OAuth initiation | `login()`, `refreshToken()`, `initiateGoogleOAuth()` |
 | `src/lib/apiClient.ts` | Axios instance, interceptors, token management | `setAccessToken()`, `refreshToken()`, `parseJWTExpiration()`, `isTokenExpired()`, `setIsRefreshing()`, `setAuthInitializationPromise()` |
-| `src/contexts/AuthContext.tsx` | Auth state provider, event handlers | `logout()`, `checkAuthState()`, `handleAuthStateChange()` |
+| `src/contexts/AuthContext.tsx` | Auth state provider, initialization | `logout()`, `initializeAuth()`, `completeOAuthLogin()`, `setOAuthMode()` |
 | `src/components/ProtectedRoute.tsx` | Route guard | Redirects unauthenticated users |
 | `src/components/LoginRegister.tsx` | Login/register UI, OAuth button | Apple minimalist design, Remember Me checkbox |
 | `src/components/GoogleOAuthCallback.tsx` | OAuth callback handler, token extraction | Handles OAuth redirect |

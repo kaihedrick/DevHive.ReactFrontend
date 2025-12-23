@@ -27,12 +27,13 @@ export const taskKeys = {
  * @returns Query result with tasks data
  */
 export const useProjectTasks = (projectId: string | null | undefined, options?: { limit?: number; offset?: number }) => {
-  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
+  const { userId, isLoading: authLoading } = useAuthContext();
   
+  // Task 4.2: Guard queries - early exit if no userId
   return useQuery({
     queryKey: taskKeys.project(projectId || ''),
     queryFn: () => fetchProjectTasks(projectId!, options),
-    enabled: !!projectId && isAuthenticated && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
+    enabled: !!projectId && !!userId && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: (failureCount, error: any) => {
       // Don't retry on 401 - token refresh should handle it

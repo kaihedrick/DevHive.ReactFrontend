@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { login as loginService, logout as logoutService, refreshToken as refreshTokenService, getUserId, AuthToken } from '../services/authService.ts';
 import { LoginModel } from '../models/user.ts';
 import { cacheInvalidationService } from '../services/cacheInvalidationService.ts';
-import { getSelectedProject, clearSelectedProject } from '../services/storageService';
-import { refreshToken as refreshTokenApi } from '../lib/apiClient.ts';
+import { getSelectedProject, clearSelectedProject, clearAllSelectedProjects } from '../services/storageService.js';
+import { refreshToken as refreshTokenApi, getAccessToken, setOAuthFlow, clearAccessToken } from '../lib/apiClient.ts';
 
 type AuthState = 'unknown' | 'authenticated' | 'unauthenticated';
 
@@ -12,9 +12,13 @@ interface AuthContextType {
   isAuthenticated: boolean;
   userId: string | null;
   isLoading: boolean;
+  authInitialized: boolean;
   login: (credentials: LoginModel | any) => Promise<AuthToken>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshToken: () => Promise<AuthToken>;
+  setOAuthMode: (enabled: boolean) => void;
+  isOAuthMode: () => boolean;
+  completeOAuthLogin: (userId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,13 +41,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const isConnectingRef = useRef<boolean>(false);
   const validatedProjectIdRef = useRef<string | null>(null);
   const selectedProjectIdRef = useRef<string | null>(null);
+  const authModeRef = useRef<'normal' | 'oauth'>('normal' as 'normal' | 'oauth'); // Task 2.2: Track OAuth mode
 
   // Auth state machine: unknown -> authenticated | unauthenticated
   const [authState, setAuthState] = useState<AuthState>('unknown');
   const [userId, setUserId] = useState<string | null>(null);
+  const [authInitialized, setAuthInitialized] = useState(false); // Task 1: Explicit initialization flag
 
-  // Derived values for backward compatibility
-  const isAuthenticated = authState === 'authenticated';
+  // Task 1.2: Auth invariant - isAuthenticated MUST derive from truth, never set manually
+  // Auth truth: Boolean(userId && getAccessToken())
+  // This is the single source of truth for authentication state
+  const isAuthenticated = useMemo(() => {
+    return Boolean(userId && getAccessToken());
+  }, [userId]);
+  
   const isLoading = authState === 'unknown';
 
   // Direct validation without triggering queries - reads from cache only
@@ -62,7 +73,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Register callback for 403 Forbidden errors from WebSocket
   useEffect(() => {
     cacheInvalidationService.setOnForbiddenCallback((projectId: string) => {
-      console.warn('⚠️ WebSocket 403 Forbidden callback triggered for project:', projectId);
       const currentUserId = getUserId();
       if (currentUserId) {
         clearSelectedProject(currentUserId);
@@ -76,37 +86,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Phase 3.2: Simple initialization - call /auth/refresh on mount
+  // Task 3.1: Skip refresh if access token already exists (prevents double refresh after OAuth)
+  // Task 1: Set authInitialized flag after initialization completes
   useEffect(() => {
     const initializeAuth = async () => {
+      // Task 3.1: If token already exists (e.g., from OAuth), skip refresh
+      const existingToken = getAccessToken();
+      if (existingToken) {
+        // Token exists - get userId from localStorage and mark as authenticated
+        const existingUserId = getUserId();
+        setUserId(existingUserId || null);
+        setAuthState(existingUserId ? 'authenticated' : 'unauthenticated');
+        setAuthInitialized(true); // Task 1: Mark as initialized
+        return;
+      }
+
+      // No token exists - attempt refresh to restore session
       try {
-        console.log('🔄 Initializing auth state...');
         await refreshTokenApi();
-        
         // Refresh succeeded - get userId from localStorage (set by refreshToken)
+        // Token is set in memory by refreshTokenApi
         const refreshedUserId = getUserId();
-        if (refreshedUserId) {
-          setAuthState('authenticated');
-          setUserId(refreshedUserId);
-          console.log('✅ Auth initialized: authenticated');
-        } else {
-          // No userId after refresh - should not happen, but handle gracefully
-          setAuthState('unauthenticated');
-          setUserId(null);
-          console.log('⚠️ Auth initialized: no userId found');
-        }
+        setUserId(refreshedUserId || null);
+        setAuthState(refreshedUserId ? 'authenticated' : 'unauthenticated');
       } catch (error: any) {
         const is401 = error?.response?.status === 401;
         if (is401) {
-          // Refresh token expired/invalid
-          setAuthState('unauthenticated');
-          setUserId(null);
-          console.log('✅ Auth initialized: unauthenticated (401)');
-        } else {
-          // Network error - treat as unauthenticated for now
-          setAuthState('unauthenticated');
-          setUserId(null);
-          console.log('⚠️ Auth initialized: unauthenticated (network error)');
+          console.log('🔄 Refresh 401');
         }
+        // Refresh failed - clear userId, isAuthenticated will be false (derived)
+        setUserId(null);
+        setAuthState('unauthenticated');
+      } finally {
+        // Task 1: Always mark as initialized after attempt, regardless of success/failure
+        setAuthInitialized(true);
       }
     };
 
@@ -114,9 +127,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // WebSocket Connection Management Effect (simplified)
+  // Task 2.2: Guard against post-logout re-auth - check userId, not authState
   useEffect(() => {
-    // Only connect when authenticated and projectId exists
-    if (authState !== 'authenticated') {
+    // Only connect when userId exists and token exists (isAuthenticated will be true)
+    if (!userId) {
       // Not authenticated - disconnect if connected
       if (cacheInvalidationService.isConnected()) {
         cacheInvalidationService.disconnect('Not authenticated');
@@ -154,13 +168,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Validate using cache-only check
     const isValid = validateProjectIdFromCache(selectedProjectId);
     if (!isValid && !isConnectingRef.current) {
-      const cached = queryClient.getQueryData(['projects', 'list']) as any;
-      const projects = Array.isArray(cached) ? cached : (cached?.projects || []);
-      
-      console.warn('⚠️ Selected projectId not in cache, clearing selection:', {
-        projectId: selectedProjectId,
-        cachedProjectsCount: projects.length
-      });
       if (currentUserId) {
         clearSelectedProject(currentUserId);
       }
@@ -179,56 +186,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (previousProjectIdRef.current !== selectedProjectId) {
         // Project changed - disconnect old and connect to new
         if (previousProjectIdRef.current !== null) {
-          console.log('🔄 Project changed, reconnecting cache invalidation WebSocket');
           cacheInvalidationService.disconnect('Project changed');
         }
         previousProjectIdRef.current = selectedProjectId;
         isConnectingRef.current = true;
         try {
           await cacheInvalidationService.connect(selectedProjectId);
-          console.log('✅ WebSocket connected for project:', selectedProjectId);
           isConnectingRef.current = false;
         } catch (error: any) {
           isConnectingRef.current = false;
           if (error?.message?.includes('not authorized') || error?.message?.includes('Forbidden')) {
-            console.error('❌ Not authorized for project, clearing selection');
             if (currentUserId) {
               clearSelectedProject(currentUserId);
             }
             previousProjectIdRef.current = null;
             validatedProjectIdRef.current = null;
           }
-          console.error('❌ Failed to connect WebSocket:', error);
         }
       } else if (!cacheInvalidationService.isConnected()) {
         // Same project but not connected - connect
-        console.log('🔌 Connecting WebSocket for project:', selectedProjectId);
         isConnectingRef.current = true;
         try {
           await cacheInvalidationService.connect(selectedProjectId);
-          console.log('✅ WebSocket connected for project:', selectedProjectId);
           isConnectingRef.current = false;
         } catch (error: any) {
           isConnectingRef.current = false;
           if (error?.message?.includes('not authorized') || error?.message?.includes('Forbidden')) {
-            console.error('❌ Not authorized for project, clearing selection');
             if (currentUserId) {
               clearSelectedProject(currentUserId);
             }
             previousProjectIdRef.current = null;
             validatedProjectIdRef.current = null;
           }
-          console.error('❌ Failed to connect WebSocket:', error);
         }
       }
     };
 
     connectWebSocket();
-  }, [authState, validateProjectIdFromCache, queryClient]);
+  }, [userId, validateProjectIdFromCache, queryClient]);
 
   // Listen for project selection changes via storage events (cross-tab communication)
   useEffect(() => {
-    if (authState !== 'authenticated') return;
+    if (!userId) return;
 
     const handleStorageChange = async (e: StorageEvent) => {
       const currentUserId = getUserId();
@@ -249,16 +248,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               await cacheInvalidationService.connect(newProjectId);
             } catch (error: any) {
               if (error?.message?.includes('not authorized') || error?.message?.includes('Forbidden')) {
-                console.error('❌ Not authorized for project, clearing selection');
                 if (currentUserId) {
                   clearSelectedProject(currentUserId);
                 }
                 previousProjectIdRef.current = null;
               }
-              console.error('❌ Failed to connect WebSocket:', error);
             }
           } else if (newProjectId) {
-            console.warn('⚠️ Invalid projectId from storage event, clearing:', newProjectId);
             if (currentUserId) {
               clearSelectedProject(currentUserId);
             }
@@ -275,11 +271,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [authState, validateProjectIdFromCache]);
+  }, [userId, validateProjectIdFromCache]);
 
   // Listen for same-tab project selection changes (via 'project-changed' custom event)
   useEffect(() => {
-    if (authState !== 'authenticated') return;
+    if (!userId) return;
 
     const handleProjectChange = async (e: Event) => {
       const customEvent = e as CustomEvent<{ projectId: string | null }>;
@@ -332,69 +328,154 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => {
       window.removeEventListener('project-changed', handleProjectChange as EventListener);
     };
-  }, [authState, validateProjectIdFromCache]);
+  }, [userId, validateProjectIdFromCache]);
 
   // Phase 4.1: Login
+  // Task 1.1: No manual auth assertions - only set userId, token is set by loginService
   const login = useCallback(async (credentials: LoginModel | any): Promise<AuthToken> => {
     try {
       const { rememberMe, ...loginCredentials } = credentials;
       const result = await loginService(loginCredentials, rememberMe) as any;
       const userId = result.userId || result.user_id || getUserId();
-      setAuthState('authenticated');
+      // Only set userId - isAuthenticated derives from userId && token
       setUserId(userId);
+      setAuthState('authenticated');
       return { Token: result.token || result.Token, userId };
     } catch (error) {
-      setAuthState('unauthenticated');
       setUserId(null);
+      setAuthState('unauthenticated');
       throw error;
     }
   }, []);
 
-  // Phase 4.2: Logout
-  const logout = useCallback(() => {
+  // Task 2.1: Enforce synchronous logout ordering
+  // Order: 1. Call backend logout to clear refresh token cookie, 2. Clear token, 3. Set userId = null, 4. isAuthenticated = false (derived), 5. Clear project, 6. Clear ALL caches
+  const logout = useCallback(async () => {
     console.log('🚪 Logout initiated');
     
-    setAuthState('unauthenticated');
+    // Step 1: Call backend logout endpoint to clear refresh token cookie (HTTP-only cookie)
+    try {
+      await logoutService();
+    } catch (error) {
+      // Even if backend logout fails, continue with local cleanup
+      console.warn('⚠️ Backend logout failed, continuing with local cleanup:', error);
+    }
+    
+    // Step 2: Clear in-memory access token (synchronous)
+    clearAccessToken();
+    
+    // Step 3: Set userId = null (synchronous) - this must happen BEFORE clearing localStorage
     setUserId(null);
     
+    // Step 4: Set authState (isAuthenticated will be false because userId is null)
+    setAuthState('unauthenticated');
+    
+    // Step 5: Clear selected project (get userId before it's fully cleared)
+    const currentUserId = getUserId();
+    if (currentUserId) {
+      clearSelectedProject(currentUserId);
+    }
+    
+    // Step 6: Clear ALL caches and disconnect
     queryClient.cancelQueries();
     cacheInvalidationService.disconnect('User logout');
     previousProjectIdRef.current = null;
     validatedProjectIdRef.current = null;
     isConnectingRef.current = false;
     
-    const currentUserId = getUserId();
-    if (currentUserId) {
-      clearSelectedProject(currentUserId);
-    }
-    
-    logoutService();
+    // Clear all React Query cache (including projects, users, tasks, sprints, messages, etc.)
     queryClient.clear();
+    
+    // Clear all selected project keys (for all users - defensive cleanup)
+    clearAllSelectedProjects();
+    
+    // Clear all localStorage items related to auth and cache
+    localStorage.removeItem('userId');
     localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE');
     
-    console.log('✅ Logout completed');
+    // Clear any other potential localStorage keys (defensive cleanup)
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (
+        key.startsWith('react-query') ||
+        key === 'token' // Legacy token key if it exists
+      )) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    console.log('✅ Logout completed - all state cleared');
   }, [queryClient]);
 
+  // Task 2.2: OAuth mode guard functions
+  const setOAuthMode = useCallback((enabled: boolean) => {
+    authModeRef.current = enabled ? 'oauth' : 'normal';
+    setOAuthFlow(enabled); // Also set flag in apiClient
+  }, []);
+
+  // Task 2.1: Complete OAuth login - sets userId and authState without calling refresh
+  const completeOAuthLogin = useCallback((userId: string) => {
+    // Token is already stored in memory by storeAuthData
+    // Just set userId and authState - isAuthenticated will derive from userId && token
+    setUserId(userId);
+    setAuthState('authenticated');
+  }, []);
+
+  const isOAuthMode = useCallback(() => {
+    return authModeRef.current === 'oauth';
+  }, []);
+
+  // Task 1.1: No manual auth assertions - only set userId, token is set by refreshTokenService
+  // Task 3.2: Never clear auth on refresh 401 during OAuth
   const refreshToken = useCallback(async (): Promise<AuthToken> => {
+    // Task 3.2: Skip refresh if OAuth mode is active
+    if (isOAuthMode()) {
+      // OAuth flow is in progress - don't refresh, just return current state
+      const currentUserId = getUserId();
+      const currentToken = getAccessToken();
+      if (currentUserId && currentToken) {
+        setUserId(currentUserId);
+        setAuthState('authenticated');
+        return { Token: currentToken, userId: currentUserId };
+      }
+      throw new Error('OAuth mode active but no token found');
+    }
+
     try {
       const result = await refreshTokenService();
-      setAuthState('authenticated');
+      // Only set userId - isAuthenticated derives from userId && token
       setUserId(result.userId);
+      setAuthState('authenticated');
       return result;
-    } catch (error) {
-      setAuthState('unauthenticated');
+    } catch (error: any) {
+      const is401 = error?.response?.status === 401;
+      if (is401) {
+        // Task 3.2: Do not clear auth on refresh 401 during OAuth
+        if (isOAuthMode()) {
+          // OAuth flow must win - don't clear token or logout
+          throw error;
+        }
+        console.log('🔄 Refresh 401');
+      }
       setUserId(null);
+      setAuthState('unauthenticated');
       throw error;
     }
-  }, []);
+  }, [isOAuthMode]);
 
   const value: AuthContextType = {
     isAuthenticated,
     userId,
     isLoading,
+    authInitialized,
     login,
     logout,
     refreshToken,
+    setOAuthMode,
+    isOAuthMode,
+    completeOAuthLogin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

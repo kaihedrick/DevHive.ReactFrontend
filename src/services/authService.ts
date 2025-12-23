@@ -321,11 +321,20 @@ export const refreshToken = async (): Promise<AuthToken> => {
 /**
  * @function logout
  * Logs out the current user and clears session data.
- * Note: Refresh token cookie is cleared by backend on logout endpoint if called.
+ * Calls backend logout endpoint to clear refresh token cookie.
  */
-export const logout = (): void => {
-  clearAuthData();
-  console.log('✅ Logged out successfully');
+export const logout = async (): Promise<void> => {
+  try {
+    // Call backend logout endpoint to clear refresh token cookie
+    await api.post(ENDPOINTS.AUTH_LOGOUT, {}, { withCredentials: true });
+  } catch (error) {
+    // Even if logout endpoint fails, clear local state
+    console.warn('⚠️ Logout endpoint call failed, clearing local state anyway:', error);
+  } finally {
+    // Always clear local auth data regardless of API call success
+    clearAuthData();
+    console.log('✅ Logged out successfully');
+  }
 };
 /**
  * @function register

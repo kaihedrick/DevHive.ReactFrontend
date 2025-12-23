@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { getUserId, clearAuth, validateUsername } from "../services/authService.ts";
+import { validateUsername } from "../services/authService.ts";
 import { getSelectedProject, clearSelectedProject } from "../services/storageService";
 import { leaveProject, isProjectOwner, updateProjectOwner } from "../services/projectService";
 import { useNavigate } from "react-router-dom";
 import { useUser, useUpdateUser } from "./useUsers.ts";
+import { useAuthContext } from "../contexts/AuthContext.tsx";
 import { User } from "../types/hooks";
 
 export interface LeaveProjectState {
@@ -17,7 +18,7 @@ export interface UseAccountDetailsReturn {
   loading: boolean;
   error: string | null;
   handleGoBack: () => void;
-  handleLogout: () => void;
+  handleLogout: () => Promise<void>;
   handleChangePassword: (newPassword: string) => Promise<boolean>;
   handleLeaveGroup: () => Promise<void>;
   updateUsername: (newUsername: string) => Promise<User>;
@@ -34,7 +35,8 @@ export interface UseAccountDetailsReturn {
  */
 const useAccountDetails = (): UseAccountDetailsReturn => {
   const navigate = useNavigate();
-  const userId = getUserId();
+  // Task 5.1: Eliminate mixed user resolution - use AuthContext as single source
+  const { userId } = useAuthContext();
   const { data: user, isLoading: loading, error: queryError } = useUser(userId);
   const updateUserMutation = useUpdateUser();
   const [error, setError] = useState<string | null>(null);
@@ -44,29 +46,25 @@ const useAccountDetails = (): UseAccountDetailsReturn => {
     success: null
   });
 
+  // Task 3.2: Remove competing redirects - ProtectedRoute handles navigation
   useEffect(() => {
-    if (!userId) {
-      console.error("No user ID found, redirecting to login...");
-      navigate("/");
-      return;
-    }
-
     if (queryError) {
       setError("Failed to load account details.");
     } else {
       setError(null);
     }
-  }, [userId, queryError, navigate]);
+  }, [queryError]);
 
   const handleGoBack = (): void => {
     console.log("🔙 Returning to the previous page...");
     navigate(-1);
   };
 
-  const handleLogout = (): void => {
-    console.log("🚪 Logging out...");
-    clearAuth();
-    navigate("/");
+  // Task 3.2: Remove competing redirects - logout() in AuthContext handles cleanup
+  // ProtectedRoute will handle navigation when userId becomes null
+  const { logout: logoutFromContext } = useAuthContext();
+  const handleLogout = async (): Promise<void> => {
+    await logoutFromContext();
   };
 
   const getUserProp = (propName: string): any => {
@@ -168,7 +166,8 @@ const useAccountDetails = (): UseAccountDetailsReturn => {
   };
 
   const handleLeaveGroup = async (): Promise<void> => {
-    const selectedProjectId = getSelectedProject();
+    // Task 4.1: Guard project reads - require userId
+    const selectedProjectId = userId ? getSelectedProject(userId) : null;
   
     if (!selectedProjectId) {
       setLeaveProjectState({

@@ -23,7 +23,7 @@ import '../styles/login_register.css';
 const GoogleOAuthCallback: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { refreshToken: refreshAuthToken } = useAuthContext();
+  const { setOAuthMode, completeOAuthLogin } = useAuthContext();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,6 +35,9 @@ const GoogleOAuthCallback: React.FC = () => {
     const processOAuthCallback = async () => {
       if (hash.startsWith('#token=')) {
         try {
+          // Task 2.2: Set OAuth mode before processing to block global refresh
+          setOAuthMode(true);
+
           // Extract and decode token data from fragment
           const tokenDataEncoded = hash.substring(7); // Remove '#token='
           const tokenDataJSON = atob(tokenDataEncoded); // Decode base64
@@ -43,66 +46,35 @@ const GoogleOAuthCallback: React.FC = () => {
           // Check if switching users - if so, clear previous user's cached data
           const previousUserId = getUserId();
 
-          console.log('🔍 OAuth login user detection:', {
-            previousUserId,
-            newUserId: tokenData.userId,
-            willClearCache: !!(previousUserId && previousUserId !== tokenData.userId)
-          });
-
           if (previousUserId && previousUserId !== tokenData.userId) {
-            console.log('🔄 User changed during OAuth login, clearing previous user data', {
-              previousUserId,
-              newUserId: tokenData.userId
-            });
-
             // 1. Disconnect WebSocket to prevent stale connections
             cacheInvalidationService.disconnect('User changed during OAuth');
 
             // 2. Clear previous user's project selection
             clearSelectedProject(previousUserId);
           } else if (previousUserId === tokenData.userId) {
-            console.log('ℹ️ Same user re-login, clearing cache to ensure fresh data');
             // Even for same user, disconnect WebSocket to reconnect with fresh auth
             cacheInvalidationService.disconnect('Same user OAuth re-login');
-          } else {
-            console.log('ℹ️ No previous user found, cache should be empty');
           }
 
-          // ALWAYS clear React Query cache on OAuth login to prevent any stale data
-          // This includes both in-memory cache AND persisted cache in localStorage
-          console.log('🧹 Clearing React Query cache (in-memory and persisted) for OAuth login');
+          // Clear React Query cache on OAuth login to prevent stale data
           queryClient.clear();
-
-          // CRITICAL: Also clear the persisted React Query cache from localStorage
-          // This is the root cause fix for the Google OAuth cache leak issue
           localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE');
 
-          // Store the access token (for API requests)
+          // Task 2.1: Store the access token and userId (no refresh call)
+          // OAuth already provides a fresh, trusted token - no need to refresh
           storeAuthData(tokenData.token, tokenData.userId);
 
-          console.log('✅ OAuth token stored from URL hash', {
-            userId: tokenData.userId,
-            isNewUser: tokenData.isNewUser,
-            userChanged: previousUserId !== null && previousUserId !== tokenData.userId
-          });
-          
-          // Update AuthContext state to authenticated (token is already stored in memory)
-          // Call refreshToken to sync AuthContext state with stored token
-          // This will update authState to 'authenticated' and set userId
-          try {
-            await refreshAuthToken();
-          } catch (err) {
-            // If refresh fails, token is already stored, so auth state should work
-            // The refresh endpoint should work since backend set refresh token cookie during OAuth
-            console.warn('⚠️ Failed to refresh auth token after OAuth:', err);
-          }
+          // Task 2.1: Update AuthContext state directly without calling refresh
+          completeOAuthLogin(tokenData.userId);
+
+          // Task 2.2: Clear OAuth mode after completing login
+          setOAuthMode(false);
           
           // Handle new user if needed
           if (tokenData.isNewUser) {
             // Show welcome/onboarding
-            console.log('New user:', tokenData.user);
             // You can add UI for new user onboarding here
-            // e.g., show a welcome modal, redirect to profile completion, etc.
           }
           
           // Clear the hash from URL for clean UX
@@ -115,6 +87,8 @@ const GoogleOAuthCallback: React.FC = () => {
           setLoading(false);
           navigate('/projects');
         } catch (error) {
+          // Task 2.2: Clear OAuth mode on error
+          setOAuthMode(false);
           console.error('❌ Failed to parse OAuth token:', error);
           setError('Failed to complete Google login. Please try again.');
           setLoading(false);
@@ -136,7 +110,7 @@ const GoogleOAuthCallback: React.FC = () => {
     };
 
     processOAuthCallback();
-  }, [navigate, queryClient, refreshAuthToken]);
+  }, [navigate, queryClient, setOAuthMode, completeOAuthLogin]);
 
   return (
     <div className="login-register-page">
