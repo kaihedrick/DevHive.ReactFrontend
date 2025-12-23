@@ -147,10 +147,137 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     window.addEventListener('auth-state-changed', handleAuthStateChange);
     
+    // Handle page visibility changes (mobile background/locked screen)
+    // When page becomes visible again, check and refresh token if needed
+    // CRITICAL: Check for token existence, not isAuthenticated state
+    // (isAuthenticated might be false if token expired while in background)
+    const handleVisibilityChange = async () => {
+      // Only check if page is visible
+      if (document.visibilityState === 'visible') {
+        const storedUserId = getUserId();
+        const hasToken = !!localStorage.getItem('token');
+        
+        // Check for token existence (not isAuthenticated state)
+        // This ensures we refresh even if token expired while in background
+        if (hasToken && storedUserId) {
+          // Check if token is expired or about to expire
+          if (isTokenExpired()) {
+            console.log('📱 Page visible: Token expired while in background, refreshing...');
+            try {
+              await refreshTokenService();
+              setIsAuthenticated(true);
+              setUserId(storedUserId);
+              console.log('✅ Token refreshed after page visibility change');
+            } catch (error) {
+              // Refresh failed - check if it's a 401 (refresh token invalid)
+              const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
+              if (is401) {
+                console.log('⚠️ Refresh token invalid after visibility change, clearing auth state');
+                setIsAuthenticated(false);
+                setUserId(null);
+                logoutService();
+              } else {
+                console.error('❌ Unexpected error during token refresh on visibility change:', error);
+              }
+            }
+          } else {
+            // Token is still valid, but check if it expires soon (within 5 minutes)
+            // Proactively refresh to prevent expiration during next background period
+            const expirationTimestamp = localStorage.getItem('tokenExpiration');
+            if (expirationTimestamp) {
+              const expirationTime = parseInt(expirationTimestamp, 10);
+              const now = Date.now();
+              const timeUntilExpiration = expirationTime - now;
+              const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+              
+              // If token expires within 5 minutes, refresh proactively
+              if (timeUntilExpiration > 0 && timeUntilExpiration < fiveMinutes) {
+                console.log('📱 Page visible: Token expires soon, refreshing proactively...');
+                try {
+                  await refreshTokenService();
+                  console.log('✅ Token refreshed proactively after page visibility change');
+                } catch (error) {
+                  console.error('❌ Failed to proactively refresh token on visibility change:', error);
+                  // Don't clear auth on proactive refresh failure - token is still valid
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+    
+    // Listen for visibility changes (handles mobile background/locked screen)
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Also listen for focus events (additional mobile browser support)
+    // Focus event fires when user switches back to the app/tab
+    const handleFocus = async () => {
+      await handleVisibilityChange();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    // Periodic token refresh check (only when page is visible to save battery)
+    // Checks every 5 minutes if token is about to expire
+    // This handles cases where token expires during active use
+    const tokenRefreshInterval = setInterval(() => {
+      // Only check if page is visible (don't waste battery when in background)
+      if (document.visibilityState === 'visible') {
+        const storedUserId = getUserId();
+        const hasToken = !!localStorage.getItem('token');
+        
+        if (hasToken && storedUserId) {
+          // Check if token is expired or expires within 5 minutes
+          if (isTokenExpired()) {
+            console.log('⏰ Periodic check: Token expired, refreshing...');
+            refreshTokenService()
+              .then(() => {
+                setIsAuthenticated(true);
+                setUserId(storedUserId);
+                console.log('✅ Token refreshed via periodic check');
+              })
+              .catch((error) => {
+                const is401 = error?.response?.status === 401 || (error as any)?.status === 401;
+                if (is401) {
+                  console.log('⚠️ Refresh token invalid during periodic check, clearing auth state');
+                  setIsAuthenticated(false);
+                  setUserId(null);
+                  logoutService();
+                }
+              });
+          } else {
+            // Check if token expires within 5 minutes
+            const expirationTimestamp = localStorage.getItem('tokenExpiration');
+            if (expirationTimestamp) {
+              const expirationTime = parseInt(expirationTimestamp, 10);
+              const now = Date.now();
+              const timeUntilExpiration = expirationTime - now;
+              const fiveMinutes = 5 * 60 * 1000;
+              
+              if (timeUntilExpiration > 0 && timeUntilExpiration < fiveMinutes) {
+                console.log('⏰ Periodic check: Token expires soon, refreshing proactively...');
+                refreshTokenService()
+                  .then(() => {
+                    console.log('✅ Token refreshed proactively via periodic check');
+                  })
+                  .catch((error) => {
+                    console.error('❌ Failed to proactively refresh token during periodic check:', error);
+                  });
+              }
+            }
+          }
+        }
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+    
     return () => {
       window.removeEventListener('auth-state-changed', handleAuthStateChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(tokenRefreshInterval);
     };
-  }, []); // Empty deps - only runs once on mount
+  }, []); // Empty deps - only runs once on mount, handlers check state dynamically
 
   // SINGLE OWNER: Connect cache invalidation WebSocket when authenticated with project selected
   // Only connects on: login (isAuthenticated change) or project change

@@ -295,7 +295,64 @@ accessToken  // Primary access token (security best practice)
 | 7 | Clear cache | Remove all stale data |
 | 8 | Dispatch event | Notify other tabs/components |
 
-### 4. Session Initialization
+### 4. Mobile Token Refresh (Background/Locked Screen)
+
+**File:** `src/contexts/AuthContext.tsx` (lines 150-270)
+
+**Problem:** On mobile devices, when the phone screen is locked or the app is in the background, JavaScript execution is throttled or paused. This prevents automatic token refresh from working, causing tokens to expire without being refreshed.
+
+**Solution:** Multiple mechanisms ensure tokens are refreshed when the user returns:
+
+1. **Page Visibility API** - Detects when page becomes visible again
+2. **Focus Events** - Additional mobile browser support
+3. **Periodic Checks** - Proactive token refresh every 5 minutes (only when visible)
+
+```
+┌─────────────────────────────────────────┐
+│ Page becomes visible / Window focused    │
+│ (visibilitychange or focus event)       │
+└──────────────┬──────────────────────────┘
+                │
+                ▼
+┌─────────────────────────────────────────┐
+│ Check: hasToken && storedUserId?        │
+└──────────────┬──────────────────────────┘
+                │
+        ┌───────┴───────┐
+        ▼               ▼
+      YES              NO
+        │               │
+        ▼               │
+┌───────────────────┐   │
+│ isTokenExpired()? │   │
+└───────┬───────────┘   │
+        │               │
+   ┌────┴────┐          │
+   ▼         ▼          │
+ YES        NO          │
+   │         │          │
+   ▼         ▼          │
+┌──────────────────┐ ┌──────────────────────┐
+│ refreshToken()   │ │ Check expires < 5min? │
+│ Update auth state│ │ If yes: refreshToken() │
+└──────────────────┘ └──────────────────────┘
+```
+
+**Implementation Details:**
+
+- **Visibility Change Handler:** Checks token expiration when `document.visibilityState === 'visible'`
+- **Focus Event Handler:** Additional check on `window.focus` event (mobile browser support)
+- **Periodic Check:** `setInterval` every 5 minutes (only runs when page is visible to save battery)
+- **Proactive Refresh:** Refreshes tokens that expire within 5 minutes to prevent expiration during next background period
+
+**Mobile-Specific Considerations:**
+
+- Only checks when page is visible (saves battery)
+- Checks token existence in localStorage (not `isAuthenticated` state, which might be stale)
+- Handles expired tokens that occurred while in background
+- Updates auth state after successful refresh
+
+### 6. Session Initialization
 
 **File:** `src/contexts/AuthContext.tsx` (lines 80-153)
 
@@ -360,7 +417,7 @@ accessToken  // Primary access token (security best practice)
 | `isTokenExpired()` | Checks stored `tokenExpiration` timestamp |
 | `isJWTExpired()` | Decodes JWT and checks `exp` claim (WebSocket uses this) |
 
-### 5. Session Persistence
+### 7. Session Persistence
 
 **Storage Strategy:**
 
@@ -378,7 +435,7 @@ accessToken  // Primary access token (security best practice)
 - **Custom Events:** `project-changed` for same-tab updates
 - **WebSocket:** Reconnection on project change
 
-### 6. 403 Forbidden Handling
+### 8. 403 Forbidden Handling
 
 **Two-Level Handling:**
 
