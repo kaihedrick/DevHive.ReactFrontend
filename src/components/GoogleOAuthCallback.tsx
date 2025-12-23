@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { storeAuthData, getUserId } from '../services/authService.ts';
 import { clearSelectedProject } from '../services/storageService';
 import { cacheInvalidationService } from '../services/cacheInvalidationService.ts';
+import { useAuthContext } from '../contexts/AuthContext.tsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import '../styles/login_register.css';
@@ -22,6 +23,7 @@ import '../styles/login_register.css';
 const GoogleOAuthCallback: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { refreshToken: refreshAuthToken } = useAuthContext();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -84,6 +86,17 @@ const GoogleOAuthCallback: React.FC = () => {
             userChanged: previousUserId !== null && previousUserId !== tokenData.userId
           });
           
+          // Update AuthContext state to authenticated (token is already stored in memory)
+          // Call refreshToken to sync AuthContext state with stored token
+          // This will update authState to 'authenticated' and set userId
+          try {
+            await refreshAuthToken();
+          } catch (err) {
+            // If refresh fails, token is already stored, so auth state should work
+            // The refresh endpoint should work since backend set refresh token cookie during OAuth
+            console.warn('⚠️ Failed to refresh auth token after OAuth:', err);
+          }
+          
           // Handle new user if needed
           if (tokenData.isNewUser) {
             // Show welcome/onboarding
@@ -95,15 +108,7 @@ const GoogleOAuthCallback: React.FC = () => {
           // Clear the hash from URL for clean UX
           window.history.replaceState(null, '', window.location.pathname);
           
-          // Trigger auth state update
-          window.dispatchEvent(new Event('auth-state-changed'));
-          
-          // Wait a brief moment for AuthContext to process the event and update state
-          // This ensures isAuthenticated is true before Projects component mounts
-          await new Promise(resolve => setTimeout(resolve, 150));
-          
           // Invalidate projects query to ensure it refetches with new auth state
-          // This is critical because the query might have been disabled before auth was set
           queryClient.invalidateQueries({ queryKey: ['projects'] });
           
           // Redirect to projects page
@@ -131,7 +136,7 @@ const GoogleOAuthCallback: React.FC = () => {
     };
 
     processOAuthCallback();
-  }, [navigate, queryClient]);
+  }, [navigate, queryClient, refreshAuthToken]);
 
   return (
     <div className="login-register-page">

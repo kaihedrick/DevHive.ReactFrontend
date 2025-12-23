@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchUserProjects } from '../services/projectService';
 import { getUserId } from '../services/authService.ts';
+import { getAccessToken } from '../lib/apiClient.ts';
 import { projectKeys } from './useProjects.ts';
 
 /**
@@ -10,14 +11,14 @@ import { projectKeys } from './useProjects.ts';
  * and provides the user's role in that project.
  * 
  * NOTE: This hook is used inside AuthContext, so it cannot use useAuthContext.
- * Instead, it checks auth state directly via localStorage/token to break the circular dependency.
+ * Instead, it checks auth state directly via in-memory token to break the circular dependency.
  * 
  * @returns Object with validation functions
  */
 export function useValidateProjectAccess() {
   // Check auth state directly (not via context) to avoid circular dependency
   // AuthProvider → useValidateProjectAccess → useAuthContext → AuthProvider (circular!)
-  const hasToken = typeof window !== 'undefined' ? !!localStorage.getItem('token') : false;
+  const hasToken = typeof window !== 'undefined' ? !!getAccessToken() : false;
   const userId = getUserId();
   
   // Use useQuery directly instead of useProjects to avoid circular dependency
@@ -129,6 +130,7 @@ export function useValidateProjectAccess() {
     isLoading,
   };
 }
+
 
 
 

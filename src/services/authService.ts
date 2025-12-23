@@ -1,4 +1,4 @@
-import { api, handleApiError, setAccessToken, clearAccessToken, refreshToken as refreshAccessToken } from '../lib/apiClient.ts';
+import { api, handleApiError, setAccessToken, clearAccessToken, getAccessToken, refreshToken as refreshAccessToken } from '../lib/apiClient.ts';
 import { ENDPOINTS } from '../config';
 import { EmailRequest } from '../models/email.ts';
 import { ResetPasswordModel, ChangePasswordModel } from '../models/password.ts';
@@ -13,9 +13,10 @@ export interface AuthToken {
 
 /**
  * @function getAuthToken
- * @returns {string | null} Retrieves JWT token from localStorage.
+ * @returns {string | null} Retrieves JWT token from memory.
  */
-export const getAuthToken = (): string | null => localStorage.getItem('token');
+export const getAuthToken = (): string | null => getAccessToken();
+
 /**
  * @function getUserId
  * @returns {string | null} Retrieves user ID from localStorage.
@@ -26,23 +27,21 @@ export const getUserId = (): string | null => localStorage.getItem('userId');
  * @function storeAuthData
  * @param {string} token - JWT token to store.
  * @param {string} userId - User ID to store.
- * Stores token and user ID in localStorage.
+ * Stores token in memory and userId in localStorage.
  */
-
 export const storeAuthData = (token: string, userId: string): void => {
-  // Store in memory via apiClient (also updates localStorage for backward compatibility)
   setAccessToken(token);
   localStorage.setItem('userId', userId);
 };
+
 /**
  * @function clearAuthData
- * Clears stored authentication and selected project data from localStorage.
+ * Clears stored authentication and selected project data.
  */
 export const clearAuthData = (): void => {
-  // Clear from memory via apiClient (also clears localStorage)
   clearAccessToken();
-  localStorage.removeItem('userId');  // Clear userId to prevent stale user detection
-  localStorage.removeItem('selectedProjectId');
+  localStorage.removeItem('userId');
+  // Note: selectedProjectId is cleared by storageService.clearSelectedProject()
 };
 
 // Alias for backward compatibility
@@ -69,9 +68,10 @@ export const clearSelectedProject = (): void => localStorage.removeItem('selecte
 /**
  * @function isAuthenticated
  * @returns {boolean} Checks if a user is currently authenticated.
+ * Note: This checks for token in memory, not localStorage.
  */
 export const isAuthenticated = (): boolean => {
-  return !!getAuthToken();
+  return !!getAccessToken();
 };
 
 /**
@@ -313,16 +313,8 @@ export const refreshToken = async (): Promise<AuthToken> => {
     
     throw new Error('Refresh token response missing token or userId');
   } catch (error) {
-    console.error('❌ Refresh token error:', error);
-    // FIXED: Only clear auth data on 401 (refresh token expired)
-    // Network errors, 500s, timeouts should NOT clear tokens
-    const is401 = (error as any)?.response?.status === 401 || (error as any)?.status === 401;
-    if (is401) {
-      console.log('⚠️ Refresh token expired (401), clearing auth data');
-      clearAuthData();
-    } else {
-      console.warn('⚠️ Refresh failed with non-401 error, keeping tokens for retry:', error);
-    }
+    // Error handling is done in apiClient.refreshToken()
+    // It already clears auth data on 401
     throw error;
   }
 };

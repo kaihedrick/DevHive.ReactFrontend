@@ -108,9 +108,8 @@ class CacheInvalidationService {
    * 2. Decodes JWT and checks 'exp' claim directly with 30-second buffer for proactive refresh
    */
   private async ensureFreshToken(): Promise<string> {
-    // Always fetch fresh token - never use cached value
-    // This ensures we get the latest token even after logout/login
-    let token = getAccessToken() || localStorage.getItem('token');
+    // Always fetch fresh token from memory (no localStorage fallback)
+    let token = getAccessToken();
     
     if (!token) {
       this.authFailureDetected = true;
