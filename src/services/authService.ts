@@ -3,6 +3,7 @@ import { ENDPOINTS } from '../config';
 import { EmailRequest } from '../models/email.ts';
 import { ResetPasswordModel, ChangePasswordModel } from '../models/password.ts';
 import { LoginModel, UserModel } from '../models/user.ts';
+import { isIOSSafari } from '../utils/isIOSSafari.ts';
 import axios from 'axios';
 
 // Define interfaces for type safety
@@ -155,9 +156,6 @@ export const validateUsername = async (username: string, currentUsername?: strin
  */
 export const login = async (credentials: LoginModel | any, rememberMe?: boolean): Promise<AuthToken> => {
   try {
-    // Import iOS Safari detection
-    const { isIOSSafari } = await import('../utils/isIOSSafari');
-    
     // Backend expects username, password, and optional rememberMe
     // Handle both capitalized (Username/Password) and lowercase (username/password) field names
     const loginData: any = {
@@ -202,9 +200,6 @@ export const initiateGoogleOAuth = async (
   redirectUrl?: string
 ): Promise<{authUrl: string, state: string}> => {
   try {
-    // Import iOS Safari detection
-    const { isIOSSafari } = await import('../utils/isIOSSafari');
-    
     // CRITICAL: Force rememberMe=true on iOS Safari
     // iOS Safari deletes session cookies on app close, so we must use persistent cookies
     const rememberMeEffective = isIOSSafari() ? true : rememberMe;
