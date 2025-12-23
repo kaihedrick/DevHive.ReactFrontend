@@ -18,6 +18,7 @@ The authentication system uses a dual-token approach with automatic token refres
 - **Comprehensive logout cleanup** - Logout now calls backend logout endpoint to clear refresh token cookie, clears all localStorage keys (projects, cache, userId), and ensures users cannot access protected routes after logout and page refresh
 - **CRITICAL: Never refresh if access token exists** - Refresh is recovery, not validation. If access token exists (fresh login), never call refresh endpoint. This prevents immediate 401-after-login where refresh cookie may not be ready yet, causing auth to be incorrectly cleared.
 - **Mobile Safari bootstrap refresh fix** - Prevents routes from triggering refresh during bootstrap. Response interceptor now checks `authInitialized` flag before triggering refresh, ensuring bootstrap refresh completes before any route-level refresh attempts. This fixes issue where account/profile routes would trigger refresh during bootstrap, causing logout on mobile Safari.
+- **iOS Safari persistent cookie fix** - Forces `rememberMe=true` on iOS Safari for both regular login and Google OAuth. iOS Safari deletes session cookies when the app is closed, so persistent cookies (Max-Age) are required. The Remember Me checkbox is automatically checked and disabled on iOS Safari with a helpful message.
 
 ## Architecture Summary
 
@@ -264,7 +265,13 @@ accessToken  // Primary access token (security best practice - NOT in localStora
 ### 1. Login Flow
 
 **Entry Point:** `src/components/LoginRegister.tsx`  
-**Service:** `src/services/authService.ts` (lines 154-180)
+**Service:** `src/services/authService.ts` (lines 154-186)
+
+**CRITICAL: iOS Safari Persistent Cookie Fix (2025-12-23):**
+- iOS Safari automatically deletes session cookies when the app is closed
+- To prevent logouts on app close, `rememberMe` is forced to `true` on iOS Safari
+- The Remember Me checkbox is automatically checked and disabled on iOS Safari
+- This ensures persistent refresh cookies (Max-Age) are issued instead of session cookies
 
 ```
 ┌─────────────────┐
@@ -326,6 +333,10 @@ accessToken  // Primary access token (security best practice - NOT in localStora
 **Service:** `src/services/authService.ts` (lines 187-225)
 
 **CRITICAL FIX (2025-12-23):** OAuth callback no longer calls refresh token endpoint. OAuth already provides a fresh, trusted token, so no refresh is needed. This prevents double refresh (OAuth callback + initialization) that was causing 401 errors and token clearing immediately after login.
+
+**iOS Safari Persistent Cookie Fix (2025-12-23):**
+- `rememberMe` is forced to `true` on iOS Safari for Google OAuth
+- This ensures persistent refresh cookies are issued, preventing logouts on app close
 
 ```
 ┌─────────────────────┐
@@ -894,6 +905,7 @@ The login interface has been updated with Apple-inspired minimalist design:
 - Gold accent when checked with white checkmark
 - Simplified text: "Remember me" (removed verbose description)
 - Positioned on same line as "Forgot Password?" for better layout
+- **iOS Safari:** Automatically checked and disabled on iOS Safari with message "Sessions always persist on iOS Safari" (prevents session cookie logouts)
 
 **Google Sign In Button:**
 - Clean, minimal styling with subtle borders and shadows
@@ -914,7 +926,8 @@ The login interface has been updated with Apple-inspired minimalist design:
 
 | File | Purpose | Key Functions |
 |------|---------|---------------|
-| `src/services/authService.ts` | Auth API calls, token storage, OAuth initiation | `login()`, `refreshToken()`, `initiateGoogleOAuth()` |
+| `src/services/authService.ts` | Auth API calls, token storage, OAuth initiation | `login()`, `refreshToken()`, `initiateGoogleOAuth()` (forces `rememberMe=true` on iOS Safari) |
+| `src/utils/isIOSSafari.ts` | iOS Safari detection utility | `isIOSSafari()` - detects iOS Safari browser |
 | `src/lib/apiClient.ts` | Axios instance, interceptors, token management | `setAccessToken()`, `refreshToken()` (never refreshes if token exists), `getAccessToken()`, `clearAccessToken()` |
 | `src/contexts/AuthContext.tsx` | Auth state provider, initialization | `logout()`, `initializeAuth()`, `completeOAuthLogin()`, `setOAuthMode()` |
 | `src/components/ProtectedRoute.tsx` | Route guard | Redirects unauthenticated users |

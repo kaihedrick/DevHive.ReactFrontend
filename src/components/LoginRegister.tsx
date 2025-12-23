@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import useLoginRegisterNew from "../hooks/useLoginRegisterNew.ts";
 import { useKeyboardNavigation } from "../hooks/useKeyboardNavigation.ts";
 import { initiateGoogleOAuth } from "../services/authService.ts";
+import { isIOSSafari } from "../utils/isIOSSafari.ts";
 /**
  * LoginRegister Component
  * 
@@ -49,6 +50,9 @@ const LoginRegister: React.FC = () => {
   } = useLoginRegisterNew();
   
   const [googleOAuthLoading, setGoogleOAuthLoading] = useState(false);
+  
+  // Detect iOS Safari for Remember Me handling
+  const iosSafari = isIOSSafari();
   /**
    * useMemo - signupNavigationMap / loginNavigationMap
    * 
@@ -248,7 +252,8 @@ const LoginRegister: React.FC = () => {
                   <div className="remember-me-checkbox-wrapper">
                     <input
                       type="checkbox"
-                      checked={rememberMe}
+                      checked={rememberMe || iosSafari}
+                      disabled={iosSafari}
                       onChange={(e) => handleRememberMeChange(e.target.checked)}
                       className="remember-me-checkbox"
                     />
@@ -256,6 +261,17 @@ const LoginRegister: React.FC = () => {
                   </div>
                   <span className="remember-me-text">Remember me</span>
                 </label>
+                {iosSafari && (
+                  <small style={{ 
+                    display: 'block', 
+                    marginTop: '4px', 
+                    opacity: 0.6,
+                    fontSize: '12px',
+                    color: 'var(--text-secondary, #666)'
+                  }}>
+                    Sessions always persist on iOS Safari
+                  </small>
+                )}
               </div>
             </div>
           )}

@@ -155,6 +155,9 @@ export const validateUsername = async (username: string, currentUsername?: strin
  */
 export const login = async (credentials: LoginModel | any, rememberMe?: boolean): Promise<AuthToken> => {
   try {
+    // Import iOS Safari detection
+    const { isIOSSafari } = await import('../utils/isIOSSafari');
+    
     // Backend expects username, password, and optional rememberMe
     // Handle both capitalized (Username/Password) and lowercase (username/password) field names
     const loginData: any = {
@@ -162,10 +165,12 @@ export const login = async (credentials: LoginModel | any, rememberMe?: boolean)
       password: credentials.password || credentials.Password
     };
     
-    // Add rememberMe if provided
-    if (rememberMe !== undefined) {
-      loginData.rememberMe = rememberMe;
-    }
+    // CRITICAL: Force rememberMe=true on iOS Safari
+    // iOS Safari deletes session cookies on app close, so we must use persistent cookies
+    const rememberMeEffective = isIOSSafari() ? true : (rememberMe ?? false);
+    
+    // Add rememberMe (forced to true on iOS Safari)
+    loginData.rememberMe = rememberMeEffective;
     
     const response = await api.post(ENDPOINTS.AUTH_LOGIN, loginData);
     const { Token, userId, token } = response.data; // Handle both Token and token (case variations)
@@ -197,8 +202,15 @@ export const initiateGoogleOAuth = async (
   redirectUrl?: string
 ): Promise<{authUrl: string, state: string}> => {
   try {
+    // Import iOS Safari detection
+    const { isIOSSafari } = await import('../utils/isIOSSafari');
+    
+    // CRITICAL: Force rememberMe=true on iOS Safari
+    // iOS Safari deletes session cookies on app close, so we must use persistent cookies
+    const rememberMeEffective = isIOSSafari() ? true : rememberMe;
+    
     const params: any = {
-      remember_me: rememberMe
+      remember_me: rememberMeEffective
     };
     
     if (redirectUrl) {
