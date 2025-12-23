@@ -52,11 +52,8 @@ html, body {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .background,
-  .login-register-page .background {
+  .background {
     padding: var(--space-3) !important;
-    min-height: 100dvh !important; /* Use dynamic viewport height for mobile */
-    height: 100dvh !important;
   }
   
   .container {
@@ -67,51 +64,36 @@ html, body {
 }
 
 @media (max-width: 480px) {
-  .background,
-  .login-register-page .background {
+  .background {
     padding: var(--space-2) !important;
-    min-height: 100dvh !important; /* Use dynamic viewport height for mobile */
-    height: 100dvh !important;
-    width: 100% !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
   }
   
   .container {
-    width: calc(100% - var(--space-4)) !important; /* Symmetric width with padding */
+    width: 100% !important; /* Full width on mobile */
     padding: var(--space-4) !important; /* Consistent padding */
     min-width: auto !important; /* Remove min-width constraint */
-    margin: 0 auto !important; /* Keep centered */
-    max-width: calc(100% - var(--space-4)) !important; /* Symmetric max-width */
+    margin: 0 var(--space-2) !important; /* Add horizontal margin for breathing room */
+    max-width: calc(100% - var(--space-4)) !important; /* Ensure it doesn't overflow */
   }
   
   .logo-container {
-    margin-top: calc(var(--space-10) * 2) !important;
     margin-bottom: var(--space-4) !important;
   }
 }
 
 /* iPhone-specific adjustments */
 @media (max-width: 375px) {
-  .background,
-  .login-register-page .background {
+  .background {
     padding: var(--space-1) !important;
-    min-height: 100dvh !important; /* Use dynamic viewport height for mobile */
-    height: 100dvh !important;
   }
   
   .container {
     padding: var(--space-3) !important;
-    width: calc(100% - var(--space-2)) !important; /* Symmetric width */
-    margin: 0 auto !important; /* Keep centered */
-    max-width: calc(100% - var(--space-2)) !important; /* Symmetric max-width */
+    margin: 0 var(--space-1) !important;
+    max-width: calc(100% - var(--space-2)) !important;
   }
   
   .logo-container {
-    margin-top: calc(var(--space-10) * 2) !important;
     margin-bottom: var(--space-3) !important;
   }
   
@@ -129,7 +111,6 @@ html, body {
   display: flex !important; 
   align-items: center !important; 
   justify-content: center !important; 
-  margin-top: calc(var(--space-16) * 2) !important;
   margin-bottom: var(--space-6) !important;
   width: 100% !important;
   max-width: 100% !important;
@@ -184,18 +165,15 @@ html, body {
   box-sizing: border-box !important;
   position: relative !important;
   z-index: 10 !important;
-  /* Ensure symmetric resizing */
-  flex-shrink: 1 !important;
-  flex-grow: 0 !important;
 }
 
 /* Mobile-first container adjustments */
 @media (max-width: 600px) {
   .container {
     min-width: auto !important; /* Remove min-width constraint */
-    width: calc(100% - var(--space-4)) !important; /* Symmetric padding from parent */
-    max-width: calc(100% - var(--space-4)) !important;
-    margin: 0 auto !important; /* Keep centered */
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 var(--space-2) !important;
     padding: var(--space-4) !important;
     padding-bottom: var(--space-6) !important;
   }
@@ -241,7 +219,7 @@ html, body {
 .inputs-section {
   display: flex !important;
   flex-direction: column !important;
-  gap: var(--space-1) !important;
+  gap: var(--space-4) !important;
   width: 100% !important;
   margin-bottom: var(--space-4) !important;
 }
