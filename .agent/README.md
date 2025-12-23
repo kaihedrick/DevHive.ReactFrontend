@@ -2,11 +2,12 @@
 
 ## Overview
 
-This directory contains comprehensive documentation for the DevHive React Frontend project. All documentation is organized into three main categories:
+This directory contains comprehensive documentation for the DevHive React Frontend project. All documentation is organized into these categories:
 
 - **System** - Architecture, design, and technical documentation
 - **SOP** - Standard Operating Procedures for common development tasks
-- **Tasks** - PRD and implementation plans for features (to be added as needed)
+- **Tasks** - PRD and implementation plans for features
+- **CSS** - Styling architecture (bounded subsystem with dedicated docs)
 
 ## Quick Navigation
 
@@ -39,6 +40,19 @@ Feature PRDs and implementation plans:
 - **[Fix Google OAuth Cache Leak](./Tasks/fix_google_oauth_cache_leak.md)** - Fix data leakage where previous user's projects are visible after OAuth login
 - **[Fix Authentication 15-Minute Logouts](./Tasks/fix_authentication_15min_logout.md)** - Fix random logouts after 15 minutes, token refresh issues, and operation flow problems ⚠️ **Updated 2025-12-23** with iOS Safari fixes, JWT expiration parsing, and retry logic
 
+### 🎨 CSS Styling Architecture
+
+**CSS is a first-class subsystem with bounded documentation.**
+
+- **[CSS Architecture](./CSS/architecture.md)** - Design philosophy, CSS methodology, constraints
+- **[Design Tokens](./CSS/tokens.md)** - Colors, spacing, typography, shadows
+- **[Layout System](./CSS/layout.md)** - Grid, flexbox patterns, breakpoints
+- **[Component Styles](./CSS/components.md)** - Reusable UI component styles
+- **[Utility Classes](./CSS/utilities.md)** - Helper classes for common patterns
+- **[Theming](./CSS/theming.md)** - Dark mode, theme variants, CSS variables
+- **[Anti-Patterns](./CSS/anti-patterns.md)** - What NOT to do
+- **[Changelog](./CSS/changelog.md)** - Style-impacting changes history
+
 ## Documentation Structure
 
 ```
@@ -52,6 +66,15 @@ Feature PRDs and implementation plans:
 │   ├── invite_management.md           # Invite system
 │   ├── file_reference.md              # Quick file reference
 │   └── risk_analysis.md               # Risk areas and testing
+├── CSS/                              # CSS styling architecture (bounded subsystem)
+│   ├── architecture.md               # Design philosophy & constraints
+│   ├── tokens.md                     # Colors, spacing, typography
+│   ├── layout.md                     # Grid, flex, breakpoints
+│   ├── components.md                 # Reusable UI components
+│   ├── utilities.md                  # Utility / helper classes
+│   ├── theming.md                    # Dark mode, variants
+│   ├── anti-patterns.md              # What NOT to do
+│   └── changelog.md                  # Style-impacting changes
 ├── Tasks/                            # Feature PRDs and implementation plans
 │   ├── google_oauth.md               # Google OAuth 2.0 implementation
 │   ├── fix_google_oauth_cache_leak.md # OAuth cache leak fix
@@ -90,6 +113,66 @@ Feature PRDs and implementation plans:
 2. Check relevant System documentation for architecture details
 3. Reference **[File Reference](./System/file_reference.md)** for code locations
 4. Review **[Risk Analysis](./System/risk_analysis.md)** before making auth/cache changes
+
+### For Working on Styling
+
+1. Read **[CSS Architecture](./CSS/architecture.md)** for methodology and constraints
+2. Reference **[Design Tokens](./CSS/tokens.md)** - never hardcode values
+3. Check **[Layout System](./CSS/layout.md)** for responsive patterns
+4. Review **[Anti-Patterns](./CSS/anti-patterns.md)** to avoid common mistakes
+5. Update **[Changelog](./CSS/changelog.md)** for any style-impacting changes
+
+---
+
+## CSS Agent Prompting Pattern
+
+**CRITICAL: CSS is a first-class subsystem with bounded documentation.**
+
+### When to Read CSS Docs
+
+Read CSS documentation when the task involves:
+- Styling changes (colors, spacing, typography, layout)
+- Responsive design or breakpoint adjustments
+- Component visual appearance
+- Theme modifications (dark mode, variants)
+- Adding new UI components with custom styles
+- Fixing layout/alignment issues
+
+### When to Write CSS Docs
+
+Update CSS documentation when:
+- Adding new design tokens (colors, spacing, etc.)
+- Creating new reusable CSS patterns
+- Modifying breakpoint behavior
+- Adding utility classes
+- Changing theming system
+- Documenting anti-patterns discovered
+
+### CSS Documentation Isolation Rules
+
+| Rule | Description |
+|------|-------------|
+| **NEVER** | Mix CSS docs with JS/TS logic documentation |
+| **NEVER** | Document API calls, state management, or auth in CSS docs |
+| **NEVER** | Update feature PRDs for styling-only changes |
+| **ALWAYS** | Update `CSS/changelog.md` for style-impacting changes |
+| **ALWAYS** | Reference tokens from `CSS/tokens.md` - never hardcode values |
+| **ALWAYS** | Keep CSS docs self-contained within `.agent/CSS/` |
+
+### CSS File Locations
+
+```
+src/styles/
+├── index.css              # Global styles, CSS variables, resets
+├── utilities.css          # Utility classes
+├── backlog.css            # Component: Backlog
+├── board.css              # Component: Board
+├── projectDetails.css     # Component: Project Details
+├── taskInspector.css      # Component: Task Inspector
+└── ...
+```
+
+---
 
 ## Documentation Principles
 
