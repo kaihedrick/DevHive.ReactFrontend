@@ -1,5 +1,5 @@
 import { queryClient } from '../lib/queryClient.ts';
-import { getAccessToken, isTokenExpired, refreshToken } from '../lib/apiClient.ts';
+import { getAccessToken, refreshToken } from '../lib/apiClient.ts';
 import { WS_BASE_URL } from '../config.js';
 
 /**
@@ -103,9 +103,7 @@ class CacheInvalidationService {
    * Always fetches the latest token at connect-time (never uses cached value).
    * Proactively refreshes token if it expires within 30 seconds.
    * 
-   * Performs two checks:
-   * 1. Uses isTokenExpired() for quick check (checks stored expiration timestamp)
-   * 2. Decodes JWT and checks 'exp' claim directly with 30-second buffer for proactive refresh
+   * Decodes JWT and checks 'exp' claim directly with 30-second buffer for proactive refresh.
    */
   private async ensureFreshToken(): Promise<string> {
     // Always fetch fresh token from memory (no localStorage fallback)
@@ -120,22 +118,6 @@ class CacheInvalidationService {
     // This refreshes tokens before they actually expire, preventing connection failures
     if (this.isJWTExpired(token, 30)) {
       console.log('⚠️ Token expires within 30 seconds or is expired, refreshing proactively before WebSocket connection...');
-      try {
-        token = await refreshToken();
-        if (!token) {
-          this.authFailureDetected = true;
-          throw new Error('Token refresh failed - no token returned');
-        }
-        console.log('✅ Token refreshed successfully');
-        this.authFailureDetected = false; // Reset on successful refresh
-      } catch (error) {
-        console.error('❌ Failed to refresh token:', error);
-        this.authFailureDetected = true;
-        throw error;
-      }
-    } else if (isTokenExpired()) {
-      // Also check stored expiration timestamp (fallback)
-      console.log('⚠️ Token expired (from stored timestamp), refreshing before WebSocket connection...');
       try {
         token = await refreshToken();
         if (!token) {
