@@ -5,6 +5,7 @@ import { API_BASE_URL, ENDPOINTS } from '../config';
 let accessToken: string | null = null;
 let isRefreshing = false;
 let isOAuthFlow = false; // Task 2.2: Track OAuth flow to prevent token clearing during OAuth
+let authInitialized = false; // Track if auth initialization is complete
 let failedQueue: Array<{
   resolve: (value?: any) => void;
   reject: (error?: any) => void;
@@ -24,6 +25,21 @@ export const setOAuthFlow = (enabled: boolean): void => {
  */
 export const getOAuthFlow = (): boolean => {
   return isOAuthFlow;
+};
+
+/**
+ * Set auth initialization state
+ * Called by AuthContext when initialization completes
+ */
+export const setAuthInitialized = (initialized: boolean): void => {
+  authInitialized = initialized;
+};
+
+/**
+ * Get auth initialization state
+ */
+export const getAuthInitialized = (): boolean => {
+  return authInitialized;
 };
 
 /**
@@ -217,8 +233,10 @@ api.interceptors.response.use(
     // 2. Error is 401 (Unauthorized)
     // 3. Request hasn't been retried yet
     // 4. NO access token exists (refresh is recovery, not validation)
+    // 5. Auth is initialized (bootstrap refresh has completed)
     const hasAccessToken = !!getAccessToken();
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !hasAccessToken) {
+    const isInitialized = getAuthInitialized();
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !hasAccessToken && isInitialized) {
       // Check if we're already refreshing
       if (isRefreshing) {
         // If already refreshing, queue this request
@@ -283,6 +301,11 @@ api.interceptors.response.use(
       } finally {
         isRefreshing = false;
       }
+    } else if (error.response?.status === 401 && !isInitialized) {
+      // Auth not initialized yet - don't trigger refresh, just reject
+      // This prevents routes from triggering refresh during bootstrap
+      console.log('⚠️ 401 during auth initialization - waiting for bootstrap refresh to complete');
+      return Promise.reject(error);
     }
     
     // Handle 403 errors for project access (user was removed from project)

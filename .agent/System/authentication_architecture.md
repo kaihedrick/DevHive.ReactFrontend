@@ -17,6 +17,7 @@ The authentication system uses a dual-token approach with automatic token refres
 - **Auth initialization flag** - Added `authInitialized` flag to prevent premature redirects during app bootstrap, fixing race condition where logged-out users could access protected routes after page refresh
 - **Comprehensive logout cleanup** - Logout now calls backend logout endpoint to clear refresh token cookie, clears all localStorage keys (projects, cache, userId), and ensures users cannot access protected routes after logout and page refresh
 - **CRITICAL: Never refresh if access token exists** - Refresh is recovery, not validation. If access token exists (fresh login), never call refresh endpoint. This prevents immediate 401-after-login where refresh cookie may not be ready yet, causing auth to be incorrectly cleared.
+- **Mobile Safari bootstrap refresh fix** - Prevents routes from triggering refresh during bootstrap. Response interceptor now checks `authInitialized` flag before triggering refresh, ensuring bootstrap refresh completes before any route-level refresh attempts. This fixes issue where account/profile routes would trigger refresh during bootstrap, causing logout on mobile Safari.
 
 ## Architecture Summary
 
@@ -245,6 +246,7 @@ accessToken  // Primary access token (security best practice - NOT in localStora
 3. **Conditional Refresh:** If no token exists, attempt refresh to restore session (we cannot check refresh token cookie existence from JavaScript since it's HttpOnly).
 4. **Never Clear Auth on Refresh 401 if Token Exists:** If refresh returns 401 but access token exists, preserve auth state (user just logged in, cookie may not be ready yet).
 5. **Always Set Flag:** `authInitialized` is always set to `true` in the `finally` block, ensuring routes are never blocked permanently.
+6. **apiClient Synchronization:** When `authInitialized` is set to `true`, `apiClient.setAuthInitialized(true)` is also called. This ensures the response interceptor knows when bootstrap refresh is complete and can safely trigger refresh on 401 errors. This prevents routes from triggering refresh during bootstrap, fixing mobile Safari issue where account/profile routes would cause logout.
 
 **CRITICAL RULE: Refresh is Recovery, Not Validation**
 
@@ -461,6 +463,7 @@ accessToken  // Primary access token (security best practice - NOT in localStora
 - **Refresh Coordination:** Prevents concurrent refresh attempts during initialization
 - **CRITICAL: Never refresh if access token exists** - `refreshToken()` function now checks for existing access token first. If token exists, returns immediately without calling backend. This prevents immediate 401-after-login where refresh cookie may not be ready yet after login.
 - **Never clear auth on refresh 401 if access token exists** - If refresh returns 401 but access token exists, ignore the 401 (user just logged in, cookie not ready). Only clear auth if both refresh fails AND no access token exists.
+- **Bootstrap refresh protection** - Response interceptor now checks `authInitialized` flag before triggering refresh. If auth is not initialized (bootstrap refresh in progress), 401 errors are rejected without triggering refresh. This prevents routes from triggering refresh during bootstrap, fixing mobile Safari issue where account/profile routes would cause logout.
 
 ```
 ┌─────────────────────┐
@@ -483,7 +486,9 @@ accessToken  // Primary access token (security best practice - NOT in localStora
 ┌─────────────────────────────────────┐
 │ Check: !originalRequest._retry      │
 │        && !hasAccessToken()         │
-│        (CRITICAL: Skip if token exists)│
+│        && authInitialized           │
+│        (CRITICAL: Skip if token exists│
+│         or auth not initialized)    │
 └──────────┬──────────────────────────┘
            │
            ▼
@@ -556,11 +561,12 @@ accessToken  // Primary access token (security best practice - NOT in localStora
 
 1. **Route Detection:** Only refresh on non-auth routes (prevents loops)
 2. **Access Token Check:** **CRITICAL** - Never refresh if access token exists (refresh is recovery, not validation)
-3. **Request Queue:** Queue concurrent requests during refresh (prevents race conditions)
-4. **Retry Flag:** Mark requests with `_retry` flag (prevents infinite loops)
-5. **401-Only Logout:** Only clear tokens on 401 errors, not network/server errors
-6. **Refresh Coordination:** Wait for initialization refresh to complete before retrying 401s
-7. **Never clear auth on refresh 401 if access token exists:** If refresh returns 401 but access token exists, ignore the 401 (user just logged in, cookie may not be ready yet)
+3. **Auth Initialization Check:** **CRITICAL** - Never trigger refresh during bootstrap (before `authInitialized` is true). This prevents routes from triggering refresh during bootstrap, which causes logout on mobile Safari.
+4. **Request Queue:** Queue concurrent requests during refresh (prevents race conditions)
+5. **Retry Flag:** Mark requests with `_retry` flag (prevents infinite loops)
+6. **401-Only Logout:** Only clear tokens on 401 errors, not network/server errors
+7. **Refresh Coordination:** Wait for initialization refresh to complete before retrying 401s
+8. **Never clear auth on refresh 401 if access token exists:** If refresh returns 401 but access token exists, ignore the 401 (user just logged in, cookie may not be ready yet)
 
 **Token Expiration Handling:**
 

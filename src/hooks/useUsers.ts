@@ -9,13 +9,14 @@ import { useAuthContext } from '../contexts/AuthContext.tsx';
  * @returns Query result with user data
  */
 export const useUser = (userId: string | null | undefined) => {
-  const { userId: currentUserId, isLoading: authLoading } = useAuthContext();
+  const { userId: currentUserId, isLoading: authLoading, authInitialized } = useAuthContext();
   
   // Task 4.2: Guard queries - early exit if no currentUserId
+  // CRITICAL: Also wait for authInitialized to prevent queries during bootstrap
   return useQuery({
     queryKey: ['user', userId],
     queryFn: () => fetchUserById(userId!),
-    enabled: !!userId && !!currentUserId && !authLoading, // ✅ Only fetch when authenticated AND auth is initialized
+    enabled: !!userId && !!currentUserId && !authLoading && authInitialized, // ✅ Only fetch when authenticated AND auth is initialized
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: (failureCount, error: any) => {
       // Don't retry on 401 - token refresh should handle it

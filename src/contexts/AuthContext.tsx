@@ -4,7 +4,7 @@ import { login as loginService, logout as logoutService, refreshToken as refresh
 import { LoginModel } from '../models/user.ts';
 import { cacheInvalidationService } from '../services/cacheInvalidationService.ts';
 import { getSelectedProject, clearSelectedProject, clearAllSelectedProjects } from '../services/storageService.js';
-import { refreshToken as refreshTokenApi, getAccessToken, setOAuthFlow, clearAccessToken } from '../lib/apiClient.ts';
+import { refreshToken as refreshTokenApi, getAccessToken, setOAuthFlow, clearAccessToken, setAuthInitialized as setApiAuthInitialized } from '../lib/apiClient.ts';
 
 type AuthState = 'unknown' | 'authenticated' | 'unauthenticated';
 
@@ -146,6 +146,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } finally {
         // Task 1: Always mark as initialized after attempt, regardless of success/failure
         setAuthInitialized(true);
+        // Also update apiClient so response interceptor knows auth is initialized
+        setApiAuthInitialized(true);
       }
     };
 
@@ -389,6 +391,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Step 2: Clear in-memory access token (synchronous)
     clearAccessToken();
+    
+    // Step 2.5: Reset auth initialization flag in apiClient
+    setApiAuthInitialized(false);
     
     // Step 3: Set userId = null (synchronous) - this must happen BEFORE clearing localStorage
     setUserId(null);
