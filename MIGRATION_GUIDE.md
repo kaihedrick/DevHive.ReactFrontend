@@ -8,7 +8,7 @@ This guide outlines the transition from the legacy .NET backend to the new Go + 
 ### 1. Environment Variables
 Create a `.env` file in the project root:
 ```env
-VITE_API_BASE_URL=https://devhive-go-backend.fly.dev/api/v1
+VITE_API_BASE_URL=https://go.devhive.it.com/api/v1
 ```
 
 ### 2. Feature Flag (Optional)
@@ -20,97 +20,97 @@ const USE_NEW_API = import.meta.env.VITE_USE_NEW_API === 'true' || true;
 ## API Endpoint Changes
 
 ### Authentication
-- `POST /api/User/ProcessLogin` → `POST https://devhive-go-backend.fly.dev/api/v1/auth/login`
+- `POST /api/User/ProcessLogin` → `POST https://go.devhive.it.com/api/v1/auth/login`
   - **Request**: `{username, password}`
   - **Response**: `{token, userId}`
-- `POST /api/User/Register` → `POST https://devhive-go-backend.fly.dev/api/v1/users`
+- `POST /api/User/Register` → `POST https://go.devhive.it.com/api/v1/users`
   - **Request**: `{username, email, password, firstName, lastName}`
   - **Response**: `{id, username, email, firstName, lastName, active, avatarUrl?, createdAt, updatedAt}`
-- `GET /api/User/{id}` → `GET https://devhive-go-backend.fly.dev/api/v1/users/{id}`
+- `GET /api/User/{id}` → `GET https://go.devhive.it.com/api/v1/users/{id}`
   - **Response**: `{id, username, email, firstName, lastName, active, avatarUrl?, createdAt, updatedAt}`
-- `GET /api/User/Me` → `GET https://devhive-go-backend.fly.dev/api/v1/users/me`
+- `GET /api/User/Me` → `GET https://go.devhive.it.com/api/v1/users/me`
   - **Response**: `{id, username, email, firstName, lastName, active, avatarUrl?, createdAt, updatedAt}`
-- `PUT /api/User/Me` → `PUT https://devhive-go-backend.fly.dev/api/v1/users/me`
+- `PUT /api/User/Me` → `PUT https://go.devhive.it.com/api/v1/users/me`
   - **Request**: `{firstName?, lastName?, email?, avatarUrl?}`
   - **Response**: `{id, username, email, firstName, lastName, active, avatarUrl?, createdAt, updatedAt}`
-- `PATCH /api/User/Me/Password` → `PATCH https://devhive-go-backend.fly.dev/api/v1/users/me/password`
+- `PATCH /api/User/Me/Password` → `PATCH https://go.devhive.it.com/api/v1/users/me/password`
   - **Request**: `{currentPassword, newPassword}`
   - **Response**: `{message: "Password updated successfully"}`
-- `DELETE /api/User/Me` → `DELETE https://devhive-go-backend.fly.dev/api/v1/users/me`
+- `DELETE /api/User/Me` → `DELETE https://go.devhive.it.com/api/v1/users/me`
   - **Response**: `{message: "Account deactivated successfully"}`
-- `GET /api/User/Search` → `GET https://devhive-go-backend.fly.dev/api/v1/users/search?q={query}`
+- `GET /api/User/Search` → `GET https://go.devhive.it.com/api/v1/users/search?q={query}`
   - **Response**: `[{id, username, email, firstName, lastName, active, avatarUrl?}]`
-- `GET /api/User/ValidateEmail` → `GET https://devhive-go-backend.fly.dev/api/v1/users/validate-email?email={email}`
+- `GET /api/User/ValidateEmail` → `GET https://go.devhive.it.com/api/v1/users/validate-email?email={email}`
   - **Response**: `{available: boolean}`
-- `GET /api/User/ValidateUsername` → `GET https://devhive-go-backend.fly.dev/api/v1/users/validate-username?username={username}`
+- `GET /api/User/ValidateUsername` → `GET https://go.devhive.it.com/api/v1/users/validate-username?username={username}`
   - **Response**: `{available: boolean}`
-- `POST /api/User/RequestPasswordReset` → `POST https://devhive-go-backend.fly.dev/api/v1/auth/password/reset-request`
+- `POST /api/User/RequestPasswordReset` → `POST https://go.devhive.it.com/api/v1/auth/password/reset-request`
   - **Request**: `{email}`
   - **Response**: `{message: "If the email exists, a reset link has been sent"}`
-- `POST /api/User/ResetPassword` → `POST https://devhive-go-backend.fly.dev/api/v1/auth/password/reset`
+- `POST /api/User/ResetPassword` → `POST https://go.devhive.it.com/api/v1/auth/password/reset`
   - **Request**: `{token, password}`
   - **Response**: `{message: "Password updated successfully"}`
 
 ### Projects
-- `GET /api/Scrum/Project/{id}` → `GET https://devhive-go-backend.fly.dev/api/v1/projects/{id}`
+- `GET /api/Scrum/Project/{id}` → `GET https://go.devhive.it.com/api/v1/projects/{id}`
   - **Response**: `{id, ownerId, name, description, createdAt, updatedAt, owner: {id, username, email, firstName, lastName}}`
-- `POST /api/Scrum/Project` → `POST https://devhive-go-backend.fly.dev/api/v1/projects`
+- `POST /api/Scrum/Project` → `POST https://go.devhive.it.com/api/v1/projects`
   - **Request**: `{name, description}`
   - **Response**: `{id, ownerId, name, description, createdAt, updatedAt}`
-- `PUT /api/Scrum/Project` → `PUT https://devhive-go-backend.fly.dev/api/v1/projects/{id}`
+- `PUT /api/Scrum/Project` → `PUT https://go.devhive.it.com/api/v1/projects/{id}`
   - **Request**: `{name?, description?}`
   - **Response**: `{id, ownerId, name, description, createdAt, updatedAt}`
-- `DELETE /api/Scrum/Project/{id}` → `DELETE https://devhive-go-backend.fly.dev/api/v1/projects/{id}`
+- `DELETE /api/Scrum/Project/{id}` → `DELETE https://go.devhive.it.com/api/v1/projects/{id}`
   - **Response**: `{message: "Project deleted successfully"}`
-- `GET /api/Scrum/Project/Members/{id}` → `GET https://devhive-go-backend.fly.dev/api/v1/projects/{id}/members`
+- `GET /api/Scrum/Project/Members/{id}` → `GET https://go.devhive.it.com/api/v1/projects/{id}/members`
   - **Response**: `{members: [...], count: number}`
-- `POST /api/Scrum/Project/{id}/{userId}` → `POST https://devhive-go-backend.fly.dev/api/v1/projects/{id}/members/{userId}?role=member`
+- `POST /api/Scrum/Project/{id}/{userId}` → `POST https://go.devhive.it.com/api/v1/projects/{id}/members/{userId}?role=member`
   - **Response**: `{message: "Member added successfully"}`
-- `DELETE /api/Scrum/Project/Members/{id}/{userId}` → `DELETE https://devhive-go-backend.fly.dev/api/v1/projects/{id}/members/{userId}`
+- `DELETE /api/Scrum/Project/Members/{id}/{userId}` → `DELETE https://go.devhive.it.com/api/v1/projects/{id}/members/{userId}`
   - **Response**: `{message: "Member removed successfully"}`
-- `GET /api/Scrum/Project/{id}/Sprints` → `GET https://devhive-go-backend.fly.dev/api/v1/projects/{id}/sprints`
+- `GET /api/Scrum/Project/{id}/Sprints` → `GET https://go.devhive.it.com/api/v1/projects/{id}/sprints`
   - **Response**: `{sprints: [...], limit, offset}`
-- `POST /api/Scrum/Sprint` → `POST https://devhive-go-backend.fly.dev/api/v1/projects/{projectId}/sprints`
+- `POST /api/Scrum/Sprint` → `POST https://go.devhive.it.com/api/v1/projects/{projectId}/sprints`
   - **Request**: `{name, description, startDate, endDate}`
   - **Response**: `{id, projectId, name, description, startDate, endDate, isCompleted, isStarted, createdAt, updatedAt, owner: {...}}`
-- `GET /api/Scrum/Sprint/{id}` → `GET https://devhive-go-backend.fly.dev/api/v1/sprints/{id}`
+- `GET /api/Scrum/Sprint/{id}` → `GET https://go.devhive.it.com/api/v1/sprints/{id}`
   - **Response**: `{id, projectId, name, description, startDate, endDate, isCompleted, isStarted, createdAt, updatedAt, owner: {...}}`
-- `PUT /api/Scrum/Sprint` → `PUT https://devhive-go-backend.fly.dev/api/v1/sprints/{id}`
+- `PUT /api/Scrum/Sprint` → `PUT https://go.devhive.it.com/api/v1/sprints/{id}`
   - **Request**: `{name?, description?, startDate?, endDate?}`
   - **Response**: `{id, projectId, name, description, startDate, endDate, isCompleted, isStarted, createdAt, updatedAt, owner: {...}}`
-- `DELETE /api/Scrum/Sprint/{id}` → `DELETE https://devhive-go-backend.fly.dev/api/v1/sprints/{id}`
+- `DELETE /api/Scrum/Sprint/{id}` → `DELETE https://go.devhive.it.com/api/v1/sprints/{id}`
   - **Response**: `{message: "Sprint deleted successfully"}`
 
 ### Tasks
-- `POST /api/Scrum/Task` → `POST https://devhive-go-backend.fly.dev/api/v1/projects/{projectId}/tasks`
+- `POST /api/Scrum/Task` → `POST https://go.devhive.it.com/api/v1/projects/{projectId}/tasks`
   - **Request**: `{description, sprintId?, assigneeId?, status}`
   - **Response**: `{id, projectId, sprintId?, assigneeId?, description, status, createdAt, updatedAt, assignee?: {...}, owner: {...}}`
-- `GET /api/Scrum/Project/Tasks/{id}` → `GET https://devhive-go-backend.fly.dev/api/v1/projects/{id}/tasks?limit=20&offset=0`
+- `GET /api/Scrum/Project/Tasks/{id}` → `GET https://go.devhive.it.com/api/v1/projects/{id}/tasks?limit=20&offset=0`
   - **Response**: `{tasks: [...], limit, offset}`
-- `GET /api/Scrum/Sprint/Tasks/{id}` → `GET https://devhive-go-backend.fly.dev/api/v1/sprints/{id}/tasks?limit=20&offset=0`
+- `GET /api/Scrum/Sprint/Tasks/{id}` → `GET https://go.devhive.it.com/api/v1/sprints/{id}/tasks?limit=20&offset=0`
   - **Response**: `{tasks: [...], limit, offset}`
-- `GET /api/Scrum/Task/{id}` → `GET https://devhive-go-backend.fly.dev/api/v1/tasks/{id}`
+- `GET /api/Scrum/Task/{id}` → `GET https://go.devhive.it.com/api/v1/tasks/{id}`
   - **Response**: `{id, projectId, sprintId?, assigneeId?, description, status, createdAt, updatedAt, assignee?: {...}, owner: {...}}`
-- `PUT /api/Scrum/Task` → `PUT https://devhive-go-backend.fly.dev/api/v1/tasks/{id}`
+- `PUT /api/Scrum/Task` → `PUT https://go.devhive.it.com/api/v1/tasks/{id}`
   - **Request**: `{description?, assigneeId?}`
   - **Response**: `{id, projectId, sprintId?, assigneeId?, description, status, createdAt, updatedAt, assignee?: {...}, owner: {...}}`
-- `PATCH /api/Scrum/Task/{id}/status` → `PATCH https://devhive-go-backend.fly.dev/api/v1/tasks/{id}/status`
+- `PATCH /api/Scrum/Task/{id}/status` → `PATCH https://go.devhive.it.com/api/v1/tasks/{id}/status`
   - **Request**: `{status}`
   - **Response**: `{id, projectId, sprintId?, assigneeId?, description, status, createdAt, updatedAt, assignee?: {...}, owner: {...}}`
-- `DELETE /api/Scrum/Task/{id}` → `DELETE https://devhive-go-backend.fly.dev/api/v1/tasks/{id}`
+- `DELETE /api/Scrum/Task/{id}` → `DELETE https://go.devhive.it.com/api/v1/tasks/{id}`
   - **Response**: `{message: "Task deleted successfully"}`
 
 ### Messages
-- `POST /api/Message/Send` → `POST https://devhive-go-backend.fly.dev/api/v1/projects/{projectId}/messages`
+- `POST /api/Message/Send` → `POST https://go.devhive.it.com/api/v1/projects/{projectId}/messages`
   - **Request**: `{content, messageType?, parentMessageId?}`
   - **Response**: `{id, projectId, senderId, content, messageType, parentMessageId?, createdAt, updatedAt, sender: {username, firstName, lastName, avatarUrl?}}`
-- `GET /api/Message/Retrieve/{from}/{to}/{proj}` → `GET https://devhive-go-backend.fly.dev/api/v1/projects/{projectId}/messages?limit=20&offset=0`
+- `GET /api/Message/Retrieve/{from}/{to}/{proj}` → `GET https://go.devhive.it.com/api/v1/projects/{projectId}/messages?limit=20&offset=0`
   - **Response**: `{messages: [...], limit, offset}`
-- `GET https://devhive-go-backend.fly.dev/api/v1/messages?projectId={id}&afterId={id}&limit=20`
+- `GET https://go.devhive.it.com/api/v1/messages?projectId={id}&afterId={id}&limit=20`
   - **Response**: `{messages: [...], limit}` (cursor-based pagination)
 
 ### Mail Service
-- `POST https://devhive-go-backend.fly.dev/api/v1/mail/send`
+- `POST https://go.devhive.it.com/api/v1/mail/send`
   - **Request**: `{to, subject, body, html?}`
   - **Response**: `{message: "Email sent successfully", to, subject}`
 
@@ -235,7 +235,7 @@ const USE_NEW_API = import.meta.env.VITE_USE_NEW_API === 'true' || true;
 ## Rollback Plan
 
 If issues arise, you can quickly rollback by:
-1. Setting `VITE_API_BASE_URL=https://devhive-go-backend.fly.dev/api` (legacy)
+1. Setting `VITE_API_BASE_URL=https://go.devhive.it.com/api` (legacy)
 2. Reverting service files to use `ENDPOINTS.LEGACY.*`
 3. Monitoring error rates and user feedback
 

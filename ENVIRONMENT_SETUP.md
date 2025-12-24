@@ -17,7 +17,7 @@ I've updated the following files to handle environment variables properly:
 The new implementation:
 1. **Checks for Vite environment** - Uses `import.meta.env` if available
 2. **Falls back to Create React App** - Uses `process.env` as backup
-3. **Provides hardcoded fallback** - Uses `https://devhive-go-backend.fly.dev/api/v1` as final fallback
+3. **Provides hardcoded fallback** - Uses `https://go.devhive.it.com/api/v1` as final fallback
 
 ## Environment Variables
 
@@ -26,8 +26,8 @@ Create a `.env` file in the project root:
 
 ```env
 # DevHive React Frontend Environment Variables
-VITE_API_BASE_URL=https://devhive-go-backend.fly.dev/api/v1
-REACT_APP_API_BASE_URL=https://devhive-go-backend.fly.dev/api/v1
+VITE_API_BASE_URL=https://go.devhive.it.com/api/v1
+REACT_APP_API_BASE_URL=https://go.devhive.it.com/api/v1
 NODE_ENV=development
 ```
 
@@ -40,7 +40,7 @@ NODE_ENV=production
 
 ## Testing
 
-The application should now work without the environment variable error. The API will default to `https://devhive-go-backend.fly.dev/api/v1` if no environment variables are set.
+The application should now work without the environment variable error. The API will default to `https://go.devhive.it.com/api/v1` if no environment variables are set.
 
 ## Files Updated
 

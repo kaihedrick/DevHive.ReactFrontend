@@ -10,13 +10,13 @@ const getApiBaseUrl = () => {
   try {
     // Check if we're in a Vite environment
     if (typeof import.meta !== 'undefined' && import.meta.env) {
-      return import.meta.env.VITE_API_BASE_URL ?? 'https://devhive-go-backend.fly.dev/api/v1';
+      return import.meta.env.VITE_API_BASE_URL ?? 'https://go.devhive.it.com/api/v1';
     }
     // Fallback for Create React App
-    return process.env.REACT_APP_API_BASE_URL ?? 'https://devhive-go-backend.fly.dev/api/v1';
+    return process.env.REACT_APP_API_BASE_URL ?? 'https://go.devhive.it.com/api/v1';
   } catch (error) {
     // Fallback if environment variables are not available
-    return 'https://devhive-go-backend.fly.dev/api/v1';
+    return 'https://go.devhive.it.com/api/v1';
   }
 };
 
@@ -52,12 +52,12 @@ const getWsBaseUrl = () => {
     return wsUrl;
   } catch (error) {
     // Fallback
-    return 'wss://devhive-go-backend.fly.dev';
+    return 'wss://go.devhive.it.com';
   }
 };
 
 export const API_BASE_URL = getApiBaseUrl(); // New Go backend with v1 API
-export const WS_BASE_URL = getWsBaseUrl(); // WebSocket base URL (wss://devhive-go-backend.fly.dev)
+export const WS_BASE_URL = getWsBaseUrl(); // WebSocket base URL (wss://go.devhive.it.com)
 
 // Log configuration at startup (only in development)
 if (process.env.NODE_ENV === 'development') {
@@ -70,7 +70,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // Add JWT config
 export const JWT_CONFIG = {
-  issuer: "https://devhive-go-backend.fly.dev",
+  issuer: "https://go.devhive.it.com",
   audience: "devhive-clients"  // Your frontend domain
 };
 
@@ -129,15 +129,15 @@ export const ENDPOINTS = {
   
   // Legacy endpoints (for gradual migration)
   LEGACY: {
-    USER: `https://devhive-go-backend.fly.dev/api/User`,
-    PROJECT: `https://devhive-go-backend.fly.dev/api/Scrum/Project`,
-    VALIDATE_EMAIL: `https://devhive-go-backend.fly.dev/api/User/ValidateEmail`,
-    SPRINT: `https://devhive-go-backend.fly.dev/api/Scrum/Sprint`,
-    TASK: `https://devhive-go-backend.fly.dev/api/Scrum/Task`,
-    MEMBER: `https://devhive-go-backend.fly.dev/api/Scrum/Project/Members`,
-    MESSAGE: `https://devhive-go-backend.fly.dev/api/Message`,
-    UPDATE_PROJECT_OWNER: `https://devhive-go-backend.fly.dev/api/Scrum/Project/UpdateProjectOwner`,
-    PROJECT_USER: `https://devhive-go-backend.fly.dev/api/Scrum/Projects/User`
+    USER: `https://go.devhive.it.com/api/User`,
+    PROJECT: `https://go.devhive.it.com/api/Scrum/Project`,
+    VALIDATE_EMAIL: `https://go.devhive.it.com/api/User/ValidateEmail`,
+    SPRINT: `https://go.devhive.it.com/api/Scrum/Sprint`,
+    TASK: `https://go.devhive.it.com/api/Scrum/Task`,
+    MEMBER: `https://go.devhive.it.com/api/Scrum/Project/Members`,
+    MESSAGE: `https://go.devhive.it.com/api/Message`,
+    UPDATE_PROJECT_OWNER: `https://go.devhive.it.com/api/Scrum/Project/UpdateProjectOwner`,
+    PROJECT_USER: `https://go.devhive.it.com/api/Scrum/Projects/User`
   }
 };
 

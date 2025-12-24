@@ -107,7 +107,7 @@ persistQueryClient({
                            ▼
 ┌───────────────────────────────────────────────────────────────┐
 │ WebSocket URL:                                                │
-│ wss://devhive-go-backend.fly.dev/api/v1/messages/ws          │
+│ wss://go.devhive.it.com/api/v1/messages/ws          │
 │ ?project_id={id}&token={jwt}                                 │
 └──────────────────────────┬────────────────────────────────────┘
                            │

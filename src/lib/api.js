@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL ?? 'https://devhive-go-backend.fly.dev/api/v1',
+  baseURL: process.env.REACT_APP_API_BASE_URL ?? 'https://go.devhive.it.com/api/v1',
 })
 
 api.interceptors.request.use(config => {

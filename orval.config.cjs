@@ -1,7 +1,7 @@
 module.exports = {
   'devhive-api': {
     input: {
-      target: process.env.REACT_APP_API_BASE_URL ? `${process.env.REACT_APP_API_BASE_URL.replace('/api/v1', '')}/api/v1/openapi.json` : 'https://devhive-go-backend.fly.dev/api/v1/openapi.json',
+      target: process.env.REACT_APP_API_BASE_URL ? `${process.env.REACT_APP_API_BASE_URL.replace('/api/v1', '')}/api/v1/openapi.json` : 'https://go.devhive.it.com/api/v1/openapi.json',
     },
     output: {
       target: 'src/api/generated',

@@ -5,13 +5,13 @@ const getApiBaseUrl = () => {
   try {
     // Check if we're in a Vite environment
     if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
-      return (import.meta as any).env.VITE_API_BASE_URL ?? 'https://devhive-go-backend.fly.dev/api/v1';
+      return (import.meta as any).env.VITE_API_BASE_URL ?? 'https://go.devhive.it.com/api/v1';
     }
     // Fallback for development
-    return (process as any).env.REACT_APP_API_BASE_URL ?? 'https://devhive-go-backend.fly.dev/api/v1';
+    return (process as any).env.REACT_APP_API_BASE_URL ?? 'https://go.devhive.it.com/api/v1';
   } catch (error) {
     // Fallback if environment variables are not available
-    return 'https://devhive-go-backend.fly.dev/api/v1';
+    return 'https://go.devhive.it.com/api/v1';
   }
 };
 

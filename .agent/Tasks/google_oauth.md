@@ -200,7 +200,7 @@ GOOGLE_CLIENT_SECRET="your-client-secret"
 GOOGLE_REDIRECT_URL="http://localhost:8080/api/v1/auth/google/callback"
 
 # Production (Fly.io)
-# Set via: fly secrets set GOOGLE_REDIRECT_URL="https://devhive-go-backend.fly.dev/api/v1/auth/google/callback"
+# Set via: fly secrets set GOOGLE_REDIRECT_URL="https://go.devhive.it.com/api/v1/auth/google/callback"
 
 # Updated Refresh Token Settings
 JWT_REFRESH_EXPIRATION_PERSISTENT_DAYS=30  # For "Remember Me" = true
@@ -740,7 +740,7 @@ Request minimal scopes from Google:
    http://localhost:8080/api/v1/auth/google/callback
 
    Production:
-   https://devhive-go-backend.fly.dev/api/v1/auth/google/callback
+   https://go.devhive.it.com/api/v1/auth/google/callback
    ```
 
 5. **Configure Authorized JavaScript Origins:**

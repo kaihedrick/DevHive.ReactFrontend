@@ -14,7 +14,7 @@
 # Required Google OAuth Configuration
 GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET="your-client-secret"
-GOOGLE_REDIRECT_URL="https://devhive-go-backend.fly.dev/api/v1/auth/google/callback"
+GOOGLE_REDIRECT_URL="https://go.devhive.it.com/api/v1/auth/google/callback"
 ```
 
 **Backend Setup Steps:**
@@ -30,13 +30,13 @@ GOOGLE_REDIRECT_URL="https://devhive-go-backend.fly.dev/api/v1/auth/google/callb
    # For Fly.io deployment
    fly secrets set GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
    fly secrets set GOOGLE_CLIENT_SECRET="your-client-secret"
-   fly secrets set GOOGLE_REDIRECT_URL="https://devhive-go-backend.fly.dev/api/v1/auth/google/callback"
+   fly secrets set GOOGLE_REDIRECT_URL="https://go.devhive.it.com/api/v1/auth/google/callback"
    ```
 
 3. **Configure Google Cloud Console:**
    - Add the redirect URI to "Authorized redirect URIs":
      ```
-     https://devhive-go-backend.fly.dev/api/v1/auth/google/callback
+     https://go.devhive.it.com/api/v1/auth/google/callback
      ```
    - Add JavaScript origins:
      ```
@@ -54,7 +54,7 @@ GOOGLE_REDIRECT_URL="https://devhive-go-backend.fly.dev/api/v1/auth/google/callb
 **Cause:** The redirect URI in Google Cloud Console doesn't match what the backend is sending.
 
 **Solution:** 
-- Ensure the redirect URI in Google Cloud Console exactly matches: `https://devhive-go-backend.fly.dev/api/v1/auth/google/callback`
+- Ensure the redirect URI in Google Cloud Console exactly matches: `https://go.devhive.it.com/api/v1/auth/google/callback`
 - Check for trailing slashes, http vs https, and exact path matching
 
 ### Frontend Implementation Status
@@ -70,7 +70,7 @@ GOOGLE_REDIRECT_URL="https://devhive-go-backend.fly.dev/api/v1/auth/google/callb
 
 1. **Verify Backend Endpoint:**
    ```bash
-   curl "https://devhive-go-backend.fly.dev/api/v1/auth/google/login?remember_me=false"
+   curl "https://go.devhive.it.com/api/v1/auth/google/login?remember_me=false"
    ```
    Should return: `{"authUrl": "https://accounts.google.com/o/oauth2/v2/auth?...", "state": "..."}`
 
@@ -87,7 +87,7 @@ GOOGLE_REDIRECT_URL="https://devhive-go-backend.fly.dev/api/v1/auth/google/callb
 
 - [ ] `GOOGLE_CLIENT_ID` is set in backend environment
 - [ ] `GOOGLE_CLIENT_SECRET` is set in backend environment  
-- [ ] `GOOGLE_REDIRECT_URL` is set to `https://devhive-go-backend.fly.dev/api/v1/auth/google/callback`
+- [ ] `GOOGLE_REDIRECT_URL` is set to `https://go.devhive.it.com/api/v1/auth/google/callback`
 - [ ] Redirect URI is added to Google Cloud Console
 - [ ] JavaScript origins are added to Google Cloud Console
 - [ ] Backend service has been restarted after setting secrets
