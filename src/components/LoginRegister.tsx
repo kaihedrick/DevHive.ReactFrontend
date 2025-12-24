@@ -261,17 +261,6 @@ const LoginRegister: React.FC = () => {
                   </div>
                   <span className="remember-me-text">Remember me</span>
                 </label>
-                {iosSafari && (
-                  <small style={{ 
-                    display: 'block', 
-                    marginTop: '4px', 
-                    opacity: 0.6,
-                    fontSize: '12px',
-                    color: 'var(--text-secondary, #666)'
-                  }}>
-                    Sessions always persist on iOS Safari
-                  </small>
-                )}
               </div>
             </div>
           )}
