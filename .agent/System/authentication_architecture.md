@@ -4,7 +4,10 @@
 
 The authentication system uses a dual-token approach with automatic token refresh and session persistence. This document describes the complete authentication flow, token management, and security measures.
 
-**CRITICAL UPDATES (2025-12-23):** 
+**CRITICAL UPDATES (2025-12-26):**
+- **Refresh Token Expiration Event Handling** - Fixed race condition where refresh token expiry left users in invalid authenticated state. Added `auth-state-changed` event mechanism to sync AuthContext state when localStorage.userId is cleared but React state remains set.
+
+**CRITICAL UPDATES (2025-12-23):**
 - Fixed order of operations issues that caused unexpected logouts on network errors
 - Implemented JWT expiration parsing to use actual backend token expiration
 - Added iOS Safari cookie handling fixes for mobile devices
@@ -30,7 +33,7 @@ The authentication system uses a dual-token approach with automatic token refres
 - **Resilient authentication**: Only 401 errors trigger logout; network/server errors preserve auth state
 - **JWT expiration parsing**: Uses actual backend token expiration instead of frontend-calculated timestamps
 - **iOS Safari support**: Retry logic and cookie handling fixes for mobile Safari
-- **Proactive refresh**: 10-minute window with 30-second buffer to prevent expiration
+- **Proactive refresh**: 10-minute window to prevent expiration
 - **Unconditional refresh on initialization**: Always attempt refresh on app mount, regardless of localStorage state (userId/token). We cannot check refresh token cookie existence from JavaScript (it's HttpOnly), so we always attempt refresh and let backend return 401 if cookie is invalid. This ensures sessions persist even if localStorage was cleared but refresh token cookie remains valid (7 days session or 30 days persistent)
 
 ## Critical Fixes (2025-12-23)
@@ -69,6 +72,56 @@ if (is401) {
 - ✅ Network errors, timeouts, 500 errors → User stays logged in, can retry
 - ✅ Users with slow networks no longer experience unexpected logouts
 
+## Critical Fixes (2025-12-26)
+
+### Problem: Refresh Token Expiration Race Condition
+
+**Issue:** When the refresh token expires, the 401 interceptor clears `localStorage.userId` but `AuthContext`'s `userId` state remains set, leaving users in an invalid authenticated state. All subsequent API calls fail with 401, but the app thinks the user is still logged in.
+
+**Root Cause:** Storage events only fire for cross-tab changes, not same-tab changes. When `apiClient.ts` clears `localStorage.userId` in the same tab, `AuthContext` doesn't detect this change.
+
+**Impact:** Users appear authenticated but cannot perform any actions, with all API calls failing with 401 errors. The app gets stuck in an unusable state until manual refresh or logout.
+
+### Solution: Auth State Change Event Mechanism
+
+**Implementation:** Added `auth-state-changed` event dispatch when refresh token expires, with `AuthContext` listening for this event to sync state.
+
+**Fixed Locations:**
+- `src/lib/apiClient.ts:180` - `refreshToken()` dispatches event when clearing auth on 401
+- `src/lib/apiClient.ts:342` - 401 interceptor dispatches event when refresh fails with 401
+- `src/contexts/AuthContext.tsx:203-234` - Added event listener to sync auth state
+
+**Event Flow:**
+```javascript
+// In apiClient.ts when refresh token expires:
+if (is401 && !hasAccessToken && !isOAuthFlow) {
+  clearAccessToken();
+  localStorage.removeItem('userId');
+  window.dispatchEvent(new Event('auth-state-changed')); // ← NEW
+}
+
+// In AuthContext.tsx:
+useEffect(() => {
+  const handleAuthStateChange = () => {
+    const storedUserId = getUserId();
+    if (!storedUserId && userId) {
+      // Sync state: clear userId, authState, etc.
+      setUserId(null);
+      setAuthState('unauthenticated');
+      // ... cleanup WebSocket, selected project, etc.
+    }
+  };
+  window.addEventListener('auth-state-changed', handleAuthStateChange);
+  // ...
+}, [userId]);
+```
+
+**Result:**
+- ✅ Refresh token expiration properly logs users out
+- ✅ `AuthContext` state stays synchronized with localStorage
+- ✅ No more stuck authenticated state with failing API calls
+- ✅ Proper cleanup: WebSocket disconnect, project clearing, cache clearing
+
 ## Architecture Diagram
 
 ```
@@ -100,7 +153,8 @@ if (is401) {
 ┌─────────────────────────────────────────────────────────────────────┐
 │                          Backend API                                 │
 │  - REST API (HTTPS)                                                  │
-│  - WebSocket (WSS) for real-time cache invalidation                 │
+│  - WebSocket (WSS) for real-time cache invalidation at `wss://ws.devhive.it.com` (production) │
+│    or `ws://localhost:8080/api/v1/messages/ws` (development) │
 │  - HTTP-only refresh token cookies                                   │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -459,22 +513,23 @@ accessToken  // Primary access token (security best practice - NOT in localStora
 ### 2. Token Refresh Flow
 
 **Trigger Conditions:**
-1. 401 Unauthorized response from API (automatic)
-2. Token expiration check on app initialization
-3. WebSocket connection attempts with expired tokens
-4. Proactive refresh when token expires within 10 minutes
+1. **Proactive Refresh:** Every 5 minutes if token expires within 10 minutes (NEW - 2025-12-26)
+2. 401 Unauthorized response from API with expired token (FIXED - 2025-12-26)
+3. Token expiration check on app initialization
+4. WebSocket connection attempts with expired tokens
 5. Page visibility change (mobile background/locked screen)
 
-**File:** `src/lib/apiClient.ts` (lines 257-340)
+**File:** `src/lib/apiClient.ts` (lines 257-340) + `src/contexts/AuthContext.tsx` (lines 157-175)
 
-**CRITICAL IMPROVEMENTS (2025-12-23):**
+**CRITICAL IMPROVEMENTS (2025-12-23 to 2025-12-26):**
+- **Proactive Token Refresh (2025-12-26):** Automatic refresh every 5 minutes when token expires within 10 minutes, preventing 15-minute logouts
+- **Fixed 401 Interceptor Logic (2025-12-26):** Now refreshes on expired tokens, not just missing tokens
 - **JWT Expiration Parsing:** Uses actual `exp` claim from JWT instead of frontend-calculated timestamp
 - **30-Second Buffer:** Prevents race conditions where token expires between check and request
 - **iOS Safari Retry Logic:** Retries 401 errors once (first attempt only) for cookie attachment issues; retries network errors up to 3 times with exponential backoff
 - **Refresh Coordination:** Prevents concurrent refresh attempts during initialization
-- **CRITICAL: Never refresh if access token exists** - `refreshToken()` function now checks for existing access token first. If token exists, returns immediately without calling backend. This prevents immediate 401-after-login where refresh cookie may not be ready yet after login.
-- **Never clear auth on refresh 401 if access token exists** - If refresh returns 401 but access token exists, ignore the 401 (user just logged in, cookie not ready). Only clear auth if both refresh fails AND no access token exists.
 - **Bootstrap refresh protection** - Response interceptor now checks `authInitialized` flag before triggering refresh. If auth is not initialized (bootstrap refresh in progress), 401 errors are rejected without triggering refresh. This prevents routes from triggering refresh during bootstrap, fixing mobile Safari issue where account/profile routes would cause logout.
+- **CRITICAL FIX (2025-12-26):** `refreshToken()` function now properly checks token expiration. Previously, it would return expired tokens without refreshing, causing WebSocket authentication failures and preventing real-time updates.
 
 ```
 ┌─────────────────────┐
@@ -496,10 +551,11 @@ accessToken  // Primary access token (security best practice - NOT in localStora
            ▼ (401 Unauthorized)
 ┌─────────────────────────────────────┐
 │ Check: !originalRequest._retry      │
-│        && !hasAccessToken()         │
+│        && (!hasAccessToken          │
+│            || tokenIsExpired)       │
 │        && authInitialized           │
-│        (CRITICAL: Skip if token exists│
-│         or auth not initialized)    │
+│        (FIXED: Now refreshes expired │
+│         tokens, not just missing ones)│
 └──────────┬──────────────────────────┘
            │
            ▼
@@ -770,7 +826,11 @@ When token refresh fails in `apiClient.ts` (lines 257-340):
 2. **Focus Events** - Additional mobile browser support
 3. **Periodic Checks** - Proactive token refresh every 5 minutes (only when visible)
 
-**CRITICAL:** Always attempts refresh when page becomes visible if credentials exist, regardless of access token expiration. Since the refresh endpoint only checks the refresh token cookie (not the access token), we should always attempt refresh to ensure users stay logged in even after the app has been closed/backgrounded for days.
+**CRITICAL FIXES (2025-12-26):**
+- **Proactive Token Refresh:** Implemented automatic token refresh every 5 minutes when token expires within 10 minutes. This prevents users from being logged out after 15 minutes of inactivity.
+- **Fixed 401 Interceptor Logic:** Interceptor now properly detects expired tokens and refreshes them, instead of only refreshing when no token exists.
+
+**Mobile/Background Behavior:** Always attempts refresh when page becomes visible if credentials exist, regardless of access token expiration. Since the refresh endpoint only checks the refresh token cookie (not the access token), we should always attempt refresh to ensure users stay logged in even after the app has been closed/backgrounded for days.
 
 ```
 ┌─────────────────────────────────────────┐

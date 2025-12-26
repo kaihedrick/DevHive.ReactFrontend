@@ -101,40 +101,54 @@ persistQueryClient({
 ┌───────────────────────────────────────────────────────────────┐
 │ ensureFreshToken()                                            │
 │ - Check JWT exp claim                                         │
-│ - Refresh if expiring within 30s                              │
+│ - Refresh if expiring within 10min (600s)                     │
 └──────────────────────────┬────────────────────────────────────┘
                            │
                            ▼
 ┌───────────────────────────────────────────────────────────────┐
 │ WebSocket URL:                                                │
-│ wss://go.devhive.it.com/api/v1/messages/ws          │
-│ ?project_id={id}&token={jwt}                                 │
+│ wss://ws.devhive.it.com?token={jwt}                           │
+│ (Production: AWS API Gateway)                                │
+│ OR ws://localhost:8080/api/v1/messages/ws?token={jwt}        │
+│ (Development: Go backend)                                    │
 └──────────────────────────┬────────────────────────────────────┘
                            │
                            ▼
 ┌───────────────────────────────────────────────────────────────┐
-│ ws.onopen → Send init message + start heartbeat (30s)        │
+│ ws.onopen → Send subscribe message + start heartbeat (30s)   │
+│ { action: 'subscribe', project_id: 'uuid' }                  │
 └──────────────────────────┬────────────────────────────────────┘
                            │
                            ▼
 ┌───────────────────────────────────────────────────────────────┐
-│ ws.onmessage → handleCacheInvalidation()                     │
+│ ws.onmessage → handleMessage() with event-specific invalidation │
 └───────────────────────────────────────────────────────────────┘
 ```
 
-### Message Format
+### Event-Based Message Format
+
+Backend sends specific event types instead of generic cache_invalidate messages:
 
 ```javascript
-{
-  type: 'cache_invalidate',
-  data: {
-    resource: 'project' | 'sprint' | 'task' | 'project_members',
-    id: 'uuid',
-    action: 'INSERT' | 'UPDATE' | 'DELETE',
-    project_id: 'uuid',
-    timestamp: 'ISO 8601'
-  }
-}
+// Member events
+{ type: 'member_added', project_id: 'uuid' }
+{ type: 'member_removed', project_id: 'uuid' }
+
+// Message events
+{ type: 'message_created', project_id: 'uuid' }
+
+// Task events
+{ type: 'task_created', project_id: 'uuid' }
+{ type: 'task_updated', project_id: 'uuid' }
+{ type: 'task_deleted', project_id: 'uuid' }
+
+// Sprint events
+{ type: 'sprint_created', project_id: 'uuid' }
+{ type: 'sprint_updated', project_id: 'uuid' }
+{ type: 'sprint_deleted', project_id: 'uuid' }
+
+// Project events
+{ type: 'project_updated', project_id: 'uuid' }
 ```
 
 ### Invalidation Logic

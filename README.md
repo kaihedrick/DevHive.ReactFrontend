@@ -46,7 +46,7 @@ _Login Registration Iteration 1:_
 - **TypeScript**: 4.9.5 - Type safety and enhanced developer experience
 - **React Query**: 5.62.11 - Server state management and caching
 - **React Router**: 7.0.2 - Client-side routing and navigation
-- **WebSocket**: Real-time cache invalidation and messaging
+- **WebSocket**: Real-time cache invalidation at `wss://ws.devhive.it.com` (prod) / `ws://localhost:8080/api/v1/messages/ws` (dev)
 - **Axios**: 1.7.9 - HTTP client for REST API calls
 - **Bootstrap + TailwindCSS**: Modern responsive UI styling
 

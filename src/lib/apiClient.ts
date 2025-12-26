@@ -11,6 +11,42 @@ let failedQueue: Array<{
   reject: (error?: any) => void;
 }> = [];
 
+// JWT expiration check utility
+const isJWTExpired = (token: string, bufferSeconds: number = 30): boolean => {
+  try {
+    // JWT format: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      console.warn('⚠️ Invalid JWT format');
+      return true; // Consider invalid tokens as expired
+    }
+
+    // Decode payload (second part) - base64url decode
+    const payload = parts[1];
+    // Replace URL-safe base64 characters and add padding if needed
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+
+    const decoded = JSON.parse(atob(padded));
+
+    // Check exp claim (expiration time in seconds since epoch)
+    if (decoded.exp) {
+      const expTime = decoded.exp;
+      const now = Math.floor(Date.now() / 1000); // Current time in seconds
+      // Check if token expires within bufferSeconds
+      const expiresWithinBuffer = expTime < (now + bufferSeconds);
+      return expiresWithinBuffer;
+    }
+
+    // No exp claim - consider expired for safety
+    console.warn('⚠️ JWT has no exp claim');
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to decode JWT:', error);
+    return true; // Consider invalid tokens as expired
+  }
+};
+
 /**
  * Set OAuth flow mode
  * Task 2.2: Used by AuthContext to signal OAuth flow in progress
@@ -73,17 +109,18 @@ export const clearAccessToken = (): void => {
  * Calls POST /api/v1/auth/refresh with no body - refresh token is in httpOnly cookie
  * Returns new access token: { "token": "...", "userID": "..." }
  * 
- * CRITICAL: Never refresh if access token already exists (fresh login).
- * Refresh is only for recovery when token is missing, not for validation.
+ * CRITICAL: Never refresh if VALID access token already exists.
+ * Only refresh when no token exists OR existing token is expired.
+ * Refresh is recovery, not validation.
  * 
  * @returns Promise<string | null> New access token or null on failure
  */
 export const refreshToken = async (): Promise<string | null> => {
-  // CRITICAL FIX: Never refresh if access token already exists
-  // Refresh is recovery, not validation - only refresh when token is missing
+  // CRITICAL FIX: Never refresh if VALID access token already exists
+  // Check if token exists AND is not expired before skipping refresh
   const existingToken = getAccessToken();
-  if (existingToken) {
-    console.log('🔄 Refresh skipped - access token already exists (fresh login)');
+  if (existingToken && !isJWTExpired(existingToken, 30)) {
+    console.log('🔄 Refresh skipped - valid access token already exists');
     return existingToken;
   }
 
@@ -138,6 +175,9 @@ export const refreshToken = async (): Promise<string | null> => {
         clearAccessToken();
         // Clear userId as well
         localStorage.removeItem('userId');
+        
+        // Dispatch event to notify AuthContext and useRoutePermission
+        window.dispatchEvent(new Event('auth-state-changed'));
       } else if (hasAccessToken) {
         // Access token exists - ignore refresh 401 (cookie may not be ready yet after login)
         console.log('⚠️ Refresh 401 ignored - access token exists (likely fresh login, cookie not ready)');
@@ -232,11 +272,13 @@ api.interceptors.response.use(
     // 1. Request is not an auth/public route
     // 2. Error is 401 (Unauthorized)
     // 3. Request hasn't been retried yet
-    // 4. NO access token exists (refresh is recovery, not validation)
+    // 4. Either NO access token exists OR token is expired (refresh is recovery, not validation)
     // 5. Auth is initialized (bootstrap refresh has completed)
-    const hasAccessToken = !!getAccessToken();
+    const accessToken = getAccessToken();
+    const hasAccessToken = !!accessToken;
+    const tokenIsExpired = hasAccessToken ? isJWTExpired(accessToken, 30) : true; // Consider no token as "expired"
     const isInitialized = getAuthInitialized();
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !hasAccessToken && isInitialized) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && (!hasAccessToken || tokenIsExpired) && isInitialized) {
       // Check if we're already refreshing
       if (isRefreshing) {
         // If already refreshing, queue this request
@@ -259,8 +301,13 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        // If we have an expired token, clear it before refreshing
+        if (hasAccessToken && tokenIsExpired) {
+          console.log('⚠️ Clearing expired access token before refresh');
+          clearAccessToken();
+        }
+
         // Call refresh endpoint (ONE attempt only)
-        // Note: refreshToken() will return existing token if one exists, so this is safe
         const newToken = await refreshToken();
         
         if (!newToken) {
@@ -290,6 +337,9 @@ api.interceptors.response.use(
           if (!isOAuthFlow) {
             // Refresh token expired and no access token - logout will be handled by AuthContext state machine
             console.log('⚠️ Refresh token expired (401), auth state will be unauthenticated');
+            
+            // Dispatch event to notify AuthContext and useRoutePermission
+            window.dispatchEvent(new Event('auth-state-changed'));
           }
         } else if (stillHasAccessToken) {
           // Access token exists - ignore refresh 401 (cookie may not be ready after login)

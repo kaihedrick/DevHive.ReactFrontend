@@ -1,6 +1,7 @@
 import { queryClient } from '../lib/queryClient.ts';
 import { getAccessToken, refreshToken } from '../lib/apiClient.ts';
 import { WS_BASE_URL } from '../config.js';
+import { messageKeys } from '../hooks/useMessages.ts';
 
 /**
  * Cache invalidation payload structure from backend
@@ -25,9 +26,17 @@ interface CacheInvalidationPayload {
 }
 
 interface WebSocketMessage {
-  type: 'cache_invalidate' | 'reconnect' | 'pong';
-  data?: CacheInvalidationPayload | { reason: string };
+  type: 'member_added' | 'member_removed' | 'message_created' | 'task_created' | 'task_updated' | 'task_deleted' | 'sprint_created' | 'sprint_updated' | 'sprint_deleted' | 'project_updated' | 'cache_invalidate' | 'reconnect' | 'pong';
+  // Event-specific fields
   project_id?: string;
+  user_id?: string;
+  id?: string;
+  // Legacy cache_invalidate format
+  resource?: string;
+  action?: string;
+  timestamp?: string;
+  // Fallback for nested data format (if backend changes)
+  data?: CacheInvalidationPayload | { reason: string };
 }
 
 class CacheInvalidationService {
@@ -193,10 +202,11 @@ class CacheInvalidationService {
       // ensureFreshToken() will proactively refresh if token expires within 30 seconds
       const freshToken = await this.ensureFreshToken();
 
-      // Build WebSocket URL - connect to base WS URL with token only
+      // Build WebSocket URL - connect to backend WebSocket endpoint
       // IMPORTANT: Browsers cannot send custom headers in WebSocket constructor
       // The token MUST be sent in the query parameter for browser compatibility
-      // Use centralized WS_BASE_URL from config
+      // Production: wss://ws.devhive.it.com (AWS API Gateway, no path needed)
+      // Development: ws://localhost:8080/api/v1/messages/ws (Go backend)
       const wsUrl = `${WS_BASE_URL}?token=${encodeURIComponent(freshToken)}`;
 
       console.log(`🔌 Connecting to WebSocket with fresh token: ${WS_BASE_URL}?token=***`);
@@ -214,14 +224,15 @@ class CacheInvalidationService {
         // Reset auth failure flag on successful connection
         this.authFailureDetected = false;
 
-        // Send join_project message to subscribe to project updates
+        // Send subscribe message to subscribe to project updates
         try {
           this.ws?.send(JSON.stringify({
-            type: 'join_project',
+            action: 'subscribe',
             project_id: projectId,
           }));
+          console.log('📤 WS Subscribe sent:', { action: 'subscribe', project_id: projectId });
         } catch (error) {
-          console.error('❌ Failed to send join_project message:', error);
+          console.error('❌ Failed to send subscribe message:', error);
         }
 
         // Start heartbeat to keep connection alive (30s interval)
@@ -230,8 +241,9 @@ class CacheInvalidationService {
 
       this.ws.onmessage = (event) => {
         try {
+          console.log('📨 WS Event received:', event.data); // Add this to see ALL incoming messages
           const message: WebSocketMessage = JSON.parse(event.data);
-          
+
           // Log member-related messages for debugging
           if (message.type === 'cache_invalidate' && message.data) {
             const data = message.data as CacheInvalidationPayload;
@@ -239,7 +251,7 @@ class CacheInvalidationService {
               console.log(`👥 Member ${data.action} for project ${data.project_id}`);
             }
           }
-          
+
           this.handleMessage(message);
         } catch (error) {
           console.error('❌ Failed to parse WebSocket message:', error);
@@ -516,22 +528,86 @@ class CacheInvalidationService {
   }
 
   private handleMessage(message: WebSocketMessage) {
+    console.log('📨 WS Event received:', message); // Log all incoming messages
+
     switch (message.type) {
+      // Handle specific event types from backend
+      case 'member_added':
+      case 'member_removed':
+        console.log(`👥 Member ${message.type} for project ${message.project_id}`);
+        // Invalidate project and member caches
+        queryClient.invalidateQueries({ queryKey: ['projects', message.project_id] });
+        queryClient.invalidateQueries({ queryKey: ['projectMembers', message.project_id] });
+        queryClient.invalidateQueries({ queryKey: ['projects', 'bundle', message.project_id] });
+        queryClient.invalidateQueries({ queryKey: ['projects', 'list'] });
+        break;
+
+      case 'message_created':
+        console.log(`💬 Message created for project ${message.project_id}`);
+        // Invalidate message cache
+        queryClient.invalidateQueries({ queryKey: messageKeys.project(message.project_id) });
+        break;
+
+      case 'task_created':
+      case 'task_updated':
+      case 'task_deleted':
+        console.log(`📋 Task ${message.type.replace('task_', '')} for project ${message.project_id}`);
+        // Invalidate task caches
+        queryClient.invalidateQueries({ queryKey: ['tasks', 'list', 'project', message.project_id] });
+        queryClient.invalidateQueries({ queryKey: ['tasks', 'list', 'sprint'] }); // Invalidate all sprint tasks
+        queryClient.invalidateQueries({ queryKey: ['projects', 'bundle', message.project_id] });
+        break;
+
+      case 'sprint_created':
+      case 'sprint_updated':
+      case 'sprint_deleted':
+        console.log(`📅 Sprint ${message.type.replace('sprint_', '')} for project ${message.project_id}`);
+        // Invalidate sprint caches
+        queryClient.invalidateQueries({ queryKey: ['sprints', 'list', message.project_id] });
+        queryClient.invalidateQueries({ queryKey: ['projects', 'bundle', message.project_id] });
+        break;
+
+      case 'project_updated':
+        console.log(`🏗️ Project updated: ${message.project_id}`);
+        // Invalidate project caches
+        queryClient.invalidateQueries({ queryKey: ['projects', message.project_id] });
+        queryClient.invalidateQueries({ queryKey: ['projects', 'detail', message.project_id] });
+        queryClient.invalidateQueries({ queryKey: ['projects', 'bundle', message.project_id] });
+        queryClient.invalidateQueries({ queryKey: ['projects', 'list'] });
+        break;
+
+      // Legacy cache_invalidate format (fallback)
       case 'cache_invalidate':
-        if (message.data && typeof message.data === 'object' && 'resource' in message.data) {
-          this.handleCacheInvalidation(message.data as CacheInvalidationPayload);
+        console.log('📦 Legacy cache_invalidate message received');
+        // Backend sends flat message structure, not nested in 'data' field
+        // Check if message has resource field directly (backend format)
+        if ('resource' in message && message.resource) {
+          // Convert backend format to expected CacheInvalidationPayload format
+          const payload: CacheInvalidationPayload = {
+            resource: message.resource,
+            id: (message as any).id || (message as any).user_id || '',
+            action: (message as any).action,
+            project_id: (message as any).project_id || message.project_id || '',
+            timestamp: (message as any).timestamp || new Date().toISOString()
+          };
+          this.handleCacheInvalidation(payload);
         } else {
           console.warn('⚠️ Invalid cache invalidation message format:', message);
         }
         break;
+
       case 'reconnect':
         // Backend requested reconnect - no action needed
+        console.log('🔄 Backend requested reconnect');
         break;
+
       case 'pong':
         // Heartbeat response - ignore
+        // console.log('💓 Pong received'); // Uncomment for heartbeat debugging
         break;
+
       default:
-        console.warn('⚠️ Unknown WebSocket message type:', message.type);
+        console.warn('⚠️ Unknown WebSocket message type:', message.type, message);
     }
   }
 

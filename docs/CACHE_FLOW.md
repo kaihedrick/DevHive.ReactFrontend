@@ -107,8 +107,10 @@ persistQueryClient({
                            ▼
 ┌───────────────────────────────────────────────────────────────┐
 │ WebSocket URL:                                                │
-│ wss://go.devhive.it.com/api/v1/messages/ws          │
-│ ?project_id={id}&token={jwt}                                 │
+│ wss://ws.devhive.it.com?token={jwt}                  │
+│ (Production: AWS API Gateway)                               │
+│ OR ws://localhost:8080/api/v1/messages/ws?token={jwt} │
+│ (Development: Go backend)                                 │
 └──────────────────────────┬────────────────────────────────────┘
                            │
                            ▼

@@ -186,9 +186,8 @@ type Message struct {
 
 | Type | Payload | Description |
 |------|---------|-------------|
-| `join_project` | `{ project_id: "uuid" }` | Subscribe to project updates |
+| `subscribe` | `{ project_id: "uuid" }` | Subscribe to project updates (replaces join_project) |
 | `leave_project` | `{ project_id: "uuid" }` | Unsubscribe from project |
-| `init` | - | Initialization acknowledgment |
 | `ping` | - | Keepalive ping |
 | `pong` | - | Keepalive response |
 
@@ -407,41 +406,72 @@ FIREBASE_STORAGE_BUCKET=your-bucket.appspot.com
 ### WebSocket Connection
 
 ```typescript
-// 1. Connect to WebSocket
-const ws = new WebSocket('wss://ws.devhive.it.com?token=your-jwt-token');
+// 1. Connect to WebSocket (environment-specific URLs)
+const ws = new WebSocket('wss://ws.devhive.it.com?token=your-jwt-token'); // Production
+// OR for local development:
+// const ws = new WebSocket('ws://localhost:8080/api/v1/messages/ws?token=your-jwt-token');
 
 // 2. Authentication via query parameter
 // JWT token is passed in the query parameter for browser compatibility
 // Backend validates the token and establishes authenticated connection
 
-// 3. Handle connection open
+// 3. Environment-specific URLs
+| Environment | WebSocket URL |
+|-------------|---------------|
+| Production  | `wss://ws.devhive.it.com?token=<jwt>` |
+| Local Dev   | `ws://localhost:8080/api/v1/messages/ws?token=<jwt>` |
+
+// 4. Handle connection open
 ws.onopen = () => {
-    // Join a project room to receive project-specific updates
+    // Subscribe to project updates
     ws.send(JSON.stringify({
-        type: 'join_project',
+        action: 'subscribe',
         project_id: 'your-project-uuid'
     }));
 };
 
-// 4. Handle incoming messages
+// 5. Handle incoming messages with event-based cache invalidation
 ws.onmessage = (event) => {
     const message = JSON.parse(event.data);
 
-    if (message.type === 'cache_invalidate') {
-        // Invalidate relevant cache
-        const { resource, action, data, project_id } = message;
+    switch (message.type) {
+        case 'member_added':
+        case 'member_removed':
+            // Invalidate project and member caches
+            queryClient.invalidateQueries(['projects', message.project_id]);
+            queryClient.invalidateQueries(['projectMembers', message.project_id]);
+            queryClient.invalidateQueries(['projects', 'bundle', message.project_id]);
+            break;
 
-        switch (resource) {
-            case 'task':
-                queryClient.invalidateQueries(['tasks', project_id]);
-                break;
-            case 'sprint':
-                queryClient.invalidateQueries(['sprints', project_id]);
-                break;
-            case 'project_member':
-                queryClient.invalidateQueries(['members', project_id]);
-                break;
-        }
+        case 'message_created':
+            // Invalidate message cache
+            queryClient.invalidateQueries(['messages', 'list', 'project', message.project_id]);
+            break;
+
+        case 'task_created':
+        case 'task_updated':
+        case 'task_deleted':
+            // Invalidate task caches
+            queryClient.invalidateQueries(['tasks', 'list', 'project', message.project_id]);
+            queryClient.invalidateQueries(['tasks', 'list', 'sprint']);
+            queryClient.invalidateQueries(['projects', 'bundle', message.project_id]);
+            break;
+
+        case 'sprint_created':
+        case 'sprint_updated':
+        case 'sprint_deleted':
+            // Invalidate sprint caches
+            queryClient.invalidateQueries(['sprints', 'list', message.project_id]);
+            queryClient.invalidateQueries(['projects', 'bundle', message.project_id]);
+            break;
+
+        case 'project_updated':
+            // Invalidate project caches
+            queryClient.invalidateQueries(['projects', message.project_id]);
+            queryClient.invalidateQueries(['projects', 'detail', message.project_id]);
+            queryClient.invalidateQueries(['projects', 'bundle', message.project_id]);
+            queryClient.invalidateQueries(['projects', 'list']);
+            break;
     }
 };
 
@@ -464,6 +494,10 @@ const ws = new WebSocket(`wss://ws.devhive.it.com?token=${accessToken}`);
 - Query parameter provides secure token transmission
 - Token is validated by backend on connection establishment
 - Maintains compatibility with existing JWT authentication system
+
+**Environment URLs:**
+- **Production:** `wss://ws.devhive.it.com?token=<jwt>` (AWS API Gateway, no path needed)
+- **Development:** `ws://localhost:8080/api/v1/messages/ws?token=<jwt>` (Go backend)
 
 ### Sending Messages
 

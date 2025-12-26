@@ -408,7 +408,9 @@ FIREBASE_STORAGE_BUCKET=your-bucket.appspot.com
 
 ```typescript
 // 1. Connect to WebSocket
-const ws = new WebSocket('wss://api.devhive.com/api/v1/messages/ws');
+const ws = new WebSocket('wss://ws.devhive.it.com?token=your-jwt-token'); // Production
+// OR for local development:
+// const ws = new WebSocket('ws://localhost:8080/api/v1/messages/ws?token=your-jwt-token');
 
 // 2. Set auth header (or use cookie)
 // Note: WebSocket doesn't support custom headers in browser
@@ -460,10 +462,14 @@ ws.onclose = () => {
 // WebSocket will automatically include cookies
 ```
 
-**Option 2: Query Parameter (Deprecated)**
+**Current Implementation: Query Parameter**
 ```typescript
-const ws = new WebSocket(`wss://api.devhive.com/api/v1/messages/ws?token=${accessToken}`);
+const ws = new WebSocket(`wss://ws.devhive.it.com?token=${accessToken}`);
 ```
+
+**Environment URLs:**
+- **Production:** `wss://ws.devhive.it.com?token=<jwt>` (AWS API Gateway)
+- **Development:** `ws://localhost:8080/api/v1/messages/ws?token=<jwt>` (Go backend)
 
 ### Sending Messages
 

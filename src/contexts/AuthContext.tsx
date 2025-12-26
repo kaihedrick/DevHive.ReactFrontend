@@ -6,6 +6,52 @@ import { cacheInvalidationService } from '../services/cacheInvalidationService.t
 import { getSelectedProject, clearSelectedProject, clearAllSelectedProjects } from '../services/storageService.js';
 import { refreshToken as refreshTokenApi, getAccessToken, setOAuthFlow, clearAccessToken, setAuthInitialized as setApiAuthInitialized } from '../lib/apiClient.ts';
 
+// Import JWT expiration check from cache invalidation service
+const isJWTExpired = (token: string, bufferSeconds: number = 30): boolean => {
+  try {
+    // JWT format: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      console.warn('⚠️ Invalid JWT format');
+      return true; // Consider invalid tokens as expired
+    }
+
+    // Decode payload (second part) - base64url decode
+    const payload = parts[1];
+    // Replace URL-safe base64 characters and add padding if needed
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+
+    const decoded = JSON.parse(atob(padded));
+
+    // Check exp claim (expiration time in seconds since epoch)
+    if (decoded.exp) {
+      const expTime = decoded.exp;
+      const now = Math.floor(Date.now() / 1000); // Current time in seconds
+      // Proactive check: token expires within bufferSeconds
+      const expiresWithinBuffer = expTime < (now + bufferSeconds);
+
+      if (expiresWithinBuffer) {
+        const timeUntilExpiry = expTime - now;
+        if (timeUntilExpiry > 0) {
+          console.log(`⚠️ JWT expires within ${bufferSeconds}s (expires in ${timeUntilExpiry}s), refreshing proactively...`);
+        } else {
+          console.log(`⚠️ JWT expired: exp=${expTime}, now=${now}, diff=${now - expTime}s`);
+        }
+      }
+
+      return expiresWithinBuffer;
+    }
+
+    // No exp claim - consider expired for safety
+    console.warn('⚠️ JWT has no exp claim');
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to decode JWT:', error);
+    return true; // Consider invalid tokens as expired
+  }
+};
+
 type AuthState = 'unknown' | 'authenticated' | 'unauthenticated';
 
 interface AuthContextType {
@@ -153,6 +199,73 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     initializeAuth();
   }, []);
+
+  // Listen for auth state changes (when refresh token expires)
+  useEffect(() => {
+    const handleAuthStateChange = () => {
+      // Check if userId was cleared from localStorage (refresh token expired)
+      const storedUserId = getUserId();
+      
+      // If localStorage userId is cleared but state still has userId, sync state
+      if (!storedUserId && userId) {
+        console.log('🚪 Auth state changed - refresh token expired, clearing auth state');
+        setUserId(null);
+        setAuthState('unauthenticated');
+        clearAccessToken();
+        setApiAuthInitialized(false);
+        
+        // Clear selected project
+        if (userId) {
+          clearSelectedProject(userId);
+        }
+        
+        // Disconnect WebSocket
+        cacheInvalidationService.disconnect('Auth expired');
+        previousProjectIdRef.current = null;
+        validatedProjectIdRef.current = null;
+        isConnectingRef.current = false;
+      }
+    };
+
+    window.addEventListener('auth-state-changed', handleAuthStateChange);
+    return () => {
+      window.removeEventListener('auth-state-changed', handleAuthStateChange);
+    };
+  }, [userId]); // Include userId in dependencies to check when it changes
+
+  // Proactive Token Refresh Effect
+  // Check every 5 minutes if token expires within 10 minutes, refresh proactively
+  useEffect(() => {
+    const refreshInterval = setInterval(async () => {
+      // Only run proactive refresh if user is authenticated and initialized
+      if (!userId || !authInitialized) {
+        return;
+      }
+
+      const token = getAccessToken();
+      if (!token) {
+        console.log('ℹ️ No access token for proactive refresh');
+        return;
+      }
+
+      // Check if token expires within 10 minutes (600 seconds)
+      if (isJWTExpired(token, 600)) { // 10 minute buffer
+        console.log('🔄 Proactive token refresh: Token expires within 10 minutes');
+        try {
+          await refreshTokenApi();
+          console.log('✅ Proactive token refresh successful');
+        } catch (error) {
+          console.error('❌ Proactive token refresh failed:', error);
+          // Don't clear auth here - let the 401 interceptor handle it
+          // This prevents false logouts from temporary network issues
+        }
+      } else {
+        console.log('ℹ️ Token still valid (>10 minutes remaining), skipping proactive refresh');
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, [userId, authInitialized]);
 
   // WebSocket Connection Management Effect (simplified)
   // Task 2.2: Guard against post-logout re-auth - check userId, not authState
