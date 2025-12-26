@@ -49,7 +49,6 @@ _Login Registration Iteration 1:_
 - **WebSocket**: Real-time cache invalidation and messaging
 - **Axios**: 1.7.9 - HTTP client for REST API calls
 - **Bootstrap + TailwindCSS**: Modern responsive UI styling
-- **iOS Safari Optimized**: Fixed header positioning and viewport issues
 
 **Backend**: Go + PostgreSQL (migrated from ASP.NET)
 
