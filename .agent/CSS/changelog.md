@@ -4,6 +4,21 @@ Track all style-impacting changes here. This ensures agents document CSS modific
 
 ---
 
+## 2025-12-26
+
+### Fixed
+- **File**: `src/styles/navbar.css`
+- **Change**: Added iOS Safari-specific CSS fixes to prevent header from moving off screen during navigation
+- **Reason**: iOS Safari's dynamic viewport behavior causes fixed positioned elements to shift when address bar appears/disappears during page transitions
+- **Impact**: Navbar now stays fixed and visible on iOS Safari mobile when navigating between pages (board, backlog, contacts, account)
+
+### Implementation Details
+- Added `@supports (-webkit-touch-callout: none)` query for iOS Safari detection
+- Used `translate3d(0, 0, 0)` and `translateZ(0)` for hardware acceleration
+- Set high `z-index: 10000` to ensure navbar stays above content
+- Added `min-height` and `backface-visibility` properties for viewport stability
+- Included mobile-specific media query for additional iOS Safari fixes
+
 ## 2025-12-23
 
 ### Documentation Created
