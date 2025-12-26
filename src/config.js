@@ -29,30 +29,21 @@ const getWsBaseUrl = () => {
     let wsUrl;
     // Check if we're in a Vite environment
     if (typeof import.meta !== 'undefined' && import.meta.env) {
-      wsUrl = import.meta.env.VITE_WS_BASE_URL ?? import.meta.env.VITE_API_BASE_URL;
+      wsUrl = import.meta.env.VITE_WS_BASE_URL ?? 'wss://ws.devhive.it.com';
     } else {
       // Fallback for Create React App
-      wsUrl = process.env.REACT_APP_WS_BASE_URL ?? process.env.REACT_APP_API_BASE_URL;
+      wsUrl = process.env.REACT_APP_WS_BASE_URL ?? 'wss://ws.devhive.it.com';
     }
-    
-    // If no WS URL specified, derive from API_BASE_URL
-    if (!wsUrl) {
-      const apiUrl = getApiBaseUrl();
-      // Convert https:// to wss:// and http:// to ws://
-      wsUrl = apiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
-      // Remove /api/v1 suffix for WebSocket (WebSocket endpoint is at root level)
-      wsUrl = wsUrl.replace('/api/v1', '');
-    } else {
-      // Ensure ws:// or wss:// protocol
-      if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
-        wsUrl = wsUrl.replace('https://', 'wss://').replace('http://', 'ws://');
-      }
+
+    // Ensure ws:// or wss:// protocol
+    if (!wsUrl.startsWith('ws://') && !wsUrl.startsWith('wss://')) {
+      wsUrl = wsUrl.replace('https://', 'wss://').replace('http://', 'ws://');
     }
-    
+
     return wsUrl;
   } catch (error) {
     // Fallback
-    return 'wss://go.devhive.it.com';
+    return 'wss://ws.devhive.it.com';
   }
 };
 

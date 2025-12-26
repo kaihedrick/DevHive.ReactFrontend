@@ -18,7 +18,7 @@ Core architecture and technical documentation:
 - **[Project Architecture](./System/project_architecture.md)** - Complete overview of the system architecture, tech stack, project structure, and core components
 - **[Authentication Architecture](./System/authentication_architecture.md)** - Detailed authentication flows, token management, and security measures ⚠️ **Updated 2025-12-23** - Latest: Never refresh if access token exists (prevents immediate 401-after-login). Previous: OAuth double refresh fix, auth initialization flag, comprehensive logout cleanup, JWT expiration parsing, iOS Safari fixes, logout flow improvements
 - **[Caching Strategy](./System/caching_strategy.md)** - React Query configuration, WebSocket cache invalidation, and caching patterns
-- **[Realtime Messaging](./System/realtime_messaging.md)** - WebSocket implementation, messaging system, and PostgreSQL NOTIFY integration
+- **[Realtime Messaging](./System/realtime_messaging.md)** - WebSocket implementation, messaging system, and PostgreSQL NOTIFY integration ⚠️ **Updated 2025-12-26** - WebSocket now connects to `wss://ws.devhive.it.com?token=JWT_TOKEN`
 - **[Invite Management](./System/invite_management.md)** - Project invite system, expiration logic, and frontend implementation
 - **[File Reference](./System/file_reference.md)** - Quick reference map for key files and line numbers
 - **[Risk Analysis](./System/risk_analysis.md)** - Risk areas, testing guidelines, and debugging tools
@@ -104,7 +104,7 @@ Feature PRDs and implementation plans:
 ### For Understanding Caching & Real-time Updates
 
 1. Read **[Caching Strategy](./System/caching_strategy.md)** for React Query and cache invalidation
-2. Review **[Realtime Messaging](./System/realtime_messaging.md)** for WebSocket implementation
+2. Review **[Realtime Messaging](./System/realtime_messaging.md)** for WebSocket implementation ⚠️ **Updated 2025-12-26** - WebSocket now connects to `wss://ws.devhive.it.com?token=JWT_TOKEN`
 3. Check **[File Reference](./System/file_reference.md)** for cache-related file locations
 
 ### For Working on Features

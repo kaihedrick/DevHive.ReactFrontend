@@ -408,15 +408,15 @@ FIREBASE_STORAGE_BUCKET=your-bucket.appspot.com
 
 ```typescript
 // 1. Connect to WebSocket
-const ws = new WebSocket('wss://api.devhive.com/api/v1/messages/ws');
+const ws = new WebSocket('wss://ws.devhive.it.com?token=your-jwt-token');
 
-// 2. Set auth header (or use cookie)
-// Note: WebSocket doesn't support custom headers in browser
-// Use cookie-based auth or pass token as query param (deprecated)
+// 2. Authentication via query parameter
+// JWT token is passed in the query parameter for browser compatibility
+// Backend validates the token and establishes authenticated connection
 
 // 3. Handle connection open
 ws.onopen = () => {
-    // Join a project room
+    // Join a project room to receive project-specific updates
     ws.send(JSON.stringify({
         type: 'join_project',
         project_id: 'your-project-uuid'
@@ -454,16 +454,16 @@ ws.onclose = () => {
 
 ### Authentication Options
 
-**Option 1: Cookie (Recommended)**
+**Current Implementation: Query Parameter**
 ```typescript
-// Set httpOnly cookie on login
-// WebSocket will automatically include cookies
+const ws = new WebSocket(`wss://ws.devhive.it.com?token=${accessToken}`);
 ```
 
-**Option 2: Query Parameter (Deprecated)**
-```typescript
-const ws = new WebSocket(`wss://api.devhive.com/api/v1/messages/ws?token=${accessToken}`);
-```
+**Why Query Parameter:**
+- Browser WebSocket API doesn't support custom headers
+- Query parameter provides secure token transmission
+- Token is validated by backend on connection establishment
+- Maintains compatibility with existing JWT authentication system
 
 ### Sending Messages
 

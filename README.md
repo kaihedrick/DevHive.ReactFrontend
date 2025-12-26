@@ -24,11 +24,11 @@ _Login Registration Iteration 1:_
 
 ### Task Management
 - CRUD operations for tasks with assignment and progress tracking.
-- Live updates using WebSockets or Firebase.
+- Real-time updates via WebSocket cache invalidation.
 
 ### Communication
-- Direct messaging between users via Firebase's real-time database.
-- Group chat integration within project workflows.
+- Project-based messaging with real-time updates.
+- PostgreSQL-backed persistent message history.
 
 ### Sprint Tracking
 - Timeline and progress tracking for agile sprints.
@@ -42,12 +42,17 @@ _Login Registration Iteration 1:_
 
 ## 🛠️ Tech Stack
 
-- **React**: Version 18.x with functional components and React Hooks.
-- **State Management**: Redux or Context API for global state handling.
-- **Routing**: React Router for seamless navigation.
-- **Backend API**: RESTful API communication with the ASP.NET backend.
-- **Database**: Firebase for real-time messaging.
-- **Styling**: Material-UI / Tailwind CSS for a modern, responsive design.
+- **React**: 18.3.1 - Functional components with React Hooks
+- **TypeScript**: 4.9.5 - Type safety and enhanced developer experience
+- **React Query**: 5.62.11 - Server state management and caching
+- **React Router**: 7.0.2 - Client-side routing and navigation
+- **WebSocket**: Real-time cache invalidation and messaging
+- **Axios**: 1.7.9 - HTTP client for REST API calls
+- **Bootstrap + TailwindCSS**: Modern responsive UI styling
+
+**Backend**: Go + PostgreSQL (migrated from ASP.NET)
+
+*For complete technical details, see [Project Architecture](./.agent/System/project_architecture.md)*
 
 ---
 
@@ -63,13 +68,21 @@ _Login Registration Iteration 1:_
 
 ```plaintext
 src/
-├── components/      # Reusable React components
-├── pages/           # Application pages (e.g., Dashboard, Login, Projects)
-├── hooks/           # Custom React hooks
-├── context/         # Global state management (Context API or Redux)
-├── services/        # API and Firebase integration
-├── utils/           # Utility functions and helpers
-├── assets/          # Static files (images, CSS, etc.)
+├── components/      # React components (TypeScript + JavaScript)
+├── contexts/        # React Context providers (Auth, Toast)
+├── hooks/           # Custom React hooks (TypeScript + JavaScript)
+├── services/        # API services and business logic
+├── lib/            # Core utilities (API client, React Query)
+├── styles/         # CSS stylesheets
+├── models/         # TypeScript type definitions
+├── utils/          # Utility functions
+└── config/         # Configuration files
+
+.agent/            # Comprehensive documentation
+├── System/        # Architecture documentation
+├── SOP/          # Standard Operating Procedures
+├── Tasks/        # Feature PRDs and implementation plans
+└── CSS/          # Styling architecture and design tokens
 └── App.js           # Main application component
 ```
 

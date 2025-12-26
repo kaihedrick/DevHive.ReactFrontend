@@ -193,13 +193,13 @@ class CacheInvalidationService {
       // ensureFreshToken() will proactively refresh if token expires within 30 seconds
       const freshToken = await this.ensureFreshToken();
 
-      // Build WebSocket URL - use project_id (snake_case) to match backend
+      // Build WebSocket URL - connect to base WS URL with token only
       // IMPORTANT: Browsers cannot send custom headers in WebSocket constructor
       // The token MUST be sent in the query parameter for browser compatibility
       // Use centralized WS_BASE_URL from config
-      const wsUrl = `${WS_BASE_URL}/api/v1/messages/ws?project_id=${encodeURIComponent(projectId)}&token=${encodeURIComponent(freshToken)}`;
-      
-      console.log(`🔌 Connecting to WebSocket with fresh token: ${WS_BASE_URL}/api/v1/messages/ws?project_id=${projectId}&token=***`);
+      const wsUrl = `${WS_BASE_URL}?token=${encodeURIComponent(freshToken)}`;
+
+      console.log(`🔌 Connecting to WebSocket with fresh token: ${WS_BASE_URL}?token=***`);
 
       // Browser WebSocket constructor does NOT support headers option
       // Token is sent via query parameter as required for browser compatibility
@@ -214,14 +214,14 @@ class CacheInvalidationService {
         // Reset auth failure flag on successful connection
         this.authFailureDetected = false;
 
-        // Send initialization message
+        // Send join_project message to subscribe to project updates
         try {
           this.ws?.send(JSON.stringify({
-            type: 'init',
-            projectId: projectId,
+            type: 'join_project',
+            project_id: projectId,
           }));
         } catch (error) {
-          console.error('❌ Failed to send initialization message:', error);
+          console.error('❌ Failed to send join_project message:', error);
         }
 
         // Start heartbeat to keep connection alive (30s interval)
