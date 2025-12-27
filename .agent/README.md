@@ -18,7 +18,7 @@ Core architecture and technical documentation:
 - **[Project Architecture](./System/project_architecture.md)** - Complete overview of the system architecture, tech stack, project structure, and core components
 - **[Authentication Architecture](./System/authentication_architecture.md)** - Detailed authentication flows, token management, and security measures ⚠️ **Updated 2025-12-26** - CRITICAL FIX: Refresh token expiration event handling prevents invalid authenticated state. Previous: refreshToken() now properly refreshes expired tokens, OAuth double refresh fix, auth initialization flag, comprehensive logout cleanup, JWT expiration parsing, iOS Safari fixes, logout flow improvements
 - **[Caching Strategy](./System/caching_strategy.md)** - React Query configuration, WebSocket cache invalidation, and caching patterns
-- **[Realtime Messaging](./System/realtime_messaging.md)** - WebSocket implementation, messaging system, and PostgreSQL NOTIFY integration ⚠️ **Updated 2025-12-26** - WebSocket now connects to `wss://ws.devhive.it.com?token=JWT_TOKEN` with event-based cache invalidation
+- **[Realtime Messaging](./System/realtime_messaging.md)** - WebSocket implementation, messaging system, and PostgreSQL NOTIFY integration ⚠️ **CRITICAL ISSUE** - Messages table missing from database triggers, no real-time updates for messages. Backend has dual system (immediate broadcasts + database triggers) but messages table not covered. See [Fix Message Realtime Updates](../Tasks/fix_message_realtime_updates.md)
 - **[Invite Management](./System/invite_management.md)** - Project invite system, expiration logic, and frontend implementation
 - **[File Reference](./System/file_reference.md)** - Quick reference map for key files and line numbers
 - **[Risk Analysis](./System/risk_analysis.md)** - Risk areas, testing guidelines, and debugging tools
@@ -39,6 +39,8 @@ Feature PRDs and implementation plans:
 - **[Google OAuth Implementation](./Tasks/google_oauth.md)** - Google OAuth 2.0 authentication implementation plan with "Remember Me" functionality
 - **[Fix Google OAuth Cache Leak](./Tasks/fix_google_oauth_cache_leak.md)** - Fix data leakage where previous user's projects are visible after OAuth login
 - **[Fix Authentication 15-Minute Logouts](./Tasks/fix_authentication_15min_logout.md)** - Fix random logouts after 15 minutes, token refresh issues, and operation flow problems ⚠️ **Updated 2025-12-23** with iOS Safari fixes, JWT expiration parsing, and retry logic
+- **[Fix Message Realtime Updates](./Tasks/fix_message_realtime_updates.md)** - Investigate and fix messages not updating in real-time (dual system: immediate broadcasts + database triggers)
+- **[Fix Realtime Cache Invalidation](./Tasks/fix_realtime_cache_invalidation.md)** - Comprehensive fix for real-time messaging, member updates, and cache invalidation gaps ⚠️ **NEW** - Backend needs `broadcast.Send()` for messages and database trigger for `messages` table
 
 ### 🎨 CSS Styling Architecture
 

@@ -53,6 +53,22 @@ class CacheInvalidationService {
   private sessionGeneration = 0; // Increment on each connect/disconnect to invalidate stale callbacks
   private onForbiddenCallback: ((projectId: string) => void) | null = null; // Callback for 403 Forbidden errors
 
+  // Debug method to check WebSocket status (call from browser console)
+  public debugWebSocketStatus(): void {
+    console.log('🔍 WebSocket Debug Status:', {
+      isConnected: this.isConnected(),
+      isConnecting: this.isConnecting,
+      wsExists: !!this.ws,
+      wsReadyState: this.ws?.readyState,
+      wsUrl: this.ws?.url,
+      currentProjectId: this.currentProjectId,
+      sessionGeneration: this.sessionGeneration,
+      heartbeatActive: !!this.heartbeatInterval,
+      authFailureDetected: this.authFailureDetected,
+      reconnectAttempts: this.reconnectAttempts
+    });
+  }
+
   /**
    * Decodes JWT and checks if it's expired by examining the 'exp' claim.
    * This allows proactive token refresh before actual expiration.
@@ -243,6 +259,19 @@ class CacheInvalidationService {
         try {
           console.log('📨 WS Event received:', event.data); // Add this to see ALL incoming messages
           const message: WebSocketMessage = JSON.parse(event.data);
+
+          // DETAILED DEBUGGING: Log all event types and their payloads
+          console.log('🔍 WS Event Details:', {
+            type: message.type,
+            hasProjectId: 'project_id' in message,
+            projectId: message.project_id || 'N/A',
+            hasData: 'data' in message,
+            dataKeys: message.data ? Object.keys(message.data) : 'N/A',
+            resource: (message as any).resource || 'N/A',
+            action: (message as any).action || 'N/A',
+            id: (message as any).id || 'N/A',
+            fullMessage: message
+          });
 
           // Log member-related messages for debugging
           if (message.type === 'cache_invalidate' && message.data) {
@@ -534,18 +563,28 @@ class CacheInvalidationService {
       // Handle specific event types from backend
       case 'member_added':
       case 'member_removed':
-        console.log(`👥 Member ${message.type} for project ${message.project_id}`);
+        const memberProjectId = message.project_id || this.currentProjectId || '';
+        console.log(`👥 Member ${message.type} for project ${memberProjectId}`);
         // Invalidate project and member caches
-        queryClient.invalidateQueries({ queryKey: ['projects', message.project_id] });
-        queryClient.invalidateQueries({ queryKey: ['projectMembers', message.project_id] });
-        queryClient.invalidateQueries({ queryKey: ['projects', 'bundle', message.project_id] });
+        queryClient.invalidateQueries({ queryKey: ['projects', memberProjectId] });
+        queryClient.invalidateQueries({ queryKey: ['projectMembers', memberProjectId] });
+        queryClient.invalidateQueries({ queryKey: ['projects', 'bundle', memberProjectId] });
         queryClient.invalidateQueries({ queryKey: ['projects', 'list'] });
         break;
 
       case 'message_created':
         console.log(`💬 Message created for project ${message.project_id}`);
+        const projectId = message.project_id || '';
+        console.log('📝 Message created event details:', {
+          projectId: projectId,
+          hasData: 'data' in message,
+          data: message.data,
+          queryKey: messageKeys.project(projectId)
+        });
         // Invalidate message cache
-        queryClient.invalidateQueries({ queryKey: messageKeys.project(message.project_id) });
+        console.log('🔄 Invalidating message queries for project:', projectId);
+        queryClient.invalidateQueries({ queryKey: messageKeys.project(projectId) });
+        console.log('✅ Message cache invalidation completed');
         break;
 
       case 'task_created':
@@ -584,9 +623,9 @@ class CacheInvalidationService {
         if ('resource' in message && message.resource) {
           // Convert backend format to expected CacheInvalidationPayload format
           const payload: CacheInvalidationPayload = {
-            resource: message.resource,
+            resource: message.resource as CacheInvalidationPayload['resource'],
             id: (message as any).id || (message as any).user_id || '',
-            action: (message as any).action,
+            action: (message as any).action as CacheInvalidationPayload['action'],
             project_id: (message as any).project_id || message.project_id || '',
             timestamp: (message as any).timestamp || new Date().toISOString()
           };
@@ -626,7 +665,7 @@ class CacheInvalidationService {
   private handleCacheInvalidation(payload: CacheInvalidationPayload) {
     const { resource, id, action, project_id } = payload;
 
-    console.log(`🔄 Cache invalidation: ${resource} ${action}`, { id, project_id });
+    console.log(`🔄 Cache invalidation: ${resource} ${action}`, { id, project_id, currentProjectId: this.currentProjectId });
 
     // Normalize resource name (handle both singular and plural for backward compatibility)
     const normalizedResource = resource === 'projects' ? 'project'
@@ -692,27 +731,27 @@ class CacheInvalidationService {
         break;
 
       case 'project_members':
-        // Handle member changes (immediately refetch for real-time updates)
-        queryClient.refetchQueries({
+        // Handle member changes (invalidate caches for immediate updates)
+        queryClient.invalidateQueries({
           queryKey: ['projectMembers', project_id],
           exact: false
         });
-        queryClient.refetchQueries({
+        queryClient.invalidateQueries({
           queryKey: ['projects', 'bundle', project_id],
           exact: false
         });
         queryClient.invalidateQueries({ queryKey: ['projects', 'list'] });
-        console.log(`✅ Refetched project members for project ${project_id}`);
+        console.log(`✅ Invalidated project member caches for project ${project_id}`);
         break;
 
       case 'message':
-        // Handle message changes - refetch messages for real-time chat updates
+        // Handle message changes - invalidate message caches for real-time chat updates
         // Architecture: Messages sent via REST API trigger cache_invalidate via WebSocket
-        queryClient.refetchQueries({
+        queryClient.invalidateQueries({
           queryKey: ['messages', 'list', 'project', project_id],
           exact: false
         });
-        console.log(`✅ Refetched messages for project ${project_id}`);
+        console.log(`✅ Invalidated message caches for project ${project_id}`);
         break;
 
       default:
@@ -791,4 +830,9 @@ class CacheInvalidationService {
 }
 
 export const cacheInvalidationService = new CacheInvalidationService();
+
+// Make debug method globally accessible for browser console debugging
+if (typeof window !== 'undefined') {
+  (window as any).debugWebSocket = () => cacheInvalidationService.debugWebSocketStatus();
+}
 

@@ -27,9 +27,13 @@ DevHive uses a hybrid architecture for realtime features:
 | Authentication | JWT + Firebase Auth (optional) | Token verification |
 
 **Key Design Decisions:**
+- **Dual Real-time System**: Immediate application broadcasts + database-triggered cache invalidation
 - WebSocket is used for **cache invalidation**, not direct chat
 - Messages are created via REST API, then broadcast via WebSocket
 - PostgreSQL NOTIFY provides reliable event sourcing from the database layer
+- **Immediate Updates**: Application broadcasts provide instant real-time messaging
+- **Cache Consistency**: Database triggers ensure frontend caches stay in sync
+- **Reliability**: If WebSocket connection drops, database triggers still work
 
 ---
 
@@ -258,12 +262,20 @@ $$ LANGUAGE plpgsql;
 
 ### Monitored Tables
 
-| Table | Trigger Name | Events |
+| Table | Trigger Name | Events | Status |
 |-------|--------------|--------|
-| `projects` | `projects_cache_invalidate` | INSERT, UPDATE, DELETE |
-| `sprints` | `sprints_cache_invalidate` | INSERT, UPDATE, DELETE |
-| `tasks` | `tasks_cache_invalidate` | INSERT, UPDATE, DELETE |
-| `project_members` | `project_members_cache_invalidate` | INSERT, UPDATE, DELETE |
+| `projects` | `projects_cache_invalidate` | INSERT, UPDATE, DELETE | ✅ Active |
+| `sprints` | `sprints_cache_invalidate` | INSERT, UPDATE, DELETE | ✅ Active |
+| `tasks` | `tasks_cache_invalidate` | INSERT, UPDATE, DELETE | ✅ Active |
+| `project_members` | `project_members_cache_invalidate` | INSERT, UPDATE, DELETE | ✅ Active |
+| `messages` | `messages_cache_invalidate` | INSERT, UPDATE, DELETE | ❌ **MISSING** - Messages table has NO database trigger |
+
+**CRITICAL ISSUE:** The `messages` table is completely missing from the database triggers! Backend has dual real-time system:
+
+1. **Immediate Application Broadcasts**: `broadcast.Send()` calls in handlers (should send `message_created` events)
+2. **Database Triggers**: PostgreSQL NOTIFY triggers (send `cache_invalidate` events)
+
+But messages table has neither! This explains why users must logout/login to see messages. See [Fix Message Realtime Updates](../Tasks/fix_message_realtime_updates.md) for implementation plan.
 
 ### Notification Payload
 
@@ -430,48 +442,57 @@ ws.onopen = () => {
     }));
 };
 
-// 5. Handle incoming messages with event-based cache invalidation
+// 5. Handle incoming messages - Dual System Support
 ws.onmessage = (event) => {
     const message = JSON.parse(event.data);
 
+    // BACKEND SENDS TWO TYPES OF MESSAGES:
+
+    // Type 1: Immediate Application Broadcasts (e.g., message_created from broadcast.Send())
+    // These have the event type directly in message.type
     switch (message.type) {
         case 'member_added':
         case 'member_removed':
-            // Invalidate project and member caches
             queryClient.invalidateQueries(['projects', message.project_id]);
             queryClient.invalidateQueries(['projectMembers', message.project_id]);
             queryClient.invalidateQueries(['projects', 'bundle', message.project_id]);
             break;
 
         case 'message_created':
-            // Invalidate message cache
+            // IMMEDIATE BROADCAST: New message via broadcast.Send() in handler
+            console.log('💬 New message via immediate broadcast:', message.data);
             queryClient.invalidateQueries(['messages', 'list', 'project', message.project_id]);
             break;
 
         case 'task_created':
         case 'task_updated':
         case 'task_deleted':
-            // Invalidate task caches
-            queryClient.invalidateQueries(['tasks', 'list', 'project', message.project_id]);
-            queryClient.invalidateQueries(['tasks', 'list', 'sprint']);
-            queryClient.invalidateQueries(['projects', 'bundle', message.project_id]);
-            break;
-
         case 'sprint_created':
         case 'sprint_updated':
         case 'sprint_deleted':
-            // Invalidate sprint caches
-            queryClient.invalidateQueries(['sprints', 'list', message.project_id]);
-            queryClient.invalidateQueries(['projects', 'bundle', message.project_id]);
+        case 'project_updated':
+            // Handle other immediate broadcasts
+            console.log('📡 Immediate broadcast received:', message.type);
+            // Invalidate appropriate caches based on event type
             break;
 
-        case 'project_updated':
-            // Invalidate project caches
-            queryClient.invalidateQueries(['projects', message.project_id]);
-            queryClient.invalidateQueries(['projects', 'detail', message.project_id]);
-            queryClient.invalidateQueries(['projects', 'bundle', message.project_id]);
-            queryClient.invalidateQueries(['projects', 'list']);
+        case 'cache_invalidate':
+            // Type 2: Database Trigger Events (from PostgreSQL NOTIFY)
+            // These have resource/action/project_id structure
+            console.log('🔄 Cache invalidate from database trigger:', message);
+            const resource = message.resource || message.data?.resource;
+            if (resource === 'messages') {
+                queryClient.invalidateQueries(['messages', 'list', 'project', message.project_id]);
+            } else if (resource === 'project_members') {
+                queryClient.invalidateQueries(['projectMembers', message.project_id]);
+            } else if (resource === 'tasks') {
+                queryClient.invalidateQueries(['tasks', 'list', 'project', message.project_id]);
+            }
+            // Handle other resource types...
             break;
+
+        default:
+            console.log('⚠️ Unknown WebSocket message type:', message.type);
     }
 };
 
