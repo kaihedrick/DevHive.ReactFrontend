@@ -455,7 +455,7 @@ const ProjectDetails: React.FC = () => {
   }
 
   return (
-    <div className="project-details-page">
+    <div className="project-details-page page--fullscreen">
       <div className="project-details-surface">
         <div
           ref={scrollShadowsRef}

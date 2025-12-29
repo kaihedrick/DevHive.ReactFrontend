@@ -1,70 +1,81 @@
 /* ============================= */
-/*  Account Page Layout */
-/* ============================= */
-
-/* Ensure html and body take full height and prevent horizontal scroll */
-html, body {
-  height: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow-x: hidden !important;
-}
-
-/* ============================= */
-/* 🍎 Progressive Disclosure + Affordance Scroll Indicators */
-/* ============================= */
-/* Scroll indicators are now handled in create_sprint.css with absolute page-level scoping */
-/* This file only contains Account Details specific styles */
-
-.account-container {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  min-height: 0 !important; /* Changed from calc(100vh - 100px) - respect parent height */
-  height: 100% !important; /* Fill parent naturally */
-  padding: var(--space-5) !important;
-  background-color: var(--accent-primary) !important; /* Keep the gold background */
-  font-family: var(--primary-font) !important;
-  position: relative !important;
-}
-
-/* ============================= */
-/* 🌟 Scoped Account Details Page Styling */
+/* Account Details – Project-Style Layout */
 /* ============================= */
 
 .account-details-page {
-  --project-header-height: 65px !important;
-  background: var(--accent-primary) !important;
-  padding: var(--space-5) var(--space-4) var(--space-6) var(--space-4) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  background: var(--bg-secondary) !important;
+  padding: 0 !important;
+}
+
+.account-details-header {
+  position: static !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.account-details-page .create-sprint-nav-bar {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  transition: box-shadow 0.2s ease !important;
+}
+
+.account-details-page .create-sprint-nav-bar.is-scrolled {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+.account-details-page .create-sprint-nav-inner {
+  width: 100% !important;
+  max-width: 500px !important;
+  margin: 0 auto !important;
+  padding: 0 var(--space-6) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
   box-sizing: border-box !important;
 }
 
-.account-details-page .account-details-header {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 auto var(--space-4) auto !important;
-  border-radius: 0 !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 30 !important;
-  box-shadow: var(--shadow-sm) !important;
-}
-
-.account-details-page .create-sprint-container {
-  margin: 0 auto !important;
-  width: 100% !important;
-  max-width: 500px !important;
-}
-
-.account-details-page .account-container {
+.account-details-surface {
+  flex: 1 1 auto !important;
   display: flex !important;
   justify-content: center !important;
-  align-items: center !important;
-  min-height: 0 !important; /* Changed from calc(100vh - 100px) - respect parent height */
-  padding: var(--space-5) !important;
-  background-color: var(--accent-primary) !important; /* Gold background */
-  font-family: var(--primary-font) !important;
-  position: relative !important;
+  overflow: hidden !important;
+}
+
+.account-details-scroll {
+  width: 100% !important;
+  max-width: 500px !important;
+  padding: var(--space-6) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-gutter: stable both-edges !important;
+}
+
+.account-container {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 600px) {
+  body.has-topbar .account-details-page {
+    padding-top: 0 !important;
+  }
+
+  body.has-topbar .account-details-page .create-sprint-nav-inner {
+    padding: 0 var(--space-4) !important;
+  }
+
+  .account-details-scroll {
+    padding: var(--space-4) !important;
+  }
 }
 
 /* ============================= */
@@ -676,7 +687,3 @@ html, body {
 /* Disabled state is handled by the standard button classes */
 
 /* Optional: since we removed the .account-card wrapper */
-.account-details-page, .account-container { 
-  background: var(--bg-primary) !important; 
-  padding: 0 !important; 
-}

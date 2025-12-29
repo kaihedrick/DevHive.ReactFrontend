@@ -48,6 +48,18 @@
 }
 
 /* ============================= */
+/* Shared Fullscreen Page Contract */
+/* ============================= */
+.page--fullscreen {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+/* ============================= */
 /* 🌟 Create Sprint Page Layout */
 /* ============================= */
 .create-sprint-page {
@@ -201,6 +213,15 @@ body.has-topbar .create-sprint-container {
 .create-sprint-container.scrolled-to-top::before {
   opacity: 0 !important;
   display: none !important;
+}
+
+@media (max-width: 600px) {
+  body.has-topbar .create-sprint-nav-bar {
+    top: var(
+      --mobile-top-offset,
+      calc(var(--navbar-height-mobile, 56px) + env(safe-area-inset-top, 0px))
+    ) !important;
+  }
 }
 
 /* Show bottom gradient only when scrollable and NOT at bottom */

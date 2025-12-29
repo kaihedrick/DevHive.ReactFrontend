@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import useAccountDetails from "../hooks/useAccountDetails.ts";
-import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { isValidUsername } from "../utils/validation.ts";
 import "../styles/account_details.css";
 import "../styles/create_sprint.css"; // Reuse Sprint page layout + fields
-import "../styles/project_details.css"; // For char-count styling
 import { getSelectedProject } from "../services/storageService";
 import { useProjectMembers } from "../hooks/useProjects.ts";
 /**
@@ -87,64 +85,29 @@ const AccountDetails = () => {
     return members.filter((member) => member.id !== user?.id);
   }, [membersData, user?.id]);
 
-  // Use scroll indicators hook for Progressive Disclosure + Affordance
-  // Only include dependencies that actually change DOM structure/height
-  // Error/success messages don't significantly affect height, so excluded to prevent re-runs on every keystroke
-  const containerRef = useScrollIndicators([
-    showPasswordChange,      // Form expansion/collapse
-    showLeaveConfirmation,   // Confirmation modal visibility
-    projectMembers.length,   // Member list changes
-    isEditingUsername,      // Username edit mode toggle
-    user?.id,                // Re-check when user data loads
-  ]);
-  const scrollShadowsRef = useRef(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    const shadows = scrollShadowsRef.current;
-
-    if (!container || !shadows) return;
-
-    const updateShadows = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      const isScrollable = scrollHeight > clientHeight + 1;
-      const atTop = scrollTop <= 1;
-      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-
-      shadows.classList.toggle("show-top", isScrollable && !atTop);
-      shadows.classList.toggle("show-bottom", isScrollable && !atBottom);
-    };
-
-    container.addEventListener("scroll", updateShadows, { passive: true });
-    updateShadows();
-
-    const resizeObserver = typeof ResizeObserver !== "undefined"
-      ? new ResizeObserver(() => updateShadows())
-      : null;
-
-    if (resizeObserver) {
-      resizeObserver.observe(container);
-    }
-
-    return () => {
-      container.removeEventListener("scroll", updateShadows);
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-    };
-  }, [
-    showPasswordChange,
-    showLeaveConfirmation,
-    projectMembers.length,
-    isEditingUsername,
-    user?.id
-  ]);
-
   useEffect(() => {
     if (user?.Username) {
       setNewUsername(user.Username);
     }
   }, [user]);
+
+  useEffect(() => {
+    const scroller = document.querySelector(".account-details-scroll");
+    const header = document.querySelector(".create-sprint-nav-bar");
+
+    if (!scroller || !header) return;
+
+    const handleScroll = () => {
+      header.classList.toggle("is-scrolled", scroller.scrollTop > 0);
+    };
+
+    scroller.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      scroller.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   // Members are now loaded via TanStack Query hook above
   // No need for useEffect or fetchMembersForProject function
@@ -298,22 +261,20 @@ const AccountDetails = () => {
   if (error) return <p className="error">{error}</p>;
 
   return (
-    <div className="project-details-page account-details-page">
-      <div className="create-sprint-nav-bar account-details-header">
-        <button className="back-nav-btn" onClick={handleGoBack}>Back</button>
-        <h1 className="create-sprint-title">Account</h1>
-        <div className="nav-spacer" />
+    <div className="account-details-page page--fullscreen">
+      <div className="account-details-header">
+        <div className="create-sprint-nav-bar">
+          <div className="create-sprint-nav-inner">
+            <button className="back-nav-btn" onClick={handleGoBack}>Back</button>
+            <h1 className="create-sprint-title">Account</h1>
+            <div className="nav-spacer" />
+          </div>
+        </div>
       </div>
 
-      <div
-        ref={scrollShadowsRef}
-        className="scroll-shadows"
-        aria-hidden="true"
-      ></div>
-
-      <div ref={containerRef} className="create-sprint-container with-footer-pad">
-
-        <form className="create-sprint-form" onSubmit={(e) => e.preventDefault()}>
+      <div className="account-details-surface">
+        <div className="account-details-scroll">
+          <form className="create-sprint-form" onSubmit={(e) => e.preventDefault()}>
         {/* Full name (display only, like before) */}
         <div className="form-group">
           <label className="form-label">Name</label>
@@ -476,10 +437,11 @@ const AccountDetails = () => {
         )}
 
         {/* Bottom actions */}
-        <div className="form-actions">
-          <button type="button" className="secondary-action-btn" onClick={handleLogout}>Sign Out</button>
+            <div className="form-actions">
+              <button type="button" className="secondary-action-btn" onClick={handleLogout}>Sign Out</button>
+            </div>
+          </form>
         </div>
-        </form>
       </div>
     </div>
   );
