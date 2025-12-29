@@ -31,22 +31,29 @@ html, body {
 /* ============================= */
 /* 🌟 Scoped Account Details Page Styling */
 /* ============================= */
+
 .account-details-page {
-  min-height: 0 !important; /* Changed from 100vh - respect parent (.content) height */
-  height: 100% !important; /* Fill parent naturally */
-  width: 100vw !important; /* Full viewport width */
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: center !important;
-  align-items: center !important;
-  padding: var(--space-5) !important;
-  background: var(--accent-primary) !important; /* Match the gold background */
-  position: relative !important;
-  left: 50% !important;
-  right: 50% !important;
-  margin-left: -50vw !important;
-  margin-right: -50vw !important;
+  --project-header-height: 65px !important;
+  background: var(--accent-primary) !important;
+  padding: var(--space-5) var(--space-4) var(--space-6) var(--space-4) !important;
   box-sizing: border-box !important;
+}
+
+.account-details-page .account-details-header {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto var(--space-4) auto !important;
+  border-radius: 0 !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.account-details-page .create-sprint-container {
+  margin: 0 auto !important;
+  width: 100% !important;
+  max-width: 500px !important;
 }
 
 .account-details-page .account-container {

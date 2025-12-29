@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import useAccountDetails from "../hooks/useAccountDetails.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import { isValidUsername } from "../utils/validation.ts";
@@ -96,6 +96,48 @@ const AccountDetails = () => {
     projectMembers.length,   // Member list changes
     isEditingUsername,      // Username edit mode toggle
     user?.id,                // Re-check when user data loads
+  ]);
+  const scrollShadowsRef = useRef(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const shadows = scrollShadowsRef.current;
+
+    if (!container || !shadows) return;
+
+    const updateShadows = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isScrollable = scrollHeight > clientHeight + 1;
+      const atTop = scrollTop <= 1;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+
+      shadows.classList.toggle("show-top", isScrollable && !atTop);
+      shadows.classList.toggle("show-bottom", isScrollable && !atBottom);
+    };
+
+    container.addEventListener("scroll", updateShadows, { passive: true });
+    updateShadows();
+
+    const resizeObserver = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(() => updateShadows())
+      : null;
+
+    if (resizeObserver) {
+      resizeObserver.observe(container);
+    }
+
+    return () => {
+      container.removeEventListener("scroll", updateShadows);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [
+    showPasswordChange,
+    showLeaveConfirmation,
+    projectMembers.length,
+    isEditingUsername,
+    user?.id
   ]);
 
   useEffect(() => {
@@ -256,15 +298,22 @@ const AccountDetails = () => {
   if (error) return <p className="error">{error}</p>;
 
   return (
-    <div ref={containerRef} className="create-sprint-container with-footer-pad"> {/* width clamp ~500px, mobile-first */}
-      {/* Apple-style compact header reused from Sprint */}
-      <div className="create-sprint-nav-bar">
+    <div className="project-details-page account-details-page">
+      <div className="create-sprint-nav-bar account-details-header">
         <button className="back-nav-btn" onClick={handleGoBack}>Back</button>
         <h1 className="create-sprint-title">Account</h1>
         <div className="nav-spacer" />
       </div>
 
-      <form className="create-sprint-form" onSubmit={(e) => e.preventDefault()}>
+      <div
+        ref={scrollShadowsRef}
+        className="scroll-shadows"
+        aria-hidden="true"
+      ></div>
+
+      <div ref={containerRef} className="create-sprint-container with-footer-pad">
+
+        <form className="create-sprint-form" onSubmit={(e) => e.preventDefault()}>
         {/* Full name (display only, like before) */}
         <div className="form-group">
           <label className="form-label">Name</label>
@@ -430,7 +479,8 @@ const AccountDetails = () => {
         <div className="form-actions">
           <button type="button" className="secondary-action-btn" onClick={handleLogout}>Sign Out</button>
         </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

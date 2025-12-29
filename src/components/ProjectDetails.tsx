@@ -142,6 +142,46 @@ const ProjectDetails: React.FC = () => {
   
   // Progressive Disclosure + Affordance scroll indicators
   const containerRef = useScrollIndicators([members.length || 0, isEditing, showKickModal, showInvites]);
+  const scrollShadowsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const shadows = scrollShadowsRef.current;
+
+    if (!container || !shadows) {
+      return;
+    }
+
+    const updateShadows = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isScrollable = scrollHeight > clientHeight + 1;
+      const atTop = scrollTop <= 1;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+
+      shadows.classList.toggle('show-top', isScrollable && !atTop);
+      shadows.classList.toggle('show-bottom', isScrollable && !atBottom);
+    };
+
+    const handleScroll = () => updateShadows();
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    updateShadows();
+
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => updateShadows())
+      : null;
+
+    if (resizeObserver) {
+      resizeObserver.observe(container);
+    }
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [containerRef, members.length, isEditing, showInvites, showKickModal]);
   
   // Handle creating an invite
   const handleCreateInvite = async (): Promise<void> => {
@@ -416,6 +456,11 @@ const ProjectDetails: React.FC = () => {
 
   return (
     <div className="project-details-page">
+      <div
+        ref={scrollShadowsRef}
+        className="scroll-shadows"
+        aria-hidden="true"
+      ></div>
       <div ref={containerRef} className="create-sprint-container with-footer-pad">{/* iPhone-first width clamp */}
       {/* Keep existing header */}
       <div className="create-sprint-nav-bar">

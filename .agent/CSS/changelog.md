@@ -127,6 +127,31 @@ Track all style-impacting changes here. This ensures agents document CSS modific
 
 ---
 
+### Fixed - Message Composer Overflow & Footer Tokens
+
+**Files Modified**:
+1. `src/styles/message.css` - Removed hard `height: 100%` and rebuilt the mobile layout as a flex column (lines 1-230).
+2. `src/styles/global.css` - Deleted `--footer-h` and pointed padding utilities at `--footer-height` (lines 140-160, 918-933).
+3. `src/styles/footer.css` - Footer spacing now references the unified `--footer-height` token (lines 1-60).
+4. `src/styles/board.css` - Updated the mobile padding helper to use `--footer-height` (lines 900-940).
+5. `.agent/CSS/tokens.md`, `.agent/CSS/layout.md` - Documentation updated to match the single footer token.
+
+**The Issue**:
+- `.message-container` was simultaneously `position: fixed` with `top`/`bottom` *and* `height: 100%`, causing mobile Chrome to push the input under the footer.
+- Footer spacing mixed `--footer-h` and `--footer-height`, so scroll padding and fixed bounds never lined up.
+
+**The Fix**:
+- Let the fixed container size itself purely from `top`/`bottom` and let children flex; header/list/input now occupy the column naturally.
+- Unified on `--footer-height` everywhere (utilities, footer, docs) so every layout uses the same measurement plus safe-area padding.
+
+**Impact**:
+- ✅ Message input always stays above the footer, even when the textarea grows.
+- ✅ Message list stretches between navbar and input without absolute positioning hacks.
+- ✅ No more double footer math—every page consumes the same `--footer-height` value.
+- ✅ Documentation and tokens reflect the single source of truth for footer sizing.
+
+---
+
 ### Fixed - Auto-scroll Behavior After Overflow Fix
 
 **Files Modified**:

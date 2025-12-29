@@ -218,7 +218,7 @@ For notched devices and home indicator:
 
 /* Footer-aware padding */
 .with-footer-pad {
-  padding-bottom: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra));
+  padding-bottom: calc(var(--footer-height) + var(--safe-bottom) + var(--footer-pad-extra));
 }
 ```
 

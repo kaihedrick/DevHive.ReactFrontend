@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useMessages } from "../hooks/useMessages.ts";
 import { useUser } from "../hooks/useUsers.ts";
 import { User, Message as MessageType } from "../types/hooks.ts";
 import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
 import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import "../styles/message.css";
+import "../styles/create_sprint.css"; // For back button styling
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faSpinner } from "@fortawesome/free-solid-svg-icons";
 
@@ -18,6 +19,8 @@ import { faPaperPlane, faSpinner } from "@fortawesome/free-solid-svg-icons";
  * @returns {JSX.Element} Rendered chat interface
  */
 const Message: React.FC = () => {
+  const navigate = useNavigate();
+
   /**
    * useParams
    *
@@ -225,10 +228,10 @@ const Message: React.FC = () => {
 
   return (
     <div ref={containerRef} className="message-container with-footer-pad scroll-pad-bottom">
-      <div className="message-header">
-        <div className="user-info">
-          <h2>{displayName}</h2>
-        </div>
+      <div className="message-header create-sprint-nav-bar">
+        <button className="back-nav-btn" onClick={() => navigate(-1)}>Back</button>
+        <h2 className="create-sprint-title">{displayName}</h2>
+        <div className="nav-spacer" />
       </div>
 
       <div className="message-list">
@@ -282,6 +285,8 @@ const Message: React.FC = () => {
       <div className="message-input">
         <textarea
           ref={messageTextareaRef}
+          id="message-input"
+          name="message"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={handleKeyPress}

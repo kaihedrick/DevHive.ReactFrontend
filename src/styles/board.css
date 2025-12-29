@@ -932,7 +932,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
 @media (max-width: 480px) {
   .board-page {
     padding: var(--space-3) !important;
-    padding-bottom: calc(var(--footer-h) + env(safe-area-inset-bottom) + var(--space-6)) !important;
+    padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom) + var(--space-6)) !important;
   }
   
   .board-page .board-column {

@@ -159,7 +159,6 @@ All design values are defined as CSS variables in `src/styles/global.css`. Never
 
 | Token | Value |
 |-------|-------|
-| `--footer-h` | `60px` |
 | `--footer-height` | `60px` |
 
 ### iOS Safe Areas

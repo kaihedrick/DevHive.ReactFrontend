@@ -140,7 +140,6 @@
     --sar: env(safe-area-inset-right) !important;   /* Safe Area Right */
     
     /* Footer Safe Area & Bottom Padding */
-    --footer-h: 60px !important;  /* Footer height (desktop & mobile) - matches .footer { height: 60px } */
     --safe-bottom: env(safe-area-inset-bottom) !important;  /* iOS safe area (0 elsewhere) */
     --footer-pad-extra: 16px !important;  /* Extra breathing room above footer */
     
@@ -149,7 +148,7 @@
     --kb: 0px !important; /* Keyboard occlusion height */
     
     /* Component Heights for Consistent Spacing */
-    --footer-height: 60px !important;
+    --footer-height: 60px !important; /* Fixed footer height for layout math */
     --composer-height: 72px !important;
     
     /* Elevation (shadows) */
@@ -917,17 +916,17 @@ input::placeholder, textarea::placeholder {
 /* Reusable utilities */
 .with-footer-pad {
     /* Use both logical and physical longhands with !important to beat later shorthands */
-    padding-block-end: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra)) !important;
-    padding-bottom:    calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra)) !important;
+    padding-block-end: calc(var(--footer-height) + var(--safe-bottom) + var(--footer-pad-extra)) !important;
+    padding-bottom:    calc(var(--footer-height) + var(--safe-bottom) + var(--footer-pad-extra)) !important;
 }
 
 .scroll-pad-bottom {
     /* Keep focused inputs/buttons from being hidden after in-page navs */
-    scroll-padding-block-end: calc(var(--footer-h) + var(--safe-bottom) + var(--footer-pad-extra)) !important;
+    scroll-padding-block-end: calc(var(--footer-height) + var(--safe-bottom) + var(--footer-pad-extra)) !important;
 }
 
 /* List containers that scroll inside the page (optional) */
 .scroller.with-footer-pad { 
-    padding-block-end: calc(var(--footer-h) + var(--safe-bottom) + 12px) !important;
-    padding-bottom:    calc(var(--footer-h) + var(--safe-bottom) + 12px) !important;
+    padding-block-end: calc(var(--footer-height) + var(--safe-bottom) + 12px) !important;
+    padding-bottom:    calc(var(--footer-height) + var(--safe-bottom) + 12px) !important;
 }

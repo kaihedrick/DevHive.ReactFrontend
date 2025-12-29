@@ -87,6 +87,7 @@
 /* 🌟 Create Sprint Container - Absolute Page-Level Scoping */
 /* ============================= */
 .create-sprint-container {
+  --scroll-padding: var(--space-4);
   width: 100% !important;
   max-width: 500px !important;
   margin: 0 auto !important;
@@ -130,22 +131,22 @@ body.has-topbar .create-sprint-container {
 
 /* ============================= */
 /* 🍎 Progressive Disclosure + Affordance Scroll Indicators */
-/* Absolute Page-Level Scoping - Viewport Centered */
+/* Container-scoped overlays (no viewport math required) */
 /* ============================= */
 
-/* Bottom fade gradient - neutral gray fade (positioned above footer) */
-/* Centered to align with content container, accounting for navbar offset */
-/* Hidden by default, only shown when scrollable and not at bottom */
+/* Bottom fade gradient - sits above footer and follows the container width */
 .create-sprint-container::after {
   content: '' !important;
-  position: fixed !important;
-  bottom: calc(var(--footer-height, 60px) + env(safe-area-inset-bottom, 0px)) !important;
-  /* Center to match content: when sidebar present, center within available space */
-  /* Default (no sidebar): center on viewport */
-  left: calc(50vw - 250px) !important;
-  width: 500px !important;
-  max-width: 500px !important;
+  position: sticky !important;
+  bottom: calc(
+    var(--footer-height, 60px)
+      + env(safe-area-inset-bottom, 0px)
+      - var(--scroll-padding)
+  ) !important;
+  left: 0 !important;
+  width: 100% !important;
   height: 150px !important;
+  margin-bottom: calc(-1 * var(--scroll-padding)) !important;
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0) 0%,
@@ -154,58 +155,21 @@ body.has-topbar .create-sprint-container {
     rgba(0, 0, 0, 0.3) 100%
   ) !important;
   pointer-events: none !important;
-  z-index: 1000 !important;
-  transition: opacity 0.3s ease, left var(--transition-normal) ease !important;
-  opacity: 0 !important; /* Hidden by default */
-  display: none !important; /* Hidden by default */
+  z-index: 10 !important;
+  transition: opacity 0.3s ease !important;
+  opacity: 0 !important;
+  display: none !important;
 }
 
-/* When sidebar navbar is present, center within available space to match content */
-/* Content centers at: navbar-width + (available-width / 2) - (container-width / 2) */
-body.has-sidebar .create-sprint-container::after {
-  /* Center of available space: (navbar-width + (100vw - navbar-width)) / 2 = (navbar-width + 100vw - navbar-width) / 2 = 100vw / 2 = 50vw */
-  /* But we need to account for the fact that content centers within main, which is offset */
-  /* Content container centers within main using margin: 0 auto, so it's at the center of main */
-  /* Center of main = navbar-width + (100vw - navbar-width) / 2 = navbar-width + 50vw - navbar-width/2 = 50vw + navbar-width/2 */
-  /* Left edge of 500px container = center - 250px = 50vw + navbar-width/2 - 250px */
-  left: calc(50vw + var(--navbar-width-collapsed) / 2 - 250px) !important;
-}
-
-/* When sidebar navbar is hovered (expanded), adjust for expanded width */
-body.has-sidebar .navbar:hover ~ main .create-sprint-container::after {
-  left: calc(50vw + var(--navbar-width-expanded) / 2 - 250px) !important;
-}
-
-/* Responsive: On smaller screens, use full width with max-width constraint */
-@media (max-width: 500px) {
-  .create-sprint-container::after {
-    left: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  
-  body.has-sidebar .create-sprint-container::after {
-    left: 0 !important;
-  }
-  
-  body.has-sidebar .navbar:hover ~ main .create-sprint-container::after {
-    left: 0 !important;
-  }
-}
-
-/* Top fade gradient - shows when scrolled down (positioned below nav bar) */
-/* Centered to align with content container, accounting for navbar offset */
-/* Hidden by default, only shown when scrollable and not at top */
+/* Top fade gradient - anchored directly under the project header */
 .create-sprint-container::before {
   content: '' !important;
-  position: fixed !important;
-  top: 0 !important;
-  /* Center to match content: when sidebar present, center within available space */
-  /* Default (no sidebar): center on viewport */
-  left: calc(50vw - 250px) !important;
-  width: 500px !important;
-  max-width: 500px !important;
+  position: sticky !important;
+  top: calc(var(--project-header-height, 64px) - var(--scroll-padding)) !important;
+  left: 0 !important;
+  width: 100% !important;
   height: 150px !important;
+  margin-top: calc(-1 * var(--scroll-padding)) !important;
   background: linear-gradient(
     to top,
     rgba(0, 0, 0, 0) 0%,
@@ -214,46 +178,10 @@ body.has-sidebar .navbar:hover ~ main .create-sprint-container::after {
     rgba(0, 0, 0, 0.3) 100%
   ) !important;
   pointer-events: none !important;
-  z-index: 99 !important; /* Below nav bar z-index (100) but above content */
-  transition: opacity 0.3s ease, left var(--transition-normal) ease !important;
-  opacity: 0 !important; /* Hidden by default */
-  display: none !important; /* Hidden by default */
-}
-
-/* When sidebar navbar is present, center within available space to match content */
-body.has-sidebar .create-sprint-container::before {
-  left: calc(50vw + var(--navbar-width-collapsed) / 2 - 250px) !important;
-}
-
-/* When sidebar navbar is hovered (expanded), adjust for expanded width */
-body.has-sidebar .navbar:hover ~ main .create-sprint-container::before {
-  left: calc(50vw + var(--navbar-width-expanded) / 2 - 250px) !important;
-}
-
-/* Responsive: On smaller screens, use full width with max-width constraint */
-@media (max-width: 500px) {
-  .create-sprint-container::before {
-    left: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  
-  body.has-sidebar .create-sprint-container::before {
-    left: 0 !important;
-  }
-  
-  body.has-sidebar .navbar:hover ~ main .create-sprint-container::before {
-    left: 0 !important;
-  }
-}
-
-/* Responsive: On smaller screens, use full width with max-width constraint */
-@media (max-width: 500px) {
-  .create-sprint-container::before {
-    left: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
+  z-index: 10 !important;
+  transition: opacity 0.3s ease !important;
+  opacity: 0 !important;
+  display: none !important;
 }
 
 /* Hide fade gradients when content is not scrollable - highest priority */

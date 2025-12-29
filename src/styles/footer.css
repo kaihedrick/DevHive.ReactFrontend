@@ -10,15 +10,15 @@ body {
 
 .container {
   flex: 1;
-  padding-bottom: var(--footer-h);
-  min-height: calc(100vh - var(--footer-h));
+  padding-bottom: var(--footer-height);
+  min-height: calc(100vh - var(--footer-height));
   box-sizing: border-box;
   transition: all var(--transition-normal) ease-in-out;
 }
 
 .content-wrapper {
-  min-height: calc(100vh - var(--footer-h)); /* Account for footer height */
-  padding-bottom: var(--footer-h); /* Space for footer */
+  min-height: calc(100vh - var(--footer-height)); /* Account for footer height */
+  padding-bottom: var(--footer-height); /* Space for footer */
 }
 
 /* ==========================
@@ -34,7 +34,7 @@ body {
   position: fixed !important;
   bottom: 0 !important;
   width: 100% !important;
-  height: var(--footer-h) !important; /* Fixed height footer */
+  height: var(--footer-height) !important; /* Fixed height footer */
   z-index: 900 !important; /* Below navbar z-index for proper layering */
   display: flex !important;
   justify-content: center !important;
