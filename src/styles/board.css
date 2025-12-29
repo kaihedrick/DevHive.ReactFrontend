@@ -5,7 +5,8 @@
   padding: 0 var(--space-5) var(--space-5) var(--space-5) !important; /* Flush top padding for flush look */
   margin-top: 0 !important; /* Ensure flush with navbar */
   padding-top: 0 !important; /* Ensure no top padding */
-  min-height: 100vh !important;
+  min-height: 0 !important; /* Changed from 100vh - must respect parent (.content) height with padding */
+  height: 100% !important; /* Fill parent height */
   background-color: var(--bg-secondary) !important;
   overflow: auto !important;
   width: 100% !important;
@@ -98,31 +99,41 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   }
 }
 
-/* Account for topbar height on mobile - High specificity to override global rules */
+/* Fixed layout for topbar mode - header stays below navbar */
 @media (max-width: 600px) {
-  /* Target page when topbar is present - ensure it accounts for fixed navbar */
-  body.has-topbar main .board-page,
-  body.has-topbar .board-page,
-  body.has-topbar .content main .board-page {
-    margin-top: 0 !important; /* Ensure flush with topbar */
-    padding-top: 0 !important; /* Ensure no top padding */
+  /* Page wrapper in topbar mode */
+  body.has-topbar .board-page {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
   }
-  
-  /* Ensure the first element in the page also has proper spacing */
-  body.has-topbar .board-page > *:first-child {
-    margin-top: 0 !important; /* Remove any top margin from first child */
+
+  /* Fixed header right below navbar */
+  body.has-topbar .board-page .board-header {
+    position: fixed !important;
+    top: var(--navbar-height-mobile, 64px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 10 !important;
+    background-color: var(--bg-primary) !important;
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-4) !important;
+    margin: 0 !important;
   }
-  
-  /* Ensure container is flush in topbar view */
+
+  /* Board container scrolls below header and above footer */
   body.has-topbar .board-page .board-container {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-  }
-  
-  /* Ensure sprint-selector is flush */
-  body.has-topbar .board-page .board-container .sprint-selector {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
+    position: fixed !important;
+    top: calc(var(--navbar-height-mobile, 64px) + 73px) !important; /* navbar + header height */
+    bottom: var(--footer-height, 60px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    overflow-y: auto !important;
+    padding: var(--space-4) var(--space-4) 0 var(--space-4) !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
   }
 }
 
@@ -139,7 +150,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
   box-shadow: var(--shadow-md) !important;
   display: flex !important;
   flex-direction: column !important;
-  min-height: calc(100vh - 2 * var(--space-5)) !important;
+  min-height: 0 !important; /* Changed from calc(100vh - 2 * var(--space-5)) - let it fill naturally */
   margin-left: auto !important;
   margin-right: auto !important;
   margin-top: 0 !important; /* Ensure no top margin */

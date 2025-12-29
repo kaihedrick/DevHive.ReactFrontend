@@ -174,16 +174,52 @@
   color: var(--text-tertiary);
 }
 
-/* Mobile tightening */
+/* Mobile fixed layout - header and input stay in place, list scrolls */
 @media (max-width: 600px) {
-  .message-container .message-header {
-    padding: var(--space-4) var(--space-4);
+  /* Fixed layout for mobile */
+  body.has-topbar .message-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    position: relative;
+    overflow: hidden;
   }
 
-  .message-container .message-list {
+  /* Fixed header right below navbar */
+  body.has-topbar .message-container .message-header {
+    position: fixed !important;
+    top: var(--navbar-height-mobile, 64px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 10 !important;
     padding: var(--space-4) var(--space-4);
+    margin: 0 !important;
   }
 
+  /* Scrollable message list between header and input */
+  body.has-topbar .message-container .message-list {
+    position: fixed !important;
+    top: calc(var(--navbar-height-mobile, 64px) + 57px) !important; /* navbar + header height */
+    bottom: calc(var(--footer-height, 60px) + 68px) !important; /* footer + input height (12px + 44px + 12px) */
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    overflow-y: auto !important;
+    padding: var(--space-4) var(--space-4) var(--space-2) var(--space-4) !important; /* Small bottom padding for visual breathing room */
+  }
+
+  /* Fixed input bar above footer */
+  body.has-topbar .message-container .message-input {
+    position: fixed !important;
+    bottom: var(--footer-height, 60px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 10 !important;
+    margin: 0 !important;
+  }
+
+  /* Tighter bubbles on mobile */
   .message-container .message-item {
     max-width: 88%;
   }

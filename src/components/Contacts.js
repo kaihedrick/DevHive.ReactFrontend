@@ -54,17 +54,7 @@ const Contacts = () => {
   };
 
   return (
-    <>
-      {/* This style tag will override the main content background */}
-      <style>
-        {`
-          .content, main, body {
-            background-color: var(--bg-secondary) !important;
-          }
-        `}
-      </style>
-      
-      <div className="contacts-page with-footer-pad scroll-pad-bottom">
+    <div className="contacts-page with-footer-pad scroll-pad-bottom">
         <div className="contact-container">
           <div className="contact-header">
             <h1>Project Contacts</h1>
@@ -76,9 +66,9 @@ const Contacts = () => {
           <div className="contact-list">
             {contacts.length > 0 ? (
               contacts.map((contact) => (
-                <div 
-                  key={contact.id} 
-                  className="contact-list-item"
+                <div
+                  key={contact.id}
+                  className="contact-item"
                   onClick={() => handleContactClick(contact.id)}
                 >
                   <div className="contact-info">
@@ -99,7 +89,6 @@ const Contacts = () => {
           </div>
         </div>
       </div>
-    </>
   );
 };
 

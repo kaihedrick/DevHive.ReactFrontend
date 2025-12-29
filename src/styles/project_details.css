@@ -6,7 +6,8 @@
 .project-details-page {
   position: relative !important;
   width: 100% !important;
-  min-height: 100vh !important;
+  min-height: 0 !important; /* Changed from 100vh - must respect parent (.content) height with padding */
+  height: 100% !important; /* Fill parent height */
   overflow: visible !important; /* Never add scrolling to page wrapper */
 }
 
@@ -49,7 +50,7 @@ body.has-sidebar .navbar:hover ~ main .project-details-page {
   align-items: center !important;
   gap: var(--space-4) !important;
   transition: all var(--transition-normal) ease !important;
-  min-height: calc(100vh - 100px) !important;
+  min-height: 0 !important; /* Changed from calc(100vh - 100px) - let it fill naturally */
   /* Better centering for larger screens */
   box-sizing: border-box !important;
   /* Remove problematic left/transform positioning */
@@ -810,4 +811,77 @@ body.has-sidebar .navbar:hover ~ main .project-details-page {
 .project-details-page .create-sprint-container .kick-member-btn:active {
   background: hsla(0, 70%, 50%, 0.2) !important;
   transform: scale(0.95) !important;
+}
+
+/* ===========================
+   Fixed layout for topbar mode - header stays below navbar
+   =========================== */
+@media (max-width: 600px) {
+  /* Page wrapper in topbar mode */
+  body.has-topbar .project-details-page {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Create sprint nav bar - fixed header below navbar, 100% width, flush */
+  body.has-topbar .project-details-page .create-sprint-nav-bar {
+    position: fixed !important;
+    top: var(--navbar-height-mobile, 64px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 10 !important;
+    padding: var(--space-4) var(--space-4) !important;
+    margin: 0 !important;
+  }
+
+  /* Create sprint container - scrollable below header */
+  body.has-topbar .project-details-page .create-sprint-container {
+    position: fixed !important;
+    top: calc(var(--navbar-height-mobile, 64px) + 65px) !important; /* navbar + nav-bar height */
+    bottom: var(--footer-height, 60px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    overflow-y: auto !important;
+    padding: var(--space-4) !important;
+    padding-top: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Project details container - make it scrollable */
+  body.has-topbar .project-details-page .project-details {
+    position: fixed !important;
+    top: var(--navbar-height-mobile, 64px) !important;
+    bottom: var(--footer-height, 60px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+    padding: var(--space-4) !important;
+    padding-bottom: var(--space-2) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Header section (h1 + edit-buttons) stays at top of scrollable area */
+  body.has-topbar .project-details-page .project-details h1 {
+    position: sticky !important;
+    top: 0 !important;
+    background-color: var(--bg-primary) !important;
+    z-index: 10 !important;
+    padding: var(--space-3) 0 var(--space-4) 0 !important;
+    margin: 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Edit buttons stay with sticky header */
+  body.has-topbar .project-details-page .project-details .edit-buttons {
+    position: absolute !important;
+    top: var(--space-3) !important;
+    right: 0 !important;
+  }
 }

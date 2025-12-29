@@ -51,7 +51,8 @@
 /* 🌟 Create Sprint Page Layout */
 /* ============================= */
 .create-sprint-page {
-  min-height: calc(100vh - 60px) !important; /* Extend to the footer */
+  min-height: 0 !important; /* Changed from calc(100vh - 60px) - respect parent (.content) height */
+  height: 100% !important; /* Fill parent naturally */
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
@@ -90,7 +91,7 @@
   max-width: 500px !important;
   margin: 0 auto !important;
   position: relative !important;
-  max-height: 100vh !important; /* Allow container to be scrollable */
+  max-height: 100% !important; /* Changed from 100vh - respect parent height */
   overflow-y: auto !important; /* Enable scrolling on the container itself */
   overflow-x: hidden !important;
   scroll-behavior: smooth !important;
@@ -536,20 +537,7 @@ input:focus {
   }
 }
 
-/* ========================== */
-/* Global Page Background Fix */
-/* ========================== */
-.content {
-  background-color: var(--bg-secondary) !important;
-}
-
-main {
-  background-color: var(--bg-secondary) !important;
-}
-
-body {
-  background-color: var(--bg-secondary) !important;
-}
+/* Background handled by global CSS and page-level wrappers - no overrides needed */
 
 /* ============================= */
 /* 🍎 Apple-Style Form Elements */

@@ -9,7 +9,8 @@
    Backlog Page - Absolute Page-Level Scoping
 ========================== */
 .backlog-page {
-  min-height: 100vh !important;
+  min-height: 0 !important; /* Changed from 100vh - respect parent (.content) height */
+  height: 100% !important; /* Fill parent naturally */
   background: var(--bg-secondary) !important;
   color: var(--text-primary) !important;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
@@ -2195,20 +2196,7 @@ body.has-sidebar .backlog-page .backlog-header {
   margin: var(--space-5) 0 !important;
 }
 
-/* ==========================
-   Global Page Background Fix
-========================== */
-.content {
-  background-color: var(--bg-secondary) !important;
-}
-
-main {
-  background-color: var(--bg-secondary) !important;
-}
-
-body {
-  background-color: var(--bg-secondary) !important;
-}
+/* Background handled by page-level wrapper - no global overrides needed */
 
 /* Add these styles to your existing backlog.css */
 

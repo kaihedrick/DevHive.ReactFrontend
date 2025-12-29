@@ -20,7 +20,8 @@ html, body {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  min-height: calc(100vh - 100px) !important; /* Adjust for navbar, like in create_task.css */
+  min-height: 0 !important; /* Changed from calc(100vh - 100px) - respect parent height */
+  height: 100% !important; /* Fill parent naturally */
   padding: var(--space-5) !important;
   background-color: var(--accent-primary) !important; /* Keep the gold background */
   font-family: var(--primary-font) !important;
@@ -31,7 +32,8 @@ html, body {
 /* 🌟 Scoped Account Details Page Styling */
 /* ============================= */
 .account-details-page {
-  min-height: 100vh !important; /* Full viewport height */
+  min-height: 0 !important; /* Changed from 100vh - respect parent (.content) height */
+  height: 100% !important; /* Fill parent naturally */
   width: 100vw !important; /* Full viewport width */
   display: flex !important;
   flex-direction: column !important;
@@ -51,7 +53,7 @@ html, body {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  min-height: calc(100vh - 100px) !important; /* Adjust for navbar */
+  min-height: 0 !important; /* Changed from calc(100vh - 100px) - respect parent height */
   padding: var(--space-5) !important;
   background-color: var(--accent-primary) !important; /* Gold background */
   font-family: var(--primary-font) !important;

@@ -488,11 +488,19 @@ body.has-sidebar .content {
     padding-top: 0 !important;
 }
 
-/* Smooth transitions for all navbar state changes */
+/* Smooth transitions for navbar state changes */
+/* CRITICAL: Don't transition 'all' on .content - causes padding-top glitches during navigation */
 .navbar,
-.navbar *,
-body main,
-body .content,
-body .container {
+.navbar * {
     transition: all var(--transition-normal) ease !important;
 }
+
+body main {
+    transition: margin var(--transition-normal) ease, width var(--transition-normal) ease !important;
+}
+
+body .container {
+    transition: margin var(--transition-normal) ease, padding var(--transition-normal) ease !important;
+}
+
+/* .content deliberately has NO transition - padding-top changes must be instant to avoid layout bugs */

@@ -5,7 +5,7 @@
 .contacts-page {
   width: 100%;
   height: 100%;
-  min-height: 0;
+  min-height: 0; /* Changed from 100vh - must respect parent (.content) height, not viewport */
 
   display: flex;
   flex-direction: column;

@@ -22,7 +22,10 @@
 }
 
 .app-container.has-navbar .content {
-  overflow: visible !important; /* Ensure navbar content is visible */
+  /* CHANGED: overflow-y must be auto/scroll for sticky positioning to work correctly */
+  /* Sticky headers need .content to be a scroll container, not overflow: visible */
+  overflow-y: auto !important;
+  overflow-x: visible !important; /* Keep x-axis visible to prevent horizontal scroll */
 }
 
 .app-container.full-screen .content {
@@ -181,12 +184,13 @@
     --chat-max: 1100px !important; /* Max width for chat on very large screens - prevents empty left side */
 }
 
-/* Global Reset */
+/* Global Reset - Modified to not override component padding */
 * {
     margin: 0 !important;
-    padding: 0 !important;
     box-sizing: border-box !important;
 }
+
+/* REMOVED: padding: 0 !important - this was overriding all component padding including defensive padding for topbar */
 
 /* Body Styling */
 html, body {
@@ -250,7 +254,7 @@ main {
     justify-content: flex-start !important;
     min-height: 100vh !important;
     width: 100% !important;
-    padding: 0 !important;
+    /* padding: 0 removed - let parent .content handle topbar padding */
     margin: 0 !important;
 }
 
@@ -318,6 +322,8 @@ body.has-sidebar .navbar:hover ~ main {
 }
 
 /* Global topbar spacing - SINGLE source of truth for topbar offset */
+/* High specificity to ensure this always applies on mobile with topbar */
+body.has-topbar .app-container .content,
 body.has-topbar .content {
     padding-top: var(--navbar-height-mobile) !important;
 }

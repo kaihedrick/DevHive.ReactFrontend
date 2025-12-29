@@ -142,25 +142,29 @@ const Message: React.FC = () => {
 
   /**
    * useEffect - Auto Scroll on Message Update
-   * 
+   *
    * Automatically scrolls to the bottom of the message list when a new message arrives
-   * 
+   *
    * @dependencies [messages]
    */
   useEffect(() => {
     // Scroll to bottom when messages change
     const timer = setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      // Use block: "end" to ensure we scroll all the way to the bottom
+      // Use inline: "nearest" to only scroll the immediate scroll container (.message-list)
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
     }, 0);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages]);
-  
+
   // Scroll to bottom on initial mount
   useEffect(() => {
     if (messages.length > 0) {
       const timer = setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+        // Use block: "end" to ensure we scroll all the way to the bottom
+        // Use inline: "nearest" to only scroll the immediate scroll container (.message-list)
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end", inline: "nearest" });
       }, 100);
       return () => clearTimeout(timer);
     }

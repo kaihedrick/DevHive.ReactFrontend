@@ -17,7 +17,7 @@
   align-items: center !important;
   gap: var(--space-4) !important;
   transition: all var(--transition-normal) ease !important;
-  min-height: calc(100vh - 100px) !important;
+  min-height: 0 !important; /* Changed from calc(100vh - 100px) - respect parent height */
 }
 
 .invite-members h2 {
