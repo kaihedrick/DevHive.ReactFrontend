@@ -5,6 +5,7 @@ import { LoginModel } from '../models/user.ts';
 import { cacheInvalidationService } from '../services/cacheInvalidationService.ts';
 import { getSelectedProject, clearSelectedProject, clearAllSelectedProjects } from '../services/storageService.js';
 import { refreshToken as refreshTokenApi, getAccessToken, setOAuthFlow, clearAccessToken, setAuthInitialized as setApiAuthInitialized } from '../lib/apiClient.ts';
+import { setupUserScopedPersistence, clearUserScopedPersistence, removeLegacyCache } from '../lib/queryClient.ts';
 
 // Import JWT expiration check from cache invalidation service
 const isJWTExpired = (token: string, bufferSeconds: number = 30): boolean => {
@@ -88,6 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const validatedProjectIdRef = useRef<string | null>(null);
   const selectedProjectIdRef = useRef<string | null>(null);
   const authModeRef = useRef<'normal' | 'oauth'>('normal' as 'normal' | 'oauth'); // Task 2.2: Track OAuth mode
+  const wsConnectionDebounceRef = useRef<NodeJS.Timeout | null>(null); // Debounce timer for WS connections
 
   // Auth state machine: unknown -> authenticated | unauthenticated
   const [authState, setAuthState] = useState<AuthState>('unknown');
@@ -143,6 +145,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const existingUserId = getUserId();
         setUserId(existingUserId || null);
         setAuthState(existingUserId ? 'authenticated' : 'unauthenticated');
+
+        // Setup user-scoped cache persistence
+        if (existingUserId) {
+          setupUserScopedPersistence(existingUserId);
+        }
+
         setAuthInitialized(true); // Task 1: Mark as initialized
         return;
       }
@@ -155,6 +163,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const refreshedUserId = getUserId();
         setUserId(refreshedUserId || null);
         setAuthState(refreshedUserId ? 'authenticated' : 'unauthenticated');
+
+        // Setup user-scoped cache persistence
+        if (refreshedUserId) {
+          setupUserScopedPersistence(refreshedUserId);
+        }
       } catch (error: any) {
         const is401 = error?.response?.status === 401;
         const hasAccessToken = !!getAccessToken();
@@ -174,6 +187,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const existingUserId = getUserId();
             setUserId(existingUserId || null);
             setAuthState(existingUserId ? 'authenticated' : 'unauthenticated');
+
+            // Setup user-scoped cache persistence
+            if (existingUserId) {
+              setupUserScopedPersistence(existingUserId);
+            }
           }
         } else {
           // Non-401 error - network/server error, don't clear auth state
@@ -183,6 +201,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const existingUserId = getUserId();
             setUserId(existingUserId || null);
             setAuthState(existingUserId ? 'authenticated' : 'unauthenticated');
+
+            // Setup user-scoped cache persistence
+            if (existingUserId) {
+              setupUserScopedPersistence(existingUserId);
+            }
           } else {
             // No access token and refresh failed - clear auth
             setUserId(null);
@@ -267,12 +290,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => clearInterval(refreshInterval);
   }, [userId, authInitialized]);
 
-  // WebSocket Connection Management Effect (simplified)
+  // WebSocket Connection Management Effect (simplified with debouncing)
   // Task 2.2: Guard against post-logout re-auth - check userId, not authState
+  // CRITICAL FIX: Debounce connection changes to prevent rapid disconnect/connect cycles
   useEffect(() => {
+    // Clear any pending debounced connection
+    if (wsConnectionDebounceRef.current) {
+      clearTimeout(wsConnectionDebounceRef.current);
+      wsConnectionDebounceRef.current = null;
+    }
+
     // Only connect when userId exists and token exists (isAuthenticated will be true)
     if (!userId) {
-      // Not authenticated - disconnect if connected
+      // Not authenticated - disconnect immediately (no debounce)
       if (cacheInvalidationService.isConnected()) {
         cacheInvalidationService.disconnect('Not authenticated');
         previousProjectIdRef.current = null;
@@ -284,14 +314,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const currentUserId = getUserId();
     const selectedProjectId = getSelectedProject(currentUserId);
-    
+
     // Update stable ref only if projectId actually changed
     if (selectedProjectIdRef.current !== selectedProjectId) {
       selectedProjectIdRef.current = selectedProjectId;
     }
-    
+
     if (!selectedProjectId) {
-      // Disconnect if no project selected
+      // Disconnect immediately if no project selected (no debounce)
       if (cacheInvalidationService.isConnected()) {
         cacheInvalidationService.disconnect('No project selected');
       }
@@ -317,13 +347,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       validatedProjectIdRef.current = null;
       return;
     }
-    
+
     if (isValid) {
       validatedProjectIdRef.current = selectedProjectId;
     }
 
-    // Connect WebSocket
-    const connectWebSocket = async () => {
+    // CRITICAL FIX: Debounce WebSocket connection to prevent rapid disconnect/connect cycles
+    // Wait 150ms before connecting to allow React effects to stabilize
+    wsConnectionDebounceRef.current = setTimeout(async () => {
+      // Connect WebSocket
       if (previousProjectIdRef.current !== selectedProjectId) {
         // Project changed - disconnect old and connect to new
         if (previousProjectIdRef.current !== null) {
@@ -361,9 +393,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       }
-    };
+    }, 150); // 150ms debounce
 
-    connectWebSocket();
+    // Cleanup: clear timeout on unmount or re-run
+    return () => {
+      if (wsConnectionDebounceRef.current) {
+        clearTimeout(wsConnectionDebounceRef.current);
+        wsConnectionDebounceRef.current = null;
+      }
+    };
   }, [userId, validateProjectIdFromCache, queryClient]);
 
   // Listen for project selection changes via storage events (cross-tab communication)
@@ -473,27 +511,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Phase 4.1: Login
   // Task 1.1: No manual auth assertions - only set userId, token is set by loginService
+  // User-scoped cache persistence eliminates need for manual cache clearing
   const login = useCallback(async (credentials: LoginModel | any): Promise<AuthToken> => {
     try {
+      // STEP 1: Clear previous user's cache persistence
+      console.log('🧹 Clearing previous user cache persistence before login...');
+      clearUserScopedPersistence();
+
+      // Cancel all in-flight queries
+      queryClient.cancelQueries();
+
+      // Clear React Query cache completely
+      queryClient.clear();
+
+      // Clear WebSocket connection (if any from previous user)
+      if (cacheInvalidationService.isConnected()) {
+        cacheInvalidationService.disconnect('Logging in as different user');
+      }
+
+      // Clear selected project for all users (defensive cleanup)
+      clearAllSelectedProjects();
+
+      // Clean up legacy unscoped cache (migration)
+      removeLegacyCache();
+
+      console.log('✅ Previous user cache cleared');
+
+      // STEP 2: Perform login
       const { rememberMe, ...loginCredentials } = credentials;
       const result = await loginService(loginCredentials, rememberMe) as any;
       const userId = result.userId || result.user_id || getUserId();
+
+      // STEP 3: Set new user's identity
       // Only set userId - isAuthenticated derives from userId && token
       setUserId(userId);
       setAuthState('authenticated');
+
+      // STEP 4: Setup user-scoped cache persistence
+      setupUserScopedPersistence(userId);
+
+      console.log('✅ Login successful for user:', userId);
+
       return { Token: result.token || result.Token, userId };
     } catch (error) {
       setUserId(null);
       setAuthState('unauthenticated');
       throw error;
     }
-  }, []);
+  }, [queryClient]);
 
   // Task 2.1: Enforce synchronous logout ordering
   // Order: 1. Call backend logout to clear refresh token cookie, 2. Clear token, 3. Set userId = null, 4. isAuthenticated = false (derived), 5. Clear project, 6. Clear ALL caches
   const logout = useCallback(async () => {
     console.log('🚪 Logout initiated');
-    
+
     // Step 1: Call backend logout endpoint to clear refresh token cookie (HTTP-only cookie)
     try {
       await logoutService();
@@ -501,55 +572,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Even if backend logout fails, continue with local cleanup
       console.warn('⚠️ Backend logout failed, continuing with local cleanup:', error);
     }
-    
+
     // Step 2: Clear in-memory access token (synchronous)
     clearAccessToken();
-    
+
     // Step 2.5: Reset auth initialization flag in apiClient
     setApiAuthInitialized(false);
-    
+
     // Step 3: Set userId = null (synchronous) - this must happen BEFORE clearing localStorage
     setUserId(null);
-    
+
     // Step 4: Set authState (isAuthenticated will be false because userId is null)
     setAuthState('unauthenticated');
-    
+
     // Step 5: Clear selected project (get userId before it's fully cleared)
     const currentUserId = getUserId();
     if (currentUserId) {
       clearSelectedProject(currentUserId);
     }
-    
-    // Step 6: Clear ALL caches and disconnect
+
+    // Step 6: Clear user-scoped cache persistence
+    clearUserScopedPersistence();
+
+    // Step 7: Clear ALL caches and disconnect
     queryClient.cancelQueries();
     cacheInvalidationService.disconnect('User logout');
     previousProjectIdRef.current = null;
     validatedProjectIdRef.current = null;
     isConnectingRef.current = false;
-    
+
     // Clear all React Query cache (including projects, users, tasks, sprints, messages, etc.)
     queryClient.clear();
-    
+
     // Clear all selected project keys (for all users - defensive cleanup)
     clearAllSelectedProjects();
-    
-    // Clear all localStorage items related to auth and cache
+
+    // Clear userId from localStorage
     localStorage.removeItem('userId');
-    localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE');
-    
-    // Clear any other potential localStorage keys (defensive cleanup)
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && (
-        key.startsWith('react-query') ||
-        key === 'token' // Legacy token key if it exists
-      )) {
-        keysToRemove.push(key);
-      }
-    }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-    
+
+    // Clean up legacy unscoped cache (migration)
+    removeLegacyCache();
+
     console.log('✅ Logout completed - all state cleared');
   }, [queryClient]);
 
@@ -560,12 +623,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Task 2.1: Complete OAuth login - sets userId and authState without calling refresh
+  // User-scoped cache persistence eliminates need for manual cache clearing
   const completeOAuthLogin = useCallback((userId: string) => {
+    // STEP 1: Clear previous user's cache persistence
+    console.log('🧹 Clearing previous user cache persistence before OAuth login...');
+    clearUserScopedPersistence();
+
+    // Cancel all in-flight queries
+    queryClient.cancelQueries();
+
+    // Clear React Query cache completely
+    queryClient.clear();
+
+    // Clear WebSocket connection (if any from previous user)
+    if (cacheInvalidationService.isConnected()) {
+      cacheInvalidationService.disconnect('Logging in via OAuth as different user');
+    }
+
+    // Clear selected project for all users (defensive cleanup)
+    clearAllSelectedProjects();
+
+    // Clean up legacy unscoped cache (migration)
+    removeLegacyCache();
+
+    console.log('✅ Previous user cache cleared');
+
+    // STEP 2: Set new user's identity
     // Token is already stored in memory by storeAuthData
     // Just set userId and authState - isAuthenticated will derive from userId && token
     setUserId(userId);
     setAuthState('authenticated');
-  }, []);
+
+    // STEP 3: Setup user-scoped cache persistence
+    setupUserScopedPersistence(userId);
+
+    console.log('✅ OAuth login completed for user:', userId);
+  }, [queryClient]);
 
   const isOAuthMode = useCallback(() => {
     return authModeRef.current === 'oauth';
@@ -582,6 +675,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (currentUserId && currentToken) {
         setUserId(currentUserId);
         setAuthState('authenticated');
+
+        // Setup user-scoped cache persistence
+        setupUserScopedPersistence(currentUserId);
+
         return { Token: currentToken, userId: currentUserId };
       }
       throw new Error('OAuth mode active but no token found');
@@ -592,6 +689,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Only set userId - isAuthenticated derives from userId && token
       setUserId(result.userId);
       setAuthState('authenticated');
+
+      // Setup user-scoped cache persistence
+      setupUserScopedPersistence(result.userId);
+
       return result;
     } catch (error: any) {
       const is401 = error?.response?.status === 401;

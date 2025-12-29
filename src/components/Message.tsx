@@ -28,23 +28,28 @@ const Message: React.FC = () => {
   const { data: userData, isLoading: userLoading, error: userError } = useUser(toUserID);
   
   // Debug: Log raw userData to see what we're getting from the API
+  // CRITICAL FIX: Backend returns camelCase (firstName), not PascalCase (FirstName)
   useEffect(() => {
     if (userData) {
       console.log('📋 Raw userData from API:', userData);
-      console.log('📋 FirstName:', userData.FirstName);
-      console.log('📋 LastName:', userData.LastName);
-      console.log('📋 Username:', userData.Username);
+      console.log('✅ firstName (camelCase - used):', (userData as any).firstName);
+      console.log('✅ lastName (camelCase - used):', (userData as any).lastName);
+      console.log('✅ username (camelCase - used):', (userData as any).username);
+      // Backward compatibility check: PascalCase (legacy, should be undefined)
+      console.log('ℹ️ FirstName (PascalCase - legacy check, expected undefined):', userData.FirstName);
+      console.log('ℹ️ LastName (PascalCase - legacy check, expected undefined):', userData.LastName);
+      console.log('ℹ️ Username (PascalCase - legacy check, expected undefined):', userData.Username);
     }
   }, [userData]);
   
-  // Convert UserModel (PascalCase) to User type (camelCase) for compatibility
-  // Handle both PascalCase and camelCase field names from API
+  // Convert UserModel to User type for compatibility
+  // CRITICAL FIX: Backend returns camelCase, prioritize camelCase over PascalCase
   const user: User | null = userData ? {
-    id: userData.ID || (userData as any).id || '',
-    username: userData.Username || (userData as any).username || '',
-    email: userData.Email || (userData as any).email || '',
-    firstName: (userData.FirstName || (userData as any).firstName || '').trim(),
-    lastName: (userData.LastName || (userData as any).lastName || '').trim(),
+    id: (userData as any).id || userData.ID || '',
+    username: (userData as any).username || userData.Username || '',
+    email: (userData as any).email || userData.Email || '',
+    firstName: ((userData as any).firstName || userData.FirstName || '').trim(),
+    lastName: ((userData as any).lastName || userData.LastName || '').trim(),
     avatarUrl: undefined // UserModel doesn't have avatarUrl
   } : null;
 

@@ -70,15 +70,23 @@ export const projectStorage = {
 
   /**
    * Stores the selected project ID in localStorage, scoped by userId.
-   * Dispatches 'project-changed' event for same-tab listeners.
+   * Dispatches 'project-changed' event for same-tab listeners only if value changed.
    * @param {string} projectId - The ID of the selected project.
    * @param {string|null} userId - The current user ID (optional)
    */
   setSelectedProject: (projectId, userId = null) => {
     const key = projectStorage.getStorageKey(userId);
-    storage.set(key, projectId);
-    // Dispatch event for same-tab listeners (storage event only fires cross-tab)
-    window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId } }));
+    const currentValue = storage.get(key);
+
+    // Only dispatch event if value actually changed (prevents duplicate events)
+    if (currentValue !== projectId) {
+      storage.set(key, projectId);
+      // Dispatch event for same-tab listeners (storage event only fires cross-tab)
+      window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId } }));
+    } else {
+      // Value unchanged - update storage but don't dispatch event
+      storage.set(key, projectId);
+    }
   },
 
   /**
@@ -115,16 +123,22 @@ export const projectStorage = {
 
   /**
    * Removes the selected project ID from localStorage, scoped by userId.
-   * Dispatches 'project-changed' event for same-tab listeners.
+   * Dispatches 'project-changed' event for same-tab listeners only if value was set.
    * @param {string|null} userId - The current user ID (optional)
    */
   clearSelectedProject: (userId = null) => {
     const key = projectStorage.getStorageKey(userId);
+    const currentValue = storage.get(key);
+
     storage.remove(key);
     // Also clear legacy unscoped key for backward compatibility
     storage.remove(StorageKeys.SELECTED_PROJECT);
-    // Dispatch event for same-tab listeners (storage event only fires cross-tab)
-    window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId: null } }));
+
+    // Only dispatch event if value was actually set (prevents duplicate events)
+    if (currentValue !== null) {
+      // Dispatch event for same-tab listeners (storage event only fires cross-tab)
+      window.dispatchEvent(new CustomEvent('project-changed', { detail: { projectId: null } }));
+    }
   },
 
   /**

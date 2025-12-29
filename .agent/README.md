@@ -17,8 +17,8 @@ Core architecture and technical documentation:
 
 - **[Project Architecture](./System/project_architecture.md)** - Complete overview of the system architecture, tech stack, project structure, and core components
 - **[Authentication Architecture](./System/authentication_architecture.md)** - Detailed authentication flows, token management, and security measures ⚠️ **Updated 2025-12-26** - CRITICAL FIX: Refresh token expiration event handling prevents invalid authenticated state. Previous: refreshToken() now properly refreshes expired tokens, OAuth double refresh fix, auth initialization flag, comprehensive logout cleanup, JWT expiration parsing, iOS Safari fixes, logout flow improvements
-- **[Caching Strategy](./System/caching_strategy.md)** - React Query configuration, WebSocket cache invalidation, and caching patterns
-- **[Realtime Messaging](./System/realtime_messaging.md)** - WebSocket implementation, messaging system, and PostgreSQL NOTIFY integration ⚠️ **CRITICAL ISSUE** - Messages table missing from database triggers, no real-time updates for messages. Backend has dual system (immediate broadcasts + database triggers) but messages table not covered. See [Fix Message Realtime Updates](../Tasks/fix_message_realtime_updates.md)
+- **[Caching Strategy](./System/caching_strategy.md)** - React Query configuration, WebSocket cache invalidation, predicate-based invalidation, and caching patterns ⚠️ **Updated 2025-12-28** - WebSocket subscribe payload and events now use camelCase `projectId`. Previous (2025-12-27): User-scoped cache persistence prevents cross-user cache leakage, predicate-based message invalidation, single WebSocket-only invalidation
+- **[Realtime Messaging](./System/realtime_messaging.md)** - WebSocket implementation, messaging system, and PostgreSQL NOTIFY integration ⚠️ **Updated 2025-12-28** - CRITICAL FIX: Subscribe payload now sends `projectId` (camelCase) to match AWS Lambda backend requirements. Frontend prioritizes camelCase `projectId` over snake_case `project_id` in all event handlers. Added debug logging for subscribe success/failure. Previous: predicate-based invalidation for messages, nested/flat payload support, single WebSocket-only cache invalidation
 - **[Invite Management](./System/invite_management.md)** - Project invite system, expiration logic, and frontend implementation
 - **[File Reference](./System/file_reference.md)** - Quick reference map for key files and line numbers
 - **[Risk Analysis](./System/risk_analysis.md)** - Risk areas, testing guidelines, and debugging tools
@@ -105,8 +105,8 @@ Feature PRDs and implementation plans:
 
 ### For Understanding Caching & Real-time Updates
 
-1. Read **[Caching Strategy](./System/caching_strategy.md)** for React Query and cache invalidation
-2. Review **[Realtime Messaging](./System/realtime_messaging.md)** for WebSocket implementation ⚠️ **Updated 2025-12-26** - WebSocket now connects to `wss://ws.devhive.it.com?token=JWT_TOKEN`
+1. Read **[Caching Strategy](./System/caching_strategy.md)** for React Query, user-scoped persistence, predicate-based invalidation, and cache patterns ⚠️ **Updated 2025-12-28** - WebSocket events now use camelCase `projectId`
+2. Review **[Realtime Messaging](./System/realtime_messaging.md)** for WebSocket implementation and message flow ⚠️ **Updated 2025-12-28** - CRITICAL: Subscribe payload camelCase fix (`projectId` not `project_id`), all event handlers prioritize camelCase, debug logging added
 3. Check **[File Reference](./System/file_reference.md)** for cache-related file locations
 
 ### For Working on Features

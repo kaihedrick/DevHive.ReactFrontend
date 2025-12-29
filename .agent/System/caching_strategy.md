@@ -4,6 +4,8 @@
 
 The caching system uses React Query with WebSocket-driven cache invalidation for real-time data synchronization.
 
+**Latest Update (2025-12-28)**: WebSocket subscribe payload and event handlers updated to use camelCase `projectId` to match AWS Lambda backend requirements. See [Realtime Messaging](./realtime_messaging.md) for details.
+
 ---
 
 ## 1. React Query Configuration
@@ -39,17 +41,86 @@ QueryClient({
 
 ### Persistence Configuration
 
+**CRITICAL SECURITY: User-Scoped Cache Persistence**
+
+Cache persistence is **dynamically scoped per user** to prevent cache leakage between users during login/logout/OAuth flows.
+
 ```javascript
+// User-scoped cache key (e.g., "REACT_QUERY_OFFLINE_CACHE:user-uuid")
+const persister = createSyncStoragePersister({
+  storage: window.localStorage,
+  key: `REACT_QUERY_OFFLINE_CACHE:${userId}`,
+  serialize: JSON.stringify,
+  deserialize: JSON.parse,
+});
+
 persistQueryClient({
   queryClient,
-  persister: localStoragePersister,
+  persister,
   maxAge: 24 * 60 * 60 * 1000,      // 24h expiration
-  key: 'REACT_QUERY_OFFLINE_CACHE',
   dehydrateOptions: {
     shouldDehydrateQuery: (query) => query.state.data !== undefined
   }
 })
 ```
+
+**Lifecycle:**
+- **Login/OAuth:** `setupUserScopedPersistence(userId)` creates user-specific persister
+- **Logout:** `clearUserScopedPersistence()` removes persister and clears user's cache
+- **User Switch:** Old persister is cleaned up, new persister is created for new user
+
+**Benefits:**
+- **No cache leakage:** Each user has isolated localStorage namespace
+- **No manual clearing:** User switching automatically uses correct cache
+- **No race conditions:** Cache operations are scoped, eliminating timing issues
+- **Offline support:** Each user's cache persists across sessions
+
+### Implementation Details
+
+**File:** `src/lib/queryClient.ts`
+
+**Exported Functions:**
+
+```typescript
+// Setup user-scoped persistence (called on login, OAuth completion, token refresh)
+setupUserScopedPersistence(userId: string): void
+
+// Clear user-scoped persistence (called on logout)
+clearUserScopedPersistence(): void
+
+// Remove cache for a specific user (utility function)
+removeUserCache(userId: string): void
+
+// Clean up legacy unscoped cache (migration)
+removeLegacyCache(): void
+```
+
+**Integration Points:**
+
+| Event | File | Function | Action |
+|-------|------|----------|--------|
+| Login | `AuthContext.tsx` | `login()` | Clear old persister → Setup new persister |
+| OAuth Login | `AuthContext.tsx` | `completeOAuthLogin()` | Clear old persister → Setup new persister |
+| Token Refresh | `AuthContext.tsx` | `refreshToken()` | Setup persister if not already set |
+| Logout | `AuthContext.tsx` | `logout()` | Clear persister and remove cache |
+| Auth Init | `AuthContext.tsx` | `initializeAuth()` | Setup persister if user exists |
+
+**localStorage Keys:**
+
+```
+REACT_QUERY_OFFLINE_CACHE:user-uuid-1   // User 1's cache
+REACT_QUERY_OFFLINE_CACHE:user-uuid-2   // User 2's cache
+REACT_QUERY_OFFLINE_CACHE               // Legacy (removed on login/logout)
+```
+
+**Migration Strategy:**
+
+The system automatically removes the legacy unscoped cache (`REACT_QUERY_OFFLINE_CACHE`) on:
+- Login
+- OAuth login
+- Logout
+
+This ensures gradual migration from the old unscoped format to the new user-scoped format.
 
 ---
 
@@ -77,7 +148,27 @@ persistQueryClient({
 
 // Members
 ['projectMembers', projectId]           // Members for project
+
+// Messages (User-Scoped)
+['messages', 'list', 'user', userId, 'project', projectId]  // Messages for project (user-scoped)
 ```
+
+### User-Scoped Query Keys
+
+**IMPORTANT:** Message queries are user-scoped to prevent cross-user cache contamination. Each user has their own cache namespace:
+
+```javascript
+// User A's messages for project1
+['messages', 'list', 'user', 'userA-id', 'project', 'project1']
+
+// User B's messages for project1 (separate cache)
+['messages', 'list', 'user', 'userB-id', 'project', 'project1']
+```
+
+This ensures:
+- Different users never share cached message data
+- OAuth login/logout doesn't show previous user's messages
+- Cache invalidation targets the correct user's data
 
 ---
 
@@ -116,7 +207,7 @@ persistQueryClient({
                            ▼
 ┌───────────────────────────────────────────────────────────────┐
 │ ws.onopen → Send subscribe message + start heartbeat (30s)   │
-│ { action: 'subscribe', project_id: 'uuid' }                  │
+│ { action: 'subscribe', projectId: 'uuid' } ← camelCase!      │
 └──────────────────────────┬────────────────────────────────────┘
                            │
                            ▼
@@ -130,30 +221,147 @@ persistQueryClient({
 Backend sends specific event types instead of generic cache_invalidate messages:
 
 ```javascript
-// Member events
-{ type: 'member_added', project_id: 'uuid' }
-{ type: 'member_removed', project_id: 'uuid' }
+// Member events (backend sends camelCase projectId)
+{ type: 'member_added', projectId: 'uuid' }
+{ type: 'member_removed', projectId: 'uuid' }
 
 // Message events
-{ type: 'message_created', project_id: 'uuid' }
+{ type: 'message_created', projectId: 'uuid' }
 
 // Task events
-{ type: 'task_created', project_id: 'uuid' }
-{ type: 'task_updated', project_id: 'uuid' }
-{ type: 'task_deleted', project_id: 'uuid' }
+{ type: 'task_created', projectId: 'uuid' }
+{ type: 'task_updated', projectId: 'uuid' }
+{ type: 'task_deleted', projectId: 'uuid' }
 
 // Sprint events
-{ type: 'sprint_created', project_id: 'uuid' }
-{ type: 'sprint_updated', project_id: 'uuid' }
-{ type: 'sprint_deleted', project_id: 'uuid' }
+{ type: 'sprint_created', projectId: 'uuid' }
+{ type: 'sprint_updated', projectId: 'uuid' }
+{ type: 'sprint_deleted', projectId: 'uuid' }
 
 // Project events
-{ type: 'project_updated', project_id: 'uuid' }
+{ type: 'project_updated', projectId: 'uuid' }
+
+// Note: Frontend prioritizes projectId (camelCase) but also supports
+// project_id (snake_case) for backward compatibility
+```
+
+### Cache Invalidate Payload Formats
+
+**IMPORTANT:** Frontend supports **both nested and flat** payload formats for backward compatibility and future-proofing:
+
+**Format 1: Nested Payload (Preferred)**
+```javascript
+{
+  type: 'cache_invalidate',
+  data: {
+    resource: 'message',
+    id: 'message-uuid',
+    action: 'INSERT',
+    project_id: 'project-uuid',
+    timestamp: '2024-01-15T10:30:00Z'
+  }
+}
+```
+
+**Format 2: Flat Payload (Legacy)**
+```javascript
+{
+  type: 'cache_invalidate',
+  resource: 'message',
+  id: 'message-uuid',
+  action: 'INSERT',
+  project_id: 'project-uuid',
+  timestamp: '2024-01-15T10:30:00Z'
+}
+```
+
+**Frontend Handler:**
+```javascript
+case 'cache_invalidate': {
+  console.log('📦 cache_invalidate message received');
+
+  // NEW: nested payload support
+  if (message.data && typeof message.data === 'object' && 'resource' in message.data) {
+    this.handleCacheInvalidation(message.data as CacheInvalidationPayload);
+    break;
+  }
+
+  // Existing: flat payload support
+  if (message.resource) {
+    const payload: CacheInvalidationPayload = {
+      resource: message.resource as CacheInvalidationPayload['resource'],
+      id: (message as any).id || (message as any).user_id || '',
+      action: (message as any).action as CacheInvalidationPayload['action'],
+      project_id: (message as any).project_id || message.project_id || '',
+      timestamp: (message as any).timestamp || new Date().toISOString(),
+    };
+    this.handleCacheInvalidation(payload);
+    break;
+  }
+
+  console.warn('⚠️ Invalid cache_invalidate format:', message);
+  break;
+}
 ```
 
 ### Invalidation Logic
 
-**File:** `cacheInvalidationService.ts` (lines 569-653)
+**File:** `cacheInvalidationService.ts`
+
+#### Predicate-Based Invalidation (Messages)
+
+**CRITICAL DESIGN:** Message cache invalidation uses **predicate functions** instead of exact query keys. This eliminates dependency on `userId` from localStorage and ensures all users receive real-time updates:
+
+```javascript
+/**
+ * Invalidates all message queries for a given project using predicate matching.
+ * Matches any user-scoped message query for the project, regardless of userId.
+ * Uses refetchType: 'active' to ensure the open chat refetches immediately.
+ */
+private invalidateProjectMessages(projectId: string): void {
+  queryClient.invalidateQueries({
+    predicate: (q) => {
+      const k = q.queryKey;
+      return (
+        Array.isArray(k) &&
+        k[0] === 'messages' &&
+        k.includes('project') &&
+        k.includes(projectId)
+      );
+    },
+    // ensures the open chat refetches immediately
+    refetchType: 'active',
+  });
+}
+```
+
+**Why Predicate Matching?**
+1. **No localStorage dependency:** Eliminates stale userId reads from localStorage
+2. **Universal invalidation:** Matches any user's message query for the project
+3. **Immediate refetch:** `refetchType: 'active'` ensures active chats update instantly
+4. **Simpler logic:** WebSocket layer only needs to know projectId, not userId
+
+**Usage in Event Handlers:**
+```javascript
+// message_created event (prioritize camelCase projectId)
+case 'message_created': {
+  const projectId = message.projectId || message.project_id || '';
+  console.log(`💬 Message created for project ${projectId}`);
+  this.invalidateProjectMessages(projectId);
+  break;
+}
+
+// cache_invalidate event (legacy/nested payload support)
+case 'message': {
+  // Prioritize camelCase projectId over snake_case project_id
+  const projectId = payload.projectId || payload.project_id;
+  this.invalidateProjectMessages(projectId);
+  console.log(`✅ Invalidated message caches for project ${projectId}`);
+  break;
+}
+```
+
+#### Query Key-Based Invalidation (Other Resources)
 
 ```javascript
 switch (resource) {
@@ -196,7 +404,92 @@ switch (resource) {
 
 ---
 
-## 4. WebSocket Reconnection Strategy
+## 4. Message Sending Flow & Cache Invalidation
+
+**File:** `src/hooks/useMessages.ts`
+
+### Design: Single Invalidation via WebSocket
+
+**CRITICAL:** Message cache invalidation happens **only via WebSocket**, not in the mutation's `onSuccess` handler. This prevents double-fetch issues.
+
+```javascript
+/**
+ * Hook to send a message using React Query mutation
+ * @returns Mutation hook for sending messages
+ *
+ * NOTE: Cache invalidation is handled by WebSocket (message_created event).
+ * No manual invalidation needed here to avoid double-fetch.
+ */
+export const useSendMessage = () => {
+  return useMutation({
+    mutationFn: (messageData: { projectId: string; content: string; messageType?: string; parentMessageId?: string }) =>
+      sendMessage(messageData),
+    // No onSuccess invalidation - WebSocket handles cache invalidation
+  });
+};
+```
+
+### Why Single Invalidation?
+
+**Before (Double-Fetch Issue):**
+```
+User sends message
+  → POST /api/v1/projects/{projectId}/messages
+  → onSuccess: invalidateQueries(['messages', ...])   ← First fetch
+  → Backend broadcasts message_created via WebSocket
+  → WebSocket handler: invalidateQueries(['messages', ...])  ← Second fetch (DUPLICATE!)
+```
+
+**After (Single Fetch):**
+```
+User sends message
+  → POST /api/v1/projects/{projectId}/messages
+  → Backend broadcasts message_created via WebSocket
+  → WebSocket handler: invalidateProjectMessages(projectId)  ← Only fetch
+  → refetchType: 'active' ensures immediate update
+```
+
+### Benefits
+
+1. **No duplicate fetches:** Only one refetch per message sent
+2. **Consistent updates:** All clients (sender + receivers) use the same invalidation path
+3. **Simpler logic:** Cache invalidation centralized in WebSocket handler
+4. **Better UX:** Faster message display (no waiting for duplicate fetch)
+
+### Optional: Optimistic Updates
+
+For even better UX, consider optimistic updates with `setQueryData`:
+
+```javascript
+onMutate: async (newMessage) => {
+  // Cancel outgoing refetches
+  await queryClient.cancelQueries(['messages', 'list', 'user', userId, 'project', projectId]);
+
+  // Snapshot previous value
+  const previousMessages = queryClient.getQueryData(['messages', 'list', 'user', userId, 'project', projectId]);
+
+  // Optimistically update to the new value
+  queryClient.setQueryData(['messages', 'list', 'user', userId, 'project', projectId], (old) => {
+    return {
+      ...old,
+      messages: [...old.messages, { id: 'temp-id', ...newMessage, createdAt: new Date() }]
+    };
+  });
+
+  return { previousMessages };
+},
+onError: (err, newMessage, context) => {
+  // Rollback on error
+  queryClient.setQueryData(['messages', 'list', 'user', userId, 'project', projectId], context.previousMessages);
+},
+onSettled: () => {
+  // WebSocket will handle the actual refetch when message_created event arrives
+}
+```
+
+---
+
+## 6. WebSocket Reconnection Strategy
 
 **File:** `cacheInvalidationService.ts` (lines 464-535)
 
@@ -250,7 +543,7 @@ disconnect() {
 
 ---
 
-## 5. Cache Invalidation Flow
+## 7. Cache Invalidation Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -308,7 +601,7 @@ disconnect() {
 
 ---
 
-## 6. Token Management for WebSocket
+## 8. Token Management for WebSocket
 
 **File:** `cacheInvalidationService.ts` (lines 110-159)
 
@@ -360,7 +653,7 @@ Browser WebSocket constructor doesn't support custom headers. Token MUST be in U
 
 ---
 
-## 7. Debugging Cache
+## 9. Debugging Cache
 
 ### Browser Console Commands
 

@@ -9,10 +9,19 @@ import { Message } from '../types/hooks.ts';
 import { getUserId } from '../services/authService.ts';
 
 // Query keys for React Query cache management
+// CRITICAL FIX: User-scope all message queries to prevent cross-user cache contamination
 export const messageKeys = {
   all: ['messages'] as const,
   lists: () => [...messageKeys.all, 'list'] as const,
-  project: (projectId: string) => [...messageKeys.lists(), 'project', projectId] as const,
+  // User-scoped project messages: ['messages', 'list', 'user', userId, 'project', projectId]
+  // This ensures different users never share cached message data
+  project: (projectId: string, userId?: string | null) => {
+    if (userId) {
+      return [...messageKeys.lists(), 'user', userId, 'project', projectId] as const;
+    }
+    // Fallback for backward compatibility (should not happen)
+    return [...messageKeys.lists(), 'project', projectId] as const;
+  },
 };
 
 /**
@@ -24,12 +33,12 @@ export const messageKeys = {
  * @returns Query result with messages data
  */
 export const useMessagesQuery = (projectId: string | null | undefined, options?: { limit?: number; offset?: number }) => {
-  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
+  const { isAuthenticated, isLoading: authLoading, userId } = useAuthContext();
 
   return useQuery({
-    queryKey: messageKeys.project(projectId || ''),
+    queryKey: messageKeys.project(projectId || '', userId),
     queryFn: () => fetchProjectMessages(projectId!, options),
-    enabled: !!projectId && isAuthenticated && !authLoading,
+    enabled: !!projectId && isAuthenticated && !authLoading && !!userId,
     staleTime: Infinity, // Messages are updated via WebSocket cache invalidation
     retry: (failureCount, error: any) => {
       // Don't retry on 401 - token refresh should handle it
@@ -44,17 +53,15 @@ export const useMessagesQuery = (projectId: string | null | undefined, options?:
 /**
  * Hook to send a message using React Query mutation
  * @returns Mutation hook for sending messages
+ *
+ * NOTE: Cache invalidation is handled by WebSocket (message_created event).
+ * No manual invalidation needed here to avoid double-fetch.
  */
 export const useSendMessage = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (messageData: { projectId: string; content: string; messageType?: string; parentMessageId?: string }) =>
       sendMessage(messageData),
-    onSuccess: (_data, variables) => {
-      // Invalidate messages list for the project to show new message
-      queryClient.invalidateQueries({ queryKey: messageKeys.project(variables.projectId) });
-    },
+    // No onSuccess invalidation - WebSocket handles cache invalidation
   });
 };
 
@@ -116,13 +123,14 @@ export const useMessages = (projectId: string | null | undefined) => {
       // Clear input on success
       setNewMessage('');
 
-      // Refetch messages to get the new one (WebSocket will also trigger this)
-      refetch();
+      // No manual refetch needed - mutation's onSuccess already invalidates the query,
+      // which automatically triggers a refetch. WebSocket will also invalidate when
+      // the backend broadcasts the cache_invalidate event.
     } catch (error) {
       console.error('❌ Error sending message:', error);
       // Error is available via sendMutation.error
     }
-  }, [newMessage, projectId, sendMutation, refetch]);
+  }, [newMessage, projectId, sendMutation]);
 
   return {
     // Messages data

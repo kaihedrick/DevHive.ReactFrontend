@@ -1,5 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
-import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import { persistQueryClient, type Persister } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 
 // Create QueryClient with caching configuration
@@ -20,27 +20,98 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Create localStorage persister
-const localStoragePersister = createSyncStoragePersister({
-  storage: window.localStorage,
-  key: 'REACT_QUERY_OFFLINE_CACHE',
-  serialize: JSON.stringify,
-  deserialize: JSON.parse,
-});
+// Track current persister and user
+let currentPersister: ReturnType<typeof createSyncStoragePersister> | null = null;
+let currentUserId: string | null = null;
 
-// Persist query client to localStorage
-persistQueryClient({
-  queryClient,
-  persister: localStoragePersister,
-  maxAge: 24 * 60 * 60 * 1000, // 24 hours
-  buster: '', // Cache version - increment to bust cache
-  dehydrateOptions: {
-    // Only persist queries that have data
-    shouldDehydrateQuery: (query) => {
-      return query.state.data !== undefined;
+/**
+ * Sets up user-scoped cache persistence.
+ * Each user gets their own isolated cache in localStorage.
+ * This prevents cache leakage between users during login/logout/OAuth flows.
+ *
+ * @param userId - The user ID to scope the cache to
+ */
+export function setupUserScopedPersistence(userId: string): void {
+  // Don't reinitialize if already set up for this user
+  if (currentUserId === userId && currentPersister) {
+    console.log('✅ Cache persistence already set up for user:', userId);
+    return;
+  }
+
+  // Clean up previous user's cache from localStorage
+  if (currentUserId && currentUserId !== userId) {
+    console.log('🧹 Cleaning up previous cache for user:', currentUserId);
+    const oldKey = `REACT_QUERY_OFFLINE_CACHE:${currentUserId}`;
+    localStorage.removeItem(oldKey);
+  }
+
+  console.log('🔧 Setting up user-scoped cache persistence for user:', userId);
+
+  // Create user-scoped persister
+  const persister = createSyncStoragePersister({
+    storage: window.localStorage,
+    key: `REACT_QUERY_OFFLINE_CACHE:${userId}`,
+    serialize: JSON.stringify,
+    deserialize: JSON.parse,
+  });
+
+  // Set up persistence
+  persistQueryClient({
+    queryClient,
+    persister,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    buster: '', // Cache version - increment to bust cache
+    dehydrateOptions: {
+      // Only persist queries that have data
+      shouldDehydrateQuery: (query) => {
+        return query.state.data !== undefined;
+      },
     },
-  },
-});
+  });
+
+  currentPersister = persister;
+  currentUserId = userId;
+
+  console.log('✅ User-scoped cache persistence active');
+}
+
+/**
+ * Clears user-scoped cache persistence.
+ * Called on logout to clean up the persister.
+ */
+export function clearUserScopedPersistence(): void {
+  // Clear the user-scoped cache from localStorage
+  if (currentUserId) {
+    const key = `REACT_QUERY_OFFLINE_CACHE:${currentUserId}`;
+    localStorage.removeItem(key);
+    console.log('🗑️ Removed user-scoped cache from localStorage:', key);
+  }
+
+  currentPersister = null;
+  currentUserId = null;
+  console.log('✅ Cache persistence cleared');
+}
+
+/**
+ * Removes cache for a specific user from localStorage.
+ * Useful for cleanup without affecting the current persister.
+ *
+ * @param userId - The user ID whose cache should be removed
+ */
+export function removeUserCache(userId: string): void {
+  const key = `REACT_QUERY_OFFLINE_CACHE:${userId}`;
+  localStorage.removeItem(key);
+  console.log('🗑️ Removed cache for user:', userId);
+}
+
+/**
+ * Removes the legacy unscoped cache from localStorage.
+ * Should be called once to clean up old cache format.
+ */
+export function removeLegacyCache(): void {
+  localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE');
+  console.log('🗑️ Removed legacy unscoped cache');
+}
 
 export default queryClient;
 

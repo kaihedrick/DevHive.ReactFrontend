@@ -2,6 +2,24 @@
 
 This document describes the backend architecture for project contacts (members) and realtime messaging in DevHive.
 
+## ⚠️ CRITICAL UPDATE (2025-12-28): WebSocket Client CamelCase Fix
+
+**Issue**: Frontend was sending `project_id` (snake_case) in subscribe payload, but AWS Lambda backend expects `projectId` (camelCase).
+
+**Fix Applied**:
+1. ✅ Subscribe payload now sends `{ action: "subscribe", projectId: "uuid" }` (camelCase)
+2. ✅ All event handlers prioritize `message.projectId` over `message.project_id`
+3. ✅ Debug logging added to confirm subscribe success/failure
+4. ✅ Documentation updated to reflect camelCase requirement
+
+**Files Changed**:
+- `src/services/cacheInvalidationService.ts` - Subscribe payload, event handlers, debug logging
+- `.agent/System/realtime_messaging.md` - Documentation examples and API reference
+
+**Testing**: Look for `✅ Subscribe acknowledged by backend:` in browser console to confirm subscription success.
+
+---
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -190,10 +208,12 @@ type Message struct {
 
 | Type | Payload | Description |
 |------|---------|-------------|
-| `subscribe` | `{ project_id: "uuid" }` | Subscribe to project updates (replaces join_project) |
+| `subscribe` | `{ action: "subscribe", projectId: "uuid" }` | Subscribe to project updates (uses camelCase projectId) |
 | `leave_project` | `{ project_id: "uuid" }` | Unsubscribe from project |
 | `ping` | - | Keepalive ping |
 | `pong` | - | Keepalive response |
+
+**CRITICAL**: Backend expects `projectId` (camelCase), not `project_id` (snake_case) in subscribe payload. Using `project_id` will result in "project_id required" error from backend.
 
 ### Broadcasting Logic
 
@@ -436,32 +456,59 @@ const ws = new WebSocket('wss://ws.devhive.it.com?token=your-jwt-token'); // Pro
 // 4. Handle connection open
 ws.onopen = () => {
     // Subscribe to project updates
+    // CRITICAL: Backend expects projectId (camelCase), not project_id (snake_case)
     ws.send(JSON.stringify({
         action: 'subscribe',
-        project_id: 'your-project-uuid'
+        projectId: 'your-project-uuid'
     }));
+    console.log('⏳ Waiting for subscribe acknowledgment from backend...');
 };
 
 // 5. Handle incoming messages - Dual System Support
 ws.onmessage = (event) => {
     const message = JSON.parse(event.data);
 
+    // Log incoming messages for debugging
+    console.log('📨 WS Event received:', message);
+
+    // Special logging for subscribe response to confirm success/failure
+    if (message.type === 'reconnect' || message.message === 'subscribed') {
+        console.log('✅ Subscribe acknowledged by backend:', message);
+    }
+
     // BACKEND SENDS TWO TYPES OF MESSAGES:
+    // Backend sends camelCase projectId in events, with snake_case project_id as fallback
 
     // Type 1: Immediate Application Broadcasts (e.g., message_created from broadcast.Send())
     // These have the event type directly in message.type
     switch (message.type) {
         case 'member_added':
         case 'member_removed':
-            queryClient.invalidateQueries(['projects', message.project_id]);
-            queryClient.invalidateQueries(['projectMembers', message.project_id]);
-            queryClient.invalidateQueries(['projects', 'bundle', message.project_id]);
+            // Prioritize camelCase projectId over snake_case project_id
+            const memberProjectId = message.projectId || message.project_id;
+            queryClient.invalidateQueries(['projects', memberProjectId]);
+            queryClient.invalidateQueries(['projectMembers', memberProjectId]);
+            queryClient.invalidateQueries(['projects', 'bundle', memberProjectId]);
             break;
 
         case 'message_created':
             // IMMEDIATE BROADCAST: New message via broadcast.Send() in handler
+            // Prioritize camelCase projectId over snake_case project_id
+            const messageProjectId = message.projectId || message.project_id;
             console.log('💬 New message via immediate broadcast:', message.data);
-            queryClient.invalidateQueries(['messages', 'list', 'project', message.project_id]);
+            // Use predicate-based invalidation (no userId dependency)
+            queryClient.invalidateQueries({
+                predicate: (q) => {
+                    const k = q.queryKey;
+                    return (
+                        Array.isArray(k) &&
+                        k[0] === 'messages' &&
+                        k.includes('project') &&
+                        k.includes(messageProjectId)
+                    );
+                },
+                refetchType: 'active', // Ensures immediate refetch
+            });
             break;
 
         case 'task_created':
@@ -480,13 +527,34 @@ ws.onmessage = (event) => {
             // Type 2: Database Trigger Events (from PostgreSQL NOTIFY)
             // These have resource/action/project_id structure
             console.log('🔄 Cache invalidate from database trigger:', message);
-            const resource = message.resource || message.data?.resource;
-            if (resource === 'messages') {
-                queryClient.invalidateQueries(['messages', 'list', 'project', message.project_id]);
+
+            // Support both nested and flat payload formats
+            let payload = message.data && typeof message.data === 'object' && 'resource' in message.data
+                ? message.data
+                : message;
+
+            const resource = payload.resource;
+            // Prioritize camelCase projectId over snake_case project_id
+            const project_id = payload.projectId || payload.project_id;
+
+            if (resource === 'message' || resource === 'messages') {
+                // Use predicate-based invalidation (no userId dependency)
+                queryClient.invalidateQueries({
+                    predicate: (q) => {
+                        const k = q.queryKey;
+                        return (
+                            Array.isArray(k) &&
+                            k[0] === 'messages' &&
+                            k.includes('project') &&
+                            k.includes(project_id)
+                        );
+                    },
+                    refetchType: 'active',
+                });
             } else if (resource === 'project_members') {
-                queryClient.invalidateQueries(['projectMembers', message.project_id]);
-            } else if (resource === 'tasks') {
-                queryClient.invalidateQueries(['tasks', 'list', 'project', message.project_id]);
+                queryClient.invalidateQueries(['projectMembers', project_id]);
+            } else if (resource === 'task' || resource === 'tasks') {
+                queryClient.invalidateQueries(['tasks', 'list', 'project', project_id]);
             }
             // Handle other resource types...
             break;
@@ -522,23 +590,52 @@ const ws = new WebSocket(`wss://ws.devhive.it.com?token=${accessToken}`);
 
 ### Sending Messages
 
+**CRITICAL:** Messages are sent via REST API, and cache invalidation happens **only via WebSocket** to prevent double-fetch issues.
+
 ```typescript
-// Messages are sent via REST API, not WebSocket
-const response = await fetch(`/api/v1/projects/${projectId}/messages`, {
+// React Query mutation (no onSuccess invalidation)
+export const useSendMessage = () => {
+  return useMutation({
+    mutationFn: (messageData: { projectId: string; content: string; messageType?: string }) =>
+      sendMessage(messageData),
+    // No onSuccess invalidation - WebSocket handles cache invalidation
+  });
+};
+
+// REST API call
+const sendMessage = async (messageData) => {
+  const response = await fetch(`/api/v1/projects/${messageData.projectId}/messages`, {
     method: 'POST',
     headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({
-        content: 'Hello, team!',
-        messageType: 'text'
+      content: messageData.content,
+      messageType: messageData.messageType || 'text'
     })
-});
-
-// WebSocket will broadcast cache_invalidate to all project members
-// Frontend should listen and refetch messages
+  });
+  return response.json();
+};
 ```
+
+**Message Sending Flow:**
+```
+1. User sends message via useSendMessage mutation
+2. POST /api/v1/projects/{projectId}/messages
+3. Backend creates message in database
+4. Backend broadcasts message_created via WebSocket
+5. Frontend WebSocket handler receives message_created
+6. invalidateProjectMessages(projectId) called
+7. React Query refetches active message queries
+8. UI updates with new message
+```
+
+**Why No onSuccess Invalidation?**
+- Prevents double-fetch (mutation + WebSocket both invalidating)
+- Consistent update path for all clients (sender + receivers)
+- Better performance (only one refetch per message)
+- Simpler logic (cache invalidation centralized in WebSocket handler)
 
 ---
 

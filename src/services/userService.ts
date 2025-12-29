@@ -195,8 +195,26 @@ export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
 };
 
 /**
+ * @function fetchCurrentUserFromMe
+ * @description Fetches the current user from /users/me endpoint (single source of truth).
+ * This uses the JWT token to get user data, not localStorage userId.
+ * RECOMMENDED: Use this instead of getCurrentUser for user authentication state.
+ * @returns {Promise<UserModel>} - A promise resolving to the current UserModel.
+ */
+export const fetchCurrentUserFromMe = async (): Promise<UserModel> => {
+  try {
+    const response = await api.get(ENDPOINTS.USER_ME);
+    return response.data as UserModel;
+  } catch (error) {
+    throw handleApiError(error, 'fetching current user from /me');
+  }
+};
+
+/**
  * @function getCurrentUser
  * @description Fetches the full UserModel of the currently logged-in user.
+ * NOTE: This uses localStorage userId to fetch by ID, which can be stale.
+ * RECOMMENDED: Use fetchCurrentUserFromMe() instead for single source of truth.
  * @returns {Promise<UserModel | null>} - A promise resolving to the current UserModel or null.
  */
 export const getCurrentUser = async (): Promise<UserModel | null> => {
