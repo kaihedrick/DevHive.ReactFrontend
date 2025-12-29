@@ -7,40 +7,19 @@ import { ReactComponent as HiveIcon } from "./assets/hive-icon.svg";
 
 /**
  * Navbar Component
- * 
+ *
  * Renders a responsive navigation bar that adapts between a sidebar layout on desktop
  * and a topbar layout on mobile devices. Includes navigation to main sections of the app.
- * 
+ *
  * CRITICAL: Uses onClick navigation instead of href to prevent full page reloads
- * 
+ *
  * @component
+ * @param {boolean} isMobile - Whether the current viewport is mobile (controlled by AppContent)
  * @returns {JSX.Element} Rendered navigation bar
  */
-const Navbar = () => {
+const Navbar = ({ isMobile }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 600);
-  
-  /**
-   * useEffect - Window Resize Listener
-   * 
-   * Adds an event listener to monitor window resizing and updates `isMobile` state
-   * to trigger layout switch between sidebar and topbar
-   * 
-   * @dependencies []
-   */
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth <= 600;
-      setIsMobile(mobile);
-    };
-    
-    window.addEventListener("resize", handleResize);
-    
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
   const navItems = [
     { path: "/board", icon: faTableColumns, label: "Board" },

@@ -620,13 +620,6 @@ body.has-sidebar .backlog-page .backlog-header {
   top: 0 !important;
 }
 
-/* Mobile: Position below topbar */
-@media (max-width: 600px) {
-  body.has-topbar .backlog-page .backlog-header {
-    top: var(--navbar-height-mobile) !important;
-  }
-}
-
 /* Scoped page title and subtitle within backlog header - matching Projects page */
 .backlog-page .backlog-header .page-title { 
   margin: 0; 

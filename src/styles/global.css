@@ -241,7 +241,6 @@ html, body {
     width: 100% !important;
     min-height: 100% !important;
     overflow-y: auto !important;
-    transition: padding var(--transition-slow) ease, margin var(--transition-slow) ease !important;
     position: relative !important;
 }
 
@@ -253,16 +252,12 @@ main {
     width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
-    transition: margin var(--transition-normal) ease, padding var(--transition-normal) ease !important;
 }
 
 /* Base container styles */
 /* NOTE: main is NOT included here - it has its own rules below */
 .container, .content-container {
     box-sizing: border-box !important;
-    transition: margin var(--transition-normal) ease, 
-                width var(--transition-normal) ease,
-                padding var(--transition-normal) ease !important;
     width: 100% !important;
     max-width: var(--container-2xl) !important;
     margin: 0 auto !important;
@@ -322,28 +317,18 @@ body.has-sidebar .navbar:hover ~ main {
     padding-left: 0 !important;
 }
 
-body.has-topbar main {
-  padding-top: 0 !important; /* Remove excessive padding */
-}
-
+/* Global topbar spacing - SINGLE source of truth for topbar offset */
 body.has-topbar .content {
-  padding-top: var(--navbar-height-mobile) !important; /* Push page content below fixed topbar */
-    margin-top: 0 !important;
+    padding-top: var(--navbar-height-mobile) !important;
 }
 
 /* Mobile-first responsive adjustments */
 @media (max-width: 600px) {
-    body.has-sidebar main {
+    main {
         margin-left: 0 !important;
-        margin-top: var(--navbar-height-mobile) !important;
+        margin-top: 0 !important;
         padding-left: var(--mobile-padding) !important;
-        padding-top: var(--space-2) !important; /* Reduced padding */
-        width: 100% !important;
-    }
-    
-    body.has-sidebar .navbar:hover ~ main {
-        margin-left: 0 !important;
-        padding-left: var(--mobile-padding) !important;
+        padding-top: var(--space-2) !important;
         width: 100% !important;
     }
     

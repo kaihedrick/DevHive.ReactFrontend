@@ -4,6 +4,9 @@
 
 The authentication system uses a dual-token approach with automatic token refresh and session persistence. This document describes the complete authentication flow, token management, and security measures.
 
+**CRITICAL UPDATES (2025-12-28):**
+- **Auth Error Handling Fixes** - Fixed Axios 401 interceptor to skip redirect on auth endpoints (login, register, password reset). Fixed UI error extraction to prefer backend error messages over generic Axios errors. See [Error Handling SOP](../SOP/error_handling.md) for details.
+
 **CRITICAL UPDATES (2025-12-26):**
 - **Refresh Token Expiration Event Handling** - Fixed race condition where refresh token expiry left users in invalid authenticated state. Added `auth-state-changed` event mechanism to sync AuthContext state when localStorage.userId is cleared but React state remains set.
 

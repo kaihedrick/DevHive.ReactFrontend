@@ -61,7 +61,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
     position: absolute !important; /* Absolute positioning within fixed parent */
-    top: var(--navbar-height-mobile) !important; /* Position below navbar - flush */
+    top: 0 !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important; /* Stretch to bottom - calculates height automatically */
@@ -739,7 +739,7 @@ body.has-sidebar .navbar:hover ~ main .board-page {
     margin-top: 0 !important; /* Ensure no top margin */
     /* Preserve absolute positioning from earlier rule for flush alignment */
     position: absolute !important;
-    top: var(--navbar-height-mobile) !important; /* Flush with navbar */
+    top: 0 !important;
     max-width: 100% !important;
     min-height: auto !important;
   }

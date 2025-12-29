@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense, lazy, useMemo } from 'react';
+import React, { useEffect, useState, Suspense, lazy, useMemo, useLayoutEffect } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useRoutePermission } from '../hooks/useRoutePermission';
 import { isProjectAgnosticRoute } from '../config/routeConfig.ts';
@@ -32,43 +32,45 @@ const GoogleOAuthCallback = lazy(() => import('./GoogleOAuthCallback.tsx'));
 
 /**
  * AppContent - Main application content with routing
- * 
+ *
  * This component contains all the application routing logic and UI structure.
  * It's separated from App.js to provide stable component identity and prevent
  * unnecessary remounts of the provider tree.
  */
 /**
  * LoginRouteWrapper
- * 
+ *
  * Wrapper component for the login route that redirects authenticated users
  * to /projects instead of showing the login page.
- * 
+ *
  * Handles lazy-loaded LoginRegister component properly within Suspense boundary.
- * 
+ *
  * Task 3: Never redirect from /login unless explicitly authenticated AND initialized
  */
 const LoginRouteWrapper = () => {
   const { isAuthenticated, isLoading, authInitialized } = useAuthContext();
-  
+
   // Task 2: Block ALL redirects until auth is initialized
   // Task 3: Never redirect from /login unless explicitly authenticated AND initialized
   if (!authInitialized || isLoading) {
     return <LoadingFallback />;
   }
-  
+
   // Only redirect if auth is initialized AND user is authenticated
   if (authInitialized && isAuthenticated) {
     return <Navigate to="/projects" replace />;
   }
-  
+
   // If not authenticated and auth is initialized, show login page (lazy-loaded component)
   // Suspense boundary in Routes will handle loading state
   return <LoginRegister />;
 };
 
+const MOBILE_MQL = "(max-width: 600px)";
+
 function AppContent() {
   const location = useLocation();
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
+  const [isMobile, setIsMobile] = useState(window.matchMedia(MOBILE_MQL).matches);
   const { selectedProject } = useRoutePermission();
 
   // Debug logging - mount/unmount tracking
@@ -84,46 +86,34 @@ function AppContent() {
     return !!selectedProject && !isProjectAgnosticRoute(location.pathname);
   }, [selectedProject, location.pathname]);
 
-  // Handle responsive behavior
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth <= 600;
+  // Handle responsive behavior with matchMedia - single source of truth
+  useLayoutEffect(() => {
+    const mql = window.matchMedia(MOBILE_MQL);
+
+    const apply = () => {
+      const mobile = mql.matches;
       setIsMobile(mobile);
-      
-      // Update body classes for responsive behavior
-      if (mobile) {
-        document.body.classList.add('has-topbar');
-        document.body.classList.remove('has-sidebar');
-      } else {
-        document.body.classList.add('has-sidebar');
-        document.body.classList.remove('has-topbar');
+
+      document.body.classList.remove("has-sidebar", "has-topbar");
+
+      if (showNavbar) {
+        document.body.classList.add(mobile ? "has-topbar" : "has-sidebar");
       }
     };
 
-    // Set initial state
-    handleResize();
-    
-    window.addEventListener('resize', handleResize);
-    
+    apply();
+
+    // Safari fallback
+    if (mql.addEventListener) mql.addEventListener("change", apply);
+    else mql.addListener(apply);
+
     return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
+      if (mql.removeEventListener) mql.removeEventListener("change", apply);
+      else mql.removeListener(apply);
 
-  // Update body classes when navbar visibility changes
-  useEffect(() => {
-    if (showNavbar) {
-      if (isMobile) {
-        document.body.classList.add('has-topbar');
-        document.body.classList.remove('has-sidebar');
-      } else {
-        document.body.classList.add('has-sidebar');
-        document.body.classList.remove('has-topbar');
-      }
-    } else {
-      document.body.classList.remove('has-topbar', 'has-sidebar');
-    }
-  }, [showNavbar, isMobile]);
+      document.body.classList.remove("has-sidebar", "has-topbar");
+    };
+  }, [showNavbar]);
 
   const getBackgroundStyle = () => ({
     minHeight: showNavbar ? "auto" : "100vh",
@@ -135,7 +125,7 @@ function AppContent() {
       className={`app-container ${showNavbar ? "has-navbar" : "full-screen"}`}
       style={getBackgroundStyle()}
     >
-      {showNavbar && <Navbar />}
+      {showNavbar && <Navbar isMobile={isMobile} />}
       <div className="content">
         <main>
           <Suspense fallback={<LoadingFallback />}>

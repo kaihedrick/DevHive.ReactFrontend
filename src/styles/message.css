@@ -1,413 +1,190 @@
-/* ==========================
-   Message Page - Apple Minimalistic Style
-   ALL styles scoped EXCLUSIVELY to .message-container
-   NO global selectors - prevents style leakage
-========================== */
+/* ===========================
+   Messages Page (Fixed Layout)
+   =========================== */
 
-/* Message page container - flush with navbar */
+/* Root container should fill the .content area, NOT the viewport */
 .message-container {
-  position: relative !important;
-  width: 100% !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;
-  background-color: var(--bg-secondary) !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100vh !important;
-  height: 100dvh !important;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  background-color: var(--bg-secondary);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* ==========================
-   Message Header - Sticky Apple Minimalistic Style
-   EXCLUSIVELY scoped to .message-container
-   Matches contacts page header styling
-========================== */
+/* Header stays visible because the list scrolls, not the whole page */
 .message-container .message-header {
-  background: var(--bg-primary) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
-  padding: 12px 16px !important;
   position: sticky !important;
-  top: 0 !important; /* Default: flush with navbar (desktop sidebar) */
-  z-index: 100 !important; /* Match contacts header z-index */
-  margin: 0 !important;
-  margin-top: 0 !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  flex-shrink: 0 !important;
-  box-shadow: none !important;
-}
-
-/* Desktop: Flush with sidebar navbar - use body class, not media query */
-body.has-sidebar .message-container .message-header {
   top: 0 !important;
+  flex: 0 0 auto;
+  padding: var(--space-4) var(--space-5);
+
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 10;
 }
 
-/* Mobile: Position below topbar - use body class, not media query */
-@media (max-width: 600px) {
-  body.has-topbar .message-container .message-header {
-    top: var(--navbar-height-mobile) !important;
-  }
+.message-container .message-header h1,
+.message-container .message-header h2,
+.message-container .message-header h3 {
+  margin: 0;
+  color: var(--text-primary);
 }
 
-.message-container .message-header .user-info {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.message-container .message-header .user-info svg {
-  display: none !important;
-}
-
-.message-container .message-header h2 {
-  font-size: 17px !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.01em !important;
-  color: var(--text-primary) !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* ==========================
-   Message List - Apple Style
-   EXCLUSIVELY scoped to .message-container
-========================== */
+/* The scroll container */
 .message-container .message-list {
-  flex: 1 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  padding: 16px !important;
-  padding-top: 16px !important;
-  padding-bottom: 16px !important;
-  background-color: var(--bg-secondary) !important;
-  -webkit-overflow-scrolling: touch !important;
-  overscroll-behavior: contain !important;
-  scroll-behavior: smooth !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: flex-end !important;
-  gap: 2px !important;
-  position: relative !important;
-  z-index: 1 !important;
-  margin-top: 0 !important;
-  min-height: 0 !important;
-  align-items: stretch !important;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  /* Nice scroll behavior without fighting the global scroll container */
+  -webkit-overflow-scrolling: touch;
 }
 
-.message-container .message-list > div:last-child {
-  scroll-margin-bottom: 0 !important;
-  min-height: 1px !important;
-  flex-shrink: 0 !important;
-}
-
-@media (min-width: 601px) {
-  .message-container .message-list {
-    padding: 20px 24px !important;
-    padding-bottom: calc(72px + 60px + env(safe-area-inset-bottom)) !important;
-  }
-}
-
-/* ==========================
-   Message Items - iMessage Style Bubbles
-   EXCLUSIVELY scoped to .message-container
-========================== */
-.message-container .message-item {
-  display: flex !important;
-  width: 100% !important;
-  margin-bottom: 2px !important;
-  animation: fadeIn 0.2s ease-out !important;
-}
-
-.message-container .message-item.sent {
-  justify-content: flex-end !important;
-}
-
-.message-container .message-item.received {
-  justify-content: flex-start !important;
-}
-
-.message-container .message-content {
-  max-width: 70% !important;
-  padding: 8px 12px !important;
-  border-radius: 18px !important;
-  word-wrap: break-word !important;
-  position: relative !important;
-  box-shadow: none !important;
-  font-size: 15px !important;
-  line-height: 1.4 !important;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
-}
-
-.message-container .message-item.received .message-content {
-  background: rgba(0, 0, 0, 0.05) !important;
-  color: var(--text-primary) !important;
-  border-bottom-left-radius: 4px !important;
-}
-
-.message-container .message-item.sent .message-content {
-  background: #007AFF !important;
-  color: white !important;
-  border-bottom-right-radius: 4px !important;
-}
-
-.message-container .message-content p {
-  margin: 0 !important;
-  padding: 0 !important;
-  color: inherit !important;
-}
-
-.message-container .message-time {
-  font-size: 11px !important;
-  color: inherit !important;
-  opacity: 0.7 !important;
-  display: block !important;
-  margin-top: 4px !important;
-  text-align: right !important;
-  font-weight: 400 !important;
-  letter-spacing: 0.01em !important;
-}
-
-.message-container .message-item.received .message-time {
-  text-align: left !important;
-}
-
-/* ==========================
-   Message Input - Apple Style
-   EXCLUSIVELY scoped to .message-container
-========================== */
+/* Input bar sits at the bottom of the message container.
+   No sticky, no margin hacks, no double footer math. */
 .message-container .message-input {
-  display: flex !important;
-  align-items: flex-end !important;
-  gap: 8px !important;
-  padding: 12px 16px !important;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
-  background: var(--bg-primary) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
-  position: relative !important;
-  z-index: 10 !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  flex-shrink: 0 !important;
-  margin-top: auto !important;
-  margin-bottom: calc(60px + env(safe-area-inset-bottom)) !important;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+
+  padding: var(--space-3) var(--space-4);
+  padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+
+  background-color: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+  box-sizing: border-box;
 }
 
+/* Textarea */
 .message-container .message-textarea {
-  flex: 1 !important;
-  padding: 10px 16px !important;
-  background: rgba(0, 0, 0, 0.05) !important;
-  border: none !important;
-  border-radius: 20px !important;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
-  font-size: 15px !important;
-  color: var(--text-primary) !important;
-  resize: none !important;
-  overflow: hidden !important;
-  min-height: 40px !important;
-  max-height: 120px !important;
-  line-height: 1.4 !important;
-  transition: background 120ms ease !important;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  -webkit-tap-highlight-color: transparent !important;
+  flex: 1 1 auto;
+
+  min-height: 44px;
+  max-height: 160px;
+
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+
+  font-family: var(--primary-font);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
 }
 
 .message-container .message-textarea:focus {
-  outline: none !important;
-  background: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: var(--shadow-focus);
+  border-color: var(--accent-primary);
 }
 
-.message-container .message-textarea::placeholder {
-  color: var(--text-secondary) !important;
-  opacity: 0.6 !important;
-}
-
+/* Send button */
 .message-container .send-button {
-  background: #007AFF !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 20px !important;
-  width: 40px !important;
-  height: 40px !important;
-  min-width: 40px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-  transition: all 120ms ease !important;
-  flex-shrink: 0 !important;
-  padding: 0 !important;
+  width: 44px;
+  height: 44px;
+
+  border: none;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--accent-secondary);
+  color: var(--white);
+  cursor: pointer;
+
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
 }
 
-.message-container .send-button:hover:not(:disabled) {
-  background: #0051D5 !important;
-  transform: scale(1.05) !important;
+.message-container .send-button:hover {
+  transform: translateY(-1px);
 }
 
-.message-container .send-button:active:not(:disabled) {
-  transform: scale(0.95) !important;
+.message-container .send-button:active {
+  transform: translateY(0);
+  opacity: 0.9;
 }
 
 .message-container .send-button:disabled {
-  background: rgba(0, 0, 0, 0.1) !important;
-  color: var(--text-tertiary) !important;
-  cursor: not-allowed !important;
-  transform: none !important;
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.message-container .send-button svg {
-  width: 18px !important;
-  height: 18px !important;
-  color: inherit !important;
+/* ===========================
+   Message bubbles
+   =========================== */
+
+.message-container .message-item {
+  display: flex;
+  flex-direction: column;
+  max-width: 78%;
 }
 
-/* ==========================
-   Empty States
-   EXCLUSIVELY scoped to .message-container
-========================== */
-.message-container .no-messages {
-  text-align: center !important;
-  color: var(--text-secondary) !important;
-  padding: 48px 16px !important;
-  font-size: 15px !important;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
+.message-container .message-item.sent {
+  align-self: flex-end;
+  text-align: right;
 }
 
-.message-container .loading-message,
-.message-container .error-message {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 48px 16px !important;
-  text-align: center !important;
-  color: var(--text-secondary) !important;
-  font-size: 15px !important;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif !important;
+.message-container .message-item.received {
+  align-self: flex-start;
+  text-align: left;
 }
 
-.message-container .loading-message svg {
-  margin-bottom: 12px !important;
-  color: var(--text-tertiary) !important;
+/* If your markup uses .message-content as the bubble wrapper */
+.message-container .message-item .message-content {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+
+  box-shadow: var(--shadow-sm);
+  word-break: break-word;
 }
 
-.message-container .error-message h2 {
-  font-size: 17px !important;
-  font-weight: 600 !important;
-  color: var(--text-primary) !important;
-  margin-bottom: 8px !important;
+.message-container .message-item.sent .message-content {
+  background: var(--accent-primary);
+  color: var(--black);
+  border-color: transparent;
 }
 
-.message-container .error-message p {
-  font-size: 15px !important;
-  color: var(--text-secondary) !important;
-  margin: 0 !important;
+.message-container .message-item .message-meta,
+.message-container .message-item .message-time {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
 }
 
-/* ==========================
-   Dark Mode Support
-   EXCLUSIVELY scoped to .message-container
-========================== */
-@media (prefers-color-scheme: dark) {
-  .message-container .message-header {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
-  }
-  
-  .message-container .message-header h2 {
-    color: var(--text-primary) !important;
-  }
-  
-  .message-container .message-item.received .message-content {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: var(--text-primary) !important;
-  }
-  
-  .message-container .message-textarea {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: var(--text-primary) !important;
-  }
-  
-  .message-container .message-textarea:focus {
-    background: rgba(255, 255, 255, 0.15) !important;
-  }
-  
-  .message-container .message-input {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-top-color: rgba(255, 255, 255, 0.06) !important;
-  }
-}
-
-/* ==========================
-   Responsive Design
-   EXCLUSIVELY scoped to .message-container
-========================== */
+/* Mobile tightening */
 @media (max-width: 600px) {
+  .message-container .message-header {
+    padding: var(--space-4) var(--space-4);
+  }
+
   .message-container .message-list {
-    padding: 12px 16px !important;
+    padding: var(--space-4) var(--space-4);
   }
-  
-  .message-container .message-content {
-    max-width: 80% !important;
-    font-size: 15px !important;
-  }
-  
-  .message-container .message-input {
-    padding: 12px 16px !important;
-  }
-  
-  .message-container .message-textarea {
-    font-size: 16px !important;
-  }
-}
 
-@media (max-width: 480px) {
-  .message-container .message-content {
-    max-width: 85% !important;
-    padding: 7px 11px !important;
+  .message-container .message-item {
+    max-width: 88%;
   }
-  
-  .message-container .message-time {
-    font-size: 10px !important;
-  }
-}
-
-/* ==========================
-   Animations
-========================== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ==========================
-   Scrollbar Styling
-   EXCLUSIVELY scoped to .message-container
-========================== */
-.message-container .message-list::-webkit-scrollbar {
-  width: 0px !important;
-  background: transparent !important;
-}
-
-.message-container .message-list {
-  scrollbar-width: none !important;
 }

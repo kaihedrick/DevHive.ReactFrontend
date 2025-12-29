@@ -453,7 +453,7 @@ body.has-sidebar .navbar:hover ~ main .project-details-page {
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
     position: absolute !important; /* Absolute positioning within fixed parent */
-    top: var(--navbar-height-mobile) !important; /* Position below navbar */
+    top: 0 !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important; /* Stretch to bottom - this calculates height automatically */

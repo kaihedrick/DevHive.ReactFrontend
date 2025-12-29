@@ -1,16 +1,12 @@
 /* ==========================
    Navbar Base Styles
-   Scoped to navbar only - does not affect page layouts
 ========================== */
 .navbar {
     position: fixed !important;
     background-color: var(--navbar-bg) !important;
-    transition: width var(--transition-normal) ease, height var(--transition-normal) ease !important;
     z-index: 1000 !important;
     box-shadow: var(--shadow-md) !important;
-    /* Ensure navbar is always visible */
     overflow: visible !important;
-    /* Navbar is self-contained - does not affect page spacing */
 }
 
 .navbar-wrapper {
@@ -104,16 +100,13 @@
 }
 
 /* Content layout adjustment for sidebar */
-/* NOTE: main element layout rules are handled in global.css, not here */
-/* This file should only handle navbar-specific styling */
-body .container, 
+body .container,
 body .content-container {
     width: 100% !important;
-    transition: margin var(--transition-normal) ease, padding var(--transition-normal) ease !important;
 }
 
 /* When sidebar is present (desktop) - only for containers, not main */
-body.has-sidebar .container, 
+body.has-sidebar .container,
 body.has-sidebar .content-container {
     margin-left: var(--navbar-width-collapsed) !important;
     width: calc(100% - var(--navbar-width-collapsed)) !important;
@@ -128,17 +121,9 @@ body.has-sidebar .sidebar-mode:hover ~ .content-container {
 
 /* Media queries for responsive layout */
 @media (max-width: 600px) {
-  /* Force content to adjust for topbar - only for containers, not main */
-  /* NOTE: main element layout rules are handled in global.css, not here */
-  body.has-sidebar .container, 
-  body.has-sidebar .content-container {
-    margin-left: 0 !important;
-    margin-top: calc(var(--navbar-height-mobile) + var(--space-2)) !important; /* Reduced spacing */
-    width: 100% !important;
-    padding-top: var(--space-2) !important; /* Reduced from mobile-padding to space-2 */
-  }
-  
   /* Force navbar to stay as topbar on mobile */
+  /* NOTE: Do NOT add margin-top or padding-top to containers here */
+  /* That causes double-offsetting with global body.has-topbar .content rule */
   .navbar {
     width: 100% !important;
     height: var(--navbar-height-mobile) !important;

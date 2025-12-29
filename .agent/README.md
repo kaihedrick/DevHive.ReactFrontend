@@ -16,9 +16,9 @@ This directory contains comprehensive documentation for the DevHive React Fronte
 Core architecture and technical documentation:
 
 - **[Project Architecture](./System/project_architecture.md)** - Complete overview of the system architecture, tech stack, project structure, and core components
-- **[Authentication Architecture](./System/authentication_architecture.md)** - Detailed authentication flows, token management, and security measures ⚠️ **Updated 2025-12-26** - CRITICAL FIX: Refresh token expiration event handling prevents invalid authenticated state. Previous: refreshToken() now properly refreshes expired tokens, OAuth double refresh fix, auth initialization flag, comprehensive logout cleanup, JWT expiration parsing, iOS Safari fixes, logout flow improvements
-- **[Caching Strategy](./System/caching_strategy.md)** - React Query configuration, WebSocket cache invalidation, predicate-based invalidation, and caching patterns ⚠️ **Updated 2025-12-28** - WebSocket subscribe payload and events now use camelCase `projectId`. Previous (2025-12-27): User-scoped cache persistence prevents cross-user cache leakage, predicate-based message invalidation, single WebSocket-only invalidation
-- **[Realtime Messaging](./System/realtime_messaging.md)** - WebSocket implementation, messaging system, and PostgreSQL NOTIFY integration ⚠️ **Updated 2025-12-28** - CRITICAL FIX: Subscribe payload now sends `projectId` (camelCase) to match AWS Lambda backend requirements. Frontend prioritizes camelCase `projectId` over snake_case `project_id` in all event handlers. Added debug logging for subscribe success/failure. Previous: predicate-based invalidation for messages, nested/flat payload support, single WebSocket-only cache invalidation
+- **[Authentication Architecture](./System/authentication_architecture.md)** - Detailed authentication flows, token management, and security measures ⚠️ **Updated 2025-12-28** - Auth error handling fixes: Axios 401 interceptor skips redirect on auth endpoints, UI error extraction prefers backend messages. Previous (2025-12-26): Refresh token expiration event handling, OAuth double refresh fix, auth initialization flag, comprehensive logout cleanup, JWT expiration parsing, iOS Safari fixes
+- **[Caching Strategy](./System/caching_strategy.md)** - React Query configuration, WebSocket cache invalidation, predicate-based invalidation, and caching patterns ⚠️ **Updated 2025-12-28** - WebSocket fallback refetch on send success, multi-source projectId extraction, empty-string safety checks, camelCase subscribe payload. Previous (2025-12-27): User-scoped cache persistence prevents cross-user cache leakage
+- **[Realtime Messaging](./System/realtime_messaging.md)** - WebSocket implementation, messaging system, and PostgreSQL NOTIFY integration ⚠️ **Updated 2025-12-28** - WebSocket error handling & fallback mechanisms: multi-source projectId extraction, fallback refetch, build version tracking. CamelCase subscribe payload fix (`projectId` not `project_id`). Debug logging for subscribe success/failure
 - **[Invite Management](./System/invite_management.md)** - Project invite system, expiration logic, and frontend implementation
 - **[File Reference](./System/file_reference.md)** - Quick reference map for key files and line numbers
 - **[Risk Analysis](./System/risk_analysis.md)** - Risk areas, testing guidelines, and debugging tools
@@ -27,6 +27,7 @@ Core architecture and technical documentation:
 
 Development procedures and guides:
 
+- **[Error Handling](./SOP/error_handling.md)** - Error handling patterns for auth, API, and WebSocket errors ⚠️ **NEW 2025-12-28** - Auth 401 handling, error message extraction, WebSocket fallbacks, build version tracking
 - **[Environment Setup](./SOP/environment_setup.md)** - Development environment configuration and setup
 - **[Development Workflow](./SOP/development_workflow.md)** - Common development tasks, code standards, and best practices
 - **[Migration Guide](./SOP/migration_guide.md)** - Backend migration from .NET to Go + PostgreSQL
@@ -82,6 +83,7 @@ Feature PRDs and implementation plans:
 │   ├── fix_google_oauth_cache_leak.md # OAuth cache leak fix
 │   └── fix_authentication_15min_logout.md # 15-minute logout fix
 └── SOP/                              # Standard Operating Procedures
+    ├── error_handling.md             # Error handling patterns (NEW 2025-12-28)
     ├── environment_setup.md          # Environment configuration
     ├── development_workflow.md       # Development procedures
     ├── migration_guide.md            # Backend migration
@@ -99,15 +101,17 @@ Feature PRDs and implementation plans:
 
 ### For Understanding Authentication
 
-1. Read **[Authentication Architecture](./System/authentication_architecture.md)** for complete auth flows ⚠️ **Updated 2025-12-26** - CRITICAL FIX: Refresh token expiration event handling prevents invalid authenticated state. Previous: refreshToken() now properly refreshes expired tokens, OAuth double refresh fix, auth initialization flag, comprehensive logout cleanup, JWT expiration parsing, iOS Safari fixes, logout flow improvements, and 401-only logout logic
-2. Review **[Risk Analysis](./System/risk_analysis.md)** for critical areas to avoid breaking
-3. Check **[File Reference](./System/file_reference.md)** for auth-related file locations
+1. Read **[Authentication Architecture](./System/authentication_architecture.md)** for complete auth flows ⚠️ **Updated 2025-12-28** - Auth error handling fixes (401 interceptor, error extraction)
+2. Review **[Error Handling SOP](./SOP/error_handling.md)** for auth error patterns and best practices ⚠️ **NEW 2025-12-28**
+3. Review **[Risk Analysis](./System/risk_analysis.md)** for critical areas to avoid breaking
+4. Check **[File Reference](./System/file_reference.md)** for auth-related file locations
 
 ### For Understanding Caching & Real-time Updates
 
-1. Read **[Caching Strategy](./System/caching_strategy.md)** for React Query, user-scoped persistence, predicate-based invalidation, and cache patterns ⚠️ **Updated 2025-12-28** - WebSocket events now use camelCase `projectId`
-2. Review **[Realtime Messaging](./System/realtime_messaging.md)** for WebSocket implementation and message flow ⚠️ **Updated 2025-12-28** - CRITICAL: Subscribe payload camelCase fix (`projectId` not `project_id`), all event handlers prioritize camelCase, debug logging added
-3. Check **[File Reference](./System/file_reference.md)** for cache-related file locations
+1. Read **[Caching Strategy](./System/caching_strategy.md)** for React Query, user-scoped persistence, predicate-based invalidation, and cache patterns ⚠️ **Updated 2025-12-28** - WebSocket fallback refetch, multi-source projectId extraction
+2. Review **[Realtime Messaging](./System/realtime_messaging.md)** for WebSocket implementation and message flow ⚠️ **Updated 2025-12-28** - WebSocket error handling & fallback mechanisms
+3. Review **[Error Handling SOP](./SOP/error_handling.md)** for WebSocket error patterns and fallback mechanisms ⚠️ **NEW 2025-12-28**
+4. Check **[File Reference](./System/file_reference.md)** for cache-related file locations
 
 ### For Working on Features
 

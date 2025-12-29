@@ -2,7 +2,9 @@
 
 This document describes the backend architecture for project contacts (members) and realtime messaging in DevHive.
 
-## ⚠️ CRITICAL UPDATE (2025-12-28): WebSocket Client CamelCase Fix
+## ⚠️ CRITICAL UPDATES (2025-12-28)
+
+### WebSocket Client CamelCase Fix
 
 **Issue**: Frontend was sending `project_id` (snake_case) in subscribe payload, but AWS Lambda backend expects `projectId` (camelCase).
 
@@ -17,6 +19,24 @@ This document describes the backend architecture for project contacts (members) 
 - `.agent/System/realtime_messaging.md` - Documentation examples and API reference
 
 **Testing**: Look for `✅ Subscribe acknowledged by backend:` in browser console to confirm subscription success.
+
+### WebSocket Error Handling & Fallback Mechanisms
+
+**Issue**: Messages query uses `staleTime: Infinity`, so if WebSocket invalidation fails (missing projectId, connection dropped), messages never update.
+
+**Fix Applied**:
+1. ✅ Multi-source projectId extraction (camelCase, snake_case, nested, subscribed project)
+2. ✅ Empty projectId safety check to prevent invalid invalidation
+3. ✅ Fallback refetch on message send success
+4. ✅ Build version tracking for debugging version mismatches
+
+**Files Changed**:
+- `src/services/cacheInvalidationService.ts` - Multi-source extraction, safety checks
+- `src/hooks/useMessages.ts` - Fallback refetch on send success
+- `src/buildInfo.ts` - Build version tracking
+- `src/index.js` - Build info logging at startup
+
+See [Error Handling SOP](../SOP/error_handling.md) for complete details.
 
 ---
 

@@ -4,7 +4,10 @@
 
 The caching system uses React Query with WebSocket-driven cache invalidation for real-time data synchronization.
 
-**Latest Update (2025-12-28)**: WebSocket subscribe payload and event handlers updated to use camelCase `projectId` to match AWS Lambda backend requirements. See [Realtime Messaging](./realtime_messaging.md) for details.
+**Latest Updates (2025-12-28)**:
+- **WebSocket Fallback Refetch** - Added fallback refetch on message send success to ensure messages update even if WebSocket invalidation fails. See [Error Handling SOP](../SOP/error_handling.md) for details.
+- **Multi-Source ProjectId Extraction** - WebSocket event handlers now extract projectId from multiple sources (camelCase, snake_case, nested, subscribed project) with proper fallbacks and empty-string safety checks.
+- **WebSocket Subscribe Payload** - Subscribe payload and event handlers updated to use camelCase `projectId` to match AWS Lambda backend requirements. See [Realtime Messaging](./realtime_messaging.md) for details.
 
 ---
 

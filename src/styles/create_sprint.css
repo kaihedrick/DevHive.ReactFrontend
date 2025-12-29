@@ -198,7 +198,7 @@ body.has-sidebar .navbar:hover ~ main .create-sprint-container::after {
 .create-sprint-container::before {
   content: '' !important;
   position: fixed !important;
-  top: var(--navbar-height-mobile) !important; /* Align with global navbar height */
+  top: 0 !important;
   /* Center to match content: when sidebar present, center within available space */
   /* Default (no sidebar): center on viewport */
   left: calc(50vw - 250px) !important;
