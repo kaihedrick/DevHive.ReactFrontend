@@ -5,65 +5,67 @@
 .contacts-page {
   width: 100%;
   height: 100%;
-  min-height: 0; /* Changed from 100vh - must respect parent (.content) height, not viewport */
-
-  display: flex;
-  flex-direction: column;
-
-  background-color: var(--bg-secondary);
-  box-sizing: border-box;
-}
-
-/* Main card/container */
-.contacts-page .contact-container {
-  flex: 1 1 auto;
   min-height: 0;
 
   display: flex;
   flex-direction: column;
   overflow: hidden;
 
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-
-  margin: var(--space-4);
+  background-color: var(--bg-secondary);
+  box-sizing: border-box;
 }
 
-/* Header (sticky at top: 0; list scrolls inside container) */
-.contacts-page .contact-header {
+/* Remove card wrapper - use page as container */
+.contacts-page .contact-container {
+  flex: 1 1 auto;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+
+  background: transparent;
+  box-sizing: border-box;
+}
+
+/* Sticky header at top of scrollable area - matches project details h1 exactly */
+.contacts-page .contact-header h1 {
   position: sticky !important;
   top: 0 !important;
-  flex: 0 0 auto;
-
-  padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--border-color);
-
-  background: var(--bg-primary);
-  box-sizing: border-box;
-  z-index: 10;
+  background-color: var(--bg-primary) !important;
+  z-index: 10 !important;
+  padding: var(--space-3) 0 var(--space-4) 0 !important;
+  margin: 0 !important;
 }
 
-.contacts-page .contact-header h1,
-.contacts-page .contact-header h2,
-.contacts-page .contact-header h3 {
-  margin: 0;
-  color: var(--text-primary);
+/* Shadow gradient below sticky header - hidden by default */
+.contacts-page .contact-header h1::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: calc(var(--space-4) * -1) !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 16px !important;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), transparent) !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
 }
 
-/* The list is the scroll container */
+/* Show shadow gradient when scrolled down */
+.contacts-page .contact-container:not(.scrolled-to-top) .contact-header h1::after {
+  opacity: 1 !important;
+}
+
+/* The list scrolls with the container */
 .contacts-page .contact-list {
   flex: 1 1 auto;
   min-height: 0;
 
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-
-  padding: var(--space-3);
+  padding: var(--space-4) var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 /* Contact rows */
@@ -134,6 +136,14 @@
   white-space: nowrap;
 }
 
+.contacts-page .contact-role {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Right side actions */
 .contacts-page .contact-actions {
   display: flex;
@@ -162,22 +172,27 @@
   transform: translateY(0);
 }
 
-/* Mobile spacing */
+/* Mobile topbar mode - flush layout like project-details */
 @media (max-width: 600px) {
-  .contacts-page .contact-container {
-    margin: var(--space-3);
-    border-radius: var(--border-radius);
+  body.has-topbar .contacts-page .contact-container {
+    position: fixed !important;
+    top: var(--navbar-height-mobile, 64px) !important;
+    bottom: var(--footer-height, 60px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  .contacts-page .contact-header {
+  /* Mobile styling - keep default from above */
+  body.has-topbar .contacts-page .contact-list {
     padding: var(--space-4) var(--space-4);
   }
 
-  .contacts-page .contact-list {
-    padding: var(--space-2);
-  }
-
-  .contacts-page .contact-item {
+  body.has-topbar .contacts-page .contact-item {
     padding: var(--space-3);
   }
 }

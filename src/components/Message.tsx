@@ -4,6 +4,7 @@ import { useMessages } from "../hooks/useMessages.ts";
 import { useUser } from "../hooks/useUsers.ts";
 import { User, Message as MessageType } from "../types/hooks.ts";
 import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea.ts";
+import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import "../styles/message.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faSpinner } from "@fortawesome/free-solid-svg-icons";
@@ -82,6 +83,9 @@ const Message: React.FC = () => {
   
   // Auto-resize textarea for message input
   const messageTextareaRef = useAutoResizeTextarea(newMessage, 1);
+
+  // Scroll indicators for shadow effect
+  const containerRef = useScrollIndicators([messages.length]);
 
   /**
    * formatMessageTime
@@ -220,7 +224,7 @@ const Message: React.FC = () => {
   }
 
   return (
-    <div className="message-container with-footer-pad scroll-pad-bottom">
+    <div ref={containerRef} className="message-container with-footer-pad scroll-pad-bottom">
       <div className="message-header">
         <div className="user-info">
           <h2>{displayName}</h2>

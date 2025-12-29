@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getSelectedProject } from "../services/storageService";
 import { useAuthContext } from "../contexts/AuthContext.tsx";
 import { useProjectMembers } from "../hooks/useProjects.ts";
+import { useScrollIndicators } from "../hooks/useScrollIndicators.ts";
 import "../styles/contacts.css";
 /**
  * Contacts Component
@@ -48,6 +49,9 @@ const Contacts = () => {
   // Convert error to string for display
   const error = queryError ? String(queryError) : null;
 
+  // Scroll indicators for shadow effect
+  const containerRef = useScrollIndicators([contacts.length]);
+
   const handleContactClick = (contactId) => {
     // Use the memoized projectId from component state
     navigate(`/messages/${contactId}/${projectId}`); // Navigate to Messages Page with user ID & project ID
@@ -55,7 +59,7 @@ const Contacts = () => {
 
   return (
     <div className="contacts-page with-footer-pad scroll-pad-bottom">
-        <div className="contact-container">
+        <div ref={containerRef} className="contact-container">
           <div className="contact-header">
             <h1>Project Contacts</h1>
           </div>
@@ -75,7 +79,7 @@ const Contacts = () => {
                     <div className="contact-avatar">
                       {contact.firstName.charAt(0)}{contact.lastName.charAt(0)}
                     </div>
-                    <div className="contact-details">
+                    <div className="contact-text">
                       <span className="contact-name">{contact.firstName} {contact.lastName}</span>
                       <span className="contact-email">{contact.email}</span>
                       <span className="contact-role">{contact.role}</span>
