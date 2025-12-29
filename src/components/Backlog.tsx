@@ -303,12 +303,12 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
   if (!selectedProjectId) {
     return (
       <div className="backlog-page">
-        <header className="backlog-header" aria-label="Backlog header">
+        <div className="create-sprint-nav-bar backlog-header" aria-label="Backlog header">
           <div className="header-left">
             <h1 className="page-title">Backlog</h1>
             <p className="page-subtitle">Manage your sprints and tasks</p>
           </div>
-        </header>
+        </div>
         <div className="backlog-container">
           <div className="empty-state">
             <div className="empty-illustration" aria-hidden>📁</div>
@@ -327,7 +327,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
 
   return (
       <div className="backlog-page with-footer-pad scroll-pad-bottom">
-        <header className="backlog-header" aria-label="Backlog header">
+        <div className="create-sprint-nav-bar backlog-header" aria-label="Backlog header">
           <div className="header-left">
             <h1 className="page-title">
               {selectedSprint ? `Sprint: ${selectedSprint.name}` : 'Backlog'}
@@ -337,7 +337,6 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
             </p>
           </div>
 
-          {/* Actions toolbar - visible on all screen sizes */}
           <div className="backlog-toolbar">
             <button 
               className="primary-action-btn"
@@ -355,7 +354,7 @@ const Backlog: React.FC<BacklogProps> = ({ projectId }) => {
               </button>
             )}
           </div>
-        </header>
+        </div>
 
         <div className="backlog-container">
 

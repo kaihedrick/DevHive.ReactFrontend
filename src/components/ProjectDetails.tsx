@@ -456,12 +456,13 @@ const ProjectDetails: React.FC = () => {
 
   return (
     <div className="project-details-page">
-      <div
-        ref={scrollShadowsRef}
-        className="scroll-shadows"
-        aria-hidden="true"
-      ></div>
-      <div ref={containerRef} className="create-sprint-container with-footer-pad">{/* iPhone-first width clamp */}
+      <div className="project-details-surface">
+        <div
+          ref={scrollShadowsRef}
+          className="scroll-shadows"
+          aria-hidden="true"
+        ></div>
+        <div ref={containerRef} className="create-sprint-container with-footer-pad">{/* iPhone-first width clamp */}
       {/* Keep existing header */}
       <div className="create-sprint-nav-bar">
         <button className="back-nav-btn" onClick={() => navigate(-1)}>Back</button>
@@ -874,6 +875,7 @@ const ProjectDetails: React.FC = () => {
           onCancel={handleLeaveCancel}
         />
       )}
+        </div>
       </div>
     </div>
   );

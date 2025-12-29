@@ -92,7 +92,6 @@
   max-width: 500px !important;
   margin: 0 auto !important;
   position: relative !important;
-  max-height: 100% !important; /* Changed from 100vh - respect parent height */
   overflow-y: auto !important; /* Enable scrolling on the container itself */
   overflow-x: hidden !important;
   scroll-behavior: smooth !important;

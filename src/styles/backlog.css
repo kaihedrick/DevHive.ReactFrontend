@@ -602,23 +602,13 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
 ============================= */
 /***** Sticky header on mobile *****/
 .backlog-page .backlog-header {
-  position: sticky;
-  top: 0; /* Default: flush with navbar (desktop sidebar) */
-  z-index: 20;
-  backdrop-filter: saturate(180%) blur(12px);
-  background: color-mix(in srgb, var(--bg-secondary), #fff 25%) !important;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: var(--space-3);
-  margin-bottom: var(--space-4);
-  display: flex !important; 
-  align-items: flex-end !important; 
-  justify-content: space-between !important; 
+  width: 100% !important;
+  margin-bottom: var(--space-4) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
   gap: var(--space-3) !important;
-}
-
-/* Desktop: Flush with sidebar navbar */
-body.has-sidebar .backlog-page .backlog-header {
-  top: 0 !important;
+  flex-wrap: wrap !important;
 }
 
 /* Scoped page title and subtitle within backlog header - matching Projects page */
@@ -635,7 +625,7 @@ body.has-sidebar .backlog-page .backlog-header {
 }
 
 .backlog-page .backlog-header .header-left {
-  flex: 1;
+  flex: 1 1 240px;
 }
 
 /* Backlog toolbar alignment - matching Projects page */

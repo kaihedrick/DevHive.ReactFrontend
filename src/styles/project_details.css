@@ -2,14 +2,49 @@
 /* Scoped Project Details Styling - Absolute Page-Level Scoping */
 /* ======================= */
 
+:root {
+  --mobile-top-offset: calc(var(--navbar-height-mobile, 56px) + env(safe-area-inset-top, 0px));
+}
+
 /* Override global main styles for Project Details page - Absolute Scoping */
 .project-details-page {
-  --project-header-height: 65px !important; /* Height of the project header (used by shadows) */
+  --project-header-height: 65px !important;
   position: relative !important;
   width: 100% !important;
-  min-height: 0 !important; /* Changed from 100vh - must respect parent (.content) height with padding */
-  height: 100% !important; /* Fill parent height */
-  overflow: visible !important; /* Never add scrolling to page wrapper */
+  height: 100% !important;
+  overflow: hidden !important;
+  padding: var(--space-4) var(--space-4) calc(var(--footer-height, 60px) + var(--space-4)) var(--space-4) !important;
+  background: var(--bg-secondary) !important;
+  box-sizing: border-box !important;
+}
+
+body:not(.has-sidebar) .project-details-page {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+body:not(.has-sidebar):has(.project-details-page) {
+  overflow: hidden !important;
+  height: 100vh !important;
+}
+
+body:has(.project-details-page) .app-container .content {
+  overflow: hidden !important;
+}
+
+.project-details-surface {
+  background: transparent !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  border-radius: var(--border-radius) !important;
+  position: relative !important;
 }
 
 /* Scroll shadow overlay sits above the form but below the navbar/footer */
@@ -82,6 +117,7 @@ body.has-sidebar .project-details-page {
   width: 100% !important;
   display: block !important;
   position: relative !important;
+  height: 100% !important;
 }
 
 body.has-sidebar .navbar:hover ~ main .project-details-page {
@@ -96,14 +132,16 @@ body.has-sidebar .navbar:hover ~ main .project-details-page {
   margin-right: auto !important;
   width: 100% !important;
   max-width: 500px !important;
-  display: block !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
 }
 
 .project-details {
   position: relative !important;
-  width: 90% !important;
-  max-width: 800px !important;
-  margin: var(--space-5) auto !important;
+  width: 100% !important;
+  margin: var(--space-4) auto !important;
   padding: var(--space-5) !important;
   border: 1px solid var(--light-gray) !important;
   background-color: var(--bg-primary) !important;
@@ -114,12 +152,8 @@ body.has-sidebar .navbar:hover ~ main .project-details-page {
   align-items: center !important;
   gap: var(--space-4) !important;
   transition: all var(--transition-normal) ease !important;
-  min-height: 0 !important; /* Changed from calc(100vh - 100px) - let it fill naturally */
-  /* Better centering for larger screens */
+  min-height: 0 !important;
   box-sizing: border-box !important;
-  /* Remove problematic left/transform positioning */
-  /* left: 50% !important; */
-  /* transform: translateX(-50%) !important; */
 }
 
 .project-details h1 {
@@ -487,71 +521,8 @@ body.has-sidebar .navbar:hover ~ main .project-details-page {
   .project-details {
     margin: var(--space-3) auto !important;
     padding: var(--space-4) !important;
-    width: 95% !important;
-  }
-  
-  /* Fix double scrollbar - make page wrapper completely invisible/non-interfering */
-  /* The container should behave exactly like it does in Account Details */
-  .project-details-page {
-    position: fixed !important; /* Lock viewport to prevent any page scrolling */
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    overflow: hidden !important; /* No scrolling on page */
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-  
-  /* Prevent body scroll when page wrapper is fixed */
-  body:has(.project-details-page) {
-    overflow: hidden !important;
-    height: 100vh !important;
-  }
-  
-  /* Container acts as the entire page - exactly like Account Details */
-  .project-details-page .create-sprint-container {
     width: 100% !important;
-    overflow-y: auto !important; /* Scrolling happens here - auto to avoid frozen scrollbar */
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
-    position: absolute !important; /* Absolute positioning within fixed parent */
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important; /* Stretch to bottom - this calculates height automatically */
-    box-sizing: border-box !important;
-    
-    /* Use the same styled scrollbar as Account Details (from global.css) */
-    scrollbar-width: thin !important; /* Firefox - thin scrollbar */
-    scrollbar-color: var(--gray) var(--bg-secondary) !important; /* Firefox - thumb and track colors */
   }
-  
-  /* WebKit scrollbar styling - matches global.css */
-  .project-details-page .create-sprint-container::-webkit-scrollbar {
-    width: 0.4rem !important;
-    height: 0.4rem !important;
-  }
-  
-  .project-details-page .create-sprint-container::-webkit-scrollbar-track {
-    background: var(--bg-secondary) !important;
-    border-radius: var(--border-radius) !important;
-  }
-  
-  .project-details-page .create-sprint-container::-webkit-scrollbar-thumb {
-    background-color: var(--gray) !important;
-    border-radius: var(--border-radius) !important;
-  }
-  
-  .project-details-page .create-sprint-container::-webkit-scrollbar-thumb:hover {
-    background-color: var(--dark-gray) !important;
-  }
-  
-  /* Nav bar is sticky within the container (inherits from create_sprint.css) */
-  /* No need to override - sticky: top: 0 already works correctly */
-  /* The create-sprint-nav-bar already has position: sticky !important; top: 0 !important; */
 }
 
 /* ======================= */
@@ -884,6 +855,7 @@ body.has-sidebar .navbar:hover ~ main .project-details-page {
   /* Page wrapper in topbar mode */
   body.has-topbar .project-details-page {
     padding: 0 !important;
+    padding-top: var(--mobile-top-offset) !important;
     margin: 0 !important;
     overflow: hidden !important;
   }
