@@ -54,14 +54,25 @@ export const useMessagesQuery = (projectId: string | null | undefined, options?:
  * Hook to send a message using React Query mutation
  * @returns Mutation hook for sending messages
  *
- * NOTE: Cache invalidation is handled by WebSocket (message_created event).
- * No manual invalidation needed here to avoid double-fetch.
+ * NOTE: Cache invalidation is primarily handled by WebSocket (message_created event).
+ * However, we add a fallback refetch to ensure messages update even if WebSocket fails.
  */
 export const useSendMessage = () => {
+  const queryClient = useQueryClient();
+  const { userId } = useAuthContext();
+
   return useMutation({
     mutationFn: (messageData: { projectId: string; content: string; messageType?: string; parentMessageId?: string }) =>
       sendMessage(messageData),
-    // No onSuccess invalidation - WebSocket handles cache invalidation
+    // Fallback: refetch on success to ensure messages update even if WebSocket invalidation fails
+    onSuccess: (data, variables) => {
+      const { projectId } = variables;
+      // Refetch the messages query for this project/user
+      queryClient.refetchQueries({
+        queryKey: messageKeys.project(projectId, userId),
+        exact: true,
+      });
+    },
   });
 };
 
@@ -123,9 +134,8 @@ export const useMessages = (projectId: string | null | undefined) => {
       // Clear input on success
       setNewMessage('');
 
-      // No manual refetch needed - mutation's onSuccess already invalidates the query,
-      // which automatically triggers a refetch. WebSocket will also invalidate when
-      // the backend broadcasts the cache_invalidate event.
+      // Mutation's onSuccess refetches the query as a fallback.
+      // WebSocket will also invalidate when the backend broadcasts the message_created event.
     } catch (error) {
       console.error('❌ Error sending message:', error);
       // Error is available via sendMutation.error

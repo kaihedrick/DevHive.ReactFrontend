@@ -46,13 +46,24 @@ api.interceptors.response.use(
   (error) => {
     const problem = error.response?.data;
     const message = problem?.detail || problem?.title || error.message;
-    
+
+    // Only redirect on 401 if it's NOT an auth endpoint (login, register, password reset, refresh)
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      window.location.href = '/';
+      const isAuthEndpoint =
+        error.config?.url?.includes('/auth/login') ||
+        error.config?.url?.includes('/auth/register') ||
+        error.config?.url?.includes('/auth/password/reset-request') ||
+        error.config?.url?.includes('/auth/password/reset') ||
+        error.config?.url?.includes('/auth/refresh') ||
+        (error.config?.method === 'post' && error.config?.url?.endsWith('/users') && !error.config?.url?.includes('/users/'));
+
+      if (!isAuthEndpoint) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        window.location.href = '/';
+      }
     }
-    
+
     const normalizedError = new Error(message) as any;
     normalizedError.status = error.response?.status;
     normalizedError.originalError = error;

@@ -225,17 +225,25 @@ const useLoginRegisterNew = () => {
         });
       }
     } catch (err: any) {
-      // Extract error message from normalized error or response data
+      // Extract error message - prefer backend detail/title over generic err.message
       let errorMessage = '❌ An error occurred. Please try again.';
-      if (err?.message) {
-        errorMessage = err.message; // Use normalized error message (includes backend detail)
-      } else if (err?.response?.data) {
-        const data = err.response.data;
-        errorMessage = data.detail || data.title || data.message || JSON.stringify(data);
+
+      const data = err?.response?.data;
+      if (data?.detail || data?.title || data?.message) {
+        // Prefer backend error messages (detail, title, or message)
+        errorMessage = data.detail || data.title || data.message;
+      } else if (typeof err?.message === 'string' && err.message.trim()) {
+        // Fall back to err.message only if backend data is unavailable
+        errorMessage = err.message;
       } else if (typeof err === 'string') {
         errorMessage = err;
       }
-      
+
+      // For 401 errors without a good detail, provide a more helpful message
+      if (err?.response?.status === 401 && !data?.detail && !data?.title) {
+        errorMessage = 'Incorrect username or password.';
+      }
+
       updateState({
         error: errorMessage,
         success: false,

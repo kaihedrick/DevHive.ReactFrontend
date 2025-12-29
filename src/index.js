@@ -11,6 +11,10 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient.ts';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import { ToastProvider } from './contexts/ToastContext.tsx';
+import { logBuildInfo } from './buildInfo.ts';
+
+// Log build info at startup for version tracking
+logBuildInfo();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

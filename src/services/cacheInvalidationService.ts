@@ -453,6 +453,13 @@ class CacheInvalidationService {
    * @param projectId - The project ID to invalidate messages for
    */
   private invalidateProjectMessages(projectId: string): void {
+    // Bail if projectId is empty (don't invalidate a blank key)
+    if (!projectId || projectId === '') {
+      console.warn('⚠️ Attempted to invalidate messages with empty projectId - skipping');
+      return;
+    }
+
+    console.log(`🔄 Invalidating message queries for project: ${projectId}`);
     queryClient.invalidateQueries({
       predicate: (q) => {
         const k = q.queryKey;
@@ -608,8 +615,20 @@ class CacheInvalidationService {
         break;
 
       case 'message_created': {
-        // Prioritize camelCase projectId over snake_case project_id
-        const projectId = message.projectId || message.project_id || '';
+        // Extract projectId from multiple sources (top-level, data, subscribed project)
+        const projectId =
+          message.projectId ||
+          message.project_id ||
+          (message.data as any)?.projectId ||
+          (message.data as any)?.project_id ||
+          this.currentProjectId ||
+          '';
+
+        if (!projectId) {
+          console.warn('⚠️ message_created missing projectId; keys:', Object.keys(message), 'dataKeys:', Object.keys(message.data || {}));
+          return;
+        }
+
         console.log(`💬 Message created for project ${projectId}`);
         this.invalidateProjectMessages(projectId);
         break;
