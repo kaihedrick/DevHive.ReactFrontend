@@ -855,7 +855,7 @@ body.has-sidebar .navbar:hover ~ main .project-details-page {
   /* Page wrapper in topbar mode */
   body.has-topbar .project-details-page {
     padding: 0 !important;
-    padding-top: var(--mobile-top-offset) !important;
+    padding-top: calc(var(--navbar-height-mobile, 56px) + env(safe-area-inset-top, 0px)) !important;
     margin: 0 !important;
     overflow: hidden !important;
   }
