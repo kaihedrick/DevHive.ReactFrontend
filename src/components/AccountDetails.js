@@ -93,7 +93,7 @@ const AccountDetails = () => {
 
   useEffect(() => {
     const scroller = document.querySelector(".account-details-scroll");
-    const header = document.querySelector(".create-sprint-nav-bar");
+    const header = document.querySelector(".account-details-header");
 
     if (!scroller || !header) return;
 
@@ -262,14 +262,10 @@ const AccountDetails = () => {
 
   return (
     <div className="account-details-page page--fullscreen">
-      <div className="account-details-header">
-        <div className="create-sprint-nav-bar">
-          <div className="create-sprint-nav-inner">
-            <button className="back-nav-btn" onClick={handleGoBack}>Back</button>
-            <h1 className="create-sprint-title">Account</h1>
-            <div className="nav-spacer" />
-          </div>
-        </div>
+      <div className="create-sprint-nav-bar account-details-header">
+        <button className="back-nav-btn" onClick={handleGoBack}>Back</button>
+        <h1 className="create-sprint-title">Account</h1>
+        <div className="nav-spacer" />
       </div>
 
       <div className="account-details-surface">

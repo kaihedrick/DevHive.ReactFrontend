@@ -12,35 +12,19 @@
   padding: 0 !important;
 }
 
-.account-details-header {
-  position: static !important;
-  background: transparent !important;
-  padding: 0 !important;
-  border: none !important;
-}
-
-.account-details-page .create-sprint-nav-bar {
-  width: 100% !important;
-  max-width: none !important;
-  box-sizing: border-box !important;
-  padding: 0 !important;
+.account-details-page .account-details-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+  background: var(--bg-primary) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: var(--space-4) var(--space-6) !important;
   box-shadow: none !important;
   transition: box-shadow 0.2s ease !important;
 }
 
-.account-details-page .create-sprint-nav-bar.is-scrolled {
+.account-details-page .account-details-header.is-scrolled {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35) !important;
-}
-
-.account-details-page .create-sprint-nav-inner {
-  width: 100% !important;
-  max-width: 500px !important;
-  margin: 0 auto !important;
-  padding: 0 var(--space-6) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  box-sizing: border-box !important;
 }
 
 .account-details-surface {
@@ -56,7 +40,6 @@
   padding: var(--space-6) !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
-  scrollbar-gutter: stable both-edges !important;
 }
 
 .account-container {
@@ -66,11 +49,12 @@
 
 @media (max-width: 600px) {
   body.has-topbar .account-details-page {
-    padding-top: 0 !important;
+    padding-top: calc(var(--navbar-height-mobile, 56px) + env(safe-area-inset-top, 0px)) !important;
   }
 
-  body.has-topbar .account-details-page .create-sprint-nav-inner {
-    padding: 0 var(--space-4) !important;
+  body.has-topbar .account-details-page .account-details-header {
+    top: calc(var(--navbar-height-mobile, 56px) + env(safe-area-inset-top, 0px)) !important;
+    padding: var(--space-3) var(--space-4) !important;
   }
 
   .account-details-scroll {

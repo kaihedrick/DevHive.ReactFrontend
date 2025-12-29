@@ -215,15 +215,6 @@ body.has-topbar .create-sprint-container {
   display: none !important;
 }
 
-@media (max-width: 600px) {
-  body.has-topbar .create-sprint-nav-bar {
-    top: var(
-      --mobile-top-offset,
-      calc(var(--navbar-height-mobile, 56px) + env(safe-area-inset-top, 0px))
-    ) !important;
-  }
-}
-
 /* Show bottom gradient only when scrollable and NOT at bottom */
 .create-sprint-container:not(.no-scroll):not(.scrolled-to-bottom)::after {
   opacity: 1 !important;
