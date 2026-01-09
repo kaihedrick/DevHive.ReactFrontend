@@ -12,24 +12,28 @@
   position: relative !important;
   width: 100% !important;
   height: 100% !important;
-  overflow: hidden !important;
-  padding: var(--space-4) var(--space-4) calc(var(--footer-height, 60px) + var(--space-4)) var(--space-4) !important;
+  min-height: 0 !important;
+  overflow-y: auto !important; /* Allow vertical scrolling */
+  overflow-x: hidden !important;
+  padding: var(--space-4) !important;
+  /* Add padding for footer */
+  padding-bottom: calc(var(--footer-height, 60px) + var(--space-6)) !important;
   background: var(--bg-secondary) !important;
   box-sizing: border-box !important;
+  display: block !important; /* Change from flex to block for natural flow */
 }
 
+/* Remove strict fixed positioning that breaks scrolling */
 body:not(.has-sidebar) .project-details-page {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  display: flex !important;
-  justify-content: center !important;
+  position: relative !important; /* Change from fixed */
+  inset: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
 }
 
 body:not(.has-sidebar):has(.project-details-page) {
-  overflow: hidden !important;
-  height: 100vh !important;
+  overflow: hidden !important; /* Keep body hidden, let page scroll */
 }
 
 body:has(.project-details-page) .app-container .content {
@@ -40,108 +44,69 @@ body:has(.project-details-page) .app-container .content {
   background: transparent !important;
   width: 100% !important;
   max-width: 500px !important;
+  margin: 0 auto !important; /* Center the surface */
   display: flex !important;
   flex-direction: column !important;
-  height: 100% !important;
+  min-height: min-content !important; /* Allow it to grow */
   border-radius: var(--border-radius) !important;
   position: relative !important;
 }
 
-/* Scroll shadow overlay sits above the form but below the navbar/footer */
+/* Sticky Header Implementation */
 .project-details-page .create-sprint-nav-bar {
-  position: relative !important;
+  position: sticky !important;
+  top: 0 !important;
   z-index: 20 !important;
+  background: var(--bg-secondary) !important; /* Match page background */
+  padding-top: 0 !important;
+  padding-bottom: var(--space-4) !important;
+  margin-bottom: var(--space-2) !important;
 }
 
-.project-details-page .scroll-shadows {
-  position: absolute !important;
-  inset: 0 !important;
-  pointer-events: none !important;
-  z-index: 10 !important;
+/* Mobile Topbar Adjustment - Stick below the navbar */
+@media (max-width: 600px) {
+  body.has-topbar .project-details-page .create-sprint-nav-bar {
+    top: calc(var(--navbar-height-mobile, 56px) + env(safe-area-inset-top, 0px)) !important;
+    background: var(--bg-secondary) !important;
+    padding-top: var(--space-2) !important; /* Add some breathing room */
+  }
 }
 
-.project-details-page .scroll-shadows::before,
-.project-details-page .scroll-shadows::after {
+/* Add shadow on scroll if needed - handled by scroll-shadows but can be enhanced */
+.project-details-page .create-sprint-nav-bar::after {
   content: '' !important;
   position: absolute !important;
+  bottom: -16px !important;
   left: 0 !important;
   right: 0 !important;
-  height: 120px !important;
-  pointer-events: none !important;
+  height: 16px !important;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05), transparent) !important;
   opacity: 0 !important;
-  transition: opacity 0.25s ease !important;
+  transition: opacity 0.2s ease !important;
+  pointer-events: none !important;
 }
 
-/* Top gradient flush with project header */
-.project-details-page .scroll-shadows::before {
-  top: var(--project-header-height, 65px) !important;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.15) 60%,
-    rgba(0, 0, 0, 0.3) 100%
-  ) !important;
+/* Helper to show shadow when scrolled - requires JS toggle or intersection observer, 
+   but we can leave it simple for now or rely on existing implementation */
+
+.project-details-page .scroll-shadows {
+  display: none !important; /* Disable old scroll shadows as we use native scrolling */
 }
 
-/* Bottom gradient flush with footer */
-.project-details-page .scroll-shadows::after {
-  bottom: calc(var(--footer-height, 60px) + env(safe-area-inset-bottom, 0px)) !important;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.15) 50%,
-    rgba(0, 0, 0, 0.3) 100%
-  ) !important;
-  z-index: 10 !important;
-}
-
-.project-details-page .scroll-shadows.show-top::before {
-  opacity: 1 !important;
-}
-
-.project-details-page .scroll-shadows.show-bottom::after {
-  opacity: 1 !important;
-}
-
-/* Keep legacy sticky fades disabled on this page */
-.project-details-page .create-sprint-container::before,
-.project-details-page .create-sprint-container::after {
-  content: none !important;
-  display: none !important;
-}
-
-/* Override global main margin when sidebar navbar is present */
-/* Remove flexbox centering - let container handle its own centering */
-body.has-sidebar .project-details-page {
-  margin-left: 0 !important;
-  width: 100% !important;
-  display: block !important;
-  position: relative !important;
-  height: 100% !important;
-}
-
-body.has-sidebar .navbar:hover ~ main .project-details-page {
-  margin-left: 0 !important;
-  width: 100% !important;
-  display: block !important;
-}
-
-/* Ensure container is absolutely centered using margin auto */
+/* Ensure container is centered */
 .project-details-page .create-sprint-container {
   margin-left: auto !important;
   margin-right: auto !important;
   width: 100% !important;
-  max-width: 500px !important;
+  max-width: 100% !important; /* Let surface constrain width */
   display: flex !important;
   flex-direction: column !important;
-  flex: 1 1 auto !important;
-  overflow: hidden !important;
+  overflow: visible !important; /* Allow overflow */
 }
 
 .project-details {
   position: relative !important;
   width: 100% !important;
-  margin: var(--space-4) auto !important;
   padding: var(--space-5) !important;
   border: 1px solid var(--light-gray) !important;
   background-color: var(--bg-primary) !important;
@@ -151,8 +116,6 @@ body.has-sidebar .navbar:hover ~ main .project-details-page {
   flex-direction: column !important;
   align-items: center !important;
   gap: var(--space-4) !important;
-  transition: all var(--transition-normal) ease !important;
-  min-height: 0 !important;
   box-sizing: border-box !important;
 }
 

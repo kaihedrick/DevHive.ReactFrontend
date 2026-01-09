@@ -3,24 +3,38 @@
 /* ============================= */
 
 .account-details-page {
-  display: flex !important;
-  flex-direction: column !important;
+  display: block !important;
   width: 100% !important;
   height: 100% !important;
-  overflow: hidden !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   background: var(--bg-secondary) !important;
   padding: 0 !important;
+  padding-bottom: calc(var(--footer-height, 60px) + var(--space-6)) !important;
+}
+
+/* Prevent global scrolling to avoid double scrollbars */
+body:has(.account-details-page) .app-container .content {
+  overflow: hidden !important;
 }
 
 .account-details-page .account-details-header {
   position: sticky !important;
   top: 0 !important;
   z-index: 50 !important;
-  background: var(--bg-primary) !important;
-  border-bottom: 1px solid var(--border-color) !important;
+  background: var(--bg-secondary) !important;
+  border-bottom: none !important;
   padding: var(--space-4) var(--space-6) !important;
   box-shadow: none !important;
   transition: box-shadow 0.2s ease !important;
+}
+
+/* Mobile topbar adjustment for header background */
+@media (max-width: 600px) {
+  body.has-topbar .account-details-page .account-details-header {
+    background: var(--bg-secondary) !important;
+  }
 }
 
 .account-details-page .account-details-header.is-scrolled {
@@ -28,18 +42,17 @@
 }
 
 .account-details-surface {
-  flex: 1 1 auto !important;
-  display: flex !important;
-  justify-content: center !important;
-  overflow: hidden !important;
+  display: block !important;
+  overflow: visible !important;
+  width: 100% !important;
 }
 
 .account-details-scroll {
   width: 100% !important;
   max-width: 500px !important;
   padding: var(--space-6) !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
+  overflow: visible !important;
+  margin: 0 auto !important;
 }
 
 .account-container {
@@ -49,7 +62,7 @@
 
 @media (max-width: 600px) {
   body.has-topbar .account-details-page {
-    padding-top: calc(var(--navbar-height-mobile, 56px) + env(safe-area-inset-top, 0px)) !important;
+    /* Padding top handled by header sticking */
   }
 
   body.has-topbar .account-details-page .account-details-header {

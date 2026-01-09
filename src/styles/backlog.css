@@ -609,6 +609,22 @@ body.has-sidebar .navbar:hover ~ main .backlog-page {
   justify-content: space-between !important;
   gap: var(--space-3) !important;
   flex-wrap: wrap !important;
+  
+  /* Sticky positioning */
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 20 !important;
+  background: var(--bg-secondary) !important;
+  padding-top: var(--space-2) !important;
+  padding-bottom: var(--space-4) !important;
+}
+
+/* Mobile Topbar Adjustment */
+@media (max-width: 600px) {
+  body.has-topbar .backlog-page .backlog-header {
+    top: calc(var(--navbar-height-mobile, 56px) + env(safe-area-inset-top, 0px)) !important;
+    background: var(--bg-secondary) !important;
+  }
 }
 
 /* Scoped page title and subtitle within backlog header - matching Projects page */
